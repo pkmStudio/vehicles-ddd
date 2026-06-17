@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Commands;
+namespace App\Vehicles\Console\Commands;
 
-use App\Vehicles\Models\Vehicle;
+use App\Vehicles\Models\Modification;
 use Illuminate\Console\Command;
 
-class UpdateVehicleYears extends Command
+class UpdateModificationYears extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'vehicles:fix-years';
+    protected $signature = 'modifications:fix-years';
 
     /**
      * The console command description.
@@ -28,12 +28,12 @@ class UpdateVehicleYears extends Command
      */
     public function handle()
     {
-        $vehicles = Vehicle::query()->where('generation_year_to', '2025')->get();
-        $this->info('Найдено ТС: '.$vehicles->count());
+        $modifications = Modification::query()->where('year_to', '2025')->get();
+        $this->info('Найдено модификаций: '.$modifications->count());
         $count = 0;
 
-        foreach ($vehicles as $vehicle) {
-            $vehicle->update(['generation_year_to' => null]);
+        foreach ($modifications as $modification) {
+            $modification->update(['year_to' => null]);
             $count++;
         }
         $this->info('Исправлено записей: '.$count);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Commands;
+namespace App\Vehicles\Console\Commands;
 
 use App\Vehicles\Events\EnginesAndModificationsReady;
 use App\Vehicles\Imports\ManufacturerCommandImport;

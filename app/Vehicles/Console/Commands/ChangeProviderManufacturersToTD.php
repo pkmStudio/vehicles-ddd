@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Commands;
+namespace App\Vehicles\Console\Commands;
 
 use App\Vehicles\Models\Manufacturer;
 use Illuminate\Console\Command;

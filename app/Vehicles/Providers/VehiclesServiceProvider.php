@@ -15,6 +15,20 @@ use Illuminate\Support\ServiceProvider;
  */
 class VehiclesServiceProvider extends ServiceProvider
 {
+    /**
+     * Сущности домена с парой Repository (чтение) + Command (запись).
+     * Добавить сущность = одна строка.
+     */
+    private const ENTITIES = [
+        'Vehicle',
+        'Modification',
+        'Engine',
+        'PartSpecification',
+        'Manufacturer',
+        'Feature',
+        'FeatureValue',
+    ];
+
     public function register(): void
     {
         // Уведомление о готовом файле уходит в RabbitMQ (сервису с Filament).
@@ -22,6 +36,18 @@ class VehiclesServiceProvider extends ServiceProvider
             FileNotificationServiceInterface::class,
             RabbitMqFileNotificationService::class,
         );
+
+        // Repository (read) + Command (write) каждой сущности → их реализации.
+        foreach (self::ENTITIES as $entity) {
+            $this->app->bind(
+                "App\\Vehicles\\Repositories\\Contracts\\{$entity}RepositoryInterface",
+                "App\\Vehicles\\Repositories\\{$entity}Repository",
+            );
+            $this->app->bind(
+                "App\\Vehicles\\Commands\\Contracts\\{$entity}CommandInterface",
+                "App\\Vehicles\\Commands\\{$entity}Command",
+            );
+        }
     }
 
     public function boot(): void
