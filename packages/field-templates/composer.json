@@ -1,0 +1,18 @@
+{
+    "name": "dan/field-templates",
+    "description": "Переиспользуемый DSL шаблонов полей: определение полей + сериализация в массив. Рендер в Filament-форму — опционально.",
+    "type": "library",
+    "license": "proprietary",
+    "version": "1.0.0",
+    "autoload": {
+        "psr-4": {
+            "Dan\\FieldTemplates\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.3"
+    },
+    "suggest": {
+        "filament/filament": "Нужен только для рендера полей в Filament-форму (методы toFilamentForm())."
+    }
+}

@@ -199,8 +199,8 @@ return [
     'defaults' => [
         // Основные задания сервиса
         'supervisor-default' => [
-            'connection' => 'rabbitmq',
-            'queue' => ['vehicles'],
+            'connection' => 'vehicles',
+            'queue' => [env('VEHICLES_QUEUE', 'vehicles')],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
@@ -213,8 +213,8 @@ return [
         ],
         // Входящие события из общего обменника application.events
         'supervisor-inbox' => [
-            'connection' => 'rabbitmq_inbox',
-            'queue' => ['vehicles.inbox'],
+            'connection' => 'vehicles_inbox',
+            'queue' => [env('VEHICLES_INBOX_QUEUE', 'vehicles.inbox')],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,

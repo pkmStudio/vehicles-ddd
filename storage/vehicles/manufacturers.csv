@@ -1,0 +1,1089 @@
+mfa_id,name
+1,Aebi
+2,Alfa Romeo
+3,Auto Union
+5,Audi
+6,Austin
+10,Bedford
+16,Bmw
+20,Chrysler
+21,Citroen
+24,Daf
+25,Daihatsu
+26,Daimler
+29,Dodge
+30,Drögmöller
+35,Fiat
+36,Ford
+39,Gmc
+45,Honda
+52,Innocenti
+53,International Harv.
+54,Isuzu
+55,Iveco
+56,Jaguar
+63,Lada
+64,Lancia
+65,Leyland
+67,Mack
+68,Magirus-Deutz
+69,Man
+72,Mazda
+74,Mercedes-Benz
+75,Mg
+77,Mitsubishi
+78,Morris
+79,Multicar
+80,Nissan
+81,Nsu
+83,Om
+84,Opel
+88,Peugeot
+92,Porsche
+93,Renault
+95,Rover
+99,Saab
+103,Scania
+104,Seat
+106,Skoda
+107,Subaru
+109,Suzuki
+110,Talbot
+111,Toyota
+112,Triumph
+116,Van Hool
+117,Vauxhall
+120,Volvo
+121,Volkswagen
+124,Zastava
+126,Öaf
+128,Agrale
+131,Astra
+132,Avia
+134,Barkas
+136,Borgward
+137,Bova
+138,Chevrolet
+139,Dacia
+140,Dennis
+142,Ebro
+143,Erf
+147,Freightliner
+148,Gaz
+150,Heuliez
+151,Hino
+153,Karosa
+155,Kenworth
+161,Mercury
+162,Neoplan
+164,Padane
+166,Peterbilt
+171,Santana
+174,Sisu
+175,Ssangyong
+176,Steyr
+178,Tata
+179,Tatra
+181,Piaggio
+182,Western Star
+183,Hyundai
+184,Kia
+185,Daewoo
+186,Wartburg
+187,Trabant
+609,Ac
+661,Case Ih
+669,Massey Ferguson
+670,Mwm
+674,Same
+675,Solo
+678,Zuendapp
+694,Renault Trucks
+700,Ferrari
+701,Lamborghini
+705,Rolls-Royce
+750,Claas
+751,Deutz-Fahr
+752,Fendt
+755,John Deere
+771,Maserati
+773,Reliant
+774,Pontiac
+775,Fso
+776,Ford Usa
+778,Proton
+788,Bugatti
+799,Autobianchi
+801,Holden
+802,Lotus
+803,Morgan
+807,Datsun
+808,Ford Otosan
+810,Alpine
+812,Glas
+813,Moskvich
+815,Bentley
+816,Buick
+819,Cadillac
+824,Eagle
+829,Foden Trucks
+831,Geo
+832,Ginaf
+837,Jcb
+842,Lexus
+843,Mcw
+845,Mega
+849,Optare
+850,Plymouth
+851,Premier
+860,Terberg-Benschop
+861,Tvr
+865,Berkhof
+866,Alpina
+879,Asia Motors
+880,Puma
+881,Aston Martin
+882,Jeep
+907,Westfield
+908,Maruti
+937,Caterpillar
+976,Kramer
+977,Kubota
+979,Landini
+1021,Yamaha
+1025,Gueldner
+1033,Agco
+1039,Bautz
+1040,Bcs
+1048,Carraro
+1049,Cbt
+1057,Eicher
+1060,Fahr
+1063,Goldoni
+1111,Zetor
+1131,Kawasaki
+1138,Smart
+1139,Zaz
+1141,Oldsmobile
+1200,Lincoln
+1280,Mahindra
+1360,Aro
+1380,Ldv
+1480,Aixam
+1485,Bertone
+1486,Bitter
+1487,Bristol
+1488,Callaway
+1489,Carbodies
+1490,Caterham
+1491,Checker
+1493,Dallas
+1494,De Lorean
+1495,De Tomaso
+1496,Ford Australia
+1497,Saturn
+1498,Ginetta
+1499,Hindustan
+1500,Hobbycar
+1503,Envemo
+1505,Acura
+1506,Hummer
+1507,Indigo
+1508,Irmscher
+1509,Isdera
+1511,Jensen
+1513,Ligier
+1515,Luaz
+1516,Marcos
+1518,Mclaren
+1520,Metrocab
+1521,Middlebridge
+1522,Minelli
+1523,Mini
+1526,Infiniti
+1527,Oltcit
+1529,Osca
+1530,Panoz
+1531,Panther
+1533,Perodua
+1534,Ranger
+1536,Rayton Fissore
+1537,Bond
+1538,Austin-Healey
+1539,Riley
+1540,Sterling
+1541,Wolseley
+1544,San
+1545,Sao
+1547,Shelby
+1548,Sipani
+1549,Spectre
+1550,Standard Automobile
+1551,Tofas
+1553,Uaz
+1554,Umm
+1555,Vector
+1556,Venturi
+1558,Wiesmann
+1559,Yulon
+1580,Puch
+1820,Land Rover
+2115,Irisbus
+2144,Vm
+2162,Ayats
+2164,Maybach
+2208,Dina
+2241,Ashok Leyland
+2242,Askam
+2243,Bmc
+2245,Maz
+2246,Amc
+2249,Gurgel
+2254,Miura
+2256,Pegaso
+2395,Bredamenarinibus
+2407,Leyland-Innocenti
+2453,Kamaz
+2460,International
+2488,Setra
+2524,Aprilia
+2526,Armstrong Siddeley
+2532,Benelli
+2554,Cagiva
+2589,Landwind (Jmc)
+2590,Geely
+2601,Marbus
+2621,Kymco
+2637,New Holland
+2667,Temsa
+2671,Valtra
+2697,Sterling Trucks
+2706,Asüna
+2707,Avanti
+2708,Bricklin
+2709,Excalibur
+2710,Laforza
+2711,Merkur
+2712,Qvale
+2713,Saleen
+2714,Scion
+2715,Studebaker
+2716,Sunbeam
+2736,Zhonghua (Brilliance)
+2749,Bremach
+2755,Spyker
+2758,Camc
+2759,Ducati
+2760,Ktm
+2761,Mv Agusta
+2775,Am General
+2784,Desoto
+2794,Hillman
+2798,Isotta Fraschini
+2806,Packard
+2808,Rambler
+2810,Stanguellini
+2815,Willys
+2816,Yugo
+2845,Auverland
+2847,Anchi
+2848,Anfini
+2849,Bajaj Tempo
+2850,Force
+2851,Jeep (Bjc)
+2852,Changan
+2853,Changhe
+2854,Dongfeng (Dfac)
+2857,Eunos
+2858,Audi (Faw)
+2859,Vw (Faw)
+2862,Fengshen
+2863,Fengxing
+2864,Ford Asia & Oceania
+2866,Hafei
+2867,Foton
+2871,Hongqi
+2872,Huali
+2873,Jac
+2874,Wuling
+2875,Fuqi
+2887,Chery
+2888,Jinbei
+2889,Changfeng
+2890,Faw (Tianjin)
+2891,Citroën (Df-Psa)
+2901,Dadi
+2902,Gonow
+2903,Great Wall
+2904,Mitsuoka
+2905,Maple (Sma)
+2906,Baolong
+2908,Jiangnan
+2909,Faw (Jilin)
+2910,Nissan (Zhengzhou)
+2911,Zhongxing (Zx Auto)
+2913,Tongtian
+2915,Casalini
+2916,Chatenet
+2924,Fap
+2926,Grecav
+2927,Irizar
+2929,Otokar
+2931,Solaris
+2932,Zil
+3035,Vw (Svw)
+3036,Haima (Faw)
+3038,Chenglong
+3040,Jmc
+3046,Pininfarina
+3047,Lti
+3048,Tianma
+3069,Derways
+3070,Naza
+3071,Baw
+3076,Brilliance
+3084,Iran Khodro
+3086,Lifan
+3122,Byd
+3123,Hyundai (Beijing)
+3124,Bmw (Brilliance)
+3125,Ford (Changan)
+3126,Honda (Dongfeng)
+3127,Kia (Dyk)
+3128,Hyundai (Huatai)
+3129,Honda (Gac)
+3130,Toyota (Gac)
+3131,Fiat (Nanjing)
+3132,Nac Iveco (Naveco)
+3133,Mg (Nanjing)
+3136,Buick (Sgm)
+3137,Toyota (Faw)
+3138,Mazda (Faw)
+3139,Isuzu (Qingling)
+3140,Wuling (Sgmw)
+3141,Nissan (Dfac)
+3143,Suzuki (Changan)
+3152,Dongfeng Xiaokang
+3153,Soyat
+3154,Polarsun
+3155,Huizhong
+3156,Shuanghuan
+3157,Tianqi Meiya
+3158,Golden Dragon
+3159,Ufo
+3160,Zotye
+3186,Xinkai
+3191,Wanfeng
+3193,Yuejin
+3194,Carlarky
+3196,Gac
+3199,Suzuki (Changhe)
+3202,Roewe (Saic)
+3267,Europestar
+3274,Daihatsu (Faw)
+3276,Hsv
+3282,Plaxton
+3284,Rely
+3285,Riich
+3286,Karry
+3297,Fpv
+3300,Maxus
+3328,Tesla
+3332,Emgrand
+3443,Tazzari
+3495,Artega
+3497,Dr
+3500,Gruau
+3507,Icml
+3514,Think
+3522,Mercedes-Benz (Fjda)
+3526,Anadol
+3527,Chevrolet (Sgm)
+3528,Cadillac (Sgm)
+3530,Skoda (Svw)
+3531,Peugeot (Df-Psa)
+3532,Mazda (Changan)
+3533,Volvo (Changan)
+3549,Maruti Suzuki
+3551,Maz-Man
+3554,Mahindra Renault
+3555,Reva
+3562,Hawtai
+3610,Faw
+3618,Effedi
+3620,Ud Trucks
+3625,Noble
+3645,Mercedes-Benz (Bbdc)
+3646,Chrysler (Bbdc)
+3650,Mitsubishi (Bjc)
+3651,Chevrolet (Sgmw)
+3652,Effa
+3656,Ford (Jmc)
+3657,Soueast
+3658,Mitsubishi (Soueast)
+3659,Dongfeng
+3661,Lotus (Youngman)
+3677,Inokom
+3678,Chamonix
+3679,Lobini
+3680,Tac
+3681,Troller
+3687,Allgaier
+3688,Bucher
+3689,Ram
+3696,Workhorse
+3697,Gleagle
+3704,Englon
+3719,Coda
+3729,Bharatbenz
+3738,Fisker
+3740,Pyeonghwa (Pmc)
+3741,Fuso (Mitsubishi)
+3742,Luxgen
+3750,Vdl
+3752,Vpg
+3761,Fiat (Gac)
+3762,Besturn (Faw)
+3763,Ural
+3764,Baojun (Sgmw)
+3770,C.A.M
+3771,Foday
+3772,Cmc
+3773,Baic
+3794,Mastretta
+3799,Venucia
+3804,Laz
+3805,King Long
+3806,Viseon
+3819,Yagmur
+3820,Pasquali
+3821,Ferrari Agri
+3822,Caron
+3823,Challenger
+3824,Sonalika
+3826,Solis
+3828,Durso
+3829,Armatrac
+3830,Bm Tractors
+3831,Branson
+3833,Kioti
+3837,Mitsubishi (Gac)
+3838,Mg (Saic)
+3839,Qoros
+3842,Autozam
+3848,Shaanxi
+3849,Jiefang (Faw)
+3854,Abarth
+3855,Sinotruk (Cnhtc)
+3913,Haima (Zhengzhou)
+3914,Mccormick
+3915,Belarus
+3923,Weituo
+3946,Farmtrac
+3960,Basak
+3961,Mia Electric
+3968,Haval
+3971,Andoria
+3972,Preet
+3974,Al-Ghazi
+3975,Swaraj
+3991,Can-Am
+3993,Jonway
+3997,Gonow (Gac)
+3999,Ds (Capsa)
+4002,Yema
+4004,Beiben
+4010,Srt
+4015,Streetscooter
+4033,Zinoro
+4036,Baic Huansu
+4048,Buell
+4052,Daelim
+4054,Gilera
+4055,Harley-Davidson
+4056,Hyosung
+4060,Malaguti
+4061,Mbk
+4062,Moto Guzzi
+4063,Mz
+4064,Sachs
+4065,Simson
+4069,Vespa
+4070,Kreidler
+4071,Derbi
+4072,Fantic
+4073,Italjet
+4074,Jawa
+4075,Laverda Motorcycles
+4076,Maico
+4077,Moto-Morini
+4078,Pgo Motorcycles
+4079,Sanglas
+4080,Tornax
+4087,Hercules
+4089,Denza
+4152,Ruf
+4161,Brabus
+4162,Bufori
+4163,Koenigsegg
+4164,Pagani
+4167,Volvo Asia
+4176,Higer
+4177,Chtc Auto
+4179,Jincheng
+4180,Joylong
+4181,Kawei Auto
+4182,Kavz
+4186,Liaz Bus
+4187,Lloyd
+4189,Forland
+4191,Yutong
+4211,Infiniti (Dfac)
+4214,Cowin
+4219,Microcar
+4231,Lml
+4239,Brandy
+4240,Dafra
+4241,Husqvarna
+4242,Kasinski
+4244,Traxx
+4245,Sym
+4255,Huasong
+4256,Victory
+4257,Fqt Motor
+4258,Huanghai
+4259,Enranger
+4260,Samsung
+4264,Dongfeng Fengdu
+4265,Kama
+4266,Baic Weiwang
+4267,Dayun
+4268,Hengtong
+4269,Dfsk
+4273,Shacman
+4276,Xcmg
+4280,Saic-Iveco Hongyan
+4282,Land Rover (Chery)
+4287,Husaberg
+4288,Ecm
+4289,Gasgas
+4290,Rex
+4292,Tagaz
+4294,Volgabus
+4299,Sundown
+4310,Vam
+4314,Hmracing
+4315,Beta
+4319,Caloi
+4320,Huayang
+4322,Zero
+4323,Wangye
+4324,Victory Motorcycles
+4325,Indian
+4326,Wuyang
+4328,Motobi
+4330,Adly
+4331,Aeon
+4333,Mondial
+4334,Nipponia
+4346,Quadro
+4367,Amazonas
+4368,Bimota
+4369,Dayang
+4370,Garinni
+4371,Haobao
+4372,Hartford
+4373,Iros
+4374,Johnny Pag
+4375,Kahena
+4376,Miza
+4377,Regal Raptor
+4379,Vento
+4385,Mvk
+4386,Royal Enfield
+4390,Kandi
+4391,Agco Allis
+4392,Pfanzelt
+4393,Isuzu (Jiangxi)
+4394,C&C Trucks
+4400,Sommer Motorcycles
+4401,Tgb
+4402,Beeline
+4403,Generic
+4404,Rivero
+4406,Ariel
+4407,Swm
+4414,Alpheon
+4418,Baic Bjev
+4421,Troliga Bus
+4423,Baotian
+4424,Cf Moto
+4425,Tomos
+4439,Bogdan
+4445,Karsan
+4448,Tongjiafu
+4449,Tongbao
+4450,Heibao
+4454,Jeep (Gac Fca)
+4468,Ds
+4472,Kuba
+4473,Genesis
+4487,Cezeta
+4488,Horex
+4489,Amw
+4491,Emco
+4492,Mash
+4493,Motowell
+4494,Luxxon
+4495,Keeway
+4496,Turbho
+4497,Sfm
+4498,Ksr Moto
+4501,Mobility Ventures
+4532,Spartan
+4534,Sml
+4535,Ika
+4536,Ies
+4537,Siam
+4538,Renault (Dfac)
+4539,Govecs
+4540,Brixton
+4541,Engesa
+4542,Inbus
+4552,Bajaj
+4553,Hero
+4554,Tvs
+4555,Um
+4556,Hero Electric
+4558,Monto
+4559,Lectric
+4560,Yobykes
+4564,Yezdi
+4566,Kanda
+4577,Tatsa
+4592,Saipa
+4593,Acura (Gac)
+4599,Zd
+4600,Autoar
+4604,Zenos Cars
+4605,Multix
+4607,Vuhl
+4608,Güleryüz
+4609,Chana
+4610,Hanteng
+4611,Swm Motors
+4612,Lynk & Co
+4613,Niu
+4614,Jaguar (Chery)
+4617,Ccm
+4618,Megelli
+4621,Rieju
+4623,Zanella
+4624,Scomadi
+4626,Bahman
+4627,Speranza
+4628,Asiawing
+4633,Garelli
+4636,Venirauto
+4637,Bisu
+4639,El Detalle
+4640,Groz
+4642,Sileo
+4644,Thairung
+4645,Bio Auto
+4646,Vem
+4657,German E Cars
+4658,Donkervoort
+4659,Pgo
+4660,Ravon
+4661,Shineray
+4667,Xgjao
+4668,Haosen
+4670,Motorrad
+4672,Euromot
+4673,Jianshe
+4674,Loncin
+4675,Tmracing
+4683,Izh
+4692,Hattat
+4708,Romanital
+4712,Bluecar
+4717,De La Chapelle
+4722,Hesket
+4723,Norton
+4729,Humber
+4730,Alvis
+4731,Singer
+4739,Fnm
+4740,Zamyad
+4751,Wey
+4752,Goupil
+4762,Uz-Daewoo
+4763,Seaz
+4764,Yudo
+4771,Qingqi
+4773,Hicom
+4780,Nio
+4788,Zarooq
+4798,Traum
+4799,Jinlun
+4801,Benzhou
+4802,Znen
+4803,Cpi
+4817,Polestar
+4896,Cupra
+5062,Zongshen
+5063,Adiva
+5064,Atala
+5065,Yiben
+5066,Eton
+5067,Huatian
+5068,Lexmoto
+5069,Lingben
+5076,Gac Mobylette
+5077,Xingyue
+5078,Sanben
+5109,Horki (Dyk)
+5111,Vortex
+5114,Weltmeister
+5115,Oshan
+5116,Baic Ruili
+5118,Vinfast
+5119,Jetour
+5123,Ora
+5124,Red Star
+5125,Sinogold
+5127,Braaap Motorcycles
+5128,Bsa Motorcycles
+5129,Hunter Motorcycles
+5130,Lambretta
+5131,Laro
+5133,Sherco
+5134,Vmoto Motorcycles
+5135,Gumpert
+5136,Apollo
+5138,Qiantu
+5139,Sitech
+5140,Dearcc
+5141,Dorcen
+5152,Polaris
+5155,Lite (Bjev)
+5156,Neta (Hozon)
+5170,Martin Motors
+5171,Spania Gta
+5173,Bolwell
+5181,Linktour
+5184,Xpeng
+5186,Autorrad
+5188,Yulu
+5190,Fac
+5194,Levc
+5201,Leapmotor
+5203,Oullim
+5204,Mpm Motors
+5206,Ud Nissan Diesel
+5208,Gme
+5209,Giotti Victoria
+5219,Jmev
+5244,Geometry
+5246,Lixiang
+5247,Exeed (Chery)
+5248,Enovate
+5257,Minicord
+5258,Zedriv
+5259,Skywell (Kaiwo)
+5262,Srm (Brilliance)
+5330,Techart
+5338,Cnj
+5392,Hino (Gac)
+5398,Jetta
+5402,Okinawa
+5405,Cleveland Cyclewerks
+5407,Ather
+5409,Ampere
+5411,Revolt
+5412,F.B Mondial
+5414,Atul
+5415,Baxy
+5416,Scooters India
+5417,Jsa
+5422,Lovson
+5424,Kinetic
+5425,Teja
+5426,Rasandik
+5436,Rosenbauer
+5440,Alexander Dennis
+5441,Bci
+5463,Corona
+5464,Jbm
+5465,Ural India
+5475,Galloper
+5478,Zhongtong
+5479,Ankai
+5480,Sunlong
+5482,Comarth
+5486,Fengon
+5487,Aeolus
+5499,Letin
+5500,Aiways
+5501,Karma
+5506,Vgv
+5507,Dodge (Soueast)
+5510,Bestune
+5511,Hunkt
+5512,Lincoln (Changan)
+5521,Chrysler (Soueast)
+5522,Everus
+5525,New Baojun
+5527,Dongfeng Chaolong
+5530,Leopaard
+5550,Lohia
+5558,Togg
+5568,Byd Adl
+5583,Hycan
+5590,Seres
+5595,Sol
+5596,Ciimo
+5598,Foton Gratour
+5599,Jdmc
+5670,Beijing
+5671,Baic-Orv
+5672,Lorinser
+5696,Maple
+5699,Joyfun Auto
+5704,Swaraj Mazda
+5705,E.Go
+5710,King
+5711,Masa
+5733,Voge
+5735,Volvo Bm
+5736,Isorivolta
+5737,Iso
+5738,Bizzarrini
+5745,Gac Ne
+5746,Lingbox
+5747,Bajaj Re
+5766,Rcev
+5767,Dongfeng Fukang
+5769,Cenntro
+5808,Faw (Hongta)
+5813,Sd
+5841,Ace
+5842,Agri King
+5843,Akash
+5844,Captain
+5845,Escorts
+5846,Field Marshal
+5847,Trakstar
+5848,Indo Farm
+5849,Hmt
+5850,Kamco
+5851,Standard Agri
+5852,Tafe
+5853,Trishul
+5854,Vst Shakti
+5855,White Wagon
+5856,Mahindra Gujarat
+5858,Hiphi
+5890,Skywell
+5891,Arcfox
+5998,Ford Africa
+5999,T-King
+6000,Farizon Auto
+6016,Faam
+6025,Kish Khodro
+6027,Lonsdale
+6028,Mini (Gb)
+6029,Mosler
+6030,Mtx
+6039,Star
+6043,Zenvo
+6057,Refine
+6067,R Auto
+6089,Fargo
+6119,Timor
+6121,Fomm
+6140,Esemka
+6146,Pocco
+6162,Henrey Automobile
+6168,Zeekr
+6175,Td Cars
+6176,Skyworth
+6177,Elaris
+6178,Sevic
+6183,Pur Ev
+6184,Benling
+6203,Odysse
+6204,Rowwet
+6207,Zacua
+6208,Hengrun Auto
+6223,Voyah
+6224,Kaicene
+6233,Tank
+6276,Feidi
+6277,Sany
+6288,Ev House
+6302,Baic Ruixiang
+6350,Online
+6363,Forthing
+6378,Modern Auto
+6381,Baizhi
+6398,Xbus
+6400,Audi (Saic)
+6439,Tropos
+6459,Motorino
+6460,Haojue
+6465,Aito
+6466,Bull
+6470,Sousa
+6471,Aima
+6476,Cake
+6477,Voltz
+6478,Bee
+6479,Super Soco
+6480,Avelloz
+6491,Auguri
+6493,Wazn
+6494,Mormaii
+6501,E.F.O
+6502,Zontes
+6513,Horwin
+6514,Im Motors
+6519,Lucid
+6541,Brilliance Xinri
+6543,New Gonow Auto
+6545,Micro
+6567,Motron
+6576,Ineos
+6579,Asia Cab
+6587,Deepal
+6588,Xev
+6619,Veam
+6622,Avatr
+6623,Huakai Auto
+6624,Wanxiang Auto
+6687,Qjmotor
+6688,Yadea
+6690,Tinbot
+6695,B-On
+6696,Scoobic
+6697,Huazi Auto
+6699,Alrendo
+6702,Jidu
+6705,Energica
+6706,Truong Giang
+6707,Tmt Motors
+6708,Samco
+6710,Radar
+6725,Hdt
+6732,Menarinibus
+6739,Livan Auto
+6751,Praga
+6758,Emw
+6768,Viauto
+6772,Evum Motors
+6773,Nextem
+6798,Vertigo
+6812,Wright
+6822,Lordstown
+6856,Galaxy
+6861,Bak Automobile
+6862,Evo
+6869,Livewire
+6873,Ickx
+6874,Sportequipe
+6883,Addax
+6897,Mutt
+6898,Brightdrop
+6899,Kayo
+6903,Jac Ev
+6904,Gpx Moto
+6906,Talaria
+6909,Ycf
+6910,Zoot
+6915,Rivian
+6928,Linxys
+6929,Hyper
+6933,Kyc
+7023,Polestones
+7024,Emc
+7025,Thaco
+7029,M-Hero
+7030,Kg Mobility
+7089,Yangwang
+7090,Jiyue Auto
+7094,Qiyuan
+7095,Reach
+7096,Jenhoo-Auto
+7097,Chengshi
+7098,Neomor
+7099,Nammi
+7110,Fest
+7114,Royal Alloy
+7268,Coradir
+7274,Volt
+7275,Vinamotor
+7289,Ohm
+7384,Vent
+7507,Fangchengbao
+7577,Landian
+7642,Omoda
+7731,Luxeed
+7732,Yuanhang
+7738,Dongben
+7789,Eπ
+7809,I Car
+8047,Bac
+8048,Xiaomi
+8059,Jaecoo
+8065,Mullen
+8093,Stark Future
+8113,Jpx
+8126,Arrow Mobility
+8127,Lafer
+8128,Cross Lander
+8129,Prike
+8155,Santa Matilde
+8161,Xcite
+8166,Wallys
+8168,Tnt
+8179,Forza
+8185,Qooder
+8195,Wottan Motor
+8223,Vw (Anhui)
+8231,Chirey
+8232,212
+8233,Chevoo
+8234,Hengchi
+8235,Minan Auto
+8236,Onvo
+8237,S-Hiace
+8238,Stelato
+8239,Winnerway
+8241,Shacmoto
+8245,Zeeho
+8263,Lingxi
+8264,Elfin
+8265,Naxeon
+8267,Kim Long
+8268,Leonart
+8295,Velocifero
+8300,Dsk
+8307,Voxan
+8309,Ubco
+8322,Eon Motors
+8326,Kl
+8327,Silence
+8333,Benda
+8337,Mbp Moto
+8338,Morbidelli
+8340,Rixe
+8356,Ajp
+8358,Kove
+8359,Jj Cobas
+8369,Mobilize
+8370,Teraco
+8389,Belgee
+8423,Brammo
+8440,Borile
+8454,Firefly

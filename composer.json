@@ -5,11 +5,20 @@
     "description": "The skeleton application for the Laravel framework.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/field-templates",
+            "options": { "symlink": true }
+        }
+    ],
     "require": {
         "php": "^8.3",
+        "dan/field-templates": "*",
         "laravel/framework": "^13.8",
         "laravel/horizon": "^5.47",
         "laravel/tinker": "^3.0",
+        "maatwebsite/excel": "^3.1",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^15.0"
     },
     "require-dev": {

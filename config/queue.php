@@ -1,6 +1,6 @@
 <?php
 
-use App\Infrastructure\RabbitMQ\Workers\CustomRabbitMQQueue;
+use App\Vehicles\Messaging\Workers\CustomRabbitMQQueue;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Jobs\RabbitMQJob;
 
 return [
@@ -92,9 +92,9 @@ return [
             ],
         ],
 
-        'rabbitmq' => [
+        'vehicles' => [
             'driver' => 'rabbitmq',
-            'queue' => env('RABBITMQ_QUEUE', 'vehicles'),
+            'queue' => env('VEHICLES_QUEUE', 'vehicles'),
             'hosts' => [
                 [
                     'host' => env('RABBITMQ_HOST', '127.0.0.1'),
@@ -124,9 +124,9 @@ return [
             'worker' => env('RABBITMQ_WORKER', 'default'),
         ],
 
-        'rabbitmq_inbox' => [
+        'vehicles_inbox' => [
             'driver' => 'rabbitmq',
-            'queue' => 'vehicles.inbox',
+            'queue' => env('VEHICLES_INBOX_QUEUE', 'vehicles.inbox'),
             'hosts' => [
                 [
                     'host' => env('RABBITMQ_HOST', '127.0.0.1'),
@@ -151,7 +151,7 @@ return [
 
                     'declare' => true,
 
-                    'job' => \App\Infrastructure\RabbitMQ\Consumers\InboxConsumer::class,
+                    'job' => \App\Vehicles\Messaging\Consumers\InboxConsumer::class,
                     'prefetch_count' => 10,
                 ],
             ],

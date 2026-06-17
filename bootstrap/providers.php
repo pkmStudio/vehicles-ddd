@@ -1,6 +1,7 @@
 <?php
 
 return [
-    App\Providers\AppServiceProvider::class,
     App\Providers\HorizonServiceProvider::class,
+    App\Vehicles\Providers\VehiclesServiceProvider::class,
+    App\Vehicles\Providers\EventServiceProvider::class,
 ];
