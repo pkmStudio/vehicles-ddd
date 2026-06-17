@@ -1,0 +1,95 @@
+# ========== Stage 1: Composer ==========
+FROM composer:2 AS composer
+
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+
+# ignore-platform-reqs: образ composer:2 может быть на PHP 8.5 без расширений; vendor копируется в php:8.4-fpm
+RUN composer install \
+    --no-dev \
+    --no-scripts \
+    --no-autoloader \
+    --prefer-dist \
+    --ignore-platform-reqs
+
+COPY . .
+
+# .dockerignore исключает storage — для package:discover при dump-autoload нужны пути
+RUN mkdir -p storage/framework/views storage/framework/cache/data storage/framework/sessions \
+    storage/logs storage/app/public bootstrap/cache \
+    && composer dump-autoload --optimize --classmap-authoritative
+
+# ========== Stage 2: Frontend ==========
+FROM node:22-alpine AS frontend
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+COPY vite.config.js ./
+COPY resources ./resources
+
+ARG VITE_APP_NAME=laravel
+ENV VITE_APP_NAME=${VITE_APP_NAME}
+
+RUN npm run build
+
+# ========== Stage 3: Runtime ==========
+FROM php:8.4-fpm-alpine AS runtime
+
+# System deps (linux-headers needed for PHP sockets extension: linux/sock_diag.h)
+RUN apk add --no-cache \
+    freetype libpng libjpeg-turbo libzip libpq libxml2 icu-libs oniguruma \
+    freetype-dev libpng-dev libjpeg-turbo-dev libzip-dev postgresql-dev \
+    libxml2-dev icu-dev oniguruma-dev \
+    linux-headers \
+    git curl zip unzip \
+    jpegoptim optipng pngquant
+
+# GD
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+    pdo pdo_pgsql mbstring exif pcntl bcmath gd zip intl sockets xml
+
+# Redis
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
+
+# Clean
+RUN docker-php-source delete && apk del freetype-dev libpng-dev libjpeg-turbo-dev libzip-dev postgresql-dev libxml2-dev icu-dev oniguruma-dev
+
+# PHP settings
+COPY docker/php/custom.ini /usr/local/etc/php/conf.d/99-custom.ini
+# PHP-FPM: слушать на всех интерфейсах, чтобы nginx в другом контейнере подключался (избегаем 502)
+COPY docker/php-fpm/zz-docker-listen.conf /usr/local/etc/php-fpm.d/zz-docker-listen.conf
+
+# Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# App code
+WORKDIR /var/www
+
+COPY . .
+COPY --from=composer /app/vendor ./vendor
+COPY --from=frontend /app/public/build ./public/build
+
+# Permissions (.dockerignore исключает storage — создаём пустой каркас; данные с тома/хоста)
+RUN mkdir -p storage bootstrap/cache \
+    && chown -R www-data:www-data /var/www \
+    && chmod -R 775 storage bootstrap/cache
+
+# Entrypoint for web container only
+COPY docker/entrypoint.prod.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+# Loop для планировщика (schedule:run раз в минуту)
+COPY docker/scheduler-loop.sh /usr/local/bin/scheduler-loop.sh
+RUN chmod +x /usr/local/bin/scheduler-loop.sh
+
+EXPOSE 9000
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["php-fpm"]
