@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports\Vehicle\Sheets;
 
+use App\Vehicles\Commands\Contracts\VehicleCommandInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use App\Vehicles\Traits\HasVehicleImportBaseData;
+use App\Vehicles\Validators\VehicleValidator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -18,11 +20,12 @@ final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, With
     use CachesImportFailures;
     use HasVehicleImportBaseData;
 
-    private int $userId;
-
-    public function __construct(int $userId, string $cacheKey)
-    {
-        $this->userId = $userId;
+    public function __construct(
+        private readonly int $userId,
+        string $cacheKey,
+        private readonly VehicleCommandInterface $vehicleCommand,
+        private readonly VehicleValidator $vehicleValidator,
+    ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "vehicle_import_failures_lock_{$this->userId}";
     }

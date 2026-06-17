@@ -5,29 +5,42 @@ declare(strict_types=1);
 namespace App\Vehicles\Commands;
 
 use App\Vehicles\Commands\Contracts\PartSpecificationCommandInterface;
+use App\Vehicles\DTOs\PartSpecificationData;
 use App\Vehicles\Models\PartSpecification;
 
 final class PartSpecificationCommand implements PartSpecificationCommandInterface
 {
-    public function create(array $attributes): PartSpecification
+    public function create(PartSpecificationData $data): PartSpecification
     {
-        return PartSpecification::query()->create($attributes);
+        return PartSpecification::query()->create($data->toArray());
     }
 
-    public function update(PartSpecification $partSpecification, array $attributes): PartSpecification
+    public function update(PartSpecification $specification, PartSpecificationData $data): PartSpecification
     {
-        $partSpecification->update($attributes);
+        $specification->update($data->toArray());
 
-        return $partSpecification;
+        return $specification;
     }
 
-    public function updateOrCreate(array $attributes, array $values = []): PartSpecification
+    public function upsert(PartSpecificationData $data): PartSpecification
     {
-        return PartSpecification::query()->updateOrCreate($attributes, $values);
+        return PartSpecification::query()->updateOrCreate(
+            [
+                'partable_type' => $data->partableType,
+                'partable_id' => $data->partableId,
+                'template' => $data->template,
+                'feature_value_id' => $data->featureValueId,
+            ],
+            [
+                'name' => $data->name,
+                'text' => $data->text,
+                'details' => $data->details,
+            ],
+        );
     }
 
-    public function delete(PartSpecification $partSpecification): bool
+    public function delete(PartSpecification $specification): bool
     {
-        return (bool) $partSpecification->delete();
+        return (bool) $specification->delete();
     }
 }

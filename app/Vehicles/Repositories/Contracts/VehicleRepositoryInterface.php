@@ -18,5 +18,5 @@ interface VehicleRepositoryInterface
 
     public function all(): Collection;
 
-    public function firstWhere(string $column, mixed $value): ?Vehicle;
+    public function firstByMsId(int $msId): ?Vehicle;
 }

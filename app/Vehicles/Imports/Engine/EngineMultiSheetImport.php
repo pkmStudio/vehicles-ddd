@@ -31,7 +31,7 @@ final class EngineMultiSheetImport implements ShouldQueue, WithChunkReading, Wit
     {
         return [
             'Двигатели' => new EngineMainSheetImport($this->importedByUserId, $this->cacheKey),
-            'Свечи зажигания' => new EngineSparkPlugsSheetImport($this->importedByUserId, $this->cacheKey),
+            'Свечи зажигания' => app()->makeWith(EngineSparkPlugsSheetImport::class, ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey]),
         ];
     }
 

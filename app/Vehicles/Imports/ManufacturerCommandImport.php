@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports;
 
+use App\Vehicles\Commands\Contracts\ManufacturerCommandInterface;
+use App\Vehicles\DTOs\ManufacturerData;
 use App\Vehicles\Events\ManufacturerCommandImported;
-use App\Vehicles\Models\Manufacturer;
+use App\Vehicles\Validators\ManufacturerValidator;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 use Log;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -18,10 +22,15 @@ use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Validators\Failure;
 
 /**
- * Импортер производителей
+ * Импортер производителей. Строка -> validate -> DTO -> Command.
  */
 class ManufacturerCommandImport implements ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
+    public function __construct(
+        private readonly ManufacturerCommandInterface $command,
+        private readonly ManufacturerValidator $validator,
+    ) {}
+
     public function chunkSize(): int
     {
         return 100;
@@ -29,14 +38,27 @@ class ManufacturerCommandImport implements ShouldQueue, SkipsOnFailure, ToCollec
 
     public function collection(Collection $collection): void
     {
-        foreach ($collection as $row) {
-            Manufacturer::query()->updateOrCreate(
-                ['mfa_id' => $row[0]],
-                [
-                    'name' => $row[1],
+        foreach ($collection as $index => $row) {
+            try {
+                $valid = $this->validator->validate([
+                    'mfa_id' => $row[0] ?? null,
+                    'name' => $row[1] ?? null,
                     'provider' => 'TD',
-                ]
-            );
+                ]);
+
+                $this->command->upsertByMfaId(new ManufacturerData(
+                    mfaId: (int) $valid['mfa_id'],
+                    name: (string) $valid['name'],
+                    provider: (string) $valid['provider'],
+                ));
+            } catch (ValidationException $e) {
+                $this->onFailure(new Failure(
+                    $index + $this->startRow(),
+                    'Производитель',
+                    Arr::flatten($e->errors()),
+                    $row->toArray(),
+                ));
+            }
         }
     }
 

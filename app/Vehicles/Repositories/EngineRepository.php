@@ -25,8 +25,8 @@ final class EngineRepository implements EngineRepositoryInterface
         return Engine::query()->get();
     }
 
-    public function firstWhere(string $column, mixed $value): ?Engine
+    public function firstByEngId(int $engId): ?Engine
     {
-        return Engine::query()->where($column, $value)->first();
+        return Engine::query()->where('eng_id', $engId)->first();
     }
 }

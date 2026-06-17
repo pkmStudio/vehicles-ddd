@@ -5,25 +5,29 @@ declare(strict_types=1);
 namespace App\Vehicles\Commands;
 
 use App\Vehicles\Commands\Contracts\ModificationCommandInterface;
+use App\Vehicles\DTOs\ModificationData;
 use App\Vehicles\Models\Modification;
 
 final class ModificationCommand implements ModificationCommandInterface
 {
-    public function create(array $attributes): Modification
+    public function create(ModificationData $data): Modification
     {
-        return Modification::query()->create($attributes);
+        return Modification::query()->create($data->toArray());
     }
 
-    public function update(Modification $modification, array $attributes): Modification
+    public function update(Modification $modification, ModificationData $data): Modification
     {
-        $modification->update($attributes);
+        $modification->update($data->toArray());
 
         return $modification;
     }
 
-    public function updateOrCreate(array $attributes, array $values = []): Modification
+    public function upsertByModIdAndType(ModificationData $data): Modification
     {
-        return Modification::query()->updateOrCreate($attributes, $values);
+        return Modification::query()->updateOrCreate(
+            ['mod_id' => $data->modId, 'type' => $data->type],
+            $data->toArray(),
+        );
     }
 
     public function delete(Modification $modification): bool

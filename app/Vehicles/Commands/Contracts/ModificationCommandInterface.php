@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Commands\Contracts;
 
+use App\Vehicles\DTOs\ModificationData;
 use App\Vehicles\Models\Modification;
 
-/**
- * Запись Modification (write).
- */
 interface ModificationCommandInterface
 {
-    public function create(array $attributes): Modification;
+    public function create(ModificationData $data): Modification;
 
-    public function update(Modification $modification, array $attributes): Modification;
+    public function update(Modification $modification, ModificationData $data): Modification;
 
-    public function updateOrCreate(array $attributes, array $values = []): Modification;
+    /** Upsert по составному натуральному ключу (mod_id + type). */
+    public function upsertByModIdAndType(ModificationData $data): Modification;
 
     public function delete(Modification $modification): bool;
 }

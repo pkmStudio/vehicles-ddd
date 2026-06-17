@@ -13,6 +13,6 @@ class StartVehicleImport
     public function handle(ManufacturerCommandImported $event): void
     {
         $path = storage_path('vehicles/vehicles.csv');
-        Excel::queueImport(new VehicleCommandImport, $path);
+        Excel::queueImport(app(VehicleCommandImport::class), $path);
     }
 }

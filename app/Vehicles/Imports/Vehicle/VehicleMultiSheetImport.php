@@ -30,8 +30,8 @@ final class VehicleMultiSheetImport implements ShouldQueue, WithChunkReading, Wi
     public function sheets(): array
     {
         return [
-            'Основная информация' => new VehicleMainSheetImport($this->importedByUserId, $this->cacheKey),
-            'Дворники' => new VehicleWipersSheetImport($this->importedByUserId, $this->cacheKey),
+            'Основная информация' => app()->makeWith(VehicleMainSheetImport::class, ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey]),
+            'Дворники' => app()->makeWith(VehicleWipersSheetImport::class, ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey]),
         ];
     }
 

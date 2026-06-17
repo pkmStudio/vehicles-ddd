@@ -5,25 +5,29 @@ declare(strict_types=1);
 namespace App\Vehicles\Commands;
 
 use App\Vehicles\Commands\Contracts\VehicleCommandInterface;
+use App\Vehicles\DTOs\VehicleData;
 use App\Vehicles\Models\Vehicle;
 
 final class VehicleCommand implements VehicleCommandInterface
 {
-    public function create(array $attributes): Vehicle
+    public function create(VehicleData $data): Vehicle
     {
-        return Vehicle::query()->create($attributes);
+        return Vehicle::query()->create($data->toArray());
     }
 
-    public function update(Vehicle $vehicle, array $attributes): Vehicle
+    public function update(Vehicle $vehicle, VehicleData $data): Vehicle
     {
-        $vehicle->update($attributes);
+        $vehicle->update($data->toArray());
 
         return $vehicle;
     }
 
-    public function updateOrCreate(array $attributes, array $values = []): Vehicle
+    public function upsertByMsId(VehicleData $data): Vehicle
     {
-        return Vehicle::query()->updateOrCreate($attributes, $values);
+        return Vehicle::query()->updateOrCreate(
+            ['ms_id' => $data->msId],
+            $data->toArray(),
+        );
     }
 
     public function delete(Vehicle $vehicle): bool

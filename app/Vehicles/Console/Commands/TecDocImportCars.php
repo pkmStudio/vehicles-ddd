@@ -38,7 +38,7 @@ class TecDocImportCars extends Command
         EnginesAndModificationsReady::clearFlags();
 
         $path = storage_path('vehicles/manufacturers.csv');
-        Excel::import(new ManufacturerCommandImport, $path);
+        Excel::import(app(ManufacturerCommandImport::class), $path);
         $this->info('Команда запустилась и отправило исполнение в очередь');
     }
 }

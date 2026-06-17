@@ -7,9 +7,6 @@ namespace App\Vehicles\Repositories\Contracts;
 use App\Vehicles\Models\Engine;
 use Illuminate\Database\Eloquent\Collection;
 
-/**
- * Чтение Engine (read-only).
- */
 interface EngineRepositoryInterface
 {
     public function find(int $id): ?Engine;
@@ -18,5 +15,5 @@ interface EngineRepositoryInterface
 
     public function all(): Collection;
 
-    public function firstWhere(string $column, mixed $value): ?Engine;
+    public function firstByEngId(int $engId): ?Engine;
 }

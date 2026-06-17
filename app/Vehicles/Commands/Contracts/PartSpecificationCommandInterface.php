@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Commands\Contracts;
 
+use App\Vehicles\DTOs\PartSpecificationData;
 use App\Vehicles\Models\PartSpecification;
 
-/**
- * Запись PartSpecification (write).
- */
 interface PartSpecificationCommandInterface
 {
-    public function create(array $attributes): PartSpecification;
+    public function create(PartSpecificationData $data): PartSpecification;
 
-    public function update(PartSpecification $partSpecification, array $attributes): PartSpecification;
+    public function update(PartSpecification $specification, PartSpecificationData $data): PartSpecification;
 
-    public function updateOrCreate(array $attributes, array $values = []): PartSpecification;
+    /** Upsert по натуральному ключу: partable + template + feature_value_id. */
+    public function upsert(PartSpecificationData $data): PartSpecification;
 
-    public function delete(PartSpecification $partSpecification): bool;
+    public function delete(PartSpecification $specification): bool;
 }

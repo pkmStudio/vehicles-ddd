@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports\Engine\Sheets;
 
+use App\Vehicles\Commands\Contracts\PartSpecificationCommandInterface;
+use App\Vehicles\DTOs\PartSpecificationData;
 use App\Vehicles\Enums\DetailTemplateEnum;
-use App\Vehicles\Templates\Engine\EngineTemplateFactory;
 use App\Vehicles\Models\Engine;
+use App\Vehicles\Repositories\Contracts\EngineRepositoryInterface;
+use App\Vehicles\Templates\Engine\EngineTemplateFactory;
 use App\Vehicles\Traits\BuildDetails;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
@@ -17,7 +20,6 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Validators\Failure;
-use RuntimeException;
 use Throwable;
 
 final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection, WithStartRow
@@ -31,8 +33,12 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
 
     private ?array $templateConfig = null;
 
-    public function __construct(private readonly int $userId, string $cacheKey)
-    {
+    public function __construct(
+        private readonly int $userId,
+        string $cacheKey,
+        private readonly PartSpecificationCommandInterface $partSpecs,
+        private readonly EngineRepositoryInterface $engines,
+    ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "engine_import_failures_lock_{$userId}";
     }
@@ -55,24 +61,9 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
                 continue;
             }
 
-            try {
-                $templateConfig = $this->resolveTemplate();
-            } catch (RuntimeException $e) {
-                $this->onFailure(
-                    new Failure(
-                        row: $indexRow + $this->startRow(),
-                        attribute: 'Свечи зажигания',
-                        errors: [$e->getMessage()],
-                        values: $row->toArray(),
-                    )
-                );
-
-                continue;
-            }
-
             DB::beginTransaction();
             try {
-                $engine = Engine::query()->where('eng_id', $engId)->first();
+                $engine = $this->engines->firstByEngId((int) $engId);
 
                 if (! $engine) {
                     Log::warning('EngineSparkPlugsSheetImport: двигатель не найден', [
@@ -84,14 +75,14 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
                     continue;
                 }
 
-                $startDetailIndex = self::SPEC_START_COLUMN;
-                $rowArray = $row->toArray();
-                $details = $this->buildDetails($rowArray, $startDetailIndex, $templateConfig);
+                $details = $this->buildDetails($row->toArray(), self::SPEC_START_COLUMN, $this->resolveTemplate());
 
-                $engine->partSpecifications()->updateOrCreate(
-                    ['template' => DetailTemplateEnum::SPARK_PLUGS],
-                    ['details' => $details]
-                );
+                $this->partSpecs->upsert(new PartSpecificationData(
+                    partableType: Engine::class,
+                    partableId: $engine->id,
+                    template: DetailTemplateEnum::SPARK_PLUGS,
+                    details: $details,
+                ));
 
                 DB::commit();
             } catch (Throwable $e) {
@@ -114,9 +105,6 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
         return 2;
     }
 
-    /**
-     * @throws LockTimeoutException
-     */
     private function resolveTemplate(): array
     {
         if ($this->templateConfig === null) {

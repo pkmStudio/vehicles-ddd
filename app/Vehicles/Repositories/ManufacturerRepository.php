@@ -25,8 +25,8 @@ final class ManufacturerRepository implements ManufacturerRepositoryInterface
         return Manufacturer::query()->get();
     }
 
-    public function firstWhere(string $column, mixed $value): ?Manufacturer
+    public function firstByMfaId(int $mfaId): ?Manufacturer
     {
-        return Manufacturer::query()->where($column, $value)->first();
+        return Manufacturer::query()->where('mfa_id', $mfaId)->first();
     }
 }

@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports\Vehicle\Sheets;
 
+use App\Vehicles\Commands\Contracts\PartSpecificationCommandInterface;
+use App\Vehicles\Commands\Contracts\VehicleCommandInterface;
+use App\Vehicles\DTOs\PartSpecificationData;
 use App\Vehicles\Enums\DetailTemplateEnum;
-use App\Vehicles\Templates\Vehicle\VehicleTemplateFactory;
-use App\Vehicles\Models\FeatureValue;
-use App\Vehicles\Models\PartSpecification;
 use App\Vehicles\Models\Vehicle;
+use App\Vehicles\Repositories\Contracts\FeatureValueRepositoryInterface;
+use App\Vehicles\Templates\Vehicle\VehicleTemplateFactory;
 use App\Vehicles\Traits\BuildDetails;
 use App\Vehicles\Traits\CachesImportFailures;
 use App\Vehicles\Traits\HasVehicleImportBaseData;
+use App\Vehicles\Validators\VehicleValidator;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -27,11 +30,14 @@ final class VehicleWipersSheetImport implements SkipsOnFailure, ToCollection, Wi
     use CachesImportFailures;
     use HasVehicleImportBaseData;
 
-    private int $userId;
-
-    public function __construct(int $userId, string $cacheKey)
-    {
-        $this->userId = $userId;
+    public function __construct(
+        private readonly int $userId,
+        string $cacheKey,
+        private readonly PartSpecificationCommandInterface $partSpecs,
+        private readonly FeatureValueRepositoryInterface $featureValues,
+        private readonly VehicleCommandInterface $vehicleCommand,
+        private readonly VehicleValidator $vehicleValidator,
+    ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "vehicle_import_failures_lock_{$this->userId}";
     }
@@ -74,23 +80,22 @@ final class VehicleWipersSheetImport implements SkipsOnFailure, ToCollection, Wi
     private function createOrUpdatePartSpecification(int $vehicleId, array $row): void
     {
         $templateName = $row[17] ?? null;
-        if ($templateName) {
-            [$templateSlug, $details] = $this->getDetailsData($templateName, $row);
-            $featureValue = $row[16] ? FeatureValue::query()->where('name', $row[16])->first() : null;
-            PartSpecification::query()->updateOrCreate(
-                [
-                    'partable_type' => Vehicle::class,
-                    'partable_id' => $vehicleId,
-                    'feature_value_id' => $featureValue?->id,
-                    'template' => DetailTemplateEnum::from($templateSlug),
-                ],
-                [
-                    'name' => $row[18] ?? null,
-                    'text' => $row[19] ?? null,
-                    'details' => $details,
-                ],
-            );
+        if (! $templateName) {
+            return;
         }
+
+        [$templateSlug, $details] = $this->getDetailsData($templateName, $row);
+        $featureValue = ! empty($row[16]) ? $this->featureValues->firstByName($row[16]) : null;
+
+        $this->partSpecs->upsert(new PartSpecificationData(
+            partableType: Vehicle::class,
+            partableId: $vehicleId,
+            template: DetailTemplateEnum::from($templateSlug),
+            details: $details,
+            featureValueId: $featureValue?->id,
+            name: $row[18] ?? null,
+            text: $row[19] ?? null,
+        ));
     }
 
     /**
@@ -102,10 +107,7 @@ final class VehicleWipersSheetImport implements SkipsOnFailure, ToCollection, Wi
         $template = VehicleTemplateFactory::make($templateName)->getArrayTemplate();
         $details = $this->buildDetails($row, $startIndex, $template);
 
-        return [
-            $templateName,
-            $details,
-        ];
+        return [$templateName, $details];
     }
 
     public function startRow(): int

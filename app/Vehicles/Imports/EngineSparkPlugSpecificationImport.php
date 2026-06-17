@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports;
 
+use App\Vehicles\Commands\Contracts\PartSpecificationCommandInterface;
+use App\Vehicles\DTOs\PartSpecificationData;
 use App\Vehicles\Enums\DetailTemplateEnum;
 use App\Vehicles\Enums\EngineFuelTypeEnum;
 use App\Events\Warehouse\KitImportCompleted;
 use App\Imports\Warehouse\KitImport;
-use App\Vehicles\Templates\Engine\Templates\SparkPlugTemplate;
 use App\Models\User;
 use App\Vehicles\Models\Engine;
 use App\Vehicles\Models\Modification;
 use App\Vehicles\Models\Vehicle;
+use App\Vehicles\Templates\Engine\Templates\SparkPlugTemplate;
 use App\Vehicles\Traits\BuildDetails;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,8 +40,10 @@ class EngineSparkPlugSpecificationImport implements ShouldQueue, SkipsEmptyRows,
 
     private bool $dryRun;
 
-    public function __construct(bool $dryRun = false)
-    {
+    public function __construct(
+        private readonly PartSpecificationCommandInterface $partSpecs,
+        bool $dryRun = false,
+    ) {
         $this->importedByUserId = (int) Auth::id();
         $this->cacheKey = "engine_import_failures_{$this->importedByUserId}";
         $this->lockKey = "engine_import_failures_lock_{$this->importedByUserId}";
@@ -101,18 +105,15 @@ class EngineSparkPlugSpecificationImport implements ShouldQueue, SkipsEmptyRows,
                     }
                 }
 
-                $template = app(SparkPlugTemplate::class)->getArrayTemplate();
-                $details = $this->buildDetails($row->toArray(), $startDetailIndex, $template);
+                $details = $this->buildDetails($row->toArray(), $startDetailIndex, app(SparkPlugTemplate::class)->getArrayTemplate());
 
                 foreach ($engines as $engine) {
-                    $engine->partSpecifications()->updateOrCreate(
-                        [
-                            'template' => DetailTemplateEnum::SPARK_PLUGS,
-                        ],
-                        [
-                            'details' => $details,
-                        ]
-                    );
+                    $this->partSpecs->upsert(new PartSpecificationData(
+                        partableType: Engine::class,
+                        partableId: $engine->id,
+                        template: DetailTemplateEnum::SPARK_PLUGS,
+                        details: $details,
+                    ));
                 }
             } catch (\Throwable $e) {
                 $this->onFailure(

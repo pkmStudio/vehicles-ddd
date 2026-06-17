@@ -25,8 +25,8 @@ final class VehicleRepository implements VehicleRepositoryInterface
         return Vehicle::query()->get();
     }
 
-    public function firstWhere(string $column, mixed $value): ?Vehicle
+    public function firstByMsId(int $msId): ?Vehicle
     {
-        return Vehicle::query()->where($column, $value)->first();
+        return Vehicle::query()->where('ms_id', $msId)->first();
     }
 }

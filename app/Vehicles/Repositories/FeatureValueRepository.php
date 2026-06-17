@@ -25,8 +25,8 @@ final class FeatureValueRepository implements FeatureValueRepositoryInterface
         return FeatureValue::query()->get();
     }
 
-    public function firstWhere(string $column, mixed $value): ?FeatureValue
+    public function firstByName(string $name): ?FeatureValue
     {
-        return FeatureValue::query()->where($column, $value)->first();
+        return FeatureValue::query()->where('name', $name)->first();
     }
 }

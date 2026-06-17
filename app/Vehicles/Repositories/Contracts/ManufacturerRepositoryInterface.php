@@ -18,5 +18,5 @@ interface ManufacturerRepositoryInterface
 
     public function all(): Collection;
 
-    public function firstWhere(string $column, mixed $value): ?Manufacturer;
+    public function firstByMfaId(int $mfaId): ?Manufacturer;
 }

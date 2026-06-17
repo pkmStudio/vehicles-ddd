@@ -7,9 +7,6 @@ namespace App\Vehicles\Repositories\Contracts;
 use App\Vehicles\Models\FeatureValue;
 use Illuminate\Database\Eloquent\Collection;
 
-/**
- * Чтение FeatureValue (read-only).
- */
 interface FeatureValueRepositoryInterface
 {
     public function find(int $id): ?FeatureValue;
@@ -18,5 +15,5 @@ interface FeatureValueRepositoryInterface
 
     public function all(): Collection;
 
-    public function firstWhere(string $column, mixed $value): ?FeatureValue;
+    public function firstByName(string $name): ?FeatureValue;
 }
