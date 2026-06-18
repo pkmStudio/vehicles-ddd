@@ -16,7 +16,7 @@ use App\Vehicles\Application\Contracts\Commands\VehicleCommandInterface;
  * Оркестрация: резолв производителя → валидация → запись через Command.
  * (Раньше — трейт HasVehicleImportBaseData со скрытым контрактом на хост.)
  */
-final readonly class UpsertVehicleFromSheet
+final readonly class UpsertVehicleFromSheetUseCase
 {
     public function __construct(
         private VehicleCommandInterface $command,

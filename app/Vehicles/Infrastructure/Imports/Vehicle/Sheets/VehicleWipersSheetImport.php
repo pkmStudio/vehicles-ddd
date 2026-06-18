@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Vehicle\Sheets;
 
 use App\Vehicles\Application\ModelData\PartSpecification\PartSpecificationData;
-use App\Vehicles\Application\UseCases\Vehicle\UpsertVehicleFromSheet;
+use App\Vehicles\Application\UseCases\Vehicle\UpsertVehicleFromSheetUseCase;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\Models\Vehicle;
 use App\Vehicles\Domain\Templates\Vehicle\VehicleTemplateFactory;
@@ -31,7 +31,7 @@ final class VehicleWipersSheetImport implements SkipsOnFailure, ToCollection, Wi
         string $cacheKey,
         private readonly PartSpecificationCommandInterface $partSpecs,
         private readonly FeatureValueRepositoryInterface $featureValues,
-        private readonly UpsertVehicleFromSheet $upsertVehicle,
+        private readonly UpsertVehicleFromSheetUseCase $upsertVehicle,
         private readonly DetailsBuilder $detailsBuilder,
     ) {
         $this->cacheKey = $cacheKey;

@@ -116,7 +116,7 @@ Presentation ──▶ Application ──▶ Domain
 - Сущности: `Vehicle`, `Engine`, `Modification`, `Manufacturer`, `PartSpecification`.
 - Группировка по сущности — там, где на сущность несколько файлов: `Imports/<Entity>/`, `Exports/<Entity>/`, `ModelData/<Entity>/`, `Validators/<Entity>/`. Где файл один на сущность (`Repositories/`, `Commands/`) — плоско, без папки-сущности.
 - Read = `…Repository`, Write = `…Command`, отображение = `…Data`.
-- **UseCase = глагольная фраза без суффикса** (`UpsertVehicleFromSheet`, `ReportImportResult`): use-case — это действие системы, поэтому глагол; суффикс `UseCase`/`Action` не добавляем — он дублирует namespace `Application\UseCases`. Единая точка входа — публичный метод `execute()` (один use-case = одно действие = один публичный метод). Вызов: `$this->useCase->execute(...)`.
+- **UseCase = глагольная фраза + суффикс `UseCase`** (`UpsertVehicleFromSheetUseCase`, `ReportImportResultUseCase`): use-case — это действие системы, поэтому имя глагольное; суффикс несём по виду класса — единообразно со всеми остальными (`…Repository`, `…Command`, `…Validator`, `…Listener`, `…Data`), и зеркалит папку `UseCases`. Единая точка входа — публичный метод `execute()` (один use-case = одно действие = один публичный метод). Вызов: `$this->useCase->execute(...)`.
 - Listener — см. раздел про слушателей (по событию / по действию).
 
 ### Трейты (политика)
