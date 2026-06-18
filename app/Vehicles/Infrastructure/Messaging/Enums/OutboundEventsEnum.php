@@ -14,7 +14,7 @@ namespace App\Vehicles\Infrastructure\Messaging\Enums;
  *   case VEHICLE_UPSERTED = 'vehicles.vehicle.upserted';
  * TODO: добавить события уведомлений сервису с Filament:
  *   IMPORT_SUCCEEDED (импорт без ошибок) и IMPORT_FAILED (ошибка обработки) —
- *   см. App\Vehicles\Application\Listeners\ExportImportErrors.
+ *   см. App\Vehicles\Application\Listeners\ReportImportResultListener.
  */
 enum OutboundEventsEnum: string
 {

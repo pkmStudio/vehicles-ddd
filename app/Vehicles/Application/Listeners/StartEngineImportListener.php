@@ -8,11 +8,15 @@ use App\Vehicles\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use App\Vehicles\Infrastructure\Imports\Engine\EngineCommandImport;
 use Maatwebsite\Excel\Facades\Excel;
 
-class StartEngineImport
+final readonly class StartEngineImportListener
 {
+    public function __construct(
+        private EngineCommandImport $import,
+    ) {}
+
     public function handle(ManufacturerCommandImported $event): void
     {
         $path = storage_path('vehicles/engines.csv');
-        Excel::queueImport(app(EngineCommandImport::class), $path);
+        Excel::queueImport($this->import, $path);
     }
 }

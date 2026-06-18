@@ -8,19 +8,15 @@ use App\Vehicles\Domain\Events\Vehicle\VehicleCommandImported;
 use App\Vehicles\Infrastructure\Imports\Modification\ModificationCommandImport;
 use Maatwebsite\Excel\Facades\Excel;
 
-class StartModificationCommandImport
+final readonly class StartModificationCommandImportListener
 {
-    /**
-     * Create the event listener.
-     */
-    public function __construct() {}
+    public function __construct(
+        private ModificationCommandImport $import,
+    ) {}
 
-    /**
-     * Handle the event.
-     */
     public function handle(VehicleCommandImported $event): void
     {
         $path = storage_path('vehicles/modifications.csv');
-        Excel::queueImport(app(ModificationCommandImport::class), $path);
+        Excel::queueImport($this->import, $path);
     }
 }

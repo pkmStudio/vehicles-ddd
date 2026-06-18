@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Providers;
 
+use App\Vehicles\Application\Contracts\Exports\ImportFailureReporterInterface;
 use App\Vehicles\Application\Contracts\Notifications\FileNotificationServiceInterface;
+use App\Vehicles\Infrastructure\Exports\ImportFailureReporter;
 use App\Vehicles\Infrastructure\Notifications\RabbitMqFileNotificationService;
 use Illuminate\Support\ServiceProvider;
 
@@ -35,6 +37,12 @@ class VehiclesServiceProvider extends ServiceProvider
         $this->app->bind(
             FileNotificationServiceInterface::class,
             RabbitMqFileNotificationService::class,
+        );
+
+        // Выгрузка отчёта об ошибках импорта (Excel → S3).
+        $this->app->bind(
+            ImportFailureReporterInterface::class,
+            ImportFailureReporter::class,
         );
 
         // Repository (read) + Command (write) каждой сущности → их реализации.
