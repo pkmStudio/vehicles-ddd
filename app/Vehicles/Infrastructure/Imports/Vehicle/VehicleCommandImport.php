@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Vehicle;
 
-use App\Vehicles\Infrastructure\Commands\Vehicle\VehicleCommandInterface;
-use App\Vehicles\Application\DTOs\Vehicle\VehicleData;
+use App\Vehicles\Application\Contracts\Commands\VehicleCommandInterface;
+use App\Vehicles\Application\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Domain\Enums\SteeringTypeEnum;
 use App\Vehicles\Domain\Events\Vehicle\VehicleCommandImported;
-use App\Vehicles\Infrastructure\Repositories\Manufacturer\ManufacturerRepositoryInterface;
+use App\Vehicles\Application\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Vehicles\Application\Validators\Vehicle\VehicleValidator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;

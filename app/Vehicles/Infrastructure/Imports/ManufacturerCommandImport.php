@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports;
 
-use App\Vehicles\Infrastructure\Commands\Manufacturer\ManufacturerCommandInterface;
-use App\Vehicles\Application\DTOs\Manufacturer\ManufacturerData;
+use App\Vehicles\Application\Contracts\Commands\ManufacturerCommandInterface;
+use App\Vehicles\Application\ModelData\Manufacturer\ManufacturerData;
 use App\Vehicles\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use App\Vehicles\Application\Validators\Manufacturer\ManufacturerValidator;
 use Illuminate\Contracts\Queue\ShouldQueue;

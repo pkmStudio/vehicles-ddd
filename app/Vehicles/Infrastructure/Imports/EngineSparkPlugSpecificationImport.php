@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports;
 
-use App\Vehicles\Infrastructure\Commands\PartSpecification\PartSpecificationCommandInterface;
-use App\Vehicles\Application\DTOs\PartSpecification\PartSpecificationData;
+use App\Vehicles\Application\Contracts\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Application\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\Enums\EngineFuelTypeEnum;
 use App\Events\Warehouse\KitImportCompleted;

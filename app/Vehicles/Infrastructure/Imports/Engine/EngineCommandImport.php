@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine;
 
-use App\Vehicles\Infrastructure\Commands\Engine\EngineCommandInterface;
-use App\Vehicles\Application\DTOs\Engine\EngineData;
+use App\Vehicles\Application\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Application\ModelData\Engine\EngineData;
 use App\Vehicles\Domain\Events\Engine\EngineCommandImported;
 use App\Vehicles\Application\Validators\Engine\EngineValidator;
 use Illuminate\Contracts\Queue\ShouldQueue;

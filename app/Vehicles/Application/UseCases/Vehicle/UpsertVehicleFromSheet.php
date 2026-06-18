@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\UseCases\Vehicle;
 
-use App\Vehicles\Application\DTOs\Vehicle\VehicleData;
+use App\Vehicles\Application\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Application\Validators\Vehicle\VehicleValidator;
 use App\Vehicles\Domain\Enums\SteeringTypeEnum;
 use App\Vehicles\Domain\Models\Manufacturer;
 use App\Vehicles\Domain\Models\Vehicle;
-use App\Vehicles\Infrastructure\Commands\Vehicle\VehicleCommandInterface;
+use App\Vehicles\Application\Contracts\Commands\VehicleCommandInterface;
 
 /**
  * Use-case: создать/обновить ТС из строки ручного листа.

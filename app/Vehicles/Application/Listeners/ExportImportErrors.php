@@ -6,7 +6,7 @@ namespace App\Vehicles\Application\Listeners;
 
 use App\Vehicles\Domain\Events\AbstractImportCompleted;
 use App\Vehicles\Infrastructure\Exports\FailuresExport;
-use App\Vehicles\Infrastructure\Notifications\Contracts\FileNotificationServiceInterface;
+use App\Vehicles\Application\Contracts\Notifications\FileNotificationServiceInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Excel;

@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Vehicles\Application\Contracts\Commands;
+
+use App\Vehicles\Application\ModelData\Manufacturer\ManufacturerData;
+use App\Vehicles\Domain\Models\Manufacturer;
+
+/**
+ * Запись Manufacturer (write). Принимает типизированный DTO.
+ */
+interface ManufacturerCommandInterface
+{
+    public function create(ManufacturerData $data): Manufacturer;
+
+    public function update(Manufacturer $manufacturer, ManufacturerData $data): Manufacturer;
+
+    /**
+     * Upsert по натуральному ключу mfa_id.
+     */
+    public function upsertByMfaId(ManufacturerData $data): Manufacturer;
+
+    public function delete(Manufacturer $manufacturer): bool;
+}

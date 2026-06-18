@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Providers;
 
-use App\Vehicles\Infrastructure\Notifications\Contracts\FileNotificationServiceInterface;
+use App\Vehicles\Application\Contracts\Notifications\FileNotificationServiceInterface;
 use App\Vehicles\Infrastructure\Notifications\RabbitMqFileNotificationService;
 use Illuminate\Support\ServiceProvider;
 
@@ -40,12 +40,12 @@ class VehiclesServiceProvider extends ServiceProvider
         // Repository (read) + Command (write) каждой сущности → их реализации.
         foreach (self::ENTITIES as $entity) {
             $this->app->bind(
-                "App\\Vehicles\\Infrastructure\\Repositories\\{$entity}\\{$entity}RepositoryInterface",
-                "App\\Vehicles\\Infrastructure\\Repositories\\{$entity}\\{$entity}Repository",
+                "App\\Vehicles\\Application\\Contracts\\Repositories\\{$entity}RepositoryInterface",
+                "App\\Vehicles\\Infrastructure\\Repositories\\{$entity}Repository",
             );
             $this->app->bind(
-                "App\\Vehicles\\Infrastructure\\Commands\\{$entity}\\{$entity}CommandInterface",
-                "App\\Vehicles\\Infrastructure\\Commands\\{$entity}\\{$entity}Command",
+                "App\\Vehicles\\Application\\Contracts\\Commands\\{$entity}CommandInterface",
+                "App\\Vehicles\\Infrastructure\\Commands\\{$entity}Command",
             );
         }
     }

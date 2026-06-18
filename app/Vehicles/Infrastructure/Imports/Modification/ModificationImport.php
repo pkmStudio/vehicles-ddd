@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Modification;
 
-use App\Vehicles\Infrastructure\Commands\Modification\ModificationCommandInterface;
-use App\Vehicles\Application\DTOs\Modification\ModificationData;
-use App\Vehicles\Infrastructure\Repositories\Vehicle\VehicleRepositoryInterface;
+use App\Vehicles\Application\Contracts\Commands\ModificationCommandInterface;
+use App\Vehicles\Application\ModelData\Modification\ModificationData;
+use App\Vehicles\Application\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Application\Validators\Modification\ModificationValidator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;

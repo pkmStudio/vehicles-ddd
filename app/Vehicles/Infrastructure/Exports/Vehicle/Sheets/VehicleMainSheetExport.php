@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Exports\Vehicle\Sheets;
 
-use App\Vehicles\Infrastructure\Repositories\Vehicle\VehicleRepositoryInterface;
+use App\Vehicles\Application\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Infrastructure\Support\VehicleExportRow;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
