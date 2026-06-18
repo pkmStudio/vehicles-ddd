@@ -10,18 +10,15 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 final readonly class VehicleMultiSheetExport implements WithMultipleSheets
 {
-    private bool $isAllow;
-
-    public function __construct(bool $isAllow = false)
-    {
-        $this->isAllow = $isAllow;
-    }
+    public function __construct(
+        private bool $isAllow = false,
+    ) {}
 
     public function sheets(): array
     {
         return [
-            new VehicleMainSheetExport($this->isAllow),
-            new VehicleWipersSheetExport($this->isAllow),
+            app()->makeWith(VehicleMainSheetExport::class, ['isAllow' => $this->isAllow]),
+            app()->makeWith(VehicleWipersSheetExport::class, ['isAllow' => $this->isAllow]),
         ];
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Exports\Engine\Sheets;
 
-use App\Vehicles\Models\Engine;
+use App\Vehicles\Repositories\Engine\EngineRepositoryInterface;
 use App\Vehicles\Traits\HasEngineBaseData;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -16,6 +16,10 @@ final readonly class EngineMainSheetExport implements FromCollection, WithHeadin
 {
     use HasEngineBaseData;
 
+    public function __construct(
+        private EngineRepositoryInterface $engines,
+    ) {}
+
     public function title(): string
     {
         return 'Двигатели';
@@ -23,7 +27,7 @@ final readonly class EngineMainSheetExport implements FromCollection, WithHeadin
 
     public function collection(): Collection
     {
-        return Engine::query()->get();
+        return $this->engines->all();
     }
 
     public function map($row): array

@@ -40,12 +40,12 @@ class VehiclesServiceProvider extends ServiceProvider
         // Repository (read) + Command (write) каждой сущности → их реализации.
         foreach (self::ENTITIES as $entity) {
             $this->app->bind(
-                "App\\Vehicles\\Repositories\\Contracts\\{$entity}RepositoryInterface",
-                "App\\Vehicles\\Repositories\\{$entity}Repository",
+                "App\\Vehicles\\Repositories\\{$entity}\\{$entity}RepositoryInterface",
+                "App\\Vehicles\\Repositories\\{$entity}\\{$entity}Repository",
             );
             $this->app->bind(
-                "App\\Vehicles\\Commands\\Contracts\\{$entity}CommandInterface",
-                "App\\Vehicles\\Commands\\{$entity}Command",
+                "App\\Vehicles\\Commands\\{$entity}\\{$entity}CommandInterface",
+                "App\\Vehicles\\Commands\\{$entity}\\{$entity}Command",
             );
         }
     }

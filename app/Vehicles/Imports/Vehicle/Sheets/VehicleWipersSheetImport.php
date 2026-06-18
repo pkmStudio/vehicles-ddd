@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports\Vehicle\Sheets;
 
-use App\Vehicles\Commands\Contracts\PartSpecificationCommandInterface;
-use App\Vehicles\Commands\Contracts\VehicleCommandInterface;
-use App\Vehicles\DTOs\PartSpecificationData;
+use App\Vehicles\Commands\PartSpecification\PartSpecificationCommandInterface;
+use App\Vehicles\Commands\Vehicle\VehicleCommandInterface;
+use App\Vehicles\DTOs\PartSpecification\PartSpecificationData;
 use App\Vehicles\Enums\DetailTemplateEnum;
 use App\Vehicles\Models\Vehicle;
-use App\Vehicles\Repositories\Contracts\FeatureValueRepositoryInterface;
+use App\Vehicles\Repositories\FeatureValue\FeatureValueRepositoryInterface;
 use App\Vehicles\Templates\Vehicle\VehicleTemplateFactory;
 use App\Vehicles\Traits\BuildDetails;
 use App\Vehicles\Traits\CachesImportFailures;
 use App\Vehicles\Traits\HasVehicleImportBaseData;
-use App\Vehicles\Validators\VehicleValidator;
+use App\Vehicles\Validators\Vehicle\VehicleValidator;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;

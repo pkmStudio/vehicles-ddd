@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports\Vehicle\Sheets;
 
-use App\Vehicles\Commands\Contracts\VehicleCommandInterface;
+use App\Vehicles\Commands\Vehicle\VehicleCommandInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use App\Vehicles\Traits\HasVehicleImportBaseData;
-use App\Vehicles\Validators\VehicleValidator;
+use App\Vehicles\Validators\Vehicle\VehicleValidator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;

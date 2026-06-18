@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Listeners;
 
-use App\Vehicles\Events\VehicleCommandImported;
+use App\Vehicles\Events\Vehicle\VehicleCommandImported;
 use App\Vehicles\Imports\Modification\ModificationCommandImport;
 use Maatwebsite\Excel\Facades\Excel;
 

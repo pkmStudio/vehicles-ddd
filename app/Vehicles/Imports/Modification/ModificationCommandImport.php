@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports\Modification;
 
-use App\Vehicles\Commands\Contracts\ModificationCommandInterface;
-use App\Vehicles\DTOs\ModificationData;
-use App\Vehicles\Events\ModificationCommandImported;
-use App\Vehicles\Repositories\Contracts\VehicleRepositoryInterface;
-use App\Vehicles\Validators\ModificationValidator;
+use App\Vehicles\Commands\Modification\ModificationCommandInterface;
+use App\Vehicles\DTOs\Modification\ModificationData;
+use App\Vehicles\Events\Modification\ModificationCommandImported;
+use App\Vehicles\Repositories\Vehicle\VehicleRepositoryInterface;
+use App\Vehicles\Validators\Modification\ModificationValidator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;

@@ -8,7 +8,7 @@ use App\Vehicles\Enums\CarcaseTypeEnum;
 use App\Vehicles\Enums\SteeringTypeEnum;
 use App\Vehicles\Enums\VehicleTypeEnum;
 use App\Models\Warehouse\Kit;
-use App\Vehicles\Observers\VehicleObserver;
+use App\Vehicles\Observers\Vehicle\VehicleObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -48,7 +48,6 @@ class Vehicle extends Model
         'details' => 'array',
     ];
 
-    protected $with = ['manufacturer'];
 
     public $timestamps = false;
 

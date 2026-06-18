@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Traits;
 
-use App\Vehicles\DTOs\VehicleData;
+use App\Vehicles\DTOs\Vehicle\VehicleData;
 use App\Vehicles\Enums\SteeringTypeEnum;
 use App\Vehicles\Models\Manufacturer;
 use App\Vehicles\Models\Vehicle;
@@ -12,8 +12,8 @@ use App\Vehicles\Models\Vehicle;
 /**
  * Базовая логика записи ТС из ручного листа.
  * Использующий класс обязан объявить свойства:
- *   private readonly \App\Vehicles\Commands\Contracts\VehicleCommandInterface $vehicleCommand;
- *   private readonly \App\Vehicles\Validators\VehicleValidator $vehicleValidator;
+ *   private readonly \App\Vehicles\Commands\Vehicle\VehicleCommandInterface $vehicleCommand;
+ *   private readonly \App\Vehicles\Validators\Vehicle\VehicleValidator $vehicleValidator;
  */
 trait HasVehicleImportBaseData
 {

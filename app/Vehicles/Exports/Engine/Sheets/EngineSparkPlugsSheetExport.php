@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Exports\Engine\Sheets;
 
+use App\Vehicles\Repositories\Engine\EngineRepositoryInterface;
 use App\Vehicles\Templates\Engine\EngineTemplateFactory;
-use App\Vehicles\Models\Engine;
 use App\Vehicles\Traits\BuildExportDetails;
 use App\Vehicles\Traits\HasEngineBaseData;
 use Illuminate\Support\Collection;
@@ -25,8 +25,9 @@ final readonly class EngineSparkPlugsSheetExport implements FromCollection, With
 
     private array $fieldHeadings;
 
-    public function __construct()
-    {
+    public function __construct(
+        private EngineRepositoryInterface $engines,
+    ) {
         try {
             $this->templateConfig = EngineTemplateFactory::make(self::SPARK_PLUG_TEMPLATE)->getArrayTemplate();
             $this->fieldHeadings = $this->extractHeadingsFromTemplate($this->templateConfig);
@@ -43,30 +44,15 @@ final readonly class EngineSparkPlugsSheetExport implements FromCollection, With
 
     public function collection(): Collection
     {
-        $engines = Engine::query()
-            ->with([
-                'partSpecifications' => function ($query) {
-                    $query->whereHas('detailTemplate', function ($q) {
-                        $q->where('template', self::SPARK_PLUG_TEMPLATE);
-                    })->with('detailTemplate');
-                },
-            ])
-            ->get();
-
+        $engines = $this->engines->forSparkPlugSheet();
         $expandedCollection = collect();
 
         foreach ($engines as $engine) {
             if ($engine->partSpecifications->isEmpty()) {
-                $expandedCollection->push((object) [
-                    'engine' => $engine,
-                    'specification' => null,
-                ]);
+                $expandedCollection->push((object) ['engine' => $engine, 'specification' => null]);
             } else {
                 foreach ($engine->partSpecifications as $specification) {
-                    $expandedCollection->push((object) [
-                        'engine' => $engine,
-                        'specification' => $specification,
-                    ]);
+                    $expandedCollection->push((object) ['engine' => $engine, 'specification' => $specification]);
                 }
             }
         }

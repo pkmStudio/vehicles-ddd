@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Providers;
 
-use App\Vehicles\Events\EngineCrossImportCompleted;
-use App\Vehicles\Events\EngineImportCompleted;
+use App\Vehicles\Events\Engine\EngineCrossImportCompleted;
+use App\Vehicles\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Events\EnginesAndModificationsReady;
-use App\Vehicles\Events\ManufacturerCommandImported;
-use App\Vehicles\Events\VehicleCommandImported;
-use App\Vehicles\Events\VehicleImportCompleted;
+use App\Vehicles\Events\Manufacturer\ManufacturerCommandImported;
+use App\Vehicles\Events\Vehicle\VehicleCommandImported;
+use App\Vehicles\Events\Vehicle\VehicleImportCompleted;
 use App\Vehicles\Listeners\ExportImportErrors;
 use App\Vehicles\Listeners\StartEngineImport;
 use App\Vehicles\Listeners\StartEngineModificationImport;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports\Engine;
 
-use App\Vehicles\Events\EngineCrossImportCompleted;
+use App\Vehicles\Events\Engine\EngineCrossImportCompleted;
 use App\Models\User;
 use App\Vehicles\Models\Engine;
 use App\Vehicles\Traits\CachesImportFailures;

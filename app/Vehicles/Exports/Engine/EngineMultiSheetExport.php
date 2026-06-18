@@ -13,8 +13,8 @@ final readonly class EngineMultiSheetExport implements WithMultipleSheets
     public function sheets(): array
     {
         return [
-            new EngineMainSheetExport,
-            new EngineSparkPlugsSheetExport,
+            app(EngineMainSheetExport::class),
+            app(EngineSparkPlugsSheetExport::class),
         ];
     }
 }

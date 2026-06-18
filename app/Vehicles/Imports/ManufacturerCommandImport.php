@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports;
 
-use App\Vehicles\Commands\Contracts\ManufacturerCommandInterface;
-use App\Vehicles\DTOs\ManufacturerData;
-use App\Vehicles\Events\ManufacturerCommandImported;
-use App\Vehicles\Validators\ManufacturerValidator;
+use App\Vehicles\Commands\Manufacturer\ManufacturerCommandInterface;
+use App\Vehicles\DTOs\Manufacturer\ManufacturerData;
+use App\Vehicles\Events\Manufacturer\ManufacturerCommandImported;
+use App\Vehicles\Validators\Manufacturer\ManufacturerValidator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;

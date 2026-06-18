@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Exports\Vehicle\Sheets;
 
+use App\Vehicles\Repositories\Vehicle\VehicleRepositoryInterface;
 use App\Vehicles\Templates\Vehicle\VehicleTemplateFactory;
-use App\Vehicles\Models\Vehicle;
 use App\Vehicles\Traits\BuildExportDetails;
 use App\Vehicles\Traits\HasVehicleBaseData;
 use Illuminate\Support\Collection;
@@ -19,26 +19,16 @@ final readonly class VehicleWipersSheetExport implements FromCollection, WithHea
     use BuildExportDetails;
     use HasVehicleBaseData;
 
-    private bool $isAllow;
+    private const string WIPER_TEMPLATE = 'wiper';
 
     private array $templateConfig;
 
     private array $fieldHeadings;
 
-    private const string WIPER_TEMPLATE = 'wiper';
-
-    public function __construct(bool $isAllow = false)
-    {
-        $this->isAllow = $isAllow;
-        $this->loadTemplateConfig();
-    }
-
-    /**
-     * Загружает конфигурацию шаблона для дворников
-     * В случае ошибки инициализирует пустые массивы
-     */
-    private function loadTemplateConfig(): void
-    {
+    public function __construct(
+        private VehicleRepositoryInterface $vehicles,
+        private bool $isAllow = false,
+    ) {
         try {
             $this->templateConfig = VehicleTemplateFactory::make(self::WIPER_TEMPLATE)->getArrayTemplate();
             $this->fieldHeadings = $this->extractHeadingsFromTemplate($this->templateConfig);
@@ -48,50 +38,22 @@ final readonly class VehicleWipersSheetExport implements FromCollection, WithHea
         }
     }
 
-    /**
-     * Возвращает название листа в Excel файле
-     */
     public function title(): string
     {
         return 'Дворники';
     }
 
-    /**
-     * Формирует коллекцию данных для экспорта
-     * Для каждого автомобиля создает отдельные строки для каждой спецификации
-     */
     public function collection(): Collection
     {
-        $vehicles = Vehicle::query()
-            ->with([
-                'manufacturer',
-                'parent',
-                'partSpecifications' => function ($query) {
-                    $query->whereHas('detailTemplate', function ($q) {
-                        $q->where('template', self::WIPER_TEMPLATE);
-                    })->with(['detailTemplate', 'featureValue']);
-                },
-            ]);
-
-        if ($this->isAllow) {
-            $vehicles->where('is_allow', true);
-        }
-
-        $vehicles = $vehicles->get();
+        $vehicles = $this->vehicles->forWiperSheet($this->isAllow);
         $expandedCollection = collect();
 
         foreach ($vehicles as $vehicle) {
             if ($vehicle->partSpecifications->isEmpty()) {
-                $expandedCollection->push((object) [
-                    'vehicle' => $vehicle,
-                    'specification' => null,
-                ]);
+                $expandedCollection->push((object) ['vehicle' => $vehicle, 'specification' => null]);
             } else {
                 foreach ($vehicle->partSpecifications as $specification) {
-                    $expandedCollection->push((object) [
-                        'vehicle' => $vehicle,
-                        'specification' => $specification,
-                    ]);
+                    $expandedCollection->push((object) ['vehicle' => $vehicle, 'specification' => $specification]);
                 }
             }
         }
@@ -100,10 +62,6 @@ final readonly class VehicleWipersSheetExport implements FromCollection, WithHea
     }
 
     /**
-     * Преобразует строку данных в массив значений для Excel
-     *
-     * @param  object  $row  Объект с данными автомобиля и спецификации
-     *
      * @throws \Exception
      */
     public function map($row): array
@@ -115,7 +73,7 @@ final readonly class VehicleWipersSheetExport implements FromCollection, WithHea
         if ($specification) {
             $specData = [
                 $specification->featureValue?->name,
-                $specification->detailTemplate->template,
+                $specification->template?->value,
                 $specification->name,
                 $specification->text,
             ];
@@ -129,11 +87,6 @@ final readonly class VehicleWipersSheetExport implements FromCollection, WithHea
         return array_merge($baseData, $specData, $detailsData);
     }
 
-    /**
-     * Возвращает массив заголовков колонок для Excel
-     * 1. Заголовки автомобиля
-     * 2. Заголовки спецификации дворников
-     */
     public function headings(): array
     {
         $headings = $this->getBaseHeadings();

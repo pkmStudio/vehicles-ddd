@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports\Engine\Sheets;
 
-use App\Vehicles\Commands\Contracts\PartSpecificationCommandInterface;
-use App\Vehicles\DTOs\PartSpecificationData;
+use App\Vehicles\Commands\PartSpecification\PartSpecificationCommandInterface;
+use App\Vehicles\DTOs\PartSpecification\PartSpecificationData;
 use App\Vehicles\Enums\DetailTemplateEnum;
 use App\Vehicles\Models\Engine;
-use App\Vehicles\Repositories\Contracts\EngineRepositoryInterface;
+use App\Vehicles\Repositories\Engine\EngineRepositoryInterface;
 use App\Vehicles\Templates\Engine\EngineTemplateFactory;
 use App\Vehicles\Traits\BuildDetails;
 use App\Vehicles\Traits\CachesImportFailures;

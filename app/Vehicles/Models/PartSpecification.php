@@ -28,7 +28,6 @@ class PartSpecification extends Model
         'details',
     ];
 
-    protected $with = ['featureValue'];
 
     // RELATIONS
     public function featureValue(): BelongsTo

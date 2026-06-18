@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Models;
 
 use App\Vehicles\Enums\EngineFuelTypeEnum;
-use App\Vehicles\Observers\EngineObserver;
+use App\Vehicles\Observers\Engine\EngineObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;

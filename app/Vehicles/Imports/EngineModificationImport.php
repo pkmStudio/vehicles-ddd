@@ -6,7 +6,7 @@ namespace App\Vehicles\Imports;
 
 use App\Vehicles\Models\Engine;
 use App\Vehicles\Models\Modification;
-use App\Vehicles\Validators\EngineModificationValidator;
+use App\Vehicles\Validators\EngineModification\EngineModificationValidator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports\Vehicle;
 
-use App\Vehicles\Events\VehicleImportCompleted;
+use App\Vehicles\Events\Vehicle\VehicleImportCompleted;
 use App\Vehicles\Imports\Vehicle\Sheets\VehicleMainSheetImport;
 use App\Vehicles\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
 use App\Models\User;

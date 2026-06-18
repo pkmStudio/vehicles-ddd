@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports\Engine;
 
-use App\Vehicles\Commands\Contracts\EngineCommandInterface;
-use App\Vehicles\DTOs\EngineData;
-use App\Vehicles\Events\EngineCommandImported;
-use App\Vehicles\Validators\EngineValidator;
+use App\Vehicles\Commands\Engine\EngineCommandInterface;
+use App\Vehicles\DTOs\Engine\EngineData;
+use App\Vehicles\Events\Engine\EngineCommandImported;
+use App\Vehicles\Validators\Engine\EngineValidator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;

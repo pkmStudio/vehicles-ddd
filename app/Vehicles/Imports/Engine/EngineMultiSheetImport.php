@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Imports\Engine;
 
-use App\Vehicles\Events\EngineImportCompleted;
+use App\Vehicles\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Imports\Engine\Sheets\EngineMainSheetImport;
 use App\Vehicles\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
 use App\Models\User;

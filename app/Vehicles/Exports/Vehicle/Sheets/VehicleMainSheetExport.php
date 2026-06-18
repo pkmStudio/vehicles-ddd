@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Exports\Vehicle\Sheets;
 
-use App\Vehicles\Models\Vehicle;
+use App\Vehicles\Repositories\Vehicle\VehicleRepositoryInterface;
 use App\Vehicles\Traits\BuildExportDetails;
 use App\Vehicles\Traits\HasVehicleBaseData;
 use Illuminate\Support\Collection;
@@ -18,12 +18,10 @@ final readonly class VehicleMainSheetExport implements FromCollection, WithHeadi
     use BuildExportDetails;
     use HasVehicleBaseData;
 
-    private bool $isAllow;
-
-    public function __construct(bool $isAllow = false)
-    {
-        $this->isAllow = $isAllow;
-    }
+    public function __construct(
+        private VehicleRepositoryInterface $vehicles,
+        private bool $isAllow = false,
+    ) {}
 
     public function title(): string
     {
@@ -32,19 +30,9 @@ final readonly class VehicleMainSheetExport implements FromCollection, WithHeadi
 
     public function collection(): Collection
     {
-        $query = Vehicle::query()
-            ->with(['manufacturer', 'parent']);
-
-        if ($this->isAllow) {
-            $query->where('is_allow', true);
-        }
-
-        return $query->get();
+        return $this->vehicles->forMainSheet($this->isAllow);
     }
 
-    /**
-     * @param  mixed  $row
-     */
     public function map($row): array
     {
         return $this->getBaseData($row);
