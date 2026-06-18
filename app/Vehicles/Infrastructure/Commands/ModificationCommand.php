@@ -8,7 +8,7 @@ use App\Vehicles\Application\Contracts\Commands\ModificationCommandInterface;
 use App\Vehicles\Application\ModelData\Modification\ModificationData;
 use App\Vehicles\Domain\Models\Modification;
 
-final class ModificationCommand implements ModificationCommandInterface
+final readonly class ModificationCommand implements ModificationCommandInterface
 {
     public function create(ModificationData $data): Modification
     {

@@ -8,7 +8,7 @@ use App\Vehicles\Domain\Models\PartSpecification;
 use App\Vehicles\Application\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
-final class PartSpecificationRepository implements PartSpecificationRepositoryInterface
+final readonly class PartSpecificationRepository implements PartSpecificationRepositoryInterface
 {
     public function find(int $id): ?PartSpecification
     {

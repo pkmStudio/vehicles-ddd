@@ -110,11 +110,14 @@ Presentation ──▶ Application ──▶ Domain
 - Экземпляры получаем через контейнер: `app(...)`, `app()->makeWith(...)`. **Не `new`** для классов с зависимостями.
 - Биндинги интерфейс→реализация — в `VehiclesServiceProvider` (цикл по `ENTITIES`).
 - Сервисы — без состояния → корректно сериализуются для очередей.
+- **`final readonly class` для всех stateless-классов с инъекцией** — Repositories, Commands, UseCases, Services, Support-сервисы, тонкие Listeners с зависимостями. Зависимости — только промотированные `private readonly`-параметры конструктора; своего мутируемого состояния нет. `readonly` гарантирует это на уровне языка (нельзя случайно завести изменяемое поле) и подчёркивает, что объект — чистый исполнитель. Исключение — классы с легитимным изменяемым состоянием (если появятся): тогда не `readonly`, и это повод задуматься, не тянет ли класс на что-то другое.
 
 ### Naming
 - Сущности: `Vehicle`, `Engine`, `Modification`, `Manufacturer`, `PartSpecification`.
-- Папки внутри слоя группируются **по сущности**: `Repositories/Vehicle/`, `Validators/Engine/` и т.д.
-- Read = `…Repository`, Write = `…Command`, отображение = `…Data`, сценарий = глагол (`UpsertVehicleFromSheet`).
+- Группировка по сущности — там, где на сущность несколько файлов: `Imports/<Entity>/`, `Exports/<Entity>/`, `ModelData/<Entity>/`, `Validators/<Entity>/`. Где файл один на сущность (`Repositories/`, `Commands/`) — плоско, без папки-сущности.
+- Read = `…Repository`, Write = `…Command`, отображение = `…Data`.
+- **UseCase = глагольная фраза без суффикса** (`UpsertVehicleFromSheet`, `ReportImportResult`): use-case — это действие системы, поэтому глагол; суффикс `UseCase`/`Action` не добавляем — он дублирует namespace `Application\UseCases`. Единая точка входа — метод `__invoke()`.
+- Listener — см. раздел про слушателей (по событию / по действию).
 
 ### Трейты (политика)
 - Трейт допустим для **чистого, самодостаточного** поведения без скрытого контракта с хостом: `EnumHelperTrait` (логика enum'ов), `CachesImportFailures` (своё состояние + поведение).

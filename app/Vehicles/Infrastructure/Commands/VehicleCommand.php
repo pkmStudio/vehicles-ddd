@@ -8,7 +8,7 @@ use App\Vehicles\Application\Contracts\Commands\VehicleCommandInterface;
 use App\Vehicles\Application\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Domain\Models\Vehicle;
 
-final class VehicleCommand implements VehicleCommandInterface
+final readonly class VehicleCommand implements VehicleCommandInterface
 {
     public function create(VehicleData $data): Vehicle
     {

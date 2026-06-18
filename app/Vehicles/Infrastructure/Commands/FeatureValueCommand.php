@@ -7,7 +7,7 @@ namespace App\Vehicles\Infrastructure\Commands;
 use App\Vehicles\Application\Contracts\Commands\FeatureValueCommandInterface;
 use App\Vehicles\Domain\Models\FeatureValue;
 
-final class FeatureValueCommand implements FeatureValueCommandInterface
+final readonly class FeatureValueCommand implements FeatureValueCommandInterface
 {
     public function create(array $attributes): FeatureValue
     {

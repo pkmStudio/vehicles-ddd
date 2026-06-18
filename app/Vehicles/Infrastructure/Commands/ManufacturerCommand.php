@@ -8,7 +8,7 @@ use App\Vehicles\Application\Contracts\Commands\ManufacturerCommandInterface;
 use App\Vehicles\Application\ModelData\Manufacturer\ManufacturerData;
 use App\Vehicles\Domain\Models\Manufacturer;
 
-final class ManufacturerCommand implements ManufacturerCommandInterface
+final readonly class ManufacturerCommand implements ManufacturerCommandInterface
 {
     public function create(ManufacturerData $data): Manufacturer
     {

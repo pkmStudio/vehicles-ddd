@@ -8,7 +8,7 @@ use App\Vehicles\Application\Contracts\Commands\PartSpecificationCommandInterfac
 use App\Vehicles\Application\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\PartSpecification;
 
-final class PartSpecificationCommand implements PartSpecificationCommandInterface
+final readonly class PartSpecificationCommand implements PartSpecificationCommandInterface
 {
     public function create(PartSpecificationData $data): PartSpecification
     {

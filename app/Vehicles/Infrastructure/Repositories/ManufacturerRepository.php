@@ -8,7 +8,7 @@ use App\Vehicles\Domain\Models\Manufacturer;
 use App\Vehicles\Application\Contracts\Repositories\ManufacturerRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
-final class ManufacturerRepository implements ManufacturerRepositoryInterface
+final readonly class ManufacturerRepository implements ManufacturerRepositoryInterface
 {
     public function find(int $id): ?Manufacturer
     {

@@ -8,7 +8,7 @@ use App\Vehicles\Domain\Models\Feature;
 use App\Vehicles\Application\Contracts\Repositories\FeatureRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
-final class FeatureRepository implements FeatureRepositoryInterface
+final readonly class FeatureRepository implements FeatureRepositoryInterface
 {
     public function find(int $id): ?Feature
     {

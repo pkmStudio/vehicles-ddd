@@ -9,7 +9,7 @@ use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\Models\Vehicle;
 use Illuminate\Database\Eloquent\Collection;
 
-final class VehicleRepository implements VehicleRepositoryInterface
+final readonly class VehicleRepository implements VehicleRepositoryInterface
 {
     public function find(int $id): ?Vehicle
     {

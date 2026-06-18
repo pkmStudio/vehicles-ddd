@@ -8,7 +8,7 @@ use App\Vehicles\Domain\Models\Modification;
 use App\Vehicles\Application\Contracts\Repositories\ModificationRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
-final class ModificationRepository implements ModificationRepositoryInterface
+final readonly class ModificationRepository implements ModificationRepositoryInterface
 {
     public function find(int $id): ?Modification
     {

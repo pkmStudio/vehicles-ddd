@@ -8,7 +8,7 @@ use App\Vehicles\Application\Contracts\Commands\EngineCommandInterface;
 use App\Vehicles\Application\ModelData\Engine\EngineData;
 use App\Vehicles\Domain\Models\Engine;
 
-final class EngineCommand implements EngineCommandInterface
+final readonly class EngineCommand implements EngineCommandInterface
 {
     public function create(EngineData $data): Engine
     {
