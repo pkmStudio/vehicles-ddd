@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('part_specifications', function (Blueprint $table) {
             $table->id();
-            $table->morphs('partable'); // App\Vehicles\Models\{Vehicle,Modification,Engine}
+            $table->morphs('partable'); // App\Vehicles\Domain\Models\{Vehicle,Modification,Engine}
             $table->foreignId('feature_value_id')->nullable()->constrained('feature_values');
             $table->string('template')->comment('DetailTemplateEnum');
             $table->string('name')->nullable()->comment('Приписка к названию');

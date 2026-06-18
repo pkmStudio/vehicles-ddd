@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Vehicles\Models\Feature;
-use App\Vehicles\Models\FeatureValue;
-use App\Vehicles\Models\Vehicle;
+use App\Vehicles\Domain\Models\Feature;
+use App\Vehicles\Domain\Models\FeatureValue;
+use App\Vehicles\Domain\Models\Vehicle;
 use Illuminate\Database\Seeder;
 
 class FeatureSeeder extends Seeder

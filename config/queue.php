@@ -1,6 +1,6 @@
 <?php
 
-use App\Vehicles\Messaging\Workers\CustomRabbitMQQueue;
+use App\Vehicles\Infrastructure\Messaging\Workers\CustomRabbitMQQueue;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Jobs\RabbitMQJob;
 
 return [
@@ -151,7 +151,7 @@ return [
 
                     'declare' => true,
 
-                    'job' => \App\Vehicles\Messaging\Consumers\InboxConsumer::class,
+                    'job' => \App\Vehicles\Infrastructure\Messaging\Consumers\InboxConsumer::class,
                     'prefetch_count' => 10,
                 ],
             ],
