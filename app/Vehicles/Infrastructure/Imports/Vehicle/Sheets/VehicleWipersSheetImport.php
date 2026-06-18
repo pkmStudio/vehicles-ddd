@@ -52,7 +52,7 @@ final class VehicleWipersSheetImport implements SkipsOnFailure, ToCollection, Wi
             $row = $row->map(fn ($value) => is_string($value) ? trim($value) : $value);
             DB::beginTransaction();
             try {
-                $vehicle = $this->upsertVehicle->fromRow($row->toArray());
+                $vehicle = $this->upsertVehicle->execute($row->toArray());
                 $this->createOrUpdatePartSpecification(vehicleId: $vehicle->id, row: $row->toArray());
                 DB::commit();
             } catch (\Throwable $e) {

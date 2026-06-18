@@ -26,7 +26,7 @@ final readonly class UpsertVehicleFromSheet
     /**
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function fromRow(array $row): Vehicle
+    public function execute(array $row): Vehicle
     {
         $minMfaId = $this->getMinMfaId();
         $minMsId = $this->getMinMsId();
