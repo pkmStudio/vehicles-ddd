@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Dan\FieldTemplates\Fields;
 
-use Filament\Forms\Components\Field;
-
 final readonly class NumericField extends TextField
 {
     public function __construct(
@@ -21,23 +19,6 @@ final readonly class NumericField extends TextField
     public function getType(): string
     {
         return $this->isInteger ? 'integer' : 'numeric';
-    }
-
-    public function toFilamentForm(string $statePath = ''): Field
-    {
-        $field = parent::toFilamentForm($statePath);
-
-        $field
-            ->numeric()
-            ->step($this->isInteger ? 1 : 0.01);
-
-        if ($this->isInteger) {
-            $field->mutateDehydratedStateUsing(function ($state) {
-                return $state !== null ? (int) $state : null;
-            });
-        }
-
-        return $field;
     }
 
     public function toArray(): array

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Dan\FieldTemplates\Fields;
 
-use Filament\Forms\Components\Field;
-use Filament\Schemas\Components\Component;
-
+/**
+ * Базовое поле шаблона. Чистое описание + сериализация в массив (`toArray()`).
+ * Рендер в UI (например, Filament-форму) — отдельный адаптер в сервисе с UI,
+ * он потребляет результат `AbstractTemplate::getArrayTemplate()`. Пакет — без Filament.
+ */
 abstract readonly class AbstractField
 {
     public function __construct(
@@ -22,8 +24,6 @@ abstract readonly class AbstractField
     {
         return $this->name;
     }
-
-    abstract public function toFilamentForm(string $statePath = ''): Field|Component;
 
     public function toArray(): array
     {

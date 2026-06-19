@@ -34,20 +34,7 @@ abstract readonly class AbstractTemplate
     abstract public function getTemplateKey(): string;
 
     /**
-     * Получить Filament-форму
-     */
-    public function getFilamentTemplate(string $statePath = ''): array
-    {
-        $filamentForm = [];
-        foreach ($this->fields as $field) {
-            $filamentForm[] = $field->toFilamentForm($statePath);
-        }
-
-        return $filamentForm;
-    }
-
-    /**
-     * Получить массив-структуру
+     * Получить массив-структуру (контракт для рендера в UI-сервисе и для headless-импорта).
      */
     public function getArrayTemplate(): array
     {
