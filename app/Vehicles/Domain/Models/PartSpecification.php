@@ -6,26 +6,15 @@ namespace App\Vehicles\Domain\Models;
 
 use App\Models\Warehouse\Kit;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
-class PartSpecification extends Model
+class PartSpecification extends BaseModel
 {
     protected $casts = [
         'template' => DetailTemplateEnum::class,
         'details' => 'array',
-    ];
-
-    protected $fillable = [
-        'feature_value_id',
-        'template',
-        'partable_type',
-        'partable_id',
-        'name',
-        'text',
-        'details',
     ];
 
 

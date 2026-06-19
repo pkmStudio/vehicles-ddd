@@ -4,17 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Manufacturer extends Model
+class Manufacturer extends BaseModel
 {
-    protected $fillable = [
-        'mfa_id',
-        'name',
-        'provider',
-    ];
-
     public $timestamps = false;
 
     // RELATIONS
