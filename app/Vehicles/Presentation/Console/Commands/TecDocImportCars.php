@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Vehicles\Presentation\Console\Commands;
 
 use App\Vehicles\Application\Listeners\EngineModificationReadinessSubscriber;
-use App\Vehicles\Infrastructure\Imports\ManufacturerCommandImport;
+use App\Vehicles\Domain\Contracts\Imports\ManufacturerCommandImportInterface;
 use Illuminate\Console\Command;
-use Maatwebsite\Excel\Facades\Excel;
 
 class TecDocImportCars extends Command
 {
@@ -38,7 +37,7 @@ class TecDocImportCars extends Command
         EngineModificationReadinessSubscriber::clearFlags();
 
         $path = storage_path('vehicles/manufacturers.csv');
-        Excel::import(app(ManufacturerCommandImport::class), $path);
+        app(ManufacturerCommandImportInterface::class)->import($path);
         $this->info('Команда запустилась и отправило исполнение в очередь');
     }
 }

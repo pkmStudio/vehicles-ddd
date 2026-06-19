@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Presentation\Console\Commands;
 
-use App\Vehicles\Infrastructure\Imports\EnginesCodeImport;
+use App\Vehicles\Domain\Contracts\Imports\EnginesCodeImportInterface;
 use Illuminate\Console\Command;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Facades\Excel;
@@ -36,7 +36,7 @@ class GroupEnginesCommand extends Command
     public function handle()
     {
         $filePath = storage_path('vehicles/enginescodes.xlsx');
-        $data = Excel::toCollection(new EnginesCodeImport, $filePath)->first();
+        $data = app(EnginesCodeImportInterface::class)->parse($filePath);
         $groups = [];
         $codeToGroupId = [];
         $nextGroupId = 1;
