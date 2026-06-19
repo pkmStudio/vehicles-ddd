@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\UseCases\Import;
 
 use App\User\Models\User;
-use App\Vehicles\Application\Contracts\Exports\ImportFailureReporterInterface;
-use App\Vehicles\Application\Contracts\Notifications\FileNotificationServiceInterface;
+use App\Vehicles\Domain\Contracts\Exports\ImportFailureReporterInterface;
+use App\Vehicles\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;

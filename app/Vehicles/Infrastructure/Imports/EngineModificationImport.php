@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports;
 
-use App\Vehicles\Application\Contracts\Commands\EngineModificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Vehicles\Application\Factories\EngineModification\EngineModificationDataFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;

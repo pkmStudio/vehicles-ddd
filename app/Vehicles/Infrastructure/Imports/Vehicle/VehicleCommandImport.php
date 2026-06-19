@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Vehicle;
 
-use App\Vehicles\Application\Contracts\Commands\VehicleCommandInterface;
-use App\Vehicles\Application\Contracts\Repositories\ManufacturerRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Commands\VehicleCommandInterface;
+use App\Vehicles\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Vehicles\Application\Factories\Vehicle\VehicleDataFactory;
 use App\Vehicles\Domain\Events\Vehicle\VehicleCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;

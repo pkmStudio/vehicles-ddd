@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Repositories;
 
 use App\Vehicles\Domain\Models\Modification;
-use App\Vehicles\Application\Contracts\Repositories\ModificationRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
 final readonly class ModificationRepository implements ModificationRepositoryInterface

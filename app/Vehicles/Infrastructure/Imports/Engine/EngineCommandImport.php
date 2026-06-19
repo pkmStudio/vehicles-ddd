@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine;
 
-use App\Vehicles\Application\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Vehicles\Application\Factories\Engine\EngineDataFactory;
 use App\Vehicles\Domain\Events\Engine\EngineCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;

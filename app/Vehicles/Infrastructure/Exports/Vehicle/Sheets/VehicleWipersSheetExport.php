@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Exports\Vehicle\Sheets;
 
-use App\Vehicles\Application\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Domain\Templates\Vehicle\VehicleTemplateFactory;
 use App\Vehicles\Infrastructure\Support\ExportDetailsBuilder;
 use App\Vehicles\Infrastructure\Support\VehicleExportRow;

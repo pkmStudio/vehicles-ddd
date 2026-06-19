@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Factories\Vehicle;
 
-use App\Vehicles\Application\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Domain\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Domain\Enums\CarcaseTypeEnum;
 use App\Vehicles\Domain\Enums\SteeringTypeEnum;
 use App\Vehicles\Domain\Enums\VehicleTypeEnum;

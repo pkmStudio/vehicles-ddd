@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Commands;
 
-use App\Vehicles\Application\Contracts\Commands\EngineCommandInterface;
-use App\Vehicles\Application\ModelData\Engine\EngineData;
+use App\Vehicles\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Domain\ModelData\Engine\EngineData;
 use App\Vehicles\Domain\Models\Engine;
 
 final readonly class EngineCommand implements EngineCommandInterface

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Factories\Manufacturer;
 
-use App\Vehicles\Application\ModelData\Manufacturer\ManufacturerData;
+use App\Vehicles\Domain\ModelData\Manufacturer\ManufacturerData;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports;
 
-use App\Vehicles\Application\Contracts\Commands\ManufacturerCommandInterface;
+use App\Vehicles\Domain\Contracts\Commands\ManufacturerCommandInterface;
 use App\Vehicles\Application\Factories\Manufacturer\ManufacturerDataFactory;
 use App\Vehicles\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Commands;
 
-use App\Vehicles\Application\Contracts\Commands\ModificationCommandInterface;
-use App\Vehicles\Application\ModelData\Modification\ModificationData;
+use App\Vehicles\Domain\Contracts\Commands\ModificationCommandInterface;
+use App\Vehicles\Domain\ModelData\Modification\ModificationData;
 use App\Vehicles\Domain\Models\Modification;
 
 final readonly class ModificationCommand implements ModificationCommandInterface

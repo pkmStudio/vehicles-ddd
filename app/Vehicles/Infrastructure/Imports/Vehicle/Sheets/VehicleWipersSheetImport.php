@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Vehicle\Sheets;
 
-use App\Vehicles\Application\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Application\UseCases\Vehicle\UpsertVehicleFromSheetUseCase;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\Models\Vehicle;
 use App\Vehicles\Domain\Templates\Vehicle\VehicleTemplateFactory;
-use App\Vehicles\Application\Contracts\Commands\PartSpecificationCommandInterface;
-use App\Vehicles\Application\Contracts\Repositories\FeatureValueRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Vehicles\Infrastructure\Support\DetailsBuilder;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;

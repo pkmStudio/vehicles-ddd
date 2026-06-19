@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Repositories;
 
 use App\Vehicles\Domain\Models\Manufacturer;
-use App\Vehicles\Application\Contracts\Repositories\ManufacturerRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
 final readonly class ManufacturerRepository implements ManufacturerRepositoryInterface

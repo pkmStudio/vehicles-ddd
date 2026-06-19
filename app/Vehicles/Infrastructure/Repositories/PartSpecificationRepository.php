@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Repositories;
 
 use App\Vehicles\Domain\Models\PartSpecification;
-use App\Vehicles\Application\Contracts\Repositories\PartSpecificationRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
 final readonly class PartSpecificationRepository implements PartSpecificationRepositoryInterface

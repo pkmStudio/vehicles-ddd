@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Commands;
 
-use App\Vehicles\Application\Contracts\Commands\VehicleCommandInterface;
-use App\Vehicles\Application\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Domain\Contracts\Commands\VehicleCommandInterface;
+use App\Vehicles\Domain\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Domain\Models\Vehicle;
 
 final readonly class VehicleCommand implements VehicleCommandInterface

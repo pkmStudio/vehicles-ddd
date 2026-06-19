@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Repositories;
 
 use App\Vehicles\Domain\Models\FeatureValue;
-use App\Vehicles\Application\Contracts\Repositories\FeatureValueRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
 final readonly class FeatureValueRepository implements FeatureValueRepositoryInterface

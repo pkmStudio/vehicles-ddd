@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Factories\Engine;
 
-use App\Vehicles\Application\ModelData\Engine\EngineData;
+use App\Vehicles\Domain\ModelData\Engine\EngineData;
 use App\Vehicles\Domain\Enums\EngineFuelTypeEnum;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;

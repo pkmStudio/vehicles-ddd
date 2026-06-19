@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\UseCases\Vehicle;
 
-use App\Vehicles\Application\Contracts\Commands\VehicleCommandInterface;
+use App\Vehicles\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Vehicles\Application\Factories\Vehicle\VehicleDataFactory;
 use App\Vehicles\Domain\Models\Manufacturer;
 use App\Vehicles\Domain\Models\Vehicle;

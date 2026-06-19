@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Commands;
 
-use App\Vehicles\Application\Contracts\Commands\EngineModificationCommandInterface;
-use App\Vehicles\Application\ModelData\EngineModification\EngineModificationData;
+use App\Vehicles\Domain\Contracts\Commands\EngineModificationCommandInterface;
+use App\Vehicles\Domain\ModelData\EngineModification\EngineModificationData;
 use App\Vehicles\Domain\Models\Engine;
 use App\Vehicles\Domain\Models\Modification;
 

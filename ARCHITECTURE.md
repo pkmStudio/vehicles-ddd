@@ -11,8 +11,8 @@ Presentation ──▶ Application ──▶ Domain
        └─────▶ Infrastructure ─────┘
 ```
 
-- **Domain** не знает ни о ком. Чистый PHP + Eloquent-модели (только связи) + Enums + Events + Templates.
-- **Application** знает только Domain (+ интерфейсы портов).
+- **Domain** не знает ни о ком. Декларации домена: Eloquent-модели (только связи) + Contracts (порты) + ModelData + Enums + Events + Templates.
+- **Application** знает только Domain. Оркестрация: UseCases, Factories, тонкие Listeners/Jobs/Observers.
 - **Infrastructure** реализует интерфейсы, знает Domain и Application, тащит фреймворк/внешний мир (БД, Excel, RabbitMQ, S3).
 - **Presentation** — точки входа (console, http), максимально тонкие, дёргают Application.
 
@@ -27,10 +27,14 @@ Presentation ──▶ Application ──▶ Domain
 | Папка | Что лежит | Толщина |
 |---|---|---|
 | `Models/` | Eloquent-модели | **АНЕМИЧНЫЕ**: только связи (`hasMany`/`belongsTo`/`morphTo`), `$fillable`, `$casts`. Без бизнес-логики, без `$with`, без accessor/mutator-методов модификации. |
+| `Contracts/<Concern>/` | **Порты** (интерфейсы) для адаптеров Infrastructure | Группируются по инфра-концерну, зеркально `Infrastructure/`: `Contracts/Repositories/<Entity>RepositoryInterface`, `Contracts/Commands/<Entity>CommandInterface`, `Contracts/Notifications/…`, `Contracts/Exports/…`. В будущем — `Contracts/Messaging/`, `Contracts/Cache/`. Реализация — в Infrastructure. Без вложенной папки-сущности: на сущность ровно один Repository и один Command. **Почему в Domain:** порты — часть декларации домена («домен заявляет, как с ним работать»); Repository-порты возвращают Domain-модели, Command-порты принимают `ModelData` (тоже Domain) — всё ссылается внутрь. |
+| `ModelData/<Entity>/` | **Отображения моделей** (бывш. `DTOs`) | `final readonly` + `toArray()`. **Без валидации в конструкторе.** Типизированный «снимок строки» для передачи в Command. Имя класса — `<Entity>Data`. Чистые данные → в Domain. |
 | `Enums/` | Backed-enum'ы (`type`, `template`, …) | Логика значений (label/маппинг) — здесь. `DetailTemplateEnum::template()` резолвит класс шаблона. |
 | `Events/` | Доменные события | Plain DTO-события (`final readonly`), **без поведения** (никаких `subscribe()`/`handle()` — это листенеры). `AbstractImportCompleted`, `EnginesAndModificationsReady` и т.д. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`, а не `VehicleImportCompletedEvent`): это легитимное исключение из «суффикс по виду класса» — событие читается как факт домена, суффикс несёт потребитель (`…Listener`/`…Subscriber`). |
 | `Templates/` | Описания шаблонов полей (field-template) | Декларативные классы. Общий DSL вынесен в пакет `dan/field-templates`. |
 | `Services/` | **Доменные сервисы** (пока нет) | Бизнес-правила, которым тесно в одной модели и которые не зависят от инфраструктуры. Создаём по мере появления чистых правил. |
+
+> Domain = декларации домена: **модели (данные) + контракты (порты) + ModelData (данные записи) + enums + события + шаблоны**. Без поведения/оркестрации/IO. Самодостаточен — переезжает папкой в отдельный сервис.
 
 **Почему модели анемичные:** бизнес-логика разъезжается по слоям предсказуемо (Services/UseCases), модели остаются сериализуемыми и тестируемыми, нет «магии» автозагрузки.
 
@@ -40,15 +44,12 @@ Presentation ──▶ Application ──▶ Domain
 
 ## 2. Application — `app/Vehicles/Application`
 
-Оркестрация сценариев. Без знания о деталях БД/Excel/брокера — только порты (интерфейсы) и Domain.
+Оркестрация и поведение. Без знания о деталях БД/Excel/брокера — работает через порты (`Domain/Contracts`) и доменные данные. Порты и `ModelData` живут в Domain; Application их потребляет и реализует сценарии.
 
 | Папка | Что лежит | Толщина / правила |
 |---|---|---|
-| `Contracts/<Concern>/` | **Порты** (интерфейсы) для адаптеров Infrastructure | Группируются по инфра-концерну, зеркально `Infrastructure/`: `Contracts/Repositories/<Entity>RepositoryInterface`, `Contracts/Commands/<Entity>CommandInterface`, `Contracts/Notifications/…`. В будущем — `Contracts/Messaging/`, `Contracts/Cache/`. Порт принадлежит потребителю (Application), реализация — в Infrastructure. Без вложенной папки-сущности: на сущность ровно один Repository и один Command. |
 | `UseCases/<Entity>/` | **Оркестраторы** одного сценария | Координируют: `Factory->make()` (валидация+сборка `ModelData`) → дёргают `Command`/`Repository`/доменный Service. Без прямого Eloquent-`save`, без Excel. Пример: `Vehicle/UpsertVehicleFromSheetUseCase`. |
-| `ModelData/<Entity>/` | **Отображения моделей** (бывш. `DTOs`) | `final readonly` + `toArray()`. **Без валидации в конструкторе.** Это типизированный «снимок строки» для передачи в Command. Имя класса — `<Entity>Data`. |
 | `Factories/<Entity>/` | **Сборка `ModelData` из сырой строки** (`<Entity>DataFactory`) | Метод `make(array $row): <Entity>Data` валидирует И собирает Data в одном месте — убирает дублирование «перечислил поля в валидаторе, повторил в `new …Data()` в каждом импорте». Один параметр-массив; вычисляемые вызывающим поля (`vehicle_id`, `manufacturer_id`, `parent_id`) кладём тем же массивом (тем же ключом), а не доп.параметрами — фабрика не превращается в билдер. Enum-поля валидируем **сырыми значениями** через `Rule::enum(...)`, без `tryFrom` (см. «Грабли»). |
-| ~~`Validators/<Entity>/`~~ | (папки нет) | Вся валидация живёт в `Factories/` (валидация = шаг сборки Data, включая пивот-связи — `EngineModificationDataFactory`). Отдельный `Validators/` заведём, только если появится валидация, которая **ничего не собирает в Data**. |
 | `Listeners/` | Слушатели доменных событий | **ТОНКИЕ.** Делегируют в UseCase/Service. Без бизнес-логики внутри. Нейминг и количество — см. ниже. |
 | `Jobs/<Entity>/` | Очередные задачи | **ТОНКИЕ.** `handle()` резолвит сервис/use-case и зовёт его. Состояние job'ы — сериализуемые скаляры/DTO, не зависимости. |
 | `Observers/<Entity>/` | Обсерверы моделей | **ТОНКИЕ.** Только реакция на события модели → делегат в Service/UseCase. |
@@ -77,8 +78,8 @@ Presentation ──▶ Application ──▶ Domain
 
 | Папка | Что лежит | Правила |
 |---|---|---|
-| `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` (реализует порт `Application/Contracts/Repositories/<Entity>RepositoryInterface`). Только запросы, без записи. Без папки-сущности — один репозиторий на сущность. |
-| `Commands/` | **Запись** (CQRS-lite) | `<Entity>Command` (реализует порт `Application/Contracts/Commands/<Entity>CommandInterface`). Принимают **`ModelData`**, а не сырые массивы. Здесь `save`/`upsert`/`delete`. Без папки-сущности — одна команда на сущность. |
+| `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` (реализует порт `Domain/Contracts/Repositories/<Entity>RepositoryInterface`). Только запросы, без записи. Без папки-сущности — один репозиторий на сущность. |
+| `Commands/` | **Запись** (CQRS-lite) | `<Entity>Command` (реализует порт `Domain/Contracts/Commands/<Entity>CommandInterface`). Принимают **`ModelData`**, а не сырые массивы. Здесь `save`/`upsert`/`delete`. Без папки-сущности — одна команда на сущность. |
 | `Imports/<Entity>/` | Импорт из Excel | Адаптеры `maatwebsite/excel`. Пайплайн строки: **row → `Factory->make()` (валидация+сборка) → Command**; чтение справочников — через Repository. Зависимости — через конструктор. |
 | `Exports/<Entity>/` | Экспорт в Excel | Источник данных — Repository. Сборка строк/заголовков — сервисы `Support/*ExportRow`, `Support/ExportDetailsBuilder`. |
 | `Support/` | Технические сервисы-помощники | `DetailsBuilder`, `ExportDetailsBuilder`, `VehicleExportRow`, `EngineExportRow`. Без статуса трейтов — обычные инъектируемые классы. |
@@ -86,9 +87,9 @@ Presentation ──▶ Application ──▶ Domain
 | `Notifications/` | Внешние уведомления | Реализации портов уведомлений (напр. `RabbitMqFileNotificationService` → `FileNotificationServiceInterface`). UI-нотификации идут событием в Filament-сервис; файлы ошибок → S3 + сообщение. |
 | `Providers/` | DI и события | `VehiclesServiceProvider` (биндинги интерфейс→реализация по списку `ENTITIES`), `EventServiceProvider` (карта событие→слушатель). |
 
-**Порт (интерфейс) живёт в Application (`Application/Contracts/<Concern>/`), адаптер (реализация) — в Infrastructure.** Так стрелка зависимости идёт внутрь: Application зависит только от своего порта, Infrastructure реализует его. Расположение зеркальное: `Application/Contracts/Repositories/VehicleRepositoryInterface` ↔ `Infrastructure/Repositories/VehicleRepository`. Биндинги порт→адаптер — в `VehiclesServiceProvider`.
+**Порт (интерфейс) живёт в `Domain/Contracts/<Concern>/`, адаптер (реализация) — в Infrastructure.** Так стрелка зависимости идёт внутрь: и Application, и Infrastructure зависят на порт в Domain. Расположение зеркальное: `Domain/Contracts/Repositories/VehicleRepositoryInterface` ↔ `Infrastructure/Repositories/VehicleRepository`. Биндинги порт→адаптер — в `VehiclesServiceProvider`.
 
-> Почему Command-порты обязаны быть в Application: они принимают `ModelData` (это `Application/ModelData`). Положи их в Domain — Domain начнёт зависеть от Application. Repository-порты держим там же для единообразия.
+> Порты в Domain согласованы: Repository-порты возвращают Domain-модели, Command-порты принимают `Domain/ModelData` — всё внутри Domain. Это пакетная связка: `Contracts` и `ModelData` лежат вместе в Domain (иначе Command-порт ссылался бы наружу).
 
 ---
 
@@ -141,10 +142,10 @@ Presentation ──▶ Application ──▶ Domain
 |---|---|
 | Новое бизнес-правило одной сущности | `Domain/Services/` (или метод-связь, если это связь) |
 | Новый сценарий (импорт/пересчёт/…) | `Application/UseCases/<Entity>/` |
-| Новый запрос к БД | порт → `Application/Contracts/Repositories/`, адаптер → `Infrastructure/Repositories/` |
-| Новую запись в БД | порт → `Application/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход — `ModelData`) |
-| Новый порт (брокер/кеш/нотификация) | `Application/Contracts/<Concern>/`, реализация → `Infrastructure/<Concern>/` |
-| Типизированный снимок модели | `Application/ModelData/<Entity>/` |
+| Новый запрос к БД | порт → `Domain/Contracts/Repositories/`, адаптер → `Infrastructure/Repositories/` |
+| Новую запись в БД | порт → `Domain/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход — `ModelData`) |
+| Новый порт (брокер/кеш/нотификация) | `Domain/Contracts/<Concern>/`, реализация → `Infrastructure/<Concern>/` |
+| Типизированный снимок модели | `Domain/ModelData/<Entity>/` |
 | Транспортный объект сценария/события | `Application/DTOs/` (отдельно от ModelData) |
 | Проверку входных данных | `Application/Validators/<Entity>/` |
 | Реакцию на доменное событие | `Application/Listeners/` (тонко) |

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Commands;
 
-use App\Vehicles\Application\Contracts\Commands\FeatureCommandInterface;
+use App\Vehicles\Domain\Contracts\Commands\FeatureCommandInterface;
 use App\Vehicles\Domain\Models\Feature;
 
 final readonly class FeatureCommand implements FeatureCommandInterface
