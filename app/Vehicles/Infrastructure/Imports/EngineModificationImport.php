@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports;
 
-use App\Vehicles\Domain\Models\Engine;
-use App\Vehicles\Domain\Models\Modification;
-use App\Vehicles\Application\Validators\EngineModification\EngineModificationValidator;
+use App\Vehicles\Application\Contracts\Commands\EngineModificationCommandInterface;
+use App\Vehicles\Application\Factories\EngineModification\EngineModificationDataFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -20,12 +19,13 @@ use Maatwebsite\Excel\Validators\Failure;
 
 /**
  * Импорт связи двигатель <-> модификация (пивот engine_modification).
- * type валидируется как enum (VehicleTypeEnum) перед записью.
+ * Строка -> Factory->make() (валидация type как enum) -> Command->link().
  */
 class EngineModificationImport implements ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithStartRow
 {
     public function __construct(
-        private readonly EngineModificationValidator $validator,
+        private readonly EngineModificationDataFactory $factory,
+        private readonly EngineModificationCommandInterface $command,
     ) {}
 
     public function chunkSize(): int
@@ -37,31 +37,15 @@ class EngineModificationImport implements ShouldQueue, SkipsOnFailure, ToCollect
     {
         foreach ($collection as $index => $row) {
             try {
-                $valid = $this->validator->validate([
+                $data = $this->factory->make([
                     'eng_id' => $row[0] ?? null,
                     'mod_id' => $row[1] ?? null,
                     'type' => $row[2] ?? null,
                 ]);
+
+                $this->command->syncWithoutDetaching($data);
             } catch (ValidationException $e) {
                 $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', Arr::flatten($e->errors()), $row->toArray()));
-
-                continue;
-            }
-
-            $engine = Engine::query()->where('eng_id', $valid['eng_id'])->first();
-            $modification = Modification::query()
-                ->where('mod_id', $valid['mod_id'])
-                ->where('type', $valid['type'])
-                ->first();
-
-            if ($engine && $modification) {
-                $engine->modifications()->syncWithoutDetaching([
-                    $modification->id => [
-                        'eng_id' => $valid['eng_id'],
-                        'mod_id' => $valid['mod_id'],
-                        'type' => $valid['type'],
-                    ],
-                ]);
             }
         }
     }

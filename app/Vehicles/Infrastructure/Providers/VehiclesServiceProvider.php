@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Providers;
 
+use App\Vehicles\Application\Contracts\Commands\EngineModificationCommandInterface;
 use App\Vehicles\Application\Contracts\Exports\ImportFailureReporterInterface;
 use App\Vehicles\Application\Contracts\Notifications\FileNotificationServiceInterface;
+use App\Vehicles\Infrastructure\Commands\EngineModificationCommand;
 use App\Vehicles\Infrastructure\Exports\ImportFailureReporter;
 use App\Vehicles\Infrastructure\Notifications\RabbitMqFileNotificationService;
 use Illuminate\Support\ServiceProvider;
@@ -56,6 +58,12 @@ class VehiclesServiceProvider extends ServiceProvider
                 "App\\Vehicles\\Infrastructure\\Commands\\{$entity}Command",
             );
         }
+
+        // EngineModification — только запись (пивот engine_modification), без репозитория.
+        $this->app->bind(
+            EngineModificationCommandInterface::class,
+            EngineModificationCommand::class,
+        );
     }
 
     public function boot(): void
