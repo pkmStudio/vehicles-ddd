@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\UseCases\Vehicle;
 
-use App\Vehicles\Application\ModelData\Vehicle\VehicleData;
-use App\Vehicles\Application\Validators\Vehicle\VehicleValidator;
-use App\Vehicles\Domain\Enums\SteeringTypeEnum;
+use App\Vehicles\Application\Contracts\Commands\VehicleCommandInterface;
+use App\Vehicles\Application\Factories\Vehicle\VehicleDataFactory;
 use App\Vehicles\Domain\Models\Manufacturer;
 use App\Vehicles\Domain\Models\Vehicle;
-use App\Vehicles\Application\Contracts\Commands\VehicleCommandInterface;
 
 /**
  * Use-case: создать/обновить ТС из строки ручного листа.
@@ -20,7 +18,7 @@ final readonly class UpsertVehicleFromSheetUseCase
 {
     public function __construct(
         private VehicleCommandInterface $command,
-        private VehicleValidator $validator,
+        private VehicleDataFactory $factory,
     ) {}
 
     /**
@@ -38,7 +36,7 @@ final readonly class UpsertVehicleFromSheetUseCase
         [$mfaId, $manufacturerId] = $this->resolveManufacturer($minMfaId, $row);
         $msId = $row[2] ?? --$minMsId;
 
-        $valid = $this->validator->validate([
+        $data = $this->factory->make([
             'ms_id' => $msId,
             'mfa_id' => $mfaId,
             'name' => $row[4] ?? null,
@@ -53,26 +51,11 @@ final readonly class UpsertVehicleFromSheetUseCase
             'generation_year_from' => $row[8] ?? null,
             'generation_year_to' => $row[9] ?? null,
             'is_allow' => ($row[15] ?? null) === 'Да',
+            'manufacturer_id' => $manufacturerId,
+            'parent_id' => $parentId,
         ]);
 
-        return $this->command->upsertByMsId(new VehicleData(
-            msId: (int) $valid['ms_id'],
-            mfaId: (int) $valid['mfa_id'],
-            manufacturerId: $manufacturerId,
-            name: (string) $valid['name'],
-            type: (string) $valid['type'],
-            steeringType: $valid['steering_type'] ?? SteeringTypeEnum::LEFT->value,
-            generation: $valid['generation'] ?? null,
-            typeCarcase: $valid['type_carcase'] ?? null,
-            generationYearFrom: isset($valid['generation_year_from']) ? (int) $valid['generation_year_from'] : null,
-            generationYearTo: isset($valid['generation_year_to']) ? (int) $valid['generation_year_to'] : null,
-            provider: $valid['provider'] ?? 'TD',
-            parentId: $parentId,
-            excelTableId: $valid['excel_table_id'] ?? null,
-            localizedName: $valid['localized_name'] ?? null,
-            generationShort: $valid['generation_short'] ?? null,
-            isAllow: (bool) ($valid['is_allow'] ?? false),
-        ));
+        return $this->command->upsertByMsId($data);
     }
 
     private function getMinMsId(): int

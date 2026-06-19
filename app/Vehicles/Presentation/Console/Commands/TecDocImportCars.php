@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Presentation\Console\Commands;
 
-use App\Vehicles\Domain\Events\EnginesAndModificationsReady;
+use App\Vehicles\Application\Listeners\EngineModificationReadinessSubscriber;
 use App\Vehicles\Infrastructure\Imports\ManufacturerCommandImport;
 use Illuminate\Console\Command;
 use Maatwebsite\Excel\Facades\Excel;
@@ -35,7 +35,7 @@ class TecDocImportCars extends Command
      */
     public function handle(): void
     {
-        EnginesAndModificationsReady::clearFlags();
+        EngineModificationReadinessSubscriber::clearFlags();
 
         $path = storage_path('vehicles/manufacturers.csv');
         Excel::import(app(ManufacturerCommandImport::class), $path);

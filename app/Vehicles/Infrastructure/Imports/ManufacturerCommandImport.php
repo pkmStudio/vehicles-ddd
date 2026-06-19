@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports;
 
 use App\Vehicles\Application\Contracts\Commands\ManufacturerCommandInterface;
-use App\Vehicles\Application\ModelData\Manufacturer\ManufacturerData;
+use App\Vehicles\Application\Factories\Manufacturer\ManufacturerDataFactory;
 use App\Vehicles\Domain\Events\Manufacturer\ManufacturerCommandImported;
-use App\Vehicles\Application\Validators\Manufacturer\ManufacturerValidator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -28,7 +27,7 @@ class ManufacturerCommandImport implements ShouldQueue, SkipsOnFailure, ToCollec
 {
     public function __construct(
         private readonly ManufacturerCommandInterface $command,
-        private readonly ManufacturerValidator $validator,
+        private readonly ManufacturerDataFactory $factory,
     ) {}
 
     public function chunkSize(): int
@@ -40,17 +39,13 @@ class ManufacturerCommandImport implements ShouldQueue, SkipsOnFailure, ToCollec
     {
         foreach ($collection as $index => $row) {
             try {
-                $valid = $this->validator->validate([
+                $data = $this->factory->make([
                     'mfa_id' => $row[0] ?? null,
                     'name' => $row[1] ?? null,
                     'provider' => 'TD',
                 ]);
 
-                $this->command->upsertByMfaId(new ManufacturerData(
-                    mfaId: (int) $valid['mfa_id'],
-                    name: (string) $valid['name'],
-                    provider: (string) $valid['provider'],
-                ));
+                $this->command->upsertByMfaId($data);
             } catch (ValidationException $e) {
                 $this->onFailure(new Failure(
                     $index + $this->startRow(),

@@ -28,7 +28,7 @@ Presentation ──▶ Application ──▶ Domain
 |---|---|---|
 | `Models/` | Eloquent-модели | **АНЕМИЧНЫЕ**: только связи (`hasMany`/`belongsTo`/`morphTo`), `$fillable`, `$casts`. Без бизнес-логики, без `$with`, без accessor/mutator-методов модификации. |
 | `Enums/` | Backed-enum'ы (`type`, `template`, …) | Логика значений (label/маппинг) — здесь. `DetailTemplateEnum::template()` резолвит класс шаблона. |
-| `Events/` | Доменные события | Plain DTO-события (`final readonly`), без поведения. `AbstractImportCompleted`, `EnginesAndModificationsReady` и т.д. |
+| `Events/` | Доменные события | Plain DTO-события (`final readonly`), **без поведения** (никаких `subscribe()`/`handle()` — это листенеры). `AbstractImportCompleted`, `EnginesAndModificationsReady` и т.д. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`, а не `VehicleImportCompletedEvent`): это легитимное исключение из «суффикс по виду класса» — событие читается как факт домена, суффикс несёт потребитель (`…Listener`/`…Subscriber`). |
 | `Templates/` | Описания шаблонов полей (field-template) | Декларативные классы. Общий DSL вынесен в пакет `dan/field-templates`. |
 | `Services/` | **Доменные сервисы** (пока нет) | Бизнес-правила, которым тесно в одной модели и которые не зависят от инфраструктуры. Создаём по мере появления чистых правил. |
 
@@ -45,9 +45,10 @@ Presentation ──▶ Application ──▶ Domain
 | Папка | Что лежит | Толщина / правила |
 |---|---|---|
 | `Contracts/<Concern>/` | **Порты** (интерфейсы) для адаптеров Infrastructure | Группируются по инфра-концерну, зеркально `Infrastructure/`: `Contracts/Repositories/<Entity>RepositoryInterface`, `Contracts/Commands/<Entity>CommandInterface`, `Contracts/Notifications/…`. В будущем — `Contracts/Messaging/`, `Contracts/Cache/`. Порт принадлежит потребителю (Application), реализация — в Infrastructure. Без вложенной папки-сущности: на сущность ровно один Repository и один Command. |
-| `UseCases/<Entity>/` | **Оркестраторы** одного сценария | Координируют: вызывают Validator → собирают `ModelData` → дёргают `Command`/`Repository`/доменный Service. Без прямого Eloquent-`save`, без Excel. Пример: `Vehicle/UpsertVehicleFromSheet`. |
+| `UseCases/<Entity>/` | **Оркестраторы** одного сценария | Координируют: `Factory->make()` (валидация+сборка `ModelData`) → дёргают `Command`/`Repository`/доменный Service. Без прямого Eloquent-`save`, без Excel. Пример: `Vehicle/UpsertVehicleFromSheetUseCase`. |
 | `ModelData/<Entity>/` | **Отображения моделей** (бывш. `DTOs`) | `final readonly` + `toArray()`. **Без валидации в конструкторе.** Это типизированный «снимок строки» для передачи в Command. Имя класса — `<Entity>Data`. |
-| `Validators/<Entity>/` | Валидация входных данных | Вся валидация здесь (а не в DTO/Data). Enum-поля валидируем **сырыми значениями** через `Rule::enum(...)`, без `tryFrom` (см. «Грабли»). |
+| `Factories/<Entity>/` | **Сборка `ModelData` из сырой строки** (`<Entity>DataFactory`) | Метод `make(array $row): <Entity>Data` валидирует И собирает Data в одном месте — убирает дублирование «перечислил поля в валидаторе, повторил в `new …Data()` в каждом импорте». Один параметр-массив; вычисляемые вызывающим поля (`vehicle_id`, `manufacturer_id`, `parent_id`) кладём тем же массивом (тем же ключом), а не доп.параметрами — фабрика не превращается в билдер. Enum-поля валидируем **сырыми значениями** через `Rule::enum(...)`, без `tryFrom` (см. «Грабли»). |
+| `Validators/<Entity>/` | Валидация **без** сборки Data | Когда валидировать нечего собирать в `Data` (напр. `EngineModificationValidator` — pivot-связь). Если валидация ведёт к `Data` — это `Factories/`, а не сюда. |
 | `Listeners/` | Слушатели доменных событий | **ТОНКИЕ.** Делегируют в UseCase/Service. Без бизнес-логики внутри. Нейминг и количество — см. ниже. |
 | `Jobs/<Entity>/` | Очередные задачи | **ТОНКИЕ.** `handle()` резолвит сервис/use-case и зовёт его. Состояние job'ы — сериализуемые скаляры/DTO, не зависимости. |
 | `Observers/<Entity>/` | Обсерверы моделей | **ТОНКИЕ.** Только реакция на события модели → делегат в Service/UseCase. |
@@ -65,7 +66,8 @@ Presentation ──▶ Application ──▶ Domain
 **Слушатели — нейминг:**
 - На событие **один** слушатель → имя **по событию**: `<Event>Listener`.
 - На событие **несколько** слушателей → имя **по действию**: `<Action>Listener` (по событию назвать нельзя — коллизия).
-- UseCase при этом всегда именуется по действию (`ReportImportResult`), слушатель — по правилу выше.
+- Класс, слушающий **несколько событий** через Laravel `subscribe()`, — это **`…Subscriber`** (`EngineModificationReadinessSubscriber`), тоже в `Application/Listeners/`. Сам он тонкий-координатор; событие-факт остаётся плоским DTO в `Domain/Events`.
+- UseCase при этом всегда именуется по действию (`ReportImportResultUseCase`), слушатель/подписчик — по правилу выше.
 
 ---
 
@@ -77,7 +79,7 @@ Presentation ──▶ Application ──▶ Domain
 |---|---|---|
 | `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` (реализует порт `Application/Contracts/Repositories/<Entity>RepositoryInterface`). Только запросы, без записи. Без папки-сущности — один репозиторий на сущность. |
 | `Commands/` | **Запись** (CQRS-lite) | `<Entity>Command` (реализует порт `Application/Contracts/Commands/<Entity>CommandInterface`). Принимают **`ModelData`**, а не сырые массивы. Здесь `save`/`upsert`/`delete`. Без папки-сущности — одна команда на сущность. |
-| `Imports/<Entity>/` | Импорт из Excel | Адаптеры `maatwebsite/excel`. Пайплайн строки: **row → Validator → ModelData → Command**; чтение справочников — через Repository. Зависимости — через конструктор. |
+| `Imports/<Entity>/` | Импорт из Excel | Адаптеры `maatwebsite/excel`. Пайплайн строки: **row → `Factory->make()` (валидация+сборка) → Command**; чтение справочников — через Repository. Зависимости — через конструктор. |
 | `Exports/<Entity>/` | Экспорт в Excel | Источник данных — Repository. Сборка строк/заголовков — сервисы `Support/*ExportRow`, `Support/ExportDetailsBuilder`. |
 | `Support/` | Технические сервисы-помощники | `DetailsBuilder`, `ExportDetailsBuilder`, `VehicleExportRow`, `EngineExportRow`. Без статуса трейтов — обычные инъектируемые классы. |
 | `Messaging/` | RabbitMQ | `Consumers/InboxConsumer`, publisher, `Commands/` (setup-команды брокера), `CustomRabbitMQQueue`. Очереди: `vehicles` (jobs), `vehicles.inbox` (входящие события), exchange `application.events`. |

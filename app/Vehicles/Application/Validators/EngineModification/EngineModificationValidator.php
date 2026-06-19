@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-final class EngineModificationValidator
+final readonly class EngineModificationValidator
 {
     /**
      * @throws ValidationException

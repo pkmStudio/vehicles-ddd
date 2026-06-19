@@ -6,7 +6,7 @@ namespace App\Vehicles\Infrastructure\Support;
 
 use App\Vehicles\Domain\Models\Vehicle;
 
-final class VehicleExportRow
+final readonly class VehicleExportRow
 {
     /**
      * Возвращает базовые заголовки для автомобиля

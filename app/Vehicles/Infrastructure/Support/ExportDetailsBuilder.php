@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * Рекурсивно обходит шаблон полей и извлекает соответствующие значения из спецификации.
  * Поддерживает вложенные поля, различные типы данных (select, conditional_select, array).
  */
-final class ExportDetailsBuilder
+final readonly class ExportDetailsBuilder
 {
     /**
      * Извлекает заголовки колонок из конфигурации шаблона.

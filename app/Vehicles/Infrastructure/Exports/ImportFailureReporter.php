@@ -8,7 +8,7 @@ use App\Vehicles\Application\Contracts\Exports\ImportFailureReporterInterface;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
-final class ImportFailureReporter implements ImportFailureReporterInterface
+final readonly class ImportFailureReporter implements ImportFailureReporterInterface
 {
     public function store(array $failures): ?string
     {

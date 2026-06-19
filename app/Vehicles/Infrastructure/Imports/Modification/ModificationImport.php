@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Modification;
 
 use App\Vehicles\Application\Contracts\Commands\ModificationCommandInterface;
-use App\Vehicles\Application\ModelData\Modification\ModificationData;
 use App\Vehicles\Application\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Application\Validators\Modification\ModificationValidator;
+use App\Vehicles\Application\Factories\Modification\ModificationDataFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -26,7 +25,7 @@ class ModificationImport implements ShouldQueue, SkipsOnFailure, ToCollection, W
 {
     public function __construct(
         private readonly ModificationCommandInterface $command,
-        private readonly ModificationValidator $validator,
+        private readonly ModificationDataFactory $factory,
         private readonly VehicleRepositoryInterface $vehicles,
     ) {}
 
@@ -48,7 +47,7 @@ class ModificationImport implements ShouldQueue, SkipsOnFailure, ToCollection, W
                     continue;
                 }
 
-                $valid = $this->validator->validate([
+                $data = $this->factory->make([
                     'mod_id' => $row[1] ?? null,
                     'type' => $row[13] ?? null,
                     'ms_id' => $row[0] ?? null,
@@ -63,25 +62,10 @@ class ModificationImport implements ShouldQueue, SkipsOnFailure, ToCollection, W
                     'brake_system_type' => ($row[10] ?? null) ?: null,
                     'number_of_cylinders' => $row[11] ?? null,
                     'capacity_lt' => $row[12] ?? null,
+                    'vehicle_id' => $vehicle->id,
                 ]);
 
-                $this->command->upsertByModIdAndType(new ModificationData(
-                    modId: (int) $valid['mod_id'],
-                    type: (string) $valid['type'],
-                    vehicleId: $vehicle->id,
-                    msId: (int) $valid['ms_id'],
-                    yearFrom: isset($valid['year_from']) ? (int) $valid['year_from'] : null,
-                    yearTo: isset($valid['year_to']) ? (int) $valid['year_to'] : null,
-                    description: $valid['description'] ?? null,
-                    powerPs: isset($valid['power_ps']) ? (int) $valid['power_ps'] : null,
-                    powerKw: isset($valid['power_kw']) ? (int) $valid['power_kw'] : null,
-                    engineType: $valid['engine_type'] ?? null,
-                    gearType: $valid['gear_type'] ?? null,
-                    driveType: $valid['drive_type'] ?? null,
-                    brakeSystemType: $valid['brake_system_type'] ?? null,
-                    numberOfCylinders: isset($valid['number_of_cylinders']) ? (int) $valid['number_of_cylinders'] : null,
-                    capacityLt: isset($valid['capacity_lt']) ? (float) $valid['capacity_lt'] : null,
-                ));
+                $this->command->upsertByModIdAndType($data);
             } catch (ValidationException $e) {
                 $this->fail($line, Arr::flatten($e->errors()), $row->toArray());
             }

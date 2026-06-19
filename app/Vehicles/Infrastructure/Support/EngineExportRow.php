@@ -6,7 +6,7 @@ namespace App\Vehicles\Infrastructure\Support;
 
 use App\Vehicles\Domain\Models\Engine;
 
-final class EngineExportRow
+final readonly class EngineExportRow
 {
     public function getBaseHeadings(): array
     {

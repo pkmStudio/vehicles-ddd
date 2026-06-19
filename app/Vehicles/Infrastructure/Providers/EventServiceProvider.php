@@ -10,6 +10,7 @@ use App\Vehicles\Domain\Events\EnginesAndModificationsReady;
 use App\Vehicles\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use App\Vehicles\Domain\Events\Vehicle\VehicleCommandImported;
 use App\Vehicles\Domain\Events\Vehicle\VehicleImportCompleted;
+use App\Vehicles\Application\Listeners\EngineModificationReadinessSubscriber;
 use App\Vehicles\Application\Listeners\ReportImportResultListener;
 use App\Vehicles\Application\Listeners\StartEngineImportListener;
 use App\Vehicles\Application\Listeners\StartEngineModificationImportListener;
@@ -37,7 +38,7 @@ class EventServiceProvider extends ServiceProvider
          * Подписчик: слушает EngineCommandImported и ModificationCommandImported,
          * при готовности обоих — диспатчит EnginesAndModificationsReady.
          */
-        Event::subscribe(EnginesAndModificationsReady::class);
+        Event::subscribe(EngineModificationReadinessSubscriber::class);
 
         /**
          * Двигатели и модификации готовы — импорт связей engine_modification.

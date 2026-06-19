@@ -13,7 +13,7 @@ namespace App\Vehicles\Infrastructure\Support;
  *
  * @package App\Traits\Warehouse
  */
-final class DetailsBuilder
+final readonly class DetailsBuilder
 {
     /**
      * Строит массив details на основе строки импорта и шаблона.

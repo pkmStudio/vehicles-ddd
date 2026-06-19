@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Events\Vehicle;
 
-use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class VehicleCommandImported
+final readonly class VehicleCommandImported
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, SerializesModels;
 
     /**
      * Create a new event instance.

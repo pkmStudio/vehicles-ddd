@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Vehicle;
 
 use App\Vehicles\Application\Contracts\Commands\VehicleCommandInterface;
-use App\Vehicles\Application\ModelData\Vehicle\VehicleData;
-use App\Vehicles\Domain\Enums\SteeringTypeEnum;
-use App\Vehicles\Domain\Events\Vehicle\VehicleCommandImported;
 use App\Vehicles\Application\Contracts\Repositories\ManufacturerRepositoryInterface;
-use App\Vehicles\Application\Validators\Vehicle\VehicleValidator;
+use App\Vehicles\Application\Factories\Vehicle\VehicleDataFactory;
+use App\Vehicles\Domain\Events\Vehicle\VehicleCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -25,13 +23,13 @@ use Maatwebsite\Excel\Validators\Failure;
 
 /**
  * Импортер ТС (приводит базу к виду TD). Строка -> validate -> DTO -> Command.
- * Enum-поля (type, type_carcase) валидируются как enum в VehicleValidator (сырое значение).
+ * Enum-поля (type, type_carcase) валидируются как enum в VehicleDataFactory (сырое значение).
  */
 class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithStartRow, WithEvents
 {
     public function __construct(
         private readonly VehicleCommandInterface $command,
-        private readonly VehicleValidator $validator,
+        private readonly VehicleDataFactory $factory,
         private readonly ManufacturerRepositoryInterface $manufacturers,
     ) {}
 
@@ -53,7 +51,7 @@ class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToCollection,
                     continue;
                 }
 
-                $valid = $this->validator->validate([
+                $data = $this->factory->make([
                     'ms_id' => $row[1] ?? null,
                     'mfa_id' => $row[0] ?? null,
                     'name' => $row[2] ?? null,
@@ -62,20 +60,10 @@ class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToCollection,
                     'generation' => $row[3] ?? null,
                     'generation_year_from' => $row[5] ?? null,
                     'generation_year_to' => $row[6] ?? null,
+                    'manufacturer_id' => $manufacturer->id,
                 ]);
 
-                $this->command->upsertByMsId(new VehicleData(
-                    msId: (int) $valid['ms_id'],
-                    mfaId: (int) $valid['mfa_id'],
-                    manufacturerId: $manufacturer->id,
-                    name: (string) $valid['name'],
-                    type: (string) $valid['type'],
-                    steeringType: SteeringTypeEnum::LEFT->value,
-                    generation: $valid['generation'] ?? null,
-                    typeCarcase: $valid['type_carcase'] ?? null,
-                    generationYearFrom: isset($valid['generation_year_from']) ? (int) $valid['generation_year_from'] : null,
-                    generationYearTo: isset($valid['generation_year_to']) ? (int) $valid['generation_year_to'] : null,
-                ));
+                $this->command->upsertByMsId($data);
             } catch (ValidationException $e) {
                 $this->fail($line, Arr::flatten($e->errors()), $row->toArray());
             }

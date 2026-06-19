@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Engine;
 
 use App\Vehicles\Application\Contracts\Commands\EngineCommandInterface;
-use App\Vehicles\Application\ModelData\Engine\EngineData;
+use App\Vehicles\Application\Factories\Engine\EngineDataFactory;
 use App\Vehicles\Domain\Events\Engine\EngineCommandImported;
-use App\Vehicles\Application\Validators\Engine\EngineValidator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -23,13 +22,13 @@ use Maatwebsite\Excel\Validators\Failure;
 
 /**
  * Импортер двигателей (приводит базу к виду TD). Строка -> validate -> DTO -> Command.
- * eng_fuel_type валидируется как enum в EngineValidator (сырое значение).
+ * eng_fuel_type валидируется как enum в EngineDataFactory (сырое значение).
  */
 class EngineCommandImport implements ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
     public function __construct(
         private readonly EngineCommandInterface $command,
-        private readonly EngineValidator $validator,
+        private readonly EngineDataFactory $factory,
     ) {}
 
     public function chunkSize(): int
@@ -41,7 +40,7 @@ class EngineCommandImport implements ShouldQueue, SkipsOnFailure, ToCollection, 
     {
         foreach ($collection as $index => $row) {
             try {
-                $valid = $this->validator->validate([
+                $data = $this->factory->make([
                     'eng_id' => $row[0] ?? null,
                     'code_engine' => $row[1] ?? null,
                     'eng_power_kw_start' => $row[2] ?? null,
@@ -55,19 +54,7 @@ class EngineCommandImport implements ShouldQueue, SkipsOnFailure, ToCollection, 
                     'eng_fuel_type' => ($row[10] ?? null) ?: null,
                 ]);
 
-                $this->command->upsertByEngId(new EngineData(
-                    engId: (int) $valid['eng_id'],
-                    codeEngine: $valid['code_engine'] ?? null,
-                    engPowerKwStart: isset($valid['eng_power_kw_start']) ? (int) $valid['eng_power_kw_start'] : null,
-                    engPowerKwUpto: isset($valid['eng_power_kw_upto']) ? (int) $valid['eng_power_kw_upto'] : null,
-                    engPowerPsStart: isset($valid['eng_power_ps_start']) ? (int) $valid['eng_power_ps_start'] : null,
-                    engPowerPsUpto: isset($valid['eng_power_ps_upto']) ? (int) $valid['eng_power_ps_upto'] : null,
-                    engineCapacity: $valid['engine_capacity'] ?? null,
-                    cylinderDiameter: isset($valid['cylinder_diameter']) ? (float) $valid['cylinder_diameter'] : null,
-                    cylinderCount: isset($valid['cylinder_count']) ? (int) $valid['cylinder_count'] : null,
-                    engNumberOfValves: isset($valid['eng_number_of_valves']) ? (int) $valid['eng_number_of_valves'] : null,
-                    engFuelType: $valid['eng_fuel_type'] ?? null,
-                ));
+                $this->command->upsertByEngId($data);
             } catch (ValidationException $e) {
                 $this->onFailure(new Failure($index + $this->startRow(), 'Двигатель', Arr::flatten($e->errors()), $row->toArray()));
             }
