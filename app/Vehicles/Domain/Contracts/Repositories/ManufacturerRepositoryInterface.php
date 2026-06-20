@@ -19,4 +19,7 @@ interface ManufacturerRepositoryInterface
     public function all(): Collection;
 
     public function firstByMfaId(int $mfaId): ?Manufacturer;
+
+    /** Минимальный mfa_id (для генерации отрицательных id новых марок). 0 если таблица пуста. */
+    public function minMfaId(): int;
 }

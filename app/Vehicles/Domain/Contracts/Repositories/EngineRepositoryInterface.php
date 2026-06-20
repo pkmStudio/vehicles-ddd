@@ -17,6 +17,8 @@ interface EngineRepositoryInterface
 
     public function firstByEngId(int $engId): ?Engine;
 
+    public function firstByCodeEngine(string $code): ?Engine;
+
     /** Для листа свечей (со спецификациями шаблона sparkPlugs). */
     public function forSparkPlugSheet(): Collection;
 }

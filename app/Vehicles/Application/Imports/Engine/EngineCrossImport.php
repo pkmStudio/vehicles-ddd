@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Imports\Engine;
 
+use App\Vehicles\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Vehicles\Domain\Contracts\Imports\EngineCrossImportInterface;
+use App\Vehicles\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use Maatwebsite\Excel\Facades\Excel;
 
 use App\Vehicles\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Models\User;
-use App\Vehicles\Domain\Models\Engine;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
@@ -36,8 +37,10 @@ final class EngineCrossImport implements ShouldQueue, SkipsEmptyRows, SkipsOnFai
 
     public int $importedByUserId;
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly EngineRepositoryInterface $engines,
+        private readonly EngineCommandInterface $command,
+    ) {
         $this->importedByUserId = (int) Auth::id();
         $this->cacheKey = "engine_import_failures_{$this->importedByUserId}";
         $this->lockKey = "engine_import_failures_lock_{$this->importedByUserId}";
@@ -66,7 +69,7 @@ final class EngineCrossImport implements ShouldQueue, SkipsEmptyRows, SkipsOnFai
 
         foreach ($codes as $code) {
             try {
-                $engine = Engine::where('code_engine', $code)->first();
+                $engine = $this->engines->firstByCodeEngine($code);
 
                 if (! $engine) {
                     $this->onFailure(new Failure(
@@ -88,7 +91,7 @@ final class EngineCrossImport implements ShouldQueue, SkipsEmptyRows, SkipsOnFai
                     ));
                 }
 
-                $engine->update(['group_id' => $groupId]);
+                $this->command->setGroupId($engine, $groupId);
 
             } catch (Throwable $e) {
                 $this->onFailure(new Failure(

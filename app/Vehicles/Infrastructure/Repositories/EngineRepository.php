@@ -31,6 +31,11 @@ final readonly class EngineRepository implements EngineRepositoryInterface
         return Engine::query()->where('eng_id', $engId)->first();
     }
 
+    public function firstByCodeEngine(string $code): ?Engine
+    {
+        return Engine::query()->where('code_engine', $code)->first();
+    }
+
     public function forSparkPlugSheet(): Collection
     {
         return Engine::query()

@@ -21,5 +21,11 @@ interface ManufacturerCommandInterface
      */
     public function upsertByMfaId(ManufacturerData $data): Manufacturer;
 
+    /** Найти марку по имени или создать с заданным mfa_id. */
+    public function firstOrCreateByName(string $name, int $mfaId): Manufacturer;
+
+    /** Найти марку по mfa_id или создать с заданным именем. */
+    public function firstOrCreateByMfaId(int $mfaId, string $name): Manufacturer;
+
     public function delete(Manufacturer $manufacturer): bool;
 }

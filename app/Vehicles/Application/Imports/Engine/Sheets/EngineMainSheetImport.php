@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Imports\Engine\Sheets;
 
-use App\Vehicles\Domain\Models\Engine;
+use App\Vehicles\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -31,8 +31,11 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
         8 => 'eng_number_of_valves',
     ];
 
-    public function __construct(private readonly int $userId, string $cacheKey)
-    {
+    public function __construct(
+        private readonly int $userId,
+        string $cacheKey,
+        private readonly EngineCommandInterface $command,
+    ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "engine_import_failures_lock_{$userId}";
     }
@@ -47,10 +50,7 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
                     $data[$field] = $row[$columnIndex] ?? null;
                 }
 
-                Engine::query()->updateOrCreate(
-                    ['eng_id' => $row[0]],
-                    $data
-                );
+                $this->command->updateEditableByEngId((int) $row[0], $data);
                 DB::commit();
             } catch (\Throwable $e) {
                 DB::rollBack();

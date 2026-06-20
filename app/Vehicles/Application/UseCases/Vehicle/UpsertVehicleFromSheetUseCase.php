@@ -4,21 +4,26 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\UseCases\Vehicle;
 
-use App\Vehicles\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Vehicles\Application\Factories\Vehicle\VehicleDataFactory;
-use App\Vehicles\Domain\Models\Manufacturer;
+use App\Vehicles\Domain\Contracts\Commands\ManufacturerCommandInterface;
+use App\Vehicles\Domain\Contracts\Commands\VehicleCommandInterface;
+use App\Vehicles\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Domain\Models\Vehicle;
 
 /**
  * Use-case: создать/обновить ТС из строки ручного листа.
- * Оркестрация: резолв производителя → валидация → запись через Command.
- * (Раньше — трейт HasVehicleImportBaseData со скрытым контрактом на хост.)
+ * Оркестрация: резолв производителя → валидация → запись. Персистентность — только через порты
+ * (Repository/Command), прямого Eloquent в Application нет.
  */
 final readonly class UpsertVehicleFromSheetUseCase
 {
     public function __construct(
         private VehicleCommandInterface $command,
         private VehicleDataFactory $factory,
+        private VehicleRepositoryInterface $vehicles,
+        private ManufacturerRepositoryInterface $manufacturers,
+        private ManufacturerCommandInterface $manufacturerCommand,
     ) {}
 
     /**
@@ -26,11 +31,11 @@ final readonly class UpsertVehicleFromSheetUseCase
      */
     public function execute(array $row): Vehicle
     {
-        $minMfaId = $this->getMinMfaId();
-        $minMsId = $this->getMinMsId();
+        $minMfaId = min($this->manufacturers->minMfaId(), 0);
+        $minMsId = min($this->vehicles->minMsId(), 0);
 
         $parentId = isset($row[13])
-            ? Vehicle::query()->where('ms_id', $row[13])->first()?->id
+            ? $this->vehicles->firstByMsId((int) $row[13])?->id
             : null;
 
         [$mfaId, $manufacturerId] = $this->resolveManufacturer($minMfaId, $row);
@@ -58,29 +63,14 @@ final readonly class UpsertVehicleFromSheetUseCase
         return $this->command->upsertByMsId($data);
     }
 
-    private function getMinMsId(): int
-    {
-        return min((int) Vehicle::query()->min('ms_id'), 0);
-    }
-
-    private function getMinMfaId(): int
-    {
-        return min((int) Manufacturer::query()->min('mfa_id'), 0);
-    }
-
+    /**
+     * @return array{0: int, 1: int} [mfa_id, manufacturer_id]
+     */
     private function resolveManufacturer(int &$minMfaId, array $row): array
     {
-        if (empty($row[1])) {
-            $manufacturer = Manufacturer::query()->firstOrCreate(
-                ['name' => $row[3]],
-                ['mfa_id' => --$minMfaId],
-            );
-        } else {
-            $manufacturer = Manufacturer::query()->firstOrCreate(
-                ['mfa_id' => $row[1]],
-                ['name' => $row[3]],
-            );
-        }
+        $manufacturer = empty($row[1])
+            ? $this->manufacturerCommand->firstOrCreateByName($row[3], --$minMfaId)
+            : $this->manufacturerCommand->firstOrCreateByMfaId((int) $row[1], $row[3]);
 
         return [$manufacturer->mfa_id, $manufacturer->id];
     }

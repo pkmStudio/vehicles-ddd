@@ -110,6 +110,13 @@ Presentation ──▶ Application ──▶ Domain
 
 ## 5. Сквозные правила
 
+### Application × модели (правило A)
+- Application **может держать и читать** Domain-модели (это доменный тип данных; Repository их и возвращает) — передавать дальше, читать свойства, отдавать в Command.
+- Application **не делает персистентность сам**: никакого инлайн `Model::query()`/`::where`/`firstOrCreate`/`updateOrCreate`/`->save()`. **Чтения → через Repository-порт, записи → через Command-порт** (вход — `ModelData`).
+- Эталон — `UpsertVehicleFromSheetUseCase`: min-id/parent/резолв марки ушли в `VehicleRepository`/`ManufacturerRepository`/`ManufacturerCommand` за портами.
+- «Всё на интерфейсах» = только про **поведение** (repo/command/import/export/notification). `Data`/`Model` — значения, их не интерфейсят.
+- Почему A, а не строгий «Application без Eloquent»: один Eloquent/Postgres навсегда, нет тестов домена без БД, read-формы = таблицы → налог маппинга model↔Data не оправдан.
+
 ### DI — «вариант А»
 - Реальная конструкторная инъекция: зависимости — параметры конструктора (`private Xxx $x`).
 - Экземпляры получаем через контейнер: `app(...)`, `app()->makeWith(...)`. **Не `new`** для классов с зависимостями.
