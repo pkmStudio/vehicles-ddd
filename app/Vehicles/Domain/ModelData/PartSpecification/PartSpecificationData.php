@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\ModelData\PartSpecification;
 
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 
 final readonly class PartSpecificationData
 {

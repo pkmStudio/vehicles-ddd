@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Contracts\Application\Common\Services;
 
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use Dan\FieldTemplates\AbstractTemplate;
 
 interface DetailTemplateResolverInterface

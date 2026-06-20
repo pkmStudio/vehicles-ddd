@@ -11,7 +11,7 @@ use App\Vehicles\Domain\Contracts\Application\Export\Support\ExportDetailsBuilde
 use App\Vehicles\Domain\Contracts\Application\Export\Support\PartSpecificationRowExpanderInterface;
 use App\Vehicles\Domain\DTOs\EngineExportPlan;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use App\Vehicles\Domain\Models\Engine;
 use Illuminate\Support\Collection;
 

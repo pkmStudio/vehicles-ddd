@@ -9,7 +9,7 @@ use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\ModificationReposi
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertSparkPlugSpecByModificationUseCaseInterface;
 use App\Vehicles\Domain\DTOs\ModificationSparkPlugResult;
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\Engine;
 

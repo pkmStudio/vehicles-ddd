@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Contracts\Infrastructure\Repositories;
 
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use App\Vehicles\Domain\Models\PartSpecification;
 use Illuminate\Database\Eloquent\Collection;
 

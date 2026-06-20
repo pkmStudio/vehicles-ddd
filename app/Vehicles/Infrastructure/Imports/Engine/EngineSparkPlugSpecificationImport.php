@@ -7,7 +7,7 @@ namespace App\Vehicles\Infrastructure\Imports\Engine;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineSparkPlugSpecificationImportInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertSparkPlugSpecByModificationUseCaseInterface;
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use App\Vehicles\Domain\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;

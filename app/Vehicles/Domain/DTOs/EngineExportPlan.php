@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\DTOs;
 
-use App\Vehicles\Domain\Enums\EngineExportSheet;
+use App\Vehicles\Domain\Enums\InOut\Sheets\EngineExportSheet;
 
 /**
  * Политика экспорта для engine-экспорта: какие листы нужно включить.

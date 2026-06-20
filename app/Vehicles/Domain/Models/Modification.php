@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Models;
 
-use App\Vehicles\Domain\Enums\BrakeSystemTypeEnum;
-use App\Vehicles\Domain\Enums\DriveTypeEnum;
-use App\Vehicles\Domain\Enums\EngineTypeEnum;
-use App\Vehicles\Domain\Enums\GearTypeEnum;
-use App\Vehicles\Domain\Enums\VehicleTypeEnum;
+use App\Vehicles\Domain\Enums\Vehicle\BrakeSystemTypeEnum;
+use App\Vehicles\Domain\Enums\Vehicle\DriveTypeEnum;
+use App\Vehicles\Domain\Enums\Engine\EngineTypeEnum;
+use App\Vehicles\Domain\Enums\Vehicle\GearTypeEnum;
+use App\Vehicles\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 

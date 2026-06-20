@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Vehicle;
 
 use App\Vehicles\Domain\DTOs\VehicleImportPlan;
-use App\Vehicles\Domain\Enums\VehicleImportSheet;
+use App\Vehicles\Domain\Enums\InOut\Sheets\VehicleImportSheet;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleMultiSheetImportInterface;
 use App\Vehicles\Domain\Events\Vehicle\VehicleImportCompleted;
 use Illuminate\Contracts\Queue\ShouldQueue;

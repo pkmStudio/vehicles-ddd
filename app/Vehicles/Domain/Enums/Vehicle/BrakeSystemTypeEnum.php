@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Domain\Enums;
+namespace App\Vehicles\Domain\Enums\Vehicle;
 
 use App\Vehicles\Traits\EnumHelperTrait;
 

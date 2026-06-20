@@ -8,7 +8,7 @@ use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationComma
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\FeatureValueRepositoryInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\PartSpecificationRepositoryInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCaseInterface;
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\Vehicle;
 use App\Vehicles\Domain\Contracts\Application\Common\Services\WiperSpecificationServiceInterface;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\DTOs;
 
-use App\Vehicles\Domain\Enums\VehicleExportSheet;
+use App\Vehicles\Domain\Enums\InOut\Sheets\VehicleExportSheet;
 
 /**
  * Политика экспорта для vehicle-экспорта: какие листы нужно включить и какой флаг is_allow использовать.

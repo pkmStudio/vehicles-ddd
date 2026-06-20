@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Domain\Enums;
+namespace App\Vehicles\Domain\Enums\Templates;
 
 use App\Vehicles\Domain\Templates\Engine\Templates\AirFilterTemplate;
 use App\Vehicles\Domain\Templates\Engine\Templates\OilFilterTemplate;

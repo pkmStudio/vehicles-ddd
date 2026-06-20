@@ -31,6 +31,7 @@ Presentation ──▶ Application ──▶ Domain
 | `ModelData/<Entity>/` | **Отображения моделей** | `final readonly` + `toArray()`. **Без валидации в конструкторе.** Типизированный «снимок строки» для передачи в Command. Имя класса — `<Entity>Data`. Чистые данные → в Domain. |
 | `DTOs/` | **Транспортные объекты сценариев** (вход/выход use-case, payload) | `final readonly`. Форма данных, которой обменивается приложение и которая **не повторяет модель** (в отличие от `ModelData`): результаты use-case, запросы/ответы сценариев. Пример: `AssignEngineGroupResult` (исход назначения группы — `found`/`reassigned`/`previousGroupId`). Имя — `<Smth>Result`/`<Smth>Input` и т.п. по смыслу. |
 | `Enums/` | Backed-enum'ы (`type`, `template`, …) | Логика значений (label/маппинг) — здесь. `DetailTemplateEnum::templateClass()` резолвит FQCN класса шаблона. |
+| `Enums/` | Схемы потоков импорта/экспорта | `VehicleExportSheet`, `VehicleImportSheet`, `EngineExportSheet`, `EngineImportSheet` и т.п. с названиями листов. Это позволяет не развязать код от русских строк и держать политику в Domain. |
 | `Events/` | Доменные события | Plain DTO-события (`final readonly`), **без поведения** (никаких `subscribe()`/`handle()` — это листенеры). `AbstractImportCompleted`, `EnginesAndModificationsReady` и т.д. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`, а не `VehicleImportCompletedEvent`): это легитимное исключение из «суффикс по виду класса» — событие читается как факт домена, суффикс несёт потребитель (`…Listener`/`…Subscriber`). |
 | `Templates/` | Описания шаблонов полей (field-template) | Декларативные классы. Общий DSL вынесен в пакет `dan/field-templates`. |
 | `Services/` | **Доменные сервисы** | Чистые бизнес-правила над `ModelData`/`DTO`/Enum, без инфраструктуры (без Eloquent-query, без фасадов/IO). Пример: `WiperSpecificationService` (структура деталей дворника: detect/split/merge сторон). Query/IO — за порт. |
@@ -49,7 +50,7 @@ Presentation ──▶ Application ──▶ Domain
 
 Правило по слоям:
 - `UseCase` — сценарный вход с точки входа внешнего мира (`execute(...)`): импорт, экспорт, пересчёт, отчёт.
-- `Service` — оркестрация внутри Application: подготовка данных, правил, последовательностей шагов и вызов инфраструктурных портов.
+- `Service` — оркестрация внутри Application: подготовка данных, правил, последовательностей шагов и вызов инфраструктурных портов. Для импорта/экспорта здесь также лежат методы сборки политики (`buildImportPlan`, `buildExportPlan`), возвращающие соответствующие `*Plan`.
 - `Support` — только вспомогательные helper-классы (маппинг/форматирование/разделение данных), без бизнес-сценариев и без “оркестрации”.
 
 ### Группировка — по фиче (feature-first)
@@ -62,7 +63,7 @@ Application/
     UseCases/Reporting/  ReportImportResultUseCase (кросс-сущностный сценарий)
     Factories/<Entity>/  <Entity>DataFactory
     Support/             TemplateDataBuilder, DetailsBuilder, EngineMainSheetImportService
-    Services/            EngineModificationReadinessGate (gate-логика готовности процесса)
+    Services/            VehicleImportService, EngineImportService, EngineModificationReadinessGate (gate-логика готовности процесса)
     Listeners/           Start*ImportListener, EngineModificationReadinessSubscriber, ReportImportResultListener
   Export/
     Support/             ExportDetailsBuilder, VehicleExportRow, EngineExportRow, PartSpecificationRowExpander, WiperRowExpander
@@ -116,7 +117,7 @@ Application/
 
 | Папка | Что лежит | Правила |
 |---|---|---|
-| `Imports/<Entity>/` | Адаптеры импорта (`maatwebsite/excel`) | **Механика чтения файла:** `Excel::import($this, $path)`, чанки, `onFailure`. На каждую строку зовёт построчный **UseCase** (Application), бизнес-логику в адаптере не держит. **Точка входа** реализует поведенческий порт `Domain/Contracts/Imports/<X>Interface` (`import(string $path): void`). Sub-sheet'ы — внутренние классы без порта. Зависимости — через конструктор; sub-sheet'ы создаём `app()->makeWith(...)`, не `new`. |
+| `Imports/<Entity>/` | Адаптеры импорта (`maatwebsite/excel`) | **Механика чтения файла:** `Excel::import($this, $path)`, чанки, `onFailure`. На каждую строку зовёт построчный **UseCase** (Application), бизнес-логику в адаптере не держит. **Точка входа** реализует поведенческий порт `Domain/Contracts/Imports/<X>Interface` (`import(string $path, ?*Plan $plan = null): void`). Sub-sheet'ы — внутренние классы без интерфейсов (`*SheetImportInterface` больше не нужны). Зависимости — через конструктор; sub-sheet'ы создаём `app()->makeWith(...)`, не `new`. |
 | `Exports/<Entity>/` | Адаптеры экспорта (`maatwebsite/excel`) | Источник данных — Repository; сборка строк — `Support/*ExportRow`. **Точка входа** реализует порт `Domain/Contracts/Exports/<X>Interface`. Sub-sheet'ы / `FailuresExport` — внутренние. |
 | `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` (реализует порт `Domain/Contracts/Repositories/<Entity>RepositoryInterface`). Только запросы, без записи. Без папки-сущности — один репозиторий на сущность. |
 | `Commands/` | **Запись** (CQRS-lite) | `<Entity>Command` (реализует порт `Domain/Contracts/Commands/<Entity>CommandInterface`). Принимают **`ModelData`**, а не сырые массивы. Здесь `save`/`upsert`/`delete`. Без папки-сущности — одна команда на сущность. |
@@ -192,7 +193,7 @@ Application/
 | Новую запись в БД | порт → `Domain/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход — `ModelData`) |
 | Новый порт (брокер/кеш/нотификация) | `Domain/Contracts/<Concern>/`, реализация → `Infrastructure/<Concern>/` |
 | Типизированный снимок модели | `Domain/ModelData/<Entity>/` |
-| Транспортный объект сценария (вход/выход use-case, payload) | `Domain/DTOs/` (отдельно от ModelData) |
+| Транспортный объект сценария (вход/выход use-case, payload) | `Domain/DTOs/` (отдельно от ModelData), включая политики потоков: `VehicleImportPlan`, `VehicleExportPlan`, `EngineImportPlan`, `EngineExportPlan` |
 | Чистое доменное правило | `Domain/Services/` |
 | Валидацию + сборку `ModelData` | `Application/<Feature>/Factories/<Entity>/` (`make()`) |
 | Реакцию на доменное событие | `Application/<Feature>/Listeners/` (тонко, **без порта в Domain**) |

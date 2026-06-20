@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Engine;
 
 use App\Vehicles\Domain\DTOs\EngineImportPlan;
-use App\Vehicles\Domain\Enums\EngineImportSheet;
+use App\Vehicles\Domain\Enums\InOut\Sheets\EngineImportSheet;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineMultiSheetImportInterface;
 use App\Vehicles\Domain\Events\Engine\EngineImportCompleted;
 use Illuminate\Contracts\Queue\ShouldQueue;

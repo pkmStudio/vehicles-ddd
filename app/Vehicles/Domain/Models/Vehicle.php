@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Models;
 
-use App\Vehicles\Domain\Enums\CarcaseTypeEnum;
-use App\Vehicles\Domain\Enums\SteeringTypeEnum;
-use App\Vehicles\Domain\Enums\VehicleTypeEnum;
+use App\Vehicles\Domain\Enums\Vehicle\CarcaseTypeEnum;
+use App\Vehicles\Domain\Enums\Vehicle\SteeringTypeEnum;
+use App\Vehicles\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;

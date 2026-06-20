@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\Factories\EngineModification;
 
 use App\Vehicles\Domain\Contracts\Application\Import\Factories\EngineModificationDataFactoryInterface;
-use App\Vehicles\Domain\Enums\VehicleTypeEnum;
+use App\Vehicles\Domain\Enums\Vehicle\VehicleTypeEnum;
 use App\Vehicles\Domain\ModelData\EngineModification\EngineModificationData;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;

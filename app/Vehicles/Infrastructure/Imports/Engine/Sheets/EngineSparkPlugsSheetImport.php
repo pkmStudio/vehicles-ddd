@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine\Sheets;
 
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCaseInterface;
 use App\Vehicles\Traits\CachesImportFailures;

@@ -6,7 +6,7 @@ namespace App\Vehicles\Infrastructure\Exports\Vehicle;
 
 use App\Vehicles\Domain\Contracts\Infrastructure\Exports\VehicleMultiSheetExportInterface;
 use App\Vehicles\Domain\DTOs\VehicleExportPlan;
-use App\Vehicles\Domain\Enums\VehicleExportSheet;
+use App\Vehicles\Domain\Enums\InOut\Sheets\VehicleExportSheet;
 use App\Vehicles\Infrastructure\Exports\Vehicle\Sheets\VehicleMainSheetExport;
 use App\Vehicles\Infrastructure\Exports\Vehicle\Sheets\VehicleWipersSheetExport;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;

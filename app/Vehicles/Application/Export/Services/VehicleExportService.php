@@ -12,7 +12,7 @@ use App\Vehicles\Domain\Contracts\Application\Export\Support\VehicleExportRowInt
 use App\Vehicles\Domain\Contracts\Application\Export\Support\WiperRowExpanderInterface;
 use App\Vehicles\Domain\DTOs\VehicleExportPlan;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use App\Vehicles\Domain\Models\PartSpecification;
 use App\Vehicles\Domain\Models\Vehicle;
 use Illuminate\Support\Collection;

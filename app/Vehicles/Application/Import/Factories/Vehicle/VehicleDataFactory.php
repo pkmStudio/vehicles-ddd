@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\Factories\Vehicle;
 
 use App\Vehicles\Domain\Contracts\Application\Import\Factories\VehicleDataFactoryInterface;
-use App\Vehicles\Domain\Enums\CarcaseTypeEnum;
-use App\Vehicles\Domain\Enums\SteeringTypeEnum;
-use App\Vehicles\Domain\Enums\VehicleTypeEnum;
+use App\Vehicles\Domain\Enums\Vehicle\CarcaseTypeEnum;
+use App\Vehicles\Domain\Enums\Vehicle\SteeringTypeEnum;
+use App\Vehicles\Domain\Enums\Vehicle\VehicleTypeEnum;
 use App\Vehicles\Domain\ModelData\Vehicle\VehicleData;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;

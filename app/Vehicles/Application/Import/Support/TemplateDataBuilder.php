@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\Support;
 
 use App\Vehicles\Domain\Contracts\Application\Common\Services\DetailTemplateResolverInterface;
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Support\DetailsBuilderInterface;
 

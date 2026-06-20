@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Exports\Engine;
 
 use App\Vehicles\Domain\DTOs\EngineExportPlan;
-use App\Vehicles\Domain\Enums\EngineExportSheet;
+use App\Vehicles\Domain\Enums\InOut\Sheets\EngineExportSheet;
 use App\Vehicles\Domain\Contracts\Infrastructure\Exports\EngineMultiSheetExportInterface;
 use App\Vehicles\Infrastructure\Exports\Engine\Sheets\EngineMainSheetExport;
 use App\Vehicles\Infrastructure\Exports\Engine\Sheets\EngineSparkPlugsSheetExport;
