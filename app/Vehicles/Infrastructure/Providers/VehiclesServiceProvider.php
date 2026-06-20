@@ -67,10 +67,6 @@ use App\Vehicles\Domain\Contracts\Infrastructure\Exports\EngineMultiSheetExportI
 use App\Vehicles\Domain\Contracts\Infrastructure\Exports\FailuresExportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Exports\ImportFailureReporterInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Exports\VehicleMultiSheetExportInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Exports\Sheets\EngineMainSheetExportInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Exports\Sheets\EngineSparkPlugsSheetExportInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Exports\Sheets\VehicleMainSheetExportInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Exports\Sheets\VehicleWipersSheetExportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineCommandImportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineCrossImportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineModificationImportInterface;
@@ -164,10 +160,7 @@ class VehiclesServiceProvider extends ServiceProvider
         EngineSparkPlugsSheetImportInterface::class => EngineSparkPlugsSheetImport::class,
         VehicleMainSheetImportInterface::class => VehicleMainSheetImport::class,
         VehicleWipersSheetImportInterface::class => VehicleWipersSheetImport::class,
-        EngineMainSheetExportInterface::class => EngineMainSheetExport::class,
-        EngineSparkPlugsSheetExportInterface::class => EngineSparkPlugsSheetExport::class,
-        VehicleMainSheetExportInterface::class => VehicleMainSheetExport::class,
-        VehicleWipersSheetExportInterface::class => VehicleWipersSheetExport::class,
+        // Sub-sheet экспорта Excel используются напрямую из Infrastructure-реализаций.
         FailuresExportInterface::class => FailuresExport::class,
     ];
 

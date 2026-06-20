@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Exports\Vehicle\Sheets;
 
 use App\Vehicles\Domain\Contracts\Application\Export\Services\VehicleExportServiceInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Exports\Sheets\VehicleMainSheetExportInterface;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-final readonly class VehicleMainSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle, VehicleMainSheetExportInterface
+final readonly class VehicleMainSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     public function __construct(
         private VehicleExportServiceInterface $exportService,

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Contracts\Application\Export\Services;
 
+use App\Vehicles\Domain\DTOs\VehicleExportPlan;
 use App\Vehicles\Domain\Models\PartSpecification;
 use App\Vehicles\Domain\Models\Vehicle;
 use Illuminate\Support\Collection;
 
 interface VehicleExportServiceInterface
 {
+    public function buildExportPlan(bool $isAllow = false, bool $withWipers = true): VehicleExportPlan;
+
     public function getMainRows(bool $isAllow): Collection;
 
     public function getMainHeadings(): array;
@@ -22,4 +25,3 @@ interface VehicleExportServiceInterface
 
     public function mapWiperRow(object $row): array;
 }
-
