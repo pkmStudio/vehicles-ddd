@@ -10,12 +10,12 @@ use App\Vehicles\Domain\Events\EnginesAndModificationsReady;
 use App\Vehicles\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use App\Vehicles\Domain\Events\Vehicle\VehicleCommandImported;
 use App\Vehicles\Domain\Events\Vehicle\VehicleImportCompleted;
-use App\Vehicles\Application\Listeners\EngineModificationReadinessSubscriber;
-use App\Vehicles\Application\Listeners\ReportImportResultListener;
-use App\Vehicles\Application\Listeners\StartEngineImportListener;
-use App\Vehicles\Application\Listeners\StartEngineModificationImportListener;
-use App\Vehicles\Application\Listeners\StartModificationCommandImportListener;
-use App\Vehicles\Application\Listeners\StartVehicleImportListener;
+use App\Vehicles\Application\Import\Listeners\EngineModificationReadinessSubscriber;
+use App\Vehicles\Application\Import\Listeners\ReportImportResultListener;
+use App\Vehicles\Application\Import\Listeners\StartEngineImportListener;
+use App\Vehicles\Application\Import\Listeners\StartEngineModificationImportListener;
+use App\Vehicles\Application\Import\Listeners\StartModificationCommandImportListener;
+use App\Vehicles\Application\Import\Listeners\StartVehicleImportListener;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 

@@ -1,0 +1,80 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Vehicles\Infrastructure\Imports\Engine;
+
+use App\Vehicles\Application\Import\UseCases\Engine\UpsertEngineFromSheetUseCase;
+use App\Vehicles\Domain\Contracts\Imports\EngineCommandImportInterface;
+use App\Vehicles\Domain\Events\Engine\EngineCommandImported;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithStartRow;
+use Maatwebsite\Excel\Events\AfterImport;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\Failure;
+
+/**
+ * Excel-адаптер импорта двигателей (механика): читает файл по чанкам и на каждую строку
+ * зовёт построчный сценарий. Бизнес-логика строки — в UpsertEngineFromSheetUseCase.
+ */
+final class EngineCommandImport implements EngineCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
+{
+    public function __construct(
+        private readonly UpsertEngineFromSheetUseCase $useCase,
+    ) {}
+
+    public function import(string $path): void
+    {
+        Excel::import($this, $path);
+    }
+
+    public function chunkSize(): int
+    {
+        return 100;
+    }
+
+    public function collection(Collection $collection): void
+    {
+        foreach ($collection as $index => $row) {
+            try {
+                $this->useCase->execute($row->toArray());
+            } catch (ValidationException $e) {
+                $this->onFailure(new Failure($index + $this->startRow(), 'Двигатель', Arr::flatten($e->errors()), $row->toArray()));
+            }
+        }
+    }
+
+    public function onFailure(Failure ...$failures): void
+    {
+        foreach ($failures as $failure) {
+            Log::error('Engine import failure', [
+                'row' => $failure->row(),
+                'attribute' => $failure->attribute(),
+                'errors' => $failure->errors(),
+                'values' => $failure->values(),
+            ]);
+        }
+    }
+
+    public function startRow(): int
+    {
+        return 2;
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterImport::class => function () {
+                event(new EngineCommandImported);
+            },
+        ];
+    }
+}

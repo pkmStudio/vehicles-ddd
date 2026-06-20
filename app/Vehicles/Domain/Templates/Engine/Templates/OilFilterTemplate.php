@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Templates\Engine\Templates;
 
+use Dan\FieldTemplates\AbstractTemplate;
 use Dan\FieldTemplates\Attributes\Filter\OilFilterFatherEnum;
 use Dan\FieldTemplates\Attributes\Filter\OilFilterThreadEnum;
 use Dan\FieldTemplates\Attributes\Filter\PerformanceEnum;
-use Dan\FieldTemplates\AbstractTemplate;
 use Dan\FieldTemplates\CommonFields;
 use Dan\FieldTemplates\Fields\ConditionalSelectField;
 use Dan\FieldTemplates\Fields\NumericField;

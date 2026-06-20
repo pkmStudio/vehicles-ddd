@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Templates\Engine\Templates;
 
+use Dan\FieldTemplates\AbstractTemplate;
 use Dan\FieldTemplates\Attributes\SparkPlug\ElectrodeGapEnum;
 use Dan\FieldTemplates\Attributes\SparkPlug\ThreadLengthEnum;
 use Dan\FieldTemplates\Attributes\SparkPlug\ThreadPitchEnum;
 use Dan\FieldTemplates\Attributes\SparkPlug\ThreadSizeEnum;
 use Dan\FieldTemplates\Attributes\SparkPlug\WrenchJawWidthEnum;
-use Dan\FieldTemplates\AbstractTemplate;
 use Dan\FieldTemplates\Fields\ObjectField;
 use Dan\FieldTemplates\Fields\SelectField;
 

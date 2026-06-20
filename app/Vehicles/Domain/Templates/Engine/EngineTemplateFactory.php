@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Templates\Engine;
 
-use Dan\FieldTemplates\AbstractTemplate;
 use App\Vehicles\Domain\Templates\Engine\Templates\AirFilterTemplate;
 use App\Vehicles\Domain\Templates\Engine\Templates\OilFilterTemplate;
 use App\Vehicles\Domain\Templates\Engine\Templates\SparkPlugTemplate;
+use Dan\FieldTemplates\AbstractTemplate;
 
 final readonly class EngineTemplateFactory
 {

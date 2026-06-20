@@ -34,22 +34,20 @@ class VehiclesServiceProvider extends ServiceProvider
     ];
 
     /**
-     * Порты импорта/экспорта (Domain\Contracts) → реализации (Application\Imports|Exports).
+     * Порты импорта/экспорта (Domain\Contracts) → реализации (Infrastructure\Imports / Application\Exports).
      * Поведенческие порты: import(path) / parse(path) / download(fileName); Excel — внутри реализации.
      */
     private const IMPORT_EXPORT_BINDINGS = [
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\ManufacturerCommandImportInterface' => 'App\\Vehicles\\Application\\Imports\\ManufacturerCommandImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\VehicleCommandImportInterface' => 'App\\Vehicles\\Application\\Imports\\Vehicle\\VehicleCommandImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineCommandImportInterface' => 'App\\Vehicles\\Application\\Imports\\Engine\\EngineCommandImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\ModificationCommandImportInterface' => 'App\\Vehicles\\Application\\Imports\\Modification\\ModificationCommandImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\ModificationImportInterface' => 'App\\Vehicles\\Application\\Imports\\Modification\\ModificationImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineImportInterface' => 'App\\Vehicles\\Application\\Imports\\Engine\\EngineImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineModificationImportInterface' => 'App\\Vehicles\\Application\\Imports\\EngineModificationImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\VehicleMultiSheetImportInterface' => 'App\\Vehicles\\Application\\Imports\\Vehicle\\VehicleMultiSheetImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineMultiSheetImportInterface' => 'App\\Vehicles\\Application\\Imports\\Engine\\EngineMultiSheetImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineCrossImportInterface' => 'App\\Vehicles\\Application\\Imports\\Engine\\EngineCrossImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineSparkPlugSpecificationImportInterface' => 'App\\Vehicles\\Application\\Imports\\EngineSparkPlugSpecificationImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EnginesCodeImportInterface' => 'App\\Vehicles\\Application\\Imports\\EnginesCodeImport',
+        'App\\Vehicles\\Domain\\Contracts\\Imports\\ManufacturerCommandImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Manufacturer\\ManufacturerCommandImport',
+        'App\\Vehicles\\Domain\\Contracts\\Imports\\VehicleCommandImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Vehicle\\VehicleCommandImport',
+        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineCommandImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EngineCommandImport',
+        'App\\Vehicles\\Domain\\Contracts\\Imports\\ModificationCommandImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Modification\\ModificationCommandImport',
+        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineModificationImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\EngineModification\\EngineModificationImport',
+        'App\\Vehicles\\Domain\\Contracts\\Imports\\VehicleMultiSheetImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Vehicle\\VehicleMultiSheetImport',
+        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineMultiSheetImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EngineMultiSheetImport',
+        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineCrossImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EngineCrossImport',
+        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineSparkPlugSpecificationImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EngineSparkPlugSpecificationImport',
+        'App\\Vehicles\\Domain\\Contracts\\Imports\\EnginesCodeImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EnginesCodeImport',
         'App\\Vehicles\\Domain\\Contracts\\Exports\\EngineMultiSheetExportInterface' => 'App\\Vehicles\\Application\\Exports\\Engine\\EngineMultiSheetExport',
         'App\\Vehicles\\Domain\\Contracts\\Exports\\VehicleMultiSheetExportInterface' => 'App\\Vehicles\\Application\\Exports\\Vehicle\\VehicleMultiSheetExport',
         'App\\Vehicles\\Domain\\Contracts\\Exports\\EngineKitApplicabilityExportInterface' => 'App\\Vehicles\\Application\\Exports\\Engine\\EngineKitApplicabilityExport',

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Enums;
 
-use Dan\FieldTemplates\AbstractTemplate;
 use App\Vehicles\Domain\Templates\Engine\Templates\AirFilterTemplate;
 use App\Vehicles\Domain\Templates\Engine\Templates\OilFilterTemplate;
 use App\Vehicles\Domain\Templates\Engine\Templates\SparkPlugTemplate;
 use App\Vehicles\Domain\Templates\Vehicle\Templates\WiperTemplate;
+use Dan\FieldTemplates\AbstractTemplate;
 
 /**
  * Шаблон заполнения details у PartSpecification.
@@ -23,15 +23,19 @@ enum DetailTemplateEnum: string
     case AIR_FILTER = 'airFilter';
 
     /**
-     * Класс-шаблон, описывающий поля для заполнения details.
+     * FQCN класса-шаблона, описывающего поля для заполнения details.
+     * Инстанс резолвится в Application (через контейнер/реестр), не в Domain —
+     * enum остаётся чистым, без Service Locator.
+     *
+     * @return class-string<AbstractTemplate>
      */
-    public function template(): AbstractTemplate
+    public function templateClass(): string
     {
         return match ($this) {
-            self::WIPER => app(WiperTemplate::class),
-            self::SPARK_PLUGS => app(SparkPlugTemplate::class),
-            self::OIL_FILTER => app(OilFilterTemplate::class),
-            self::AIR_FILTER => app(AirFilterTemplate::class),
+            self::WIPER => WiperTemplate::class,
+            self::SPARK_PLUGS => SparkPlugTemplate::class,
+            self::OIL_FILTER => OilFilterTemplate::class,
+            self::AIR_FILTER => AirFilterTemplate::class,
         };
     }
 }

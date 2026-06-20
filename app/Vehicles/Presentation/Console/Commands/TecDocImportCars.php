@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Presentation\Console\Commands;
 
-use App\Vehicles\Application\Listeners\EngineModificationReadinessSubscriber;
+use App\Vehicles\Application\Import\Listeners\EngineModificationReadinessSubscriber;
 use App\Vehicles\Domain\Contracts\Imports\ManufacturerCommandImportInterface;
 use Illuminate\Console\Command;
 

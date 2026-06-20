@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Notifications;
 
+use App\Vehicles\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use App\Vehicles\Infrastructure\Messaging\DTOs\RabbitMessageDTO;
 use App\Vehicles\Infrastructure\Messaging\Enums\OutboundEventsEnum;
 use App\Vehicles\Infrastructure\Messaging\RabbitMQPublisher;
-use App\User\Models\User;
-use App\Vehicles\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 
 /**
  * Уведомление о готовом файле через RabbitMQ.
@@ -22,14 +21,14 @@ final readonly class RabbitMqFileNotificationService implements FileNotification
         private RabbitMQPublisher $publisher,
     ) {}
 
-    public function send(User $user, string $csvPath, int $filesCount = 1): void
+    public function send(int $userId, string $csvPath, int $filesCount = 1): void
     {
         // TODO: согласовать payload с сервисом-получателем (Filament): какие поля он ждёт.
         $this->publisher->publish(
             new RabbitMessageDTO(
                 OutboundEventsEnum::FILE_EXPORTED,
                 [
-                    'user_id' => $user->id,
+                    'user_id' => $userId,
                     'path' => $csvPath,
                     'files_count' => $filesCount,
                 ],

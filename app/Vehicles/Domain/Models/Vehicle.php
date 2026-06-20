@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Models;
 
+use App\Models\Warehouse\Kit;
+use App\Vehicles\Application\Observers\Vehicle\VehicleObserver;
 use App\Vehicles\Domain\Enums\CarcaseTypeEnum;
 use App\Vehicles\Domain\Enums\SteeringTypeEnum;
 use App\Vehicles\Domain\Enums\VehicleTypeEnum;
-use App\Models\Warehouse\Kit;
-use App\Vehicles\Application\Observers\Vehicle\VehicleObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -24,7 +24,6 @@ class Vehicle extends BaseModel
         'steering_type' => SteeringTypeEnum::class,
         'details' => 'array',
     ];
-
 
     public $timestamps = false;
 

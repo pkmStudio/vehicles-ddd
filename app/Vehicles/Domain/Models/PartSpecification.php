@@ -17,7 +17,6 @@ class PartSpecification extends BaseModel
         'details' => 'array',
     ];
 
-
     // RELATIONS
     public function featureValue(): BelongsTo
     {

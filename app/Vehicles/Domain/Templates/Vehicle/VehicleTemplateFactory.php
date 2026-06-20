@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Templates\Vehicle;
 
-use Dan\FieldTemplates\AbstractTemplate;
 use App\Vehicles\Domain\Templates\Vehicle\Templates\WiperTemplate;
+use Dan\FieldTemplates\AbstractTemplate;
 
 final readonly class VehicleTemplateFactory
 {

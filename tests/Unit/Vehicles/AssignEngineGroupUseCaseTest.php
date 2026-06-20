@@ -1,0 +1,70 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Vehicles;
+
+use App\Vehicles\Application\Import\UseCases\Engine\AssignEngineGroupUseCase;
+use App\Vehicles\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Vehicles\Domain\Models\Engine;
+use Mockery;
+use Tests\TestCase;
+
+final class AssignEngineGroupUseCaseTest extends TestCase
+{
+    public function test_assigns_group_to_engine_without_previous_group(): void
+    {
+        $engine = new Engine;
+        $engine->group_id = null;
+
+        $engines = Mockery::mock(EngineRepositoryInterface::class);
+        $engines->shouldReceive('firstByCodeEngine')->once()->with('M54B30')->andReturn($engine);
+
+        $command = Mockery::mock(EngineCommandInterface::class);
+        $command->shouldReceive('setGroupId')->once()->with($engine, 7);
+
+        $result = (new AssignEngineGroupUseCase($engines, $command))->execute('M54B30', 7);
+
+        $this->assertTrue($result->found);
+        $this->assertFalse($result->reassigned);
+        $this->assertNull($result->previousGroupId);
+    }
+
+    public function test_flags_reassignment_when_group_changes(): void
+    {
+        $engine = new Engine;
+        $engine->group_id = 3;
+
+        $engines = Mockery::mock(EngineRepositoryInterface::class);
+        $engines->shouldReceive('firstByCodeEngine')->once()->with('M54B30')->andReturn($engine);
+
+        $command = Mockery::mock(EngineCommandInterface::class);
+        $command->shouldReceive('setGroupId')->once()->with($engine, 7);
+
+        $result = (new AssignEngineGroupUseCase($engines, $command))->execute('M54B30', 7);
+
+        $this->assertTrue($result->found);
+        $this->assertTrue($result->reassigned);
+        $this->assertSame(3, $result->previousGroupId);
+    }
+
+    public function test_reports_not_found_and_skips_command(): void
+    {
+        $engines = Mockery::mock(EngineRepositoryInterface::class);
+        $engines->shouldReceive('firstByCodeEngine')->once()->with('UNKNOWN')->andReturnNull();
+
+        $command = Mockery::mock(EngineCommandInterface::class);
+        $command->shouldNotReceive('setGroupId');
+
+        $result = (new AssignEngineGroupUseCase($engines, $command))->execute('UNKNOWN', 7);
+
+        $this->assertFalse($result->found);
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
+    }
+}
