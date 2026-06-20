@@ -7,7 +7,7 @@ namespace App\Vehicles\Infrastructure\Exports\Vehicle\Sheets;
 use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\Models\PartSpecification;
-use App\Vehicles\Domain\Services\WiperSpecificationService;
+use App\Vehicles\Application\Common\Services\WiperSpecificationService;
 use App\Vehicles\Infrastructure\Exports\Support\ExportDetailsBuilder;
 use App\Vehicles\Infrastructure\Exports\Support\VehicleExportRow;
 use App\Vehicles\Infrastructure\Exports\Support\WiperRowExpander;

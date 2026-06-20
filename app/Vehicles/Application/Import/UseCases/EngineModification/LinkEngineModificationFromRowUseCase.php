@@ -11,7 +11,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Use-case: связать двигатель с модификацией из строки импорта (пивот engine_modification).
  */
-final readonly class LinkEngineModificationFromRowUseCase
+final readonly class LinkEngineModificationFromRowUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\EngineModification\LinkEngineModificationFromRowUseCaseInterface
 {
     public function __construct(
         private EngineModificationCommandInterface $command,

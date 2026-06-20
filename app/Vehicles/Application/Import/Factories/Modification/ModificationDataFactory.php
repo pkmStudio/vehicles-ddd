@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\Factories\Modification;
 
+use App\Vehicles\Domain\Contracts\Import\Factories\ModificationDataFactoryInterface;
 use App\Vehicles\Domain\Enums\BrakeSystemTypeEnum;
 use App\Vehicles\Domain\Enums\DriveTypeEnum;
 use App\Vehicles\Domain\Enums\EngineTypeEnum;
@@ -18,7 +19,7 @@ use Illuminate\Validation\ValidationException;
  * Валидирует сырую строку и собирает ModificationData.
  * vehicle_id (резолв ТС вызывающим) передаётся тем же массивом.
  */
-final readonly class ModificationDataFactory
+final readonly class ModificationDataFactory implements ModificationDataFactoryInterface
 {
     /**
      * @throws ValidationException

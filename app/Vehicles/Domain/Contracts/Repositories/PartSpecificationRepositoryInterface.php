@@ -19,8 +19,6 @@ interface PartSpecificationRepositoryInterface
 
     public function all(): Collection;
 
-    public function firstWhere(string $column, mixed $value): ?PartSpecification;
-
     /**
      * Спецификация ТС по шаблону и стороне дворника (front/back), независимо от feature_value_id.
      * Сторона определяется наличием корневого JSON-ключа (`jsonb_exists`, PostgreSQL).

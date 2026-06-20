@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Domain\Services\WiperSpecificationService;
+use App\Vehicles\Application\Common\Services\WiperSpecificationService;
 use PHPUnit\Framework\TestCase;
 
 final class WiperSpecificationServiceTest extends TestCase

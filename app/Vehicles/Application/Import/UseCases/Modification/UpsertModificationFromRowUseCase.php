@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
  * ТС должно уже существовать (резолв по ms_id) — иначе сценарий сигналит null,
  * адаптер отражает это в отчёте об ошибках.
  */
-final readonly class UpsertModificationFromRowUseCase
+final readonly class UpsertModificationFromRowUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Modification\UpsertModificationFromRowUseCaseInterface
 {
     public function __construct(
         private ModificationCommandInterface $command,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\Factories\Engine;
 
+use App\Vehicles\Domain\Contracts\Import\Factories\EngineDataFactoryInterface;
 use App\Vehicles\Domain\Enums\EngineFuelTypeEnum;
 use App\Vehicles\Domain\ModelData\Engine\EngineData;
 use Illuminate\Support\Facades\Validator;
@@ -14,7 +15,7 @@ use Illuminate\Validation\ValidationException;
  * Валидирует сырую строку и собирает EngineData.
  * eng_fuel_type валидируется как enum (сырое значение), маппинг — в casts модели.
  */
-final readonly class EngineDataFactory
+final readonly class EngineDataFactory implements EngineDataFactoryInterface
 {
     /**
      * @throws ValidationException

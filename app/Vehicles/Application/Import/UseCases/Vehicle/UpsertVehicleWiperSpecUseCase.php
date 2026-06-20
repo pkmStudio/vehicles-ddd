@@ -18,7 +18,7 @@ use App\Vehicles\Domain\Services\WiperSpecificationService;
  * разбиваются по сторонам (доменный сервис), и каждая сторона upsert-ится отдельно —
  * существующая запись стороны ищется по `template + side` (jsonb), затем update либо create.
  */
-final readonly class UpsertVehicleWiperSpecUseCase
+final readonly class UpsertVehicleWiperSpecUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCaseInterface
 {
     public function __construct(
         private FeatureValueRepositoryInterface $featureValues,

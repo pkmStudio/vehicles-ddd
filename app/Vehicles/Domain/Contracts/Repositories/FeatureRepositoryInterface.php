@@ -17,6 +17,4 @@ interface FeatureRepositoryInterface
     public function findOrFail(int $id): Feature;
 
     public function all(): Collection;
-
-    public function firstWhere(string $column, mixed $value): ?Feature;
 }

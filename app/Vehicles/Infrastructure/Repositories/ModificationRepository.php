@@ -25,11 +25,6 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
         return Modification::query()->get();
     }
 
-    public function firstWhere(string $column, mixed $value): ?Modification
-    {
-        return Modification::query()->where($column, $value)->first();
-    }
-
     public function firstByMsIdAndModIdWithEngines(int $msId, int $modId): ?Modification
     {
         return Modification::query()

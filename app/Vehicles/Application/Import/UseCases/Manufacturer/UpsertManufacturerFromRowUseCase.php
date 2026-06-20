@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Use-case: создать/обновить производителя из строки импорта (приведение к виду TD).
  */
-final readonly class UpsertManufacturerFromRowUseCase
+final readonly class UpsertManufacturerFromRowUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Manufacturer\UpsertManufacturerFromRowUseCaseInterface
 {
     public function __construct(
         private ManufacturerCommandInterface $command,

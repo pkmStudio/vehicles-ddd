@@ -12,7 +12,7 @@ use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\FeatureValue;
 use App\Vehicles\Domain\Models\PartSpecification;
-use App\Vehicles\Domain\Services\WiperSpecificationService;
+use App\Vehicles\Application\Common\Services\WiperSpecificationService;
 use Mockery;
 use Tests\TestCase;
 

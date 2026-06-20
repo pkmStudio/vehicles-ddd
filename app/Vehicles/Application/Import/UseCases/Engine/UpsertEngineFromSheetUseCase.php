@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
  * Бизнес-логика одной строки: маппинг колонок → валидация+сборка (Factory) → запись (Command).
  * Персистентность — только через порт Command, прямого Eloquent в Application нет.
  */
-final readonly class UpsertEngineFromSheetUseCase
+final readonly class UpsertEngineFromSheetUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Engine\UpsertEngineFromSheetUseCaseInterface
 {
     public function __construct(
         private EngineCommandInterface $command,

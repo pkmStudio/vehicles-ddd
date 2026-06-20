@@ -18,7 +18,7 @@ use App\Vehicles\Domain\Models\Engine;
  * родителя. Двигатели без искрового зажигания (дизель/электро) пропускаются — их перечень
  * возвращается в результате для отчёта. details (сборка из строки) приходят готовыми из адаптера.
  */
-final readonly class UpsertSparkPlugSpecByModificationUseCase
+final readonly class UpsertSparkPlugSpecByModificationUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Engine\UpsertSparkPlugSpecByModificationUseCaseInterface
 {
     public function __construct(
         private VehicleRepositoryInterface $vehicles,

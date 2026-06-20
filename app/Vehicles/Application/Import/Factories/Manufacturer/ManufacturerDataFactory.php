@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\Factories\Manufacturer;
 
+use App\Vehicles\Domain\Contracts\Import\Factories\ManufacturerDataFactoryInterface;
 use App\Vehicles\Domain\ModelData\Manufacturer\ManufacturerData;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -11,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Валидирует сырую строку и собирает ManufacturerData.
  */
-final readonly class ManufacturerDataFactory
+final readonly class ManufacturerDataFactory implements ManufacturerDataFactoryInterface
 {
     /**
      * @throws ValidationException

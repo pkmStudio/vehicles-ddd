@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
  * Производитель должен уже существовать (резолв по mfa_id) — иначе сценарий сигналит null,
  * адаптер отражает это в отчёте об ошибках.
  */
-final readonly class UpsertVehicleFromTdRowUseCase
+final readonly class UpsertVehicleFromTdRowUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCaseInterface
 {
     public function __construct(
         private VehicleCommandInterface $command,

@@ -4,11 +4,45 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Providers;
 
+use App\Vehicles\Application\Import\Factories\Engine\EngineDataFactory;
+use App\Vehicles\Application\Import\Factories\EngineModification\EngineModificationDataFactory;
+use App\Vehicles\Application\Import\Factories\Manufacturer\ManufacturerDataFactory;
+use App\Vehicles\Application\Import\Factories\Modification\ModificationDataFactory;
+use App\Vehicles\Application\Import\Factories\Vehicle\VehicleDataFactory;
 use App\Vehicles\Domain\Contracts\Commands\EngineModificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
 use App\Vehicles\Domain\Contracts\Exports\ImportFailureReporterInterface;
+use App\Vehicles\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
+use App\Vehicles\Domain\Contracts\Import\Factories\EngineDataFactoryInterface;
+use App\Vehicles\Domain\Contracts\Import\Factories\EngineModificationDataFactoryInterface;
+use App\Vehicles\Domain\Contracts\Import\Factories\ManufacturerDataFactoryInterface;
+use App\Vehicles\Domain\Contracts\Import\Factories\ModificationDataFactoryInterface;
+use App\Vehicles\Domain\Contracts\Import\Factories\VehicleDataFactoryInterface;
+use App\Vehicles\Domain\Contracts\Imports\EngineCommandImportInterface;
+use App\Vehicles\Domain\Contracts\Imports\EngineCrossImportInterface;
+use App\Vehicles\Domain\Contracts\Imports\EngineModificationImportInterface;
+use App\Vehicles\Domain\Contracts\Imports\EngineMultiSheetImportInterface;
+use App\Vehicles\Domain\Contracts\Imports\EnginesCodeImportInterface;
+use App\Vehicles\Domain\Contracts\Imports\EngineSparkPlugSpecificationImportInterface;
+use App\Vehicles\Domain\Contracts\Imports\ManufacturerCommandImportInterface;
+use App\Vehicles\Domain\Contracts\Imports\ModificationCommandImportInterface;
+use App\Vehicles\Domain\Contracts\Imports\VehicleCommandImportInterface;
+use App\Vehicles\Domain\Contracts\Imports\VehicleMultiSheetImportInterface;
 use App\Vehicles\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use App\Vehicles\Infrastructure\Commands\EngineModificationCommand;
+use App\Vehicles\Infrastructure\Exports\Engine\EngineMultiSheetExport;
 use App\Vehicles\Infrastructure\Exports\ImportFailureReporter;
+use App\Vehicles\Infrastructure\Exports\Vehicle\VehicleMultiSheetExport;
+use App\Vehicles\Infrastructure\Imports\Engine\EngineCommandImport;
+use App\Vehicles\Infrastructure\Imports\Engine\EngineCrossImport;
+use App\Vehicles\Infrastructure\Imports\Engine\EngineMultiSheetImport;
+use App\Vehicles\Infrastructure\Imports\Engine\EnginesCodeImport;
+use App\Vehicles\Infrastructure\Imports\Engine\EngineSparkPlugSpecificationImport;
+use App\Vehicles\Infrastructure\Imports\EngineModification\EngineModificationImport;
+use App\Vehicles\Infrastructure\Imports\Manufacturer\ManufacturerCommandImport;
+use App\Vehicles\Infrastructure\Imports\Modification\ModificationCommandImport;
+use App\Vehicles\Infrastructure\Imports\Vehicle\VehicleCommandImport;
+use App\Vehicles\Infrastructure\Imports\Vehicle\VehicleMultiSheetImport;
 use App\Vehicles\Infrastructure\Notifications\RabbitMqFileNotificationService;
 use Illuminate\Support\ServiceProvider;
 
@@ -38,18 +72,29 @@ class VehiclesServiceProvider extends ServiceProvider
      * Поведенческие порты: import(path) / parse(path) / download(fileName); Excel — внутри реализации.
      */
     private const IMPORT_EXPORT_BINDINGS = [
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\ManufacturerCommandImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Manufacturer\\ManufacturerCommandImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\VehicleCommandImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Vehicle\\VehicleCommandImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineCommandImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EngineCommandImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\ModificationCommandImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Modification\\ModificationCommandImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineModificationImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\EngineModification\\EngineModificationImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\VehicleMultiSheetImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Vehicle\\VehicleMultiSheetImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineMultiSheetImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EngineMultiSheetImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineCrossImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EngineCrossImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineSparkPlugSpecificationImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EngineSparkPlugSpecificationImport',
-        'App\\Vehicles\\Domain\\Contracts\\Imports\\EnginesCodeImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EnginesCodeImport',
-        'App\\Vehicles\\Domain\\Contracts\\Exports\\EngineMultiSheetExportInterface' => 'App\\Vehicles\\Infrastructure\\Exports\\Engine\\EngineMultiSheetExport',
-        'App\\Vehicles\\Domain\\Contracts\\Exports\\VehicleMultiSheetExportInterface' => 'App\\Vehicles\\Infrastructure\\Exports\\Vehicle\\VehicleMultiSheetExport',
+        ManufacturerCommandImportInterface::class => ManufacturerCommandImport::class,
+        VehicleCommandImportInterface::class => VehicleCommandImport::class,
+        EngineCommandImportInterface::class => EngineCommandImport::class,
+        ModificationCommandImportInterface::class => ModificationCommandImport::class,
+        EngineModificationImportInterface::class => EngineModificationImport::class,
+        VehicleMultiSheetImportInterface::class => VehicleMultiSheetImport::class,
+        EngineMultiSheetImportInterface::class => EngineMultiSheetImport::class,
+        EngineCrossImportInterface::class => EngineCrossImport::class,
+        EngineSparkPlugSpecificationImportInterface::class => EngineSparkPlugSpecificationImport::class,
+        EnginesCodeImportInterface::class => EnginesCodeImport::class,
+        EngineMultiSheetExportInterface::class => EngineMultiSheetExport::class,
+        VehicleMultiSheetExportInterface::class => VehicleMultiSheetExport::class,
+    ];
+
+    /**
+     * Порты фабрик (Domain\Contracts\Import\Factories) → реализации (Application\Import\Factories).
+     */
+    private const FACTORY_BINDINGS = [
+        EngineDataFactoryInterface::class => EngineDataFactory::class,
+        VehicleDataFactoryInterface::class => VehicleDataFactory::class,
+        ModificationDataFactoryInterface::class => ModificationDataFactory::class,
+        ManufacturerDataFactoryInterface::class => ManufacturerDataFactory::class,
+        EngineModificationDataFactoryInterface::class => EngineModificationDataFactory::class,
     ];
 
     public function register(): void
@@ -86,6 +131,11 @@ class VehiclesServiceProvider extends ServiceProvider
 
         // Порты импорта/экспорта → реализации.
         foreach (self::IMPORT_EXPORT_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
+        }
+
+        // Порты фабрик сборки ModelData → реализации (Application/Import/Factories).
+        foreach (self::FACTORY_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
     }

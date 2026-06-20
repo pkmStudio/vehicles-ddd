@@ -14,7 +14,7 @@ use Illuminate\Contracts\Events\Dispatcher;
  * (в кэше — переживают разные queued-job'ы) и при готовности обоих диспатчит
  * EnginesAndModificationsReady. Сам объект без состояния (состояние — в кэше).
  */
-final readonly class EngineModificationReadinessGate
+final readonly class EngineModificationReadinessGate implements \App\Vehicles\Domain\Contracts\Import\Services\EngineModificationReadinessGateInterface
 {
     private const FLAG_ENGINES = 'engines_imported';
 

@@ -24,9 +24,4 @@ final readonly class FeatureRepository implements FeatureRepositoryInterface
     {
         return Feature::query()->get();
     }
-
-    public function firstWhere(string $column, mixed $value): ?Feature
-    {
-        return Feature::query()->where($column, $value)->first();
-    }
 }

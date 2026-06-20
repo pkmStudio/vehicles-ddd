@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\UseCases\Engine;
 
 use App\Vehicles\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Domain\Contracts\Import\UseCases\Engine\AssignEngineGroupUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Domain\DTOs\AssignEngineGroupResult;
 
@@ -12,7 +13,7 @@ use App\Vehicles\Domain\DTOs\AssignEngineGroupResult;
  * Use-case: назначить двигателю (по коду) группу. Возвращает исход для отчёта:
  * найден ли двигатель и не переназначаем ли мы его из другой непустой группы.
  */
-final readonly class AssignEngineGroupUseCase
+final readonly class AssignEngineGroupUseCase implements AssignEngineGroupUseCaseInterface
 {
     public function __construct(
         private EngineRepositoryInterface $engines,

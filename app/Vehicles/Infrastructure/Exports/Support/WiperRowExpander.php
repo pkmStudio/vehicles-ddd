@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Exports\Support;
 
-use App\Vehicles\Domain\Services\WiperSpecificationService;
+use App\Vehicles\Application\Common\Services\WiperSpecificationService;
 use Illuminate\Support\Collection;
 
 /**

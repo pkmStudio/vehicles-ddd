@@ -12,7 +12,7 @@ use App\Vehicles\Domain\Models\Engine;
  * Какие именно колонки редактируемы — решает адаптер (привязка к раскладке Excel);
  * здесь — сама операция записи через порт Command.
  */
-final readonly class UpdateEngineEditableFieldsUseCase
+final readonly class UpdateEngineEditableFieldsUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCaseInterface
 {
     public function __construct(
         private EngineCommandInterface $command,

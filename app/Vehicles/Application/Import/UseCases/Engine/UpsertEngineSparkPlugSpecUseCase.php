@@ -16,7 +16,7 @@ use App\Vehicles\Domain\Models\PartSpecification;
  * Сборка details из строки — забота адаптера (парсинг по шаблону); здесь — резолв
  * двигателя через Repository и запись спецификации через Command.
  */
-final readonly class UpsertEngineSparkPlugSpecUseCase
+final readonly class UpsertEngineSparkPlugSpecUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCaseInterface
 {
     public function __construct(
         private EngineRepositoryInterface $engines,

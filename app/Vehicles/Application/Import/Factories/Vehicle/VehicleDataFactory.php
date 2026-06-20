@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\Factories\Vehicle;
 
+use App\Vehicles\Domain\Contracts\Import\Factories\VehicleDataFactoryInterface;
 use App\Vehicles\Domain\Enums\CarcaseTypeEnum;
 use App\Vehicles\Domain\Enums\SteeringTypeEnum;
 use App\Vehicles\Domain\Enums\VehicleTypeEnum;
@@ -17,7 +18,7 @@ use Illuminate\Validation\ValidationException;
  * manufacturer_id/parent_id (резолв вызывающим) передаются тем же массивом.
  * Отсутствующие в строке поля берут дефолты (вызовы дают разные подмножества).
  */
-final readonly class VehicleDataFactory
+final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
 {
     /**
      * @throws ValidationException

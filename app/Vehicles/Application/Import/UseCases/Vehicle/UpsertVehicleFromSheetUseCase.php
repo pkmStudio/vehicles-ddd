@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
  * Оркестрация: резолв производителя → валидация → запись. Персистентность — только через порты
  * (Repository/Command), прямого Eloquent в Application нет.
  */
-final readonly class UpsertVehicleFromSheetUseCase
+final readonly class UpsertVehicleFromSheetUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCaseInterface
 {
     public function __construct(
         private VehicleCommandInterface $command,

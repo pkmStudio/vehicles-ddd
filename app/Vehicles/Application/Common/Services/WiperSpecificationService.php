@@ -12,7 +12,7 @@ namespace App\Vehicles\Domain\Services;
  * извлекает/нормализует данные стороны, разбивает legacy-структуру `{front,back}` на стороны
  * и склеивает обратно для экспорта.
  */
-final readonly class WiperSpecificationService
+final readonly class WiperSpecificationService implements \App\Vehicles\Domain\Contracts\Common\Services\WiperSpecificationServiceInterface
 {
     public const string SIDE_FRONT = 'front';
 

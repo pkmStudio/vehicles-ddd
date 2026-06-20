@@ -27,11 +27,6 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
         return PartSpecification::query()->get();
     }
 
-    public function firstWhere(string $column, mixed $value): ?PartSpecification
-    {
-        return PartSpecification::query()->where($column, $value)->first();
-    }
-
     public function firstByVehicleTemplateAndSide(int $vehicleId, DetailTemplateEnum $template, string $side): ?PartSpecification
     {
         return PartSpecification::query()

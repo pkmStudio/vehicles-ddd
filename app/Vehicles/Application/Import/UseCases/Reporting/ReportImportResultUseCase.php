@@ -14,7 +14,7 @@ use Throwable;
  * Завершение импорта: если были ошибки — выгружаем отчёт и шлём пользователю файл,
  * иначе фиксируем успех. Кэш ошибок очищается в любом случае.
  */
-final readonly class ReportImportResultUseCase
+final readonly class ReportImportResultUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Reporting\ReportImportResultUseCaseInterface
 {
     public function __construct(
         private ImportFailureReporterInterface $reporter,
