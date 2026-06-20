@@ -19,4 +19,7 @@ interface ModificationRepositoryInterface
     public function all(): Collection;
 
     public function firstWhere(string $column, mixed $value): ?Modification;
+
+    /** Модификация по натуральному ключу (ms_id + mod_id), имеющая двигатели, с загруженными engines. */
+    public function firstByMsIdAndModIdWithEngines(int $msId, int $modId): ?Modification;
 }

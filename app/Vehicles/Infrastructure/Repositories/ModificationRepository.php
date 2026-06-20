@@ -29,4 +29,14 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
     {
         return Modification::query()->where($column, $value)->first();
     }
+
+    public function firstByMsIdAndModIdWithEngines(int $msId, int $modId): ?Modification
+    {
+        return Modification::query()
+            ->where('ms_id', $msId)
+            ->where('mod_id', $modId)
+            ->has('engines')
+            ->with('engines')
+            ->first();
+    }
 }

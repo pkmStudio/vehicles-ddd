@@ -26,4 +26,17 @@ enum EngineFuelTypeEnum: string
 
     // Мультитопливные (три и более)
     case PETROL_ALCOHOL_GAS = 'Бензин / этиловый спирт / природный газ';
+
+    /**
+     * Нужны ли двигателю свечи зажигания: да — для бензина/газа/спирта/водорода и их
+     * комбинаций (искровое зажигание); нет — для дизеля и электричества.
+     */
+    public function needsSparkPlugs(): bool
+    {
+        return match ($this) {
+            self::PETROL, self::GAS, self::ALCOHOL, self::HYDROGEN,
+            self::PETROL_ALCOHOL, self::PETROL_GAS, self::PETROL_ALCOHOL_GAS => true,
+            self::DIESEL, self::ELECTRIC, self::DIESEL_ALCOHOL, self::DIESEL_GAS => false,
+        };
+    }
 }

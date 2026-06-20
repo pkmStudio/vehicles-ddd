@@ -4,19 +4,12 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine;
 
-use App\Events\Warehouse\KitImportCompleted;
-use App\Imports\Warehouse\KitImport;
-use App\Models\User;
-use App\Vehicles\Domain\Contracts\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Application\Import\UseCases\Engine\UpsertSparkPlugSpecByModificationUseCase;
 use App\Vehicles\Domain\Contracts\Imports\EngineSparkPlugSpecificationImportInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
-use App\Vehicles\Domain\Enums\EngineFuelTypeEnum;
-use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
-use App\Vehicles\Domain\Models\Engine;
-use App\Vehicles\Domain\Models\Modification;
-use App\Vehicles\Domain\Models\Vehicle;
-use App\Vehicles\Domain\Templates\Engine\Templates\SparkPlugTemplate;
+use App\Vehicles\Domain\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Infrastructure\Imports\Support\DetailsBuilder;
+use App\Vehicles\Infrastructure\Support\DetailTemplateResolver;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
@@ -32,152 +25,75 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\Failure;
+use Throwable;
 
-class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecificationImportInterface, ShouldQueue, SkipsEmptyRows, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithMultipleSheets, WithStartRow
+/**
+ * Excel-адаптер импорта свечей по модификациям (механика): парсит ms_id/mod_id, собирает details
+ * по шаблону и на каждую строку зовёт сценарий записи свечей двигателям модификации,
+ * транслируя его исход (не найдено / пропущенные двигатели) в отчёт об ошибках.
+ */
+final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecificationImportInterface, ShouldQueue, SkipsEmptyRows, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithMultipleSheets, WithStartRow
 {
+    use CachesImportFailures;
+
+    private const int SPEC_START_COLUMN = 2;
+
+    public int $importedByUserId;
+
+    private ?array $templateConfig = null;
+
+    public function __construct(
+        private readonly UpsertSparkPlugSpecByModificationUseCase $useCase,
+        private readonly DetailsBuilder $detailsBuilder,
+        private readonly DetailTemplateResolver $templates,
+    ) {
+        $this->importedByUserId = (int) Auth::id();
+        $this->cacheKey = "engine_import_failures_{$this->importedByUserId}";
+        $this->lockKey = "engine_import_failures_lock_{$this->importedByUserId}";
+    }
+
     public function import(string $path): void
     {
         Excel::import($this, $path);
     }
 
-    use CachesImportFailures;
-
-    public int $importedByUserId;
-
-    private bool $dryRun;
-
-    public function __construct(
-        private readonly PartSpecificationCommandInterface $partSpecs,
-        private readonly DetailsBuilder $detailsBuilder,
-        bool $dryRun = false,
-    ) {
-        $this->importedByUserId = (int) Auth::id();
-        $this->cacheKey = "engine_import_failures_{$this->importedByUserId}";
-        $this->lockKey = "engine_import_failures_lock_{$this->importedByUserId}";
-        $this->dryRun = $dryRun;
-    }
-
     public function collection(Collection $collection): void
     {
         foreach ($collection as $index => $row) {
-            $startDetailIndex = 2;
+            $rowNumber = $index + $this->startRow();
             $msId = $row[0] ?? null;
             $modId = $row[1] ?? null;
-            $rowNumber = $index + $this->startRow();
 
             if (! is_numeric($msId) || ! is_numeric($modId)) {
-                Log::warning('Ошибка формата', [
-                    'row' => $rowNumber,
-                    'mod_id' => $modId,
-                    'ms_id' => $msId,
+                Log::warning('EngineSparkPlugSpecificationImport: неверный формат ms_id/mod_id', [
+                    'row' => $rowNumber, 'ms_id' => $msId, 'mod_id' => $modId,
                 ]);
 
                 continue;
             }
 
-            $msId = (int) $msId;
-            $modId = (int) $modId;
-
             try {
-                $modification = $this->getModification($msId, $modId);
-                $engines = $modification->engines;
+                $details = $this->detailsBuilder->buildDetails($row->toArray(), self::SPEC_START_COLUMN, $this->resolveTemplate());
+                $result = $this->useCase->execute((int) $msId, (int) $modId, $details);
 
-                foreach ($engines as $engine) {
-                    $result = in_array(
-                        $engine->eng_fuel_type,
-                        [
-                            EngineFuelTypeEnum::PETROL->value,
-                            EngineFuelTypeEnum::GAS->value,
-                            EngineFuelTypeEnum::ALCOHOL->value,
-                            EngineFuelTypeEnum::HYDROGEN->value,
-                            EngineFuelTypeEnum::PETROL_ALCOHOL->value,
-                            EngineFuelTypeEnum::PETROL_GAS->value,
-                            EngineFuelTypeEnum::PETROL_ALCOHOL_GAS->value,
-                        ]
-                    );
+                if (! $result->found) {
+                    $this->onFailure(new Failure($rowNumber, 'Свечи', [$result->notFoundReason], $row->toArray()));
 
-                    if (! $result) {
-                        $engines->unset($engine);
-                        $this->onFailure(
-                            new Failure(
-                                row: $rowNumber,
-                                attribute: 'Двигатель',
-                                errors: ["У этой модификации: {$modId}
-                                    двигатель: {$engine->code_engine} не нуждается в свечах.
-                                    Его топливо: {$engine->eng_fuel_type}",
-                                ],
-                                values: $row->toArray(),
-                            ),
-                        );
-                    }
+                    continue;
                 }
 
-                $details = $this->detailsBuilder->buildDetails($row->toArray(), $startDetailIndex, app(SparkPlugTemplate::class)->getArrayTemplate());
-
-                foreach ($engines as $engine) {
-                    $this->partSpecs->upsert(new PartSpecificationData(
-                        partableType: Engine::class,
-                        partableId: $engine->id,
-                        template: DetailTemplateEnum::SPARK_PLUGS,
-                        details: $details,
+                foreach ($result->skippedEngines as $skipped) {
+                    $this->onFailure(new Failure(
+                        $rowNumber,
+                        'Двигатель',
+                        ["Двигатель {$skipped['code']} (топливо: {$skipped['fuel']}) не нуждается в свечах."],
+                        $row->toArray(),
                     ));
                 }
-            } catch (\Throwable $e) {
-                $this->onFailure(
-                    new Failure(
-                        row: $rowNumber,
-                        attribute: 'Свечи',
-                        errors: [$e->getMessage()],
-                        values: $row->toArray(),
-                    ),
-                );
-                Log::warning('Ошибка', [
-                    'row' => $rowNumber,
-                    'mod_id' => $modId,
-                    'ms_id' => $msId,
-                    'message' => $e->getMessage(),
-                    'line' => $e->getLine(),
-                ]);
+            } catch (Throwable $e) {
+                $this->onFailure(new Failure($rowNumber, 'Свечи', [$e->getMessage()], $row->toArray()));
             }
         }
-    }
-
-    /**
-     * Ищет модификацию автомобиля
-     *
-     * @throws \Exception
-     */
-    private function getModification(int $msId, int $modId): Modification
-    {
-        if ($msId < 0) {
-            /** @var Vehicle|null $vehicle */
-            $vehicle = Vehicle::query()->with('parent')->where('ms_id', $msId)->first();
-
-            if (! $vehicle) {
-                throw new \Exception("Модель (ms_id: {$msId}, не найдена.");
-            }
-
-            $msId = $vehicle->parent
-                ? $vehicle->parent->ms_id
-                : null;
-
-            if (! $msId) {
-                throw new \Exception("Модель (ms_id: {$msId}, должна иметь родителя.");
-            }
-        }
-
-        /** @var Modification|null $modification */
-        $modification = Modification::where('ms_id', $msId)
-            ->where('mod_id', $modId)
-            ->has('engines')
-            ->with('engines')
-            ->first();
-
-        if (! $modification) {
-            throw new \Exception("Модификация (ms_id: {$msId}, mod_id: {$modId}) не найдена.");
-        }
-
-        return $modification;
     }
 
     public function chunkSize(): int
@@ -194,11 +110,11 @@ class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecification
 
     public static function afterImport(AfterImport $event): void
     {
+        /** @var EngineSparkPlugSpecificationImport $import */
         $import = $event->getConcernable();
-        $user = User::find($import->importedByUserId);
 
-        if ($user) {
-            KitImportCompleted::dispatch($user, $import->cacheKey);
+        if ($import->importedByUserId > 0) {
+            EngineImportCompleted::dispatch($import->importedByUserId, $import->cacheKey);
         }
     }
 
@@ -212,5 +128,14 @@ class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecification
         return [
             0 => $this,
         ];
+    }
+
+    private function resolveTemplate(): array
+    {
+        if ($this->templateConfig === null) {
+            $this->templateConfig = $this->templates->resolve(DetailTemplateEnum::SPARK_PLUGS)->getArrayTemplate();
+        }
+
+        return $this->templateConfig;
     }
 }
