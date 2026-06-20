@@ -27,6 +27,7 @@ use Filament\Support\Enums\Alignment;
  * render(). Headless-сервисы (без UI) пакет используют, этот класс не трогают — Filament им не нужен.
  *
  * Контракт со ядром — структура массива getArrayTemplate(), не объекты полей.
+ * @deprecated
  */
 final class FilamentTemplateRenderer
 {

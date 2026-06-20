@@ -4,18 +4,13 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Models;
 
-use App\Models\Warehouse\Kit;
-use App\Vehicles\Application\Observers\Vehicle\VehicleObserver;
 use App\Vehicles\Domain\Enums\CarcaseTypeEnum;
 use App\Vehicles\Domain\Enums\SteeringTypeEnum;
 use App\Vehicles\Domain\Enums\VehicleTypeEnum;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
-#[ObservedBy(VehicleObserver::class)]
 class Vehicle extends BaseModel
 {
     protected $casts = [
@@ -46,11 +41,6 @@ class Vehicle extends BaseModel
     public function children(): HasMany
     {
         return $this->hasMany(Vehicle::class, 'parent_id', 'id');
-    }
-
-    public function kits(): MorphToMany
-    {
-        return $this->morphToMany(Kit::class, 'applicabilitable', 'kit_applicabilitables');
     }
 
     public function partSpecifications(): MorphMany

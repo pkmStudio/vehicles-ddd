@@ -50,8 +50,6 @@ class VehiclesServiceProvider extends ServiceProvider
         'App\\Vehicles\\Domain\\Contracts\\Imports\\EnginesCodeImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EnginesCodeImport',
         'App\\Vehicles\\Domain\\Contracts\\Exports\\EngineMultiSheetExportInterface' => 'App\\Vehicles\\Infrastructure\\Exports\\Engine\\EngineMultiSheetExport',
         'App\\Vehicles\\Domain\\Contracts\\Exports\\VehicleMultiSheetExportInterface' => 'App\\Vehicles\\Infrastructure\\Exports\\Vehicle\\VehicleMultiSheetExport',
-        'App\\Vehicles\\Domain\\Contracts\\Exports\\EngineKitApplicabilityExportInterface' => 'App\\Vehicles\\Infrastructure\\Exports\\Engine\\EngineKitApplicabilityExport',
-        'App\\Vehicles\\Domain\\Contracts\\Exports\\VehicleKitApplicabilityExportInterface' => 'App\\Vehicles\\Infrastructure\\Exports\\Vehicle\\VehicleKitApplicabilityExport',
     ];
 
     public function register(): void

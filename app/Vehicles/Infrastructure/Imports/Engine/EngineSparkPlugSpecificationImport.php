@@ -194,7 +194,6 @@ class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecification
 
     public static function afterImport(AfterImport $event): void
     {
-        /** @var KitImport $import */
         $import = $event->getConcernable();
         $user = User::find($import->importedByUserId);
 

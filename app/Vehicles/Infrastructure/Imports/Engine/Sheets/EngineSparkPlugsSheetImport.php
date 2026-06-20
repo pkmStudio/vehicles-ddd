@@ -62,7 +62,8 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
 
             DB::beginTransaction();
             try {
-                $details = $this->detailsBuilder->buildDetails($row->toArray(), self::SPEC_START_COLUMN, $this->resolveTemplate());
+                $startIndex = self::SPEC_START_COLUMN;
+                $details = $this->detailsBuilder->buildDetails($row->toArray(), $startIndex, $this->resolveTemplate());
 
                 $spec = $this->useCase->execute((int) $engId, $details);
 
