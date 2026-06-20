@@ -95,7 +95,7 @@ final readonly class ExportDetailsBuilder
      */
     private function getFieldValue(Model $model, array &$rowCells, string $fieldKey, array $fieldConfig): void
     {
-        if (isset($fieldConfig['children'])) {
+        if (isset($fieldConfig['children']) && is_array($fieldConfig['children'])) {
             foreach ($fieldConfig['children'] as $childKey => $childConfig) {
                 $this->getFieldValue($model, $rowCells, $fieldKey.'.'.$childKey, $childConfig);
             }
@@ -114,7 +114,7 @@ final readonly class ExportDetailsBuilder
                 $value = $this->getVarValue([$varKey], $fieldConfig['variables']);
                 $rowCells[] = $value;
             }
-        } elseif ($fieldConfig['type'] === 'conditional_select' && isset($fieldConfig['options_source'])) {
+        } elseif ($fieldConfig['type'] === 'conditional_select' && is_array($fieldConfig['options_source'] ?? null)) {
             // Объединяем все источники опций
             $variables = [];
             foreach ($fieldConfig['options_source'] as $array) {

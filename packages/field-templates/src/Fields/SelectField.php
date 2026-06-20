@@ -14,6 +14,7 @@ final readonly class SelectField extends AbstractField
         private array $options = [],
         private bool $multiple = false,
         private bool $live = false,
+        private ?int $maxItems = null,
     ) {
         parent::__construct($name, $label, $rules, $required);
     }
@@ -29,6 +30,7 @@ final readonly class SelectField extends AbstractField
             'variables' => $this->options,
             'multiple' => $this->multiple,
             'is_live' => $this->live,
+            'max_items' => $this->maxItems,
         ]);
     }
 }

@@ -6,9 +6,11 @@ namespace App\Vehicles\Infrastructure\Exports\Vehicle\Sheets;
 
 use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Models\PartSpecification;
+use App\Vehicles\Domain\Services\WiperSpecificationService;
 use App\Vehicles\Infrastructure\Exports\Support\ExportDetailsBuilder;
-use App\Vehicles\Infrastructure\Exports\Support\PartSpecificationRowExpander;
 use App\Vehicles\Infrastructure\Exports\Support\VehicleExportRow;
+use App\Vehicles\Infrastructure\Exports\Support\WiperRowExpander;
 use App\Vehicles\Infrastructure\Support\DetailTemplateResolver;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -16,6 +18,11 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
+/**
+ * Лист «дворники»: дворники хранятся по одной записи на сторону (front/back), а в excel
+ * нужен старый объединённый формат. Expander собирает строки {frontSpec, backSpec},
+ * map() склеивает стороны обратно в {front, back} через доменный сервис.
+ */
 final readonly class VehicleWipersSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     private array $templateConfig;
@@ -26,7 +33,8 @@ final readonly class VehicleWipersSheetExport implements FromCollection, WithHea
         private VehicleRepositoryInterface $vehicles,
         private VehicleExportRow $vehicleRow,
         private ExportDetailsBuilder $exportDetails,
-        private PartSpecificationRowExpander $expander,
+        private WiperRowExpander $expander,
+        private WiperSpecificationService $wiper,
         DetailTemplateResolver $templates,
         private bool $isAllow = false,
     ) {
@@ -49,23 +57,32 @@ final readonly class VehicleWipersSheetExport implements FromCollection, WithHea
      */
     public function map($row): array
     {
-        $baseData = $this->vehicleRow->getBaseData($row->entity);
-        $specification = $row->specification;
+        $baseData = $this->vehicleRow->getBaseData($row->vehicle);
+        $frontSpec = $row->frontSpec;
+        $backSpec = $row->backSpec;
 
-        if ($specification) {
-            $specData = [
-                $specification->featureValue?->name,
-                $specification->template?->value,
-                $specification->name,
-                $specification->text,
-            ];
-
-            $detailsData = $this->exportDetails->getDetailsData($specification, $this->templateConfig);
-        } else {
+        if ($frontSpec === null && $backSpec === null) {
             // 4 пустых столбца = ровно по числу $specHeadings в headings() (иначе колонки съезжают).
-            $specData = array_fill(0, 4, null);
-            $detailsData = array_fill(0, count($this->fieldHeadings), null);
+            return array_merge(
+                $baseData,
+                array_fill(0, 4, null),
+                array_fill(0, count($this->fieldHeadings), null),
+            );
         }
+
+        $frontData = $frontSpec ? $this->wiper->sideData((array) $frontSpec->details, WiperSpecificationService::SIDE_FRONT) : [];
+        $backData = $backSpec ? $this->wiper->sideData((array) $backSpec->details, WiperSpecificationService::SIDE_BACK) : [];
+
+        $specData = [
+            $frontSpec?->featureValue?->name ?? $backSpec?->featureValue?->name,
+            DetailTemplateEnum::WIPER->value,
+            $frontSpec?->name ?? $backSpec?->name,
+            $frontSpec?->text ?? $backSpec?->text,
+        ];
+
+        $merged = new PartSpecification;
+        $merged->setAttribute('details', $this->wiper->mergeForExport($frontData, $backData));
+        $detailsData = $this->exportDetails->getDetailsData($merged, $this->templateConfig);
 
         return array_merge($baseData, $specData, $detailsData);
     }

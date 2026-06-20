@@ -179,6 +179,40 @@ final readonly class CommonFields
         );
     }
 
+    /**
+     * Диапазон целых чисел (мин/макс).
+     */
+    public static function rangeInteger(
+        string $name,
+        string $label,
+        bool $required = true,
+        string $containerType = 'fieldset',
+        bool $addLabelItem = false,
+    ): ObjectField {
+        return new ObjectField(
+            name: $name,
+            label: $label,
+            rules: ['array'],
+            children: [
+                new NumericField(
+                    name: 'min',
+                    label: $addLabelItem ? $label.' От' : 'От',
+                    rules: ['integer', 'min:0'],
+                    required: $required,
+                    isInteger: true,
+                ),
+                new NumericField(
+                    name: 'max',
+                    label: $addLabelItem ? $label.' До' : 'До',
+                    rules: ['integer', 'min:0'],
+                    required: $required,
+                    isInteger: true,
+                ),
+            ],
+            containerType: $containerType,
+        );
+    }
+
     public static function adapterTypeFront(): SelectField
     {
         return new SelectField(
@@ -190,6 +224,22 @@ final readonly class CommonFields
         );
     }
 
+    /**
+     * Адаптер передних дворников для шаблона ТС: один код на сторону (`max:1`),
+     * структура данных остаётся массивом (UI-ограничение, не смена модели).
+     */
+    public static function adapterTypeFrontForVehicle(): SelectField
+    {
+        return new SelectField(
+            name: 'adapter_type_front',
+            label: 'Тип крепления передних',
+            rules: ['array', 'max:1'],
+            options: FrontAdapterTypeEnum::toArray(),
+            multiple: true,
+            maxItems: 1,
+        );
+    }
+
     public static function adapterTypeRear(): SelectField
     {
         return new SelectField(
@@ -198,6 +248,22 @@ final readonly class CommonFields
             rules: ['array'],
             options: RearAdapterTypeEnum::toArray(),
             multiple: true,
+        );
+    }
+
+    /**
+     * Адаптер задних дворников для шаблона ТС: один код на сторону (`max:1`),
+     * структура данных остаётся массивом (UI-ограничение, не смена модели).
+     */
+    public static function adapterTypeRearForVehicle(): SelectField
+    {
+        return new SelectField(
+            name: 'adapter_type_rear',
+            label: 'Тип крепления задней',
+            rules: ['array', 'max:1'],
+            options: RearAdapterTypeEnum::toArray(),
+            multiple: true,
+            maxItems: 1,
         );
     }
 }

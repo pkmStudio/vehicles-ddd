@@ -75,7 +75,7 @@ final readonly class DetailsBuilder
     {
         $rowValue = null;
 
-        if (isset($fieldConfig['children'])) {
+        if (isset($fieldConfig['children']) && is_array($fieldConfig['children'])) {
             $nestedData = [];
             $hasNestedData = false;
 
@@ -101,7 +101,7 @@ final readonly class DetailsBuilder
             } else {
                 $value = $this->getVarKey((string) $rowValue, $fieldConfig['variables']);
             }
-        } elseif ($fieldConfig['type'] === 'conditional_select' && isset($fieldConfig['options_source'])) {
+        } elseif ($fieldConfig['type'] === 'conditional_select' && is_array($fieldConfig['options_source'] ?? null)) {
             // Объединяем все источники опций
             $variables = [];
             foreach ($fieldConfig['options_source'] as $array) {
