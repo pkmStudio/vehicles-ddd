@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\UseCases\EngineModification;
 
 use App\Vehicles\Application\Import\Factories\EngineModification\EngineModificationDataFactory;
-use App\Vehicles\Domain\Contracts\Commands\EngineModificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineModificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\EngineModification\LinkEngineModificationFromRowUseCaseInterface;
 use Illuminate\Validation\ValidationException;
 
 /**
  * Use-case: связать двигатель с модификацией из строки импорта (пивот engine_modification).
  */
-final readonly class LinkEngineModificationFromRowUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\EngineModification\LinkEngineModificationFromRowUseCaseInterface
+final readonly class LinkEngineModificationFromRowUseCase implements LinkEngineModificationFromRowUseCaseInterface
 {
     public function __construct(
         private EngineModificationCommandInterface $command,

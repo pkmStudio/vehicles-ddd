@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Vehicles;
 
 use App\Vehicles\Application\Import\UseCases\Engine\UpsertSparkPlugSpecByModificationUseCase;
-use App\Vehicles\Domain\Contracts\Commands\PartSpecificationCommandInterface;
-use App\Vehicles\Domain\Contracts\Repositories\ModificationRepositoryInterface;
-use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\ModificationRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Domain\Enums\EngineFuelTypeEnum;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\Engine;

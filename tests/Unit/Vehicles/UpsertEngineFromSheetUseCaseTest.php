@@ -6,7 +6,7 @@ namespace Tests\Unit\Vehicles;
 
 use App\Vehicles\Application\Import\Factories\Engine\EngineDataFactory;
 use App\Vehicles\Application\Import\UseCases\Engine\UpsertEngineFromSheetUseCase;
-use App\Vehicles\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineCommandInterface;
 use App\Vehicles\Domain\Enums\EngineFuelTypeEnum;
 use App\Vehicles\Domain\ModelData\Engine\EngineData;
 use App\Vehicles\Domain\Models\Engine;

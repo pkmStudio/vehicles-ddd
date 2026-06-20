@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Exports;
 
-use App\Vehicles\Domain\Contracts\Exports\ImportFailureReporterInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Exports\ImportFailureReporterInterface;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 

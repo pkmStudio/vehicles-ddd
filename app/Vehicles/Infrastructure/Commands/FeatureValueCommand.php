@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Commands;
 
-use App\Vehicles\Domain\Contracts\Commands\FeatureValueCommandInterface;
 use App\Vehicles\Domain\ModelData\FeatureValue\FeatureValueData;
 use App\Vehicles\Domain\Models\FeatureValue;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\FeatureValueCommandInterface;
 
 final readonly class FeatureValueCommand implements FeatureValueCommandInterface
 {

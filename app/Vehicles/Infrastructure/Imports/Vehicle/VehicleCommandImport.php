@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Vehicle;
 
 use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCase;
-use App\Vehicles\Domain\Contracts\Imports\VehicleCommandImportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleCommandImportInterface;
 use App\Vehicles\Domain\Events\Vehicle\VehicleCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;

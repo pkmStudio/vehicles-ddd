@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\UseCases\Modification;
 
 use App\Vehicles\Application\Import\Factories\Modification\ModificationDataFactory;
-use App\Vehicles\Domain\Contracts\Commands\ModificationCommandInterface;
-use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ModificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Import\UseCases\Modification\UpsertModificationFromRowUseCaseInterface;
 use App\Vehicles\Domain\Models\Modification;
 use Illuminate\Validation\ValidationException;
 
@@ -15,7 +16,7 @@ use Illuminate\Validation\ValidationException;
  * ТС должно уже существовать (резолв по ms_id) — иначе сценарий сигналит null,
  * адаптер отражает это в отчёте об ошибках.
  */
-final readonly class UpsertModificationFromRowUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Modification\UpsertModificationFromRowUseCaseInterface
+final readonly class UpsertModificationFromRowUseCase implements UpsertModificationFromRowUseCaseInterface
 {
     public function __construct(
         private ModificationCommandInterface $command,

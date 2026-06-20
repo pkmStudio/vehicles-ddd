@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Engine\Sheets;
 
 use App\Vehicles\Application\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCase;
+use App\Vehicles\Application\Import\Support\EngineMainSheetImportService;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -21,23 +22,11 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
 {
     use CachesImportFailures;
 
-    /**
-     * Редактируемые колонки: индекс колонки в Excel => поле модели Engine.
-     * Только эти поля обновляются. Менять набор редактируемых полей — здесь.
-     */
-    private const array EDITABLE_COLUMNS = [
-        2 => 'engine_capacity',
-        4 => 'eng_power_ps_start',
-        5 => 'eng_power_ps_upto',
-        6 => 'cylinder_count',
-        7 => 'cylinder_diameter',
-        8 => 'eng_number_of_valves',
-    ];
-
     public function __construct(
         private readonly int $userId,
         string $cacheKey,
         private readonly UpdateEngineEditableFieldsUseCase $useCase,
+        private readonly EngineMainSheetImportService $engineMainSheetImportService,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "engine_import_failures_lock_{$userId}";
@@ -48,10 +37,7 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
         foreach ($collection as $indexRow => $row) {
             DB::beginTransaction();
             try {
-                $attributes = [];
-                foreach (self::EDITABLE_COLUMNS as $columnIndex => $field) {
-                    $attributes[$field] = $row[$columnIndex] ?? null;
-                }
+                $attributes = $this->engineMainSheetImportService->extractEditableAttributes($row->toArray());
 
                 $this->useCase->execute((int) $row[0], $attributes);
                 DB::commit();

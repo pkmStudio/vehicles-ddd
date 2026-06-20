@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\UseCases\Reporting;
 
-use App\Vehicles\Domain\Contracts\Exports\ImportFailureReporterInterface;
-use App\Vehicles\Domain\Contracts\Notifications\FileNotificationServiceInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Exports\ImportFailureReporterInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Notifications\FileNotificationServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Reporting\ReportImportResultUseCaseInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -14,7 +15,7 @@ use Throwable;
  * Завершение импорта: если были ошибки — выгружаем отчёт и шлём пользователю файл,
  * иначе фиксируем успех. Кэш ошибок очищается в любом случае.
  */
-final readonly class ReportImportResultUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Reporting\ReportImportResultUseCaseInterface
+final readonly class ReportImportResultUseCase implements ReportImportResultUseCaseInterface
 {
     public function __construct(
         private ImportFailureReporterInterface $reporter,

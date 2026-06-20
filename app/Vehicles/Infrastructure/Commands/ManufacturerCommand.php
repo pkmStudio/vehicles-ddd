@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Commands;
 
-use App\Vehicles\Domain\Contracts\Commands\ManufacturerCommandInterface;
 use App\Vehicles\Domain\ModelData\Manufacturer\ManufacturerData;
 use App\Vehicles\Domain\Models\Manufacturer;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ManufacturerCommandInterface;
 
 final readonly class ManufacturerCommand implements ManufacturerCommandInterface
 {

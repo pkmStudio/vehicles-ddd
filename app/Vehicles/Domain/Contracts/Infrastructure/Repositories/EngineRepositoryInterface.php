@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Vehicles\Domain\Contracts\Infrastructure\Repositories;
+
+use App\Vehicles\Domain\Models\Engine;
+use Illuminate\Database\Eloquent\Collection;
+
+interface EngineRepositoryInterface
+{
+    public function find(int $id): ?Engine;
+
+    public function findOrFail(int $id): Engine;
+
+    public function all(): Collection;
+
+    public function firstByEngId(int $engId): ?Engine;
+
+    public function firstByCodeEngine(string $code): ?Engine;
+
+    /** Для листа свечей (со спецификациями шаблона sparkPlugs). */
+    public function forSparkPlugSheet(): Collection;
+}

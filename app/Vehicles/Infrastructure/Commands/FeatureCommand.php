@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Commands;
 
-use App\Vehicles\Domain\Contracts\Commands\FeatureCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\FeatureCommandInterface;
 use App\Vehicles\Domain\ModelData\Feature\FeatureData;
 use App\Vehicles\Domain\Models\Feature;
 

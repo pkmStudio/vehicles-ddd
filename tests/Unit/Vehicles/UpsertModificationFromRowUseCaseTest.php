@@ -6,8 +6,8 @@ namespace Tests\Unit\Vehicles;
 
 use App\Vehicles\Application\Import\Factories\Modification\ModificationDataFactory;
 use App\Vehicles\Application\Import\UseCases\Modification\UpsertModificationFromRowUseCase;
-use App\Vehicles\Domain\Contracts\Commands\ModificationCommandInterface;
-use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ModificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Domain\ModelData\Modification\ModificationData;
 use App\Vehicles\Domain\Models\Modification;
 use App\Vehicles\Domain\Models\Vehicle;

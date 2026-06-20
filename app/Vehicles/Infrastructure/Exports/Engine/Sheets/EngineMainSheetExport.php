@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Exports\Engine\Sheets;
 
-use App\Vehicles\Domain\Contracts\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Infrastructure\Exports\Support\EngineExportRow;
+use App\Vehicles\Application\Export\Services\EngineExportService;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -15,8 +14,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 final readonly class EngineMainSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     public function __construct(
-        private EngineRepositoryInterface $engines,
-        private EngineExportRow $engineRow,
+        private EngineExportService $exportService,
     ) {}
 
     public function title(): string
@@ -26,16 +24,16 @@ final readonly class EngineMainSheetExport implements FromCollection, WithHeadin
 
     public function collection(): Collection
     {
-        return $this->engines->all();
+        return $this->exportService->getMainRows();
     }
 
     public function map($row): array
     {
-        return $this->engineRow->getBaseData($row);
+        return $this->exportService->mapMainRow($row);
     }
 
     public function headings(): array
     {
-        return $this->engineRow->getBaseHeadings();
+        return $this->exportService->getMainHeadings();
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Modification;
 
 use App\Vehicles\Application\Import\UseCases\Modification\UpsertModificationFromRowUseCase;
-use App\Vehicles\Domain\Contracts\Imports\ModificationCommandImportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ModificationCommandImportInterface;
 use App\Vehicles\Domain\Events\Modification\ModificationCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;

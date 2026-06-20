@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\UseCases\Engine;
 
-use App\Vehicles\Domain\Contracts\Commands\PartSpecificationCommandInterface;
-use App\Vehicles\Domain\Contracts\Repositories\ModificationRepositoryInterface;
-use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\ModificationRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Import\UseCases\Engine\UpsertSparkPlugSpecByModificationUseCaseInterface;
 use App\Vehicles\Domain\DTOs\ModificationSparkPlugResult;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
@@ -18,7 +19,7 @@ use App\Vehicles\Domain\Models\Engine;
  * родителя. Двигатели без искрового зажигания (дизель/электро) пропускаются — их перечень
  * возвращается в результате для отчёта. details (сборка из строки) приходят готовыми из адаптера.
  */
-final readonly class UpsertSparkPlugSpecByModificationUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Engine\UpsertSparkPlugSpecByModificationUseCaseInterface
+final readonly class UpsertSparkPlugSpecByModificationUseCase implements UpsertSparkPlugSpecByModificationUseCaseInterface
 {
     public function __construct(
         private VehicleRepositoryInterface $vehicles,

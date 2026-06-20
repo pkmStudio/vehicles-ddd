@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Exports\Engine;
 
-use App\Vehicles\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Exports\EngineMultiSheetExportInterface;
 use App\Vehicles\Infrastructure\Exports\Engine\Sheets\EngineMainSheetExport;
 use App\Vehicles\Infrastructure\Exports\Engine\Sheets\EngineSparkPlugsSheetExport;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;

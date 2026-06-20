@@ -4,14 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Exports\Vehicle\Sheets;
 
-use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
-use App\Vehicles\Domain\Models\PartSpecification;
-use App\Vehicles\Application\Common\Services\WiperSpecificationService;
-use App\Vehicles\Infrastructure\Exports\Support\ExportDetailsBuilder;
-use App\Vehicles\Infrastructure\Exports\Support\VehicleExportRow;
-use App\Vehicles\Infrastructure\Exports\Support\WiperRowExpander;
-use App\Vehicles\Infrastructure\Support\DetailTemplateResolver;
+use App\Vehicles\Application\Export\Services\VehicleExportService;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -25,21 +18,10 @@ use Maatwebsite\Excel\Concerns\WithTitle;
  */
 final readonly class VehicleWipersSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
-    private array $templateConfig;
-
-    private array $fieldHeadings;
-
     public function __construct(
-        private VehicleRepositoryInterface $vehicles,
-        private VehicleExportRow $vehicleRow,
-        private ExportDetailsBuilder $exportDetails,
-        private WiperRowExpander $expander,
-        private WiperSpecificationService $wiper,
-        DetailTemplateResolver $templates,
+        private VehicleExportService $exportService,
         private bool $isAllow = false,
     ) {
-        $this->templateConfig = $templates->resolve(DetailTemplateEnum::WIPER)->getArrayTemplate();
-        $this->fieldHeadings = $this->exportDetails->extractHeadingsFromTemplate($this->templateConfig);
     }
 
     public function title(): string
@@ -49,7 +31,7 @@ final readonly class VehicleWipersSheetExport implements FromCollection, WithHea
 
     public function collection(): Collection
     {
-        return $this->expander->expand($this->vehicles->forWiperSheet($this->isAllow));
+        return $this->exportService->getWiperRows($this->isAllow);
     }
 
     /**
@@ -57,46 +39,11 @@ final readonly class VehicleWipersSheetExport implements FromCollection, WithHea
      */
     public function map($row): array
     {
-        $baseData = $this->vehicleRow->getBaseData($row->vehicle);
-        $frontSpec = $row->frontSpec;
-        $backSpec = $row->backSpec;
-
-        if ($frontSpec === null && $backSpec === null) {
-            // 4 пустых столбца = ровно по числу $specHeadings в headings() (иначе колонки съезжают).
-            return array_merge(
-                $baseData,
-                array_fill(0, 4, null),
-                array_fill(0, count($this->fieldHeadings), null),
-            );
-        }
-
-        $frontData = $frontSpec ? $this->wiper->sideData((array) $frontSpec->details, WiperSpecificationService::SIDE_FRONT) : [];
-        $backData = $backSpec ? $this->wiper->sideData((array) $backSpec->details, WiperSpecificationService::SIDE_BACK) : [];
-
-        $specData = [
-            $frontSpec?->featureValue?->name ?? $backSpec?->featureValue?->name,
-            DetailTemplateEnum::WIPER->value,
-            $frontSpec?->name ?? $backSpec?->name,
-            $frontSpec?->text ?? $backSpec?->text,
-        ];
-
-        $merged = new PartSpecification;
-        $merged->setAttribute('details', $this->wiper->mergeForExport($frontData, $backData));
-        $detailsData = $this->exportDetails->getDetailsData($merged, $this->templateConfig);
-
-        return array_merge($baseData, $specData, $detailsData);
+        return $this->exportService->mapWiperRow($row);
     }
 
     public function headings(): array
     {
-        $headings = $this->vehicleRow->getBaseHeadings();
-        $specHeadings = [
-            'Значение характеристики',
-            'Название шаблона',
-            'Приписка к поколению',
-            'Приписка к описанию',
-        ];
-
-        return array_merge($headings, $specHeadings, $this->fieldHeadings);
+        return $this->exportService->getWiperHeadings();
     }
 }

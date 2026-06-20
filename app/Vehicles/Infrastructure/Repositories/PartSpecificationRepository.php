@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Repositories;
 
-use App\Vehicles\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\PartSpecificationRepositoryInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\Models\PartSpecification;
 use App\Vehicles\Domain\Models\Vehicle;

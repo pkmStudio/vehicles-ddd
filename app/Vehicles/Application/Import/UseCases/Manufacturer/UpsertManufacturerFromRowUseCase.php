@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\UseCases\Manufacturer;
 
 use App\Vehicles\Application\Import\Factories\Manufacturer\ManufacturerDataFactory;
-use App\Vehicles\Domain\Contracts\Commands\ManufacturerCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ManufacturerCommandInterface;
+use App\Vehicles\Domain\Contracts\Import\UseCases\Manufacturer\UpsertManufacturerFromRowUseCaseInterface;
 use App\Vehicles\Domain\Models\Manufacturer;
 use Illuminate\Validation\ValidationException;
 
 /**
  * Use-case: создать/обновить производителя из строки импорта (приведение к виду TD).
  */
-final readonly class UpsertManufacturerFromRowUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Manufacturer\UpsertManufacturerFromRowUseCaseInterface
+final readonly class UpsertManufacturerFromRowUseCase implements UpsertManufacturerFromRowUseCaseInterface
 {
     public function __construct(
         private ManufacturerCommandInterface $command,

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\UseCases\Vehicle;
 
-use App\Vehicles\Domain\Contracts\Commands\PartSpecificationCommandInterface;
-use App\Vehicles\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
-use App\Vehicles\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\FeatureValueRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\PartSpecificationRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCaseInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\Vehicle;
@@ -18,7 +19,7 @@ use App\Vehicles\Domain\Services\WiperSpecificationService;
  * разбиваются по сторонам (доменный сервис), и каждая сторона upsert-ится отдельно —
  * существующая запись стороны ищется по `template + side` (jsonb), затем update либо create.
  */
-final readonly class UpsertVehicleWiperSpecUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCaseInterface
+final readonly class UpsertVehicleWiperSpecUseCase implements UpsertVehicleWiperSpecUseCaseInterface
 {
     public function __construct(
         private FeatureValueRepositoryInterface $featureValues,

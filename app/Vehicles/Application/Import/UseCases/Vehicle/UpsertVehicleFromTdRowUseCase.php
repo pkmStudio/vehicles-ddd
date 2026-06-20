@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\UseCases\Vehicle;
 
 use App\Vehicles\Application\Import\Factories\Vehicle\VehicleDataFactory;
-use App\Vehicles\Domain\Contracts\Commands\VehicleCommandInterface;
-use App\Vehicles\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\VehicleCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\ManufacturerRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCaseInterface;
 use App\Vehicles\Domain\Models\Vehicle;
 use Illuminate\Validation\ValidationException;
 
@@ -15,7 +16,7 @@ use Illuminate\Validation\ValidationException;
  * Производитель должен уже существовать (резолв по mfa_id) — иначе сценарий сигналит null,
  * адаптер отражает это в отчёте об ошибках.
  */
-final readonly class UpsertVehicleFromTdRowUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCaseInterface
+final readonly class UpsertVehicleFromTdRowUseCase implements UpsertVehicleFromTdRowUseCaseInterface
 {
     public function __construct(
         private VehicleCommandInterface $command,

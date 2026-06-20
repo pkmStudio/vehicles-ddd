@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Manufacturer;
 
 use App\Vehicles\Application\Import\UseCases\Manufacturer\UpsertManufacturerFromRowUseCase;
-use App\Vehicles\Domain\Contracts\Imports\ManufacturerCommandImportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ManufacturerCommandImportInterface;
 use App\Vehicles\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;

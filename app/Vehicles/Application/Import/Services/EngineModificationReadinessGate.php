@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\Services;
 
 use App\Vehicles\Domain\Events\EnginesAndModificationsReady;
+use App\Vehicles\Domain\Contracts\Import\Services\EngineModificationReadinessGateInterface;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Events\Dispatcher;
 
@@ -14,7 +15,7 @@ use Illuminate\Contracts\Events\Dispatcher;
  * (в кэше — переживают разные queued-job'ы) и при готовности обоих диспатчит
  * EnginesAndModificationsReady. Сам объект без состояния (состояние — в кэше).
  */
-final readonly class EngineModificationReadinessGate implements \App\Vehicles\Domain\Contracts\Import\Services\EngineModificationReadinessGateInterface
+final readonly class EngineModificationReadinessGate implements EngineModificationReadinessGateInterface
 {
     private const FLAG_ENGINES = 'engines_imported';
 

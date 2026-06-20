@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\UseCases\Engine;
 
 use App\Vehicles\Application\Import\Factories\Engine\EngineDataFactory;
-use App\Vehicles\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineCommandInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertEngineFromSheetUseCaseInterface;
 use App\Vehicles\Domain\Models\Engine;
 use Illuminate\Validation\ValidationException;
 
@@ -14,7 +15,7 @@ use Illuminate\Validation\ValidationException;
  * Бизнес-логика одной строки: маппинг колонок → валидация+сборка (Factory) → запись (Command).
  * Персистентность — только через порт Command, прямого Eloquent в Application нет.
  */
-final readonly class UpsertEngineFromSheetUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Engine\UpsertEngineFromSheetUseCaseInterface
+final readonly class UpsertEngineFromSheetUseCase implements UpsertEngineFromSheetUseCaseInterface
 {
     public function __construct(
         private EngineCommandInterface $command,

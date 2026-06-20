@@ -6,7 +6,7 @@ namespace Tests\Unit\Vehicles;
 
 use App\Vehicles\Application\Import\Factories\EngineModification\EngineModificationDataFactory;
 use App\Vehicles\Application\Import\UseCases\EngineModification\LinkEngineModificationFromRowUseCase;
-use App\Vehicles\Domain\Contracts\Commands\EngineModificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineModificationCommandInterface;
 use App\Vehicles\Domain\ModelData\EngineModification\EngineModificationData;
 use Illuminate\Validation\ValidationException;
 use Mockery;

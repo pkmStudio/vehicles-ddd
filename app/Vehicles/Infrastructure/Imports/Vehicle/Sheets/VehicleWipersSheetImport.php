@@ -6,8 +6,7 @@ namespace App\Vehicles\Infrastructure\Imports\Vehicle\Sheets;
 
 use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCase;
 use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCase;
-use App\Vehicles\Infrastructure\Imports\Support\DetailsBuilder;
-use App\Vehicles\Infrastructure\Support\DetailTemplateResolver;
+use App\Vehicles\Application\Import\Support\TemplateDataBuilder;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
@@ -33,8 +32,7 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
         string $cacheKey,
         private readonly UpsertVehicleFromSheetUseCase $upsertVehicle,
         private readonly UpsertVehicleWiperSpecUseCase $upsertWiperSpec,
-        private readonly DetailsBuilder $detailsBuilder,
-        private readonly DetailTemplateResolver $templates,
+        private readonly TemplateDataBuilder $templateDataBuilder,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "vehicle_import_failures_lock_{$this->userId}";
@@ -84,11 +82,7 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
             return;
         }
 
-        $details = $this->detailsBuilder->buildDetails(
-            $row,
-            self::SPEC_START_COLUMN,
-            $this->templates->resolveBySlug($templateName)->getArrayTemplate(),
-        );
+        $details = $this->templateDataBuilder->buildBySlug($row, self::SPEC_START_COLUMN, $templateName);
 
         $this->upsertWiperSpec->execute(
             vehicleId: $vehicleId,

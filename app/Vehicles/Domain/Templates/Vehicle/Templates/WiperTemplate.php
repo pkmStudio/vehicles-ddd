@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Templates\Vehicle\Templates;
 
-use App\Vehicles\Application\Common\Services\WiperSpecificationService;
+use App\Vehicles\Domain\Services\WiperSpecificationService;
 use Dan\FieldTemplates\AbstractTemplate;
 use Dan\FieldTemplates\CommonFields;
 use Dan\FieldTemplates\Fields\ConditionalObjectField;

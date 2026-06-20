@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\EngineModification;
 
 use App\Vehicles\Application\Import\UseCases\EngineModification\LinkEngineModificationFromRowUseCase;
-use App\Vehicles\Domain\Contracts\Imports\EngineModificationImportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineModificationImportInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;

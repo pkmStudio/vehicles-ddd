@@ -8,8 +8,7 @@ use App\Vehicles\Application\Import\UseCases\Engine\UpsertSparkPlugSpecByModific
 use App\Vehicles\Domain\Contracts\Imports\EngineSparkPlugSpecificationImportInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\Events\Engine\EngineImportCompleted;
-use App\Vehicles\Infrastructure\Imports\Support\DetailsBuilder;
-use App\Vehicles\Infrastructure\Support\DetailTemplateResolver;
+use App\Vehicles\Application\Import\Support\TemplateDataBuilder;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
@@ -40,12 +39,9 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
 
     public int $importedByUserId;
 
-    private ?array $templateConfig = null;
-
     public function __construct(
         private readonly UpsertSparkPlugSpecByModificationUseCase $useCase,
-        private readonly DetailsBuilder $detailsBuilder,
-        private readonly DetailTemplateResolver $templates,
+        private readonly TemplateDataBuilder $templateDataBuilder,
     ) {
         $this->importedByUserId = (int) Auth::id();
         $this->cacheKey = "engine_import_failures_{$this->importedByUserId}";
@@ -73,7 +69,11 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
             }
 
             try {
-                $details = $this->detailsBuilder->buildDetails($row->toArray(), self::SPEC_START_COLUMN, $this->resolveTemplate());
+                $details = $this->templateDataBuilder->buildByTemplate(
+                    $row->toArray(),
+                    self::SPEC_START_COLUMN,
+                    DetailTemplateEnum::SPARK_PLUGS,
+                );
                 $result = $this->useCase->execute((int) $msId, (int) $modId, $details);
 
                 if (! $result->found) {
@@ -130,12 +130,4 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         ];
     }
 
-    private function resolveTemplate(): array
-    {
-        if ($this->templateConfig === null) {
-            $this->templateConfig = $this->templates->resolve(DetailTemplateEnum::SPARK_PLUGS)->getArrayTemplate();
-        }
-
-        return $this->templateConfig;
-    }
 }

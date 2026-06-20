@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\UseCases\Engine;
 
-use App\Vehicles\Domain\Contracts\Commands\PartSpecificationCommandInterface;
-use App\Vehicles\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\EngineRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCaseInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\Engine;
@@ -16,7 +17,7 @@ use App\Vehicles\Domain\Models\PartSpecification;
  * Сборка details из строки — забота адаптера (парсинг по шаблону); здесь — резолв
  * двигателя через Repository и запись спецификации через Command.
  */
-final readonly class UpsertEngineSparkPlugSpecUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCaseInterface
+final readonly class UpsertEngineSparkPlugSpecUseCase implements UpsertEngineSparkPlugSpecUseCaseInterface
 {
     public function __construct(
         private EngineRepositoryInterface $engines,

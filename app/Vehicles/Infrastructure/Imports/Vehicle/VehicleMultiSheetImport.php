@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Vehicle;
 
-use App\Vehicles\Domain\Contracts\Imports\VehicleMultiSheetImportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleMultiSheetImportInterface;
 use App\Vehicles\Domain\Events\Vehicle\VehicleImportCompleted;
 use App\Vehicles\Infrastructure\Imports\Vehicle\Sheets\VehicleMainSheetImport;
 use App\Vehicles\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;

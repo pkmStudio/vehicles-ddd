@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
+use App\Vehicles\Application\Common\Services\WiperSpecificationService;
 use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCase;
-use App\Vehicles\Domain\Contracts\Commands\PartSpecificationCommandInterface;
-use App\Vehicles\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
-use App\Vehicles\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\FeatureValueRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\PartSpecificationRepositoryInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\FeatureValue;
 use App\Vehicles\Domain\Models\PartSpecification;
-use App\Vehicles\Application\Common\Services\WiperSpecificationService;
 use Mockery;
 use Tests\TestCase;
 

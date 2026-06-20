@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Exports\Vehicle;
 
-use App\Vehicles\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Exports\VehicleMultiSheetExportInterface;
 use App\Vehicles\Infrastructure\Exports\Vehicle\Sheets\VehicleMainSheetExport;
 use App\Vehicles\Infrastructure\Exports\Vehicle\Sheets\VehicleWipersSheetExport;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;

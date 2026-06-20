@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Commands;
 
-use App\Vehicles\Domain\Contracts\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationCommandInterface;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\PartSpecification;
 

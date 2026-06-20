@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\Factories\Modification;
 
-use App\Vehicles\Domain\Contracts\Import\Factories\ModificationDataFactoryInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Factories\ModificationDataFactoryInterface;
 use App\Vehicles\Domain\Enums\BrakeSystemTypeEnum;
 use App\Vehicles\Domain\Enums\DriveTypeEnum;
 use App\Vehicles\Domain\Enums\EngineTypeEnum;

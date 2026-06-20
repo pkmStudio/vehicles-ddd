@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\Listeners;
 
-use App\Vehicles\Domain\Contracts\Imports\EngineModificationImportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineModificationImportInterface;
 use App\Vehicles\Domain\Events\EnginesAndModificationsReady;
 
 final readonly class StartEngineModificationImportListener

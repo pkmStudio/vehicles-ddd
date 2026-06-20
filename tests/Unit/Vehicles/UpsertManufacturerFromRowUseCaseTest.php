@@ -6,7 +6,7 @@ namespace Tests\Unit\Vehicles;
 
 use App\Vehicles\Application\Import\Factories\Manufacturer\ManufacturerDataFactory;
 use App\Vehicles\Application\Import\UseCases\Manufacturer\UpsertManufacturerFromRowUseCase;
-use App\Vehicles\Domain\Contracts\Commands\ManufacturerCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ManufacturerCommandInterface;
 use App\Vehicles\Domain\ModelData\Manufacturer\ManufacturerData;
 use App\Vehicles\Domain\Models\Manufacturer;
 use Illuminate\Validation\ValidationException;

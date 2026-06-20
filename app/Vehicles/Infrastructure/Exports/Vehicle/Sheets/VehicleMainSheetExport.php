@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Exports\Vehicle\Sheets;
 
-use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Infrastructure\Exports\Support\VehicleExportRow;
+use App\Vehicles\Application\Export\Services\VehicleExportService;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -15,8 +14,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 final readonly class VehicleMainSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     public function __construct(
-        private VehicleRepositoryInterface $vehicles,
-        private VehicleExportRow $vehicleRow,
+        private VehicleExportService $exportService,
         private bool $isAllow = false,
     ) {}
 
@@ -27,16 +25,16 @@ final readonly class VehicleMainSheetExport implements FromCollection, WithHeadi
 
     public function collection(): Collection
     {
-        return $this->vehicles->forMainSheet($this->isAllow);
+        return $this->exportService->getMainRows($this->isAllow);
     }
 
     public function map($row): array
     {
-        return $this->vehicleRow->getBaseData($row);
+        return $this->exportService->mapMainRow($row);
     }
 
     public function headings(): array
     {
-        return $this->vehicleRow->getBaseHeadings();
+        return $this->exportService->getMainHeadings();
     }
 }

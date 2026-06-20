@@ -6,8 +6,8 @@ namespace Tests\Unit\Vehicles;
 
 use App\Vehicles\Application\Import\Factories\Vehicle\VehicleDataFactory;
 use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCase;
-use App\Vehicles\Domain\Contracts\Commands\VehicleCommandInterface;
-use App\Vehicles\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\VehicleCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\ManufacturerRepositoryInterface;
 use App\Vehicles\Domain\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Domain\Models\Manufacturer;
 use App\Vehicles\Domain\Models\Vehicle;

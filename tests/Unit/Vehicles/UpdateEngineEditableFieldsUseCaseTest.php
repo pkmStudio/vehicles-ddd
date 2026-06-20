@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Vehicles;
 
 use App\Vehicles\Application\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCase;
-use App\Vehicles\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineCommandInterface;
 use App\Vehicles\Domain\Models\Engine;
 use Mockery;
 use Tests\TestCase;

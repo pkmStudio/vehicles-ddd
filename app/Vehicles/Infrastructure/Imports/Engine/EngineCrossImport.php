@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Engine;
 
 use App\Vehicles\Application\Import\UseCases\Engine\AssignEngineGroupUseCase;
-use App\Vehicles\Domain\Contracts\Imports\EngineCrossImportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineCrossImportInterface;
 use App\Vehicles\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;

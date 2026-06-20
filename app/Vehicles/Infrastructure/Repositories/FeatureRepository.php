@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Repositories;
 
-use App\Vehicles\Domain\Contracts\Repositories\FeatureRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\FeatureRepositoryInterface;
 use App\Vehicles\Domain\Models\Feature;
 use Illuminate\Database\Eloquent\Collection;
 

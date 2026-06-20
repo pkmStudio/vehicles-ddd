@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Notifications;
 
-use App\Vehicles\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use App\Vehicles\Infrastructure\Messaging\DTOs\RabbitMessageDTO;
 use App\Vehicles\Infrastructure\Messaging\Enums\OutboundEventsEnum;
 use App\Vehicles\Infrastructure\Messaging\RabbitMQPublisher;
+use App\Vehicles\Domain\Contracts\Infrastructure\Notifications\FileNotificationServiceInterface;
 
 /**
  * Уведомление о готовом файле через RabbitMQ.

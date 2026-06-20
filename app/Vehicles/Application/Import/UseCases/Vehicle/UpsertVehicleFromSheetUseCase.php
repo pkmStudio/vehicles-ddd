@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\UseCases\Vehicle;
 
 use App\Vehicles\Application\Import\Factories\Vehicle\VehicleDataFactory;
-use App\Vehicles\Domain\Contracts\Commands\ManufacturerCommandInterface;
-use App\Vehicles\Domain\Contracts\Commands\VehicleCommandInterface;
-use App\Vehicles\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
-use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ManufacturerCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\VehicleCommandInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\ManufacturerRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Domain\Models\Vehicle;
 use Illuminate\Validation\ValidationException;
 
@@ -17,7 +18,7 @@ use Illuminate\Validation\ValidationException;
  * Оркестрация: резолв производителя → валидация → запись. Персистентность — только через порты
  * (Repository/Command), прямого Eloquent в Application нет.
  */
-final readonly class UpsertVehicleFromSheetUseCase implements \App\Vehicles\Domain\Contracts\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCaseInterface
+final readonly class UpsertVehicleFromSheetUseCase implements UpsertVehicleFromSheetUseCaseInterface
 {
     public function __construct(
         private VehicleCommandInterface $command,

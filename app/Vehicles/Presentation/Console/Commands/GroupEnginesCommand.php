@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Presentation\Console\Commands;
 
-use App\Vehicles\Domain\Contracts\Imports\EnginesCodeImportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EnginesCodeImportInterface;
 use Illuminate\Console\Command;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Facades\Excel;
