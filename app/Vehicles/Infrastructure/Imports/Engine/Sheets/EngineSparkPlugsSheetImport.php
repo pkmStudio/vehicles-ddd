@@ -7,7 +7,6 @@ namespace App\Vehicles\Infrastructure\Imports\Engine\Sheets;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\EngineSparkPlugsSheetImportInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
@@ -23,7 +22,7 @@ use Throwable;
  * Excel-адаптер листа «свечи зажигания» (механика): пропускает пустые строки, собирает details
  * из строки по шаблону и на каждую строку зовёт сценарий записи спецификации.
  */
-final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection, WithStartRow, EngineSparkPlugsSheetImportInterface
+final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection, WithStartRow
 {
     use CachesImportFailures;
 

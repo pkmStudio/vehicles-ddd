@@ -25,6 +25,8 @@ use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCa
 use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCase;
 use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCase;
 use App\Vehicles\Application\Import\Services\EngineModificationReadinessGate;
+use App\Vehicles\Application\Import\Services\EngineImportService;
+use App\Vehicles\Application\Import\Services\VehicleImportService;
 use App\Vehicles\Application\Export\Services\EngineExportService;
 use App\Vehicles\Application\Export\Services\VehicleExportService;
 use App\Vehicles\Application\Export\Support\ExportDetailsBuilder;
@@ -53,6 +55,8 @@ use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehi
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Services\EngineModificationReadinessGateInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\EngineImportServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\VehicleImportServiceInterface;
 use App\Vehicles\Domain\Contracts\Application\Common\Services\DetailTemplateResolverInterface;
 use App\Vehicles\Domain\Contracts\Application\Common\Services\WiperSpecificationServiceInterface;
 use App\Vehicles\Domain\Contracts\Application\Export\Support\EngineExportRowInterface;
@@ -77,10 +81,6 @@ use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ManufacturerCommandImpo
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ModificationCommandImportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleCommandImportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleMultiSheetImportInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\EngineMainSheetImportInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\EngineSparkPlugsSheetImportInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\VehicleMainSheetImportInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\VehicleWipersSheetImportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Messaging\RabbitMQPublisherInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Notifications\FileNotificationServiceInterface;
 use App\Vehicles\Application\Common\DetailTemplateResolver;
@@ -99,15 +99,11 @@ use App\Vehicles\Infrastructure\Imports\Engine\EngineCrossImport;
 use App\Vehicles\Infrastructure\Imports\Engine\EngineMultiSheetImport;
 use App\Vehicles\Infrastructure\Imports\Engine\EnginesCodeImport;
 use App\Vehicles\Infrastructure\Imports\Engine\EngineSparkPlugSpecificationImport;
-use App\Vehicles\Infrastructure\Imports\Engine\Sheets\EngineMainSheetImport;
-use App\Vehicles\Infrastructure\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
 use App\Vehicles\Infrastructure\Imports\EngineModification\EngineModificationImport;
 use App\Vehicles\Infrastructure\Imports\Manufacturer\ManufacturerCommandImport;
 use App\Vehicles\Infrastructure\Imports\Modification\ModificationCommandImport;
 use App\Vehicles\Infrastructure\Imports\Vehicle\VehicleCommandImport;
 use App\Vehicles\Infrastructure\Imports\Vehicle\VehicleMultiSheetImport;
-use App\Vehicles\Infrastructure\Imports\Vehicle\Sheets\VehicleMainSheetImport;
-use App\Vehicles\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
 use App\Vehicles\Infrastructure\Messaging\RabbitMQPublisher;
 use App\Vehicles\Infrastructure\Notifications\RabbitMqFileNotificationService;
 use Illuminate\Support\ServiceProvider;
@@ -153,14 +149,9 @@ class VehiclesServiceProvider extends ServiceProvider
     ];
 
     /**
-     * Порты Excel-листов (Infrastructure/Sheets) → реализации (Infrastructure/Sheets).
+     * Порты Excel-листов / сервисы экспорта, которые остаются через порты.
      */
     private const IMPORT_EXPORT_SHEET_BINDINGS = [
-        EngineMainSheetImportInterface::class => EngineMainSheetImport::class,
-        EngineSparkPlugsSheetImportInterface::class => EngineSparkPlugsSheetImport::class,
-        VehicleMainSheetImportInterface::class => VehicleMainSheetImport::class,
-        VehicleWipersSheetImportInterface::class => VehicleWipersSheetImport::class,
-        // Sub-sheet экспорта Excel используются напрямую из Infrastructure-реализаций.
         FailuresExportInterface::class => FailuresExport::class,
     ];
 
@@ -189,6 +180,8 @@ class VehiclesServiceProvider extends ServiceProvider
         TemplateDataBuilderInterface::class => TemplateDataBuilder::class,
         DetailsBuilderInterface::class => DetailsBuilder::class,
         EngineMainSheetImportServiceInterface::class => EngineMainSheetImportService::class,
+        EngineImportServiceInterface::class => EngineImportService::class,
+        VehicleImportServiceInterface::class => VehicleImportService::class,
         EngineExportServiceInterface::class => EngineExportService::class,
         VehicleExportServiceInterface::class => VehicleExportService::class,
         EngineModificationReadinessGateInterface::class => EngineModificationReadinessGate::class,

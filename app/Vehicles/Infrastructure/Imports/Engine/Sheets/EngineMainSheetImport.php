@@ -6,7 +6,6 @@ namespace App\Vehicles\Infrastructure\Imports\Engine\Sheets;
 
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Support\EngineMainSheetImportServiceInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\EngineMainSheetImportInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +18,7 @@ use Maatwebsite\Excel\Validators\Failure;
  * Excel-адаптер edit-листа двигателей (механика): сопоставляет колонки Excel редактируемым
  * полям и на каждую строку зовёт сценарий частичного обновления.
  */
-final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithStartRow, EngineMainSheetImportInterface
+final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithStartRow
 {
     use CachesImportFailures;
 

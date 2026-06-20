@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Vehicle\Sheets;
 
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\VehicleMainSheetImportInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +13,7 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Validators\Failure;
 
-final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, WithStartRow, VehicleMainSheetImportInterface
+final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, WithStartRow
 {
     use CachesImportFailures;
 

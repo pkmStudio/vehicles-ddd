@@ -7,7 +7,6 @@ namespace App\Vehicles\Infrastructure\Imports\Vehicle\Sheets;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\VehicleWipersSheetImportInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
@@ -22,7 +21,7 @@ use Maatwebsite\Excel\Validators\Failure;
  * Excel-адаптер листа «дворники» (механика): чистит/триммит строку, собирает details по шаблону
  * и на каждую строку зовёт сценарии upsert ТС и записи спецификации дворников.
  */
-final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, ToCollection, WithStartRow, VehicleWipersSheetImportInterface
+final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, ToCollection, WithStartRow
 {
     use CachesImportFailures;
 
