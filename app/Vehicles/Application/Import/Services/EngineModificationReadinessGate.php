@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Import\Services;
 
 use App\Vehicles\Domain\Events\EnginesAndModificationsReady;
-use App\Vehicles\Domain\Contracts\Import\Services\EngineModificationReadinessGateInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\EngineModificationReadinessGateInterface;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Events\Dispatcher;
 

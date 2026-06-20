@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\UseCases\Vehicle;
 
-use App\Vehicles\Application\Import\Factories\Vehicle\VehicleDataFactory;
+use App\Vehicles\Domain\Contracts\Application\Import\Factories\VehicleDataFactoryInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\VehicleCommandInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\ManufacturerRepositoryInterface;
-use App\Vehicles\Domain\Contracts\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCaseInterface;
 use App\Vehicles\Domain\Models\Vehicle;
 use Illuminate\Validation\ValidationException;
 
@@ -20,7 +20,7 @@ final readonly class UpsertVehicleFromTdRowUseCase implements UpsertVehicleFromT
 {
     public function __construct(
         private VehicleCommandInterface $command,
-        private VehicleDataFactory $factory,
+        private VehicleDataFactoryInterface $factory,
         private ManufacturerRepositoryInterface $manufacturers,
     ) {}
 

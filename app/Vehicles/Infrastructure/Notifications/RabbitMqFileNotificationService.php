@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Notifications;
 
+use App\Vehicles\Domain\Contracts\Infrastructure\Messaging\RabbitMQPublisherInterface;
 use App\Vehicles\Infrastructure\Messaging\DTOs\RabbitMessageDTO;
 use App\Vehicles\Infrastructure\Messaging\Enums\OutboundEventsEnum;
-use App\Vehicles\Infrastructure\Messaging\RabbitMQPublisher;
 use App\Vehicles\Domain\Contracts\Infrastructure\Notifications\FileNotificationServiceInterface;
 
 /**
@@ -18,7 +18,7 @@ use App\Vehicles\Domain\Contracts\Infrastructure\Notifications\FileNotificationS
 final readonly class RabbitMqFileNotificationService implements FileNotificationServiceInterface
 {
     public function __construct(
-        private RabbitMQPublisher $publisher,
+        private RabbitMQPublisherInterface $publisher,
     ) {}
 
     public function send(int $userId, string $csvPath, int $filesCount = 1): void

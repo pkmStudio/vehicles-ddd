@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Export\Support;
 
-use App\Vehicles\Domain\Services\WiperSpecificationService;
+use App\Vehicles\Domain\Contracts\Application\Common\Services\WiperSpecificationServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Support\WiperRowExpanderInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -13,10 +14,10 @@ use Illuminate\Support\Collection;
  * нужно собрать обратно строки `{frontSpec, backSpec}`: legacy-записи «обе стороны» дают свою
  * строку, односторонние — декартово произведение front × back (с null на отсутствующей стороне).
  */
-final readonly class WiperRowExpander
+final readonly class WiperRowExpander implements WiperRowExpanderInterface
 {
     public function __construct(
-        private WiperSpecificationService $wiper,
+        private WiperSpecificationServiceInterface $wiper,
     ) {}
 
     /**
@@ -36,8 +37,8 @@ final readonly class WiperRowExpander
                 continue;
             }
 
-            $front = $this->singleSide($specs, WiperSpecificationService::SIDE_FRONT);
-            $back = $this->singleSide($specs, WiperSpecificationService::SIDE_BACK);
+            $front = $this->singleSide($specs, WiperSpecificationServiceInterface::SIDE_FRONT);
+            $back = $this->singleSide($specs, WiperSpecificationServiceInterface::SIDE_BACK);
             $both = $this->bothSides($specs);
             $added = 0;
 
@@ -79,9 +80,9 @@ final readonly class WiperRowExpander
      */
     private function singleSide(Collection $specifications, string $side): Collection
     {
-        $other = $side === WiperSpecificationService::SIDE_FRONT
-            ? WiperSpecificationService::SIDE_BACK
-            : WiperSpecificationService::SIDE_FRONT;
+        $other = $side === WiperSpecificationServiceInterface::SIDE_FRONT
+            ? WiperSpecificationServiceInterface::SIDE_BACK
+            : WiperSpecificationServiceInterface::SIDE_FRONT;
 
         return $specifications->filter(function ($spec) use ($side, $other) {
             $details = (array) $spec->details;
@@ -102,8 +103,8 @@ final readonly class WiperRowExpander
         return $specifications->filter(function ($spec) {
             $details = (array) $spec->details;
 
-            return $this->wiper->sideData($details, WiperSpecificationService::SIDE_FRONT) !== []
-                && $this->wiper->sideData($details, WiperSpecificationService::SIDE_BACK) !== [];
+            return $this->wiper->sideData($details, WiperSpecificationServiceInterface::SIDE_FRONT) !== []
+                && $this->wiper->sideData($details, WiperSpecificationServiceInterface::SIDE_BACK) !== [];
         })->values();
     }
 }

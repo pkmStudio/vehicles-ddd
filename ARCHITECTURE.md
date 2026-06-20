@@ -47,8 +47,13 @@ Presentation ──▶ Application ──▶ Domain
 
 Оркестрация и поведение. Сценарии, фабрики, тонкие адаптеры событий. Порты и `ModelData` живут в Domain; Application их потребляет. **Excel-адаптеры импорта/экспорта — НЕ здесь, а в Infrastructure** (см. секцию 3): чтение/запись файлов — внешний мир.
 
+Правило по слоям:
+- `UseCase` — сценарный вход с точки входа внешнего мира (`execute(...)`): импорт, экспорт, пересчёт, отчёт.
+- `Service` — оркестрация внутри Application: подготовка данных, правил, последовательностей шагов и вызов инфраструктурных портов.
+- `Support` — только вспомогательные helper-классы (маппинг/форматирование/разделение данных), без бизнес-сценариев и без “оркестрации”.
+
 ### Группировка — по фиче (feature-first)
-Внутри Application делим **по фиче (способности)**, не по техническому типу: `Application/<Feature>/...`. Сейчас фича одна — `Import/` (экспорт построчной политики не имеет — целиком адаптеры в `Infrastructure/Exports`, отдельной Application-фичи `Export/` нет). Внутри фичи — под-папки по типу там, где файлов несколько: `UseCases/`, `Factories/`, `Listeners/`, `Services/`.
+Внутри Application делим **по фиче (способности)**, не по техническому типу: `Application/<Feature>/...`. Сейчас фичей две: `Import/` и `Export/`. Внутри фичи — под-папки по типу там, где файлов несколько: `UseCases/`, `Factories/`, `Support/`, `Services/`, `Listeners/`.
 
 ```
 Application/
@@ -56,8 +61,13 @@ Application/
     UseCases/<Entity>/   UpsertEngineFromSheetUseCase, AssignEngineGroupUseCase, …
     UseCases/Reporting/  ReportImportResultUseCase (кросс-сущностный сценарий)
     Factories/<Entity>/  <Entity>DataFactory
-    Listeners/           Start*ImportListener, EngineModificationReadinessSubscriber, ReportImportResultListener
+    Support/             TemplateDataBuilder, DetailsBuilder, EngineMainSheetImportService
     Services/            EngineModificationReadinessGate (gate-логика готовности процесса)
+    Listeners/           Start*ImportListener, EngineModificationReadinessSubscriber, ReportImportResultListener
+  Export/
+    Support/             ExportDetailsBuilder, VehicleExportRow, EngineExportRow, PartSpecificationRowExpander, WiperRowExpander
+    Services/            VehicleExportService, EngineExportService
+    ...
   Jobs/<Entity>/         InvalidateMpCards*Job        ⚠️ ещё не под фичей
   Observers/<Entity>/    EngineObserver, VehicleObserver ⚠️ ещё не под фичей
 ```
@@ -70,6 +80,7 @@ Application/
 |---|---|---|
 | `<Feature>/UseCases/<Entity>/` | **Оркестраторы** одного сценария | Единый `execute()`. Координируют: `Factory->make()` (валидация+сборка `ModelData`) → дёргают `Command`/`Repository`/доменный Service. Без прямого Eloquent, без Excel. Пример: `Import/UseCases/Vehicle/UpsertVehicleFromSheetUseCase`. |
 | `<Feature>/Factories/<Entity>/` | **Сборка `ModelData` из сырой строки** (`<Entity>DataFactory`) | `make(array $row): <Entity>Data` валидирует И собирает Data в одном месте. Один параметр-массив; вычисляемые вызывающим поля (`manufacturer_id`, `parent_id`) кладём тем же массивом (тем же ключом). Enum-поля валидируем **сырыми значениями** через `Rule::enum(...)`, без `tryFrom` (см. «Грабли»). |
+| `<Feature>/Support/` | Helpers | Вспомогательные утилиты (маппинг, форматирование, разбиение/компоновка), без сценарной оркестрации и без бизнес-решений. |
 | `<Feature>/Listeners/` | Слушатели доменных событий | **ТОНКИЕ.** Делегируют в UseCase/Service. **Порт в Domain НЕ нужен** (см. ниже). Нейминг и количество — см. ниже. |
 | `<Feature>/Services/` | Бизнес-логика фичи | Прикладные правила/координация портов, которым тесно в одном use-case. Порт нужен, только если сервис «ходит наружу» (тогда это driven-порт в Domain). |
 | `Jobs/<Entity>/` | Очередные задачи | **ТОНКИЕ.** `handle()` резолвит сервис/use-case и зовёт его. Состояние job'ы — сериализуемые скаляры/DTO. (Группируются по своей фиче, когда она появится.) |
@@ -109,9 +120,7 @@ Application/
 | `Exports/<Entity>/` | Адаптеры экспорта (`maatwebsite/excel`) | Источник данных — Repository; сборка строк — `Support/*ExportRow`. **Точка входа** реализует порт `Domain/Contracts/Exports/<X>Interface`. Sub-sheet'ы / `FailuresExport` — внутренние. |
 | `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` (реализует порт `Domain/Contracts/Repositories/<Entity>RepositoryInterface`). Только запросы, без записи. Без папки-сущности — один репозиторий на сущность. |
 | `Commands/` | **Запись** (CQRS-lite) | `<Entity>Command` (реализует порт `Domain/Contracts/Commands/<Entity>CommandInterface`). Принимают **`ModelData`**, а не сырые массивы. Здесь `save`/`upsert`/`delete`. Без папки-сущности — одна команда на сущность. |
-| `Imports/Support/` | Помощники импорта | `DetailsBuilder` (сборка `details` из строки по шаблону). Инъектируемые классы, без статуса трейтов. |
-| `Exports/Support/` | Помощники экспорта | `ExportDetailsBuilder`, `EngineExportRow`, `VehicleExportRow`, `PartSpecificationRowExpander`, `WiperRowExpander`. |
-| `Support/` (нейтральный) | Помощники, общие для импорта И экспорта | `DetailTemplateResolver` (резолв класса шаблона по `DetailTemplateEnum` через контейнер). **Правило со-локации:** помощник с одним потребителем-областью лежит в её `Support/` (`Imports/Support`, `Exports/Support`); общий для нескольких — в нейтральном `Infrastructure/Support/` (чтобы импорт не зависел от папки экспорта и наоборот). |
+| `Support/` (нейтральный) | Технические helpers Infrastructure | Если есть общие инфраструктурные технические helpers, которые не относятся к конкретной фиче приложения, они могут жить здесь. Бизнес-правила и сборка доменных данных здесь не выполняются. |
 | `Messaging/` | RabbitMQ | `Consumers/InboxConsumer`, `RabbitMQPublisher`, `Commands/` (setup-команды брокера), `Workers/CustomRabbitMQQueue`, `DTOs/RabbitMessageDTO`, `Enums/{Inbound,Outbound}EventsEnum`. Очереди: `vehicles` (jobs), `vehicles.inbox` (входящие события), exchange `application.events`. |
 | `Notifications/` | Внешние уведомления | Реализации портов уведомлений (напр. `RabbitMqFileNotificationService` → `FileNotificationServiceInterface`). UI-нотификации идут событием в Filament-сервис; файлы ошибок → S3 + сообщение. |
 | `Providers/` | DI и события | `VehiclesServiceProvider` (биндинги интерфейс→реализация по списку `ENTITIES`), `EventServiceProvider` (карта событие→слушатель). |
@@ -190,6 +199,7 @@ Application/
 | Фоновую задачу | `Application/Jobs/<Entity>/` (тонко) |
 | Импорт из Excel | адаптер → `Infrastructure/Imports/<Entity>/` (механика) + построчный UseCase в `Application/Import/UseCases/<Entity>/`; порт точки входа → `Domain/Contracts/Imports/` |
 | Экспорт в Excel | адаптер → `Infrastructure/Exports/<Entity>/`, порт точки входа → `Domain/Contracts/Exports/` |
-| Технический помощник | `Infrastructure/Imports/Support/` или `Exports/Support/` (по области); общий для обеих → `Infrastructure/Support/` |
+| Подготовку данных/формата для экспорта | `Application/Export/Services/` |
+| Вспомогательные helpers для импорта/экспорта | `Application/Import/Support/`, `Application/Export/Support/`; общий технический helper для обоих — в `Infrastructure/Support/` |
 | Artisan-команду | `Presentation/Console/Commands/` (тонко) |
 | HTTP-эндпоинт | `Presentation/Http/Controllers/` (тонко) |

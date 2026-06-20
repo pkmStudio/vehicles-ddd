@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\Support;
 
-use App\Vehicles\Application\Common\DetailTemplateResolver;
-use App\Vehicles\Application\Import\Support\DetailsBuilder;
+use App\Vehicles\Domain\Contracts\Application\Common\Services\DetailTemplateResolverInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Support\DetailsBuilderInterface;
 
-final readonly class TemplateDataBuilder
+final readonly class TemplateDataBuilder implements TemplateDataBuilderInterface
 {
     public function __construct(
-        private DetailsBuilder $detailsBuilder,
-        private DetailTemplateResolver $templates,
+        private DetailsBuilderInterface $detailsBuilder,
+        private DetailTemplateResolverInterface $templates,
     ) {}
 
     public function buildByTemplate(array $row, int $startIndex, DetailTemplateEnum $template): array

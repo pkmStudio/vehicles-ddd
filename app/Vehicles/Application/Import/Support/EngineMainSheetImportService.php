@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\Support;
 
+use App\Vehicles\Domain\Contracts\Application\Import\Support\EngineMainSheetImportServiceInterface;
+
 /**
  * Маппинг колонок редактируемого листа двигателей в атрибуты модели Engine.
  */
-final readonly class EngineMainSheetImportService
+final readonly class EngineMainSheetImportService implements EngineMainSheetImportServiceInterface
 {
     /**
      * Редактируемые колонки: индекс колонки в Excel => поле модели Engine.

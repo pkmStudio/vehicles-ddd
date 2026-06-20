@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Domain\Contracts\Import\UseCases\Engine;
+namespace App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine;
 
 use App\Vehicles\Domain\DTOs\ModificationSparkPlugResult;
 

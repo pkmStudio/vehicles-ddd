@@ -6,8 +6,8 @@ namespace App\Vehicles\Infrastructure\Imports\Engine;
 
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineMultiSheetImportInterface;
 use App\Vehicles\Domain\Events\Engine\EngineImportCompleted;
-use App\Vehicles\Infrastructure\Imports\Engine\Sheets\EngineMainSheetImport;
-use App\Vehicles\Infrastructure\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\EngineMainSheetImportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\EngineSparkPlugsSheetImportInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -36,8 +36,14 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
     public function sheets(): array
     {
         return [
-            'Двигатели' => app()->makeWith(EngineMainSheetImport::class, ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey]),
-            'Свечи зажигания' => app()->makeWith(EngineSparkPlugsSheetImport::class, ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey]),
+            'Двигатели' => app()->makeWith(
+                EngineMainSheetImportInterface::class,
+                ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey],
+            ),
+            'Свечи зажигания' => app()->makeWith(
+                EngineSparkPlugsSheetImportInterface::class,
+                ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey],
+            ),
         ];
     }
 

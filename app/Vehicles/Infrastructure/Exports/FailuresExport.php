@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Exports;
 
+use App\Vehicles\Domain\Contracts\Infrastructure\Exports\FailuresExportInterface;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-final readonly class FailuresExport implements FromCollection, WithHeadings
+final readonly class FailuresExport implements FromCollection, WithHeadings, FailuresExportInterface
 {
     public function __construct(
         private array $failures,

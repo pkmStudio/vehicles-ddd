@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Vehicle\Sheets;
 
-use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCase;
-use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCase;
-use App\Vehicles\Application\Import\Support\TemplateDataBuilder;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\VehicleWipersSheetImportInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
@@ -21,7 +22,7 @@ use Maatwebsite\Excel\Validators\Failure;
  * Excel-адаптер листа «дворники» (механика): чистит/триммит строку, собирает details по шаблону
  * и на каждую строку зовёт сценарии upsert ТС и записи спецификации дворников.
  */
-final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, ToCollection, WithStartRow
+final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, ToCollection, WithStartRow, VehicleWipersSheetImportInterface
 {
     use CachesImportFailures;
 
@@ -30,9 +31,9 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
     public function __construct(
         private readonly int $userId,
         string $cacheKey,
-        private readonly UpsertVehicleFromSheetUseCase $upsertVehicle,
-        private readonly UpsertVehicleWiperSpecUseCase $upsertWiperSpec,
-        private readonly TemplateDataBuilder $templateDataBuilder,
+        private readonly UpsertVehicleFromSheetUseCaseInterface $upsertVehicle,
+        private readonly UpsertVehicleWiperSpecUseCaseInterface $upsertWiperSpec,
+        private readonly TemplateDataBuilderInterface $templateDataBuilder,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "vehicle_import_failures_lock_{$this->userId}";

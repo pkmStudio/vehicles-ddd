@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\UseCases\EngineModification;
 
-use App\Vehicles\Application\Import\Factories\EngineModification\EngineModificationDataFactory;
+use App\Vehicles\Domain\Contracts\Application\Import\Factories\EngineModificationDataFactoryInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineModificationCommandInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\EngineModification\LinkEngineModificationFromRowUseCaseInterface;
 use Illuminate\Validation\ValidationException;
@@ -16,7 +16,7 @@ final readonly class LinkEngineModificationFromRowUseCase implements LinkEngineM
 {
     public function __construct(
         private EngineModificationCommandInterface $command,
-        private EngineModificationDataFactory $factory,
+        private EngineModificationDataFactoryInterface $factory,
     ) {}
 
     /**

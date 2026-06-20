@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Export\Support;
 
+use App\Vehicles\Domain\Contracts\Application\Export\Support\ExportDetailsBuilderInterface;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * Рекурсивно обходит шаблон полей и извлекает соответствующие значения из спецификации.
  * Поддерживает вложенные поля, различные типы данных (select, conditional_select, array).
  */
-final readonly class ExportDetailsBuilder
+final readonly class ExportDetailsBuilder implements ExportDetailsBuilderInterface
 {
     /**
      * Извлекает заголовки колонок из конфигурации шаблона.

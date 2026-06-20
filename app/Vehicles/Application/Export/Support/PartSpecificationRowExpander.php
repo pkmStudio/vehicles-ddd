@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Export\Support;
 
+use App\Vehicles\Domain\Contracts\Application\Export\Support\PartSpecificationRowExpanderInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -11,7 +12,7 @@ use Illuminate\Support\Collection;
  * по одной строке на каждую спецификацию, либо одну строку с null, если их нет.
  * Используется листами экспорта, где деталей может быть несколько на сущность.
  */
-final readonly class PartSpecificationRowExpander
+final readonly class PartSpecificationRowExpander implements PartSpecificationRowExpanderInterface
 {
     /**
      * @param  Collection<int, object>  $entities  модели с загруженной связью partSpecifications

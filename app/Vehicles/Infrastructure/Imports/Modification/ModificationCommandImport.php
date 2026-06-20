@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Modification;
 
-use App\Vehicles\Application\Import\UseCases\Modification\UpsertModificationFromRowUseCase;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Modification\UpsertModificationFromRowUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ModificationCommandImportInterface;
 use App\Vehicles\Domain\Events\Modification\ModificationCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,7 +28,7 @@ use Maatwebsite\Excel\Validators\Failure;
 final class ModificationCommandImport implements ModificationCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
     public function __construct(
-        private readonly UpsertModificationFromRowUseCase $useCase,
+        private readonly UpsertModificationFromRowUseCaseInterface $useCase,
     ) {}
 
     public function import(string $path): void

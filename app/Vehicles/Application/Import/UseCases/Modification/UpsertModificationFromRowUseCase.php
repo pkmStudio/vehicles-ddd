@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\UseCases\Modification;
 
-use App\Vehicles\Application\Import\Factories\Modification\ModificationDataFactory;
+use App\Vehicles\Domain\Contracts\Application\Import\Factories\ModificationDataFactoryInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ModificationCommandInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Domain\Contracts\Import\UseCases\Modification\UpsertModificationFromRowUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Modification\UpsertModificationFromRowUseCaseInterface;
 use App\Vehicles\Domain\Models\Modification;
 use Illuminate\Validation\ValidationException;
 
@@ -20,7 +20,7 @@ final readonly class UpsertModificationFromRowUseCase implements UpsertModificat
 {
     public function __construct(
         private ModificationCommandInterface $command,
-        private ModificationDataFactory $factory,
+        private ModificationDataFactoryInterface $factory,
         private VehicleRepositoryInterface $vehicles,
     ) {}
 

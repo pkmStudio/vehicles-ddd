@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Export\Support;
 
+use App\Vehicles\Domain\Contracts\Application\Export\Support\VehicleExportRowInterface;
 use App\Vehicles\Domain\Models\Vehicle;
 
-final readonly class VehicleExportRow
+final readonly class VehicleExportRow implements VehicleExportRowInterface
 {
     /**
      * Возвращает базовые заголовки для автомобиля

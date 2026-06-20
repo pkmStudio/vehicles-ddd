@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Export\Services;
 
-use App\Vehicles\Application\Common\DetailTemplateResolver;
-use App\Vehicles\Application\Export\Support\EngineExportRow;
-use App\Vehicles\Application\Export\Support\ExportDetailsBuilder;
-use App\Vehicles\Application\Export\Support\PartSpecificationRowExpander;
+use App\Vehicles\Domain\Contracts\Application\Common\Services\DetailTemplateResolverInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Services\EngineExportServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Support\EngineExportRowInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Support\ExportDetailsBuilderInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Support\PartSpecificationRowExpanderInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\Models\Engine;
 use Illuminate\Support\Collection;
 
-final readonly class EngineExportService
+final readonly class EngineExportService implements EngineExportServiceInterface
 {
     private array $templateConfig;
 
@@ -21,10 +22,10 @@ final readonly class EngineExportService
 
     public function __construct(
         private EngineRepositoryInterface $engines,
-        private EngineExportRow $engineRow,
-        private ExportDetailsBuilder $exportDetails,
-        private PartSpecificationRowExpander $expander,
-        DetailTemplateResolver $templates,
+        private EngineExportRowInterface $engineRow,
+        private ExportDetailsBuilderInterface $exportDetails,
+        private PartSpecificationRowExpanderInterface $expander,
+        DetailTemplateResolverInterface $templates,
     ) {
         $this->templateConfig = $templates->resolve(DetailTemplateEnum::SPARK_PLUGS)->getArrayTemplate();
         $this->fieldHeadings = $this->exportDetails->extractHeadingsFromTemplate($this->templateConfig);

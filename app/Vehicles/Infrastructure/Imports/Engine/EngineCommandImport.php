@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine;
 
-use App\Vehicles\Application\Import\UseCases\Engine\UpsertEngineFromSheetUseCase;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertEngineFromSheetUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineCommandImportInterface;
 use App\Vehicles\Domain\Events\Engine\EngineCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,7 +28,7 @@ use Maatwebsite\Excel\Validators\Failure;
 final class EngineCommandImport implements EngineCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
     public function __construct(
-        private readonly UpsertEngineFromSheetUseCase $useCase,
+        private readonly UpsertEngineFromSheetUseCaseInterface $useCase,
     ) {}
 
     public function import(string $path): void

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine;
 
-use App\Vehicles\Application\Import\UseCases\Engine\UpsertSparkPlugSpecByModificationUseCase;
-use App\Vehicles\Domain\Contracts\Imports\EngineSparkPlugSpecificationImportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineSparkPlugSpecificationImportInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertSparkPlugSpecByModificationUseCaseInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\Events\Engine\EngineImportCompleted;
-use App\Vehicles\Application\Import\Support\TemplateDataBuilder;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
@@ -40,8 +40,8 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
     public int $importedByUserId;
 
     public function __construct(
-        private readonly UpsertSparkPlugSpecByModificationUseCase $useCase,
-        private readonly TemplateDataBuilder $templateDataBuilder,
+        private readonly UpsertSparkPlugSpecByModificationUseCaseInterface $useCase,
+        private readonly TemplateDataBuilderInterface $templateDataBuilder,
     ) {
         $this->importedByUserId = (int) Auth::id();
         $this->cacheKey = "engine_import_failures_{$this->importedByUserId}";

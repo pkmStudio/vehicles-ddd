@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Manufacturer;
 
-use App\Vehicles\Application\Import\UseCases\Manufacturer\UpsertManufacturerFromRowUseCase;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Manufacturer\UpsertManufacturerFromRowUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ManufacturerCommandImportInterface;
 use App\Vehicles\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,7 +28,7 @@ use Maatwebsite\Excel\Validators\Failure;
 final class ManufacturerCommandImport implements ManufacturerCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
     public function __construct(
-        private readonly UpsertManufacturerFromRowUseCase $useCase,
+        private readonly UpsertManufacturerFromRowUseCaseInterface $useCase,
     ) {}
 
     public function import(string $path): void

@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\Support;
 
+use App\Vehicles\Domain\Contracts\Application\Import\Support\DetailsBuilderInterface;
+
 /**
  * Сборка details из строки по шаблону.
  *
  * Отвечает за формирование структуры details при импорте данных из Excel.
  * Рекурсивно обходит шаблон полей и извлекает соответствующие значения.
  */
-final readonly class DetailsBuilder
+final readonly class DetailsBuilder implements DetailsBuilderInterface
 {
     /**
      * Строит массив details на основе строки импорта и шаблона.

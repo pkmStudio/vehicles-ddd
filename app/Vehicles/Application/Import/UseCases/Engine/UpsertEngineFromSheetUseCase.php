@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\UseCases\Engine;
 
-use App\Vehicles\Application\Import\Factories\Engine\EngineDataFactory;
+use App\Vehicles\Domain\Contracts\Application\Import\Factories\EngineDataFactoryInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineCommandInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertEngineFromSheetUseCaseInterface;
 use App\Vehicles\Domain\Models\Engine;
@@ -19,7 +19,7 @@ final readonly class UpsertEngineFromSheetUseCase implements UpsertEngineFromShe
 {
     public function __construct(
         private EngineCommandInterface $command,
-        private EngineDataFactory $factory,
+        private EngineDataFactoryInterface $factory,
     ) {}
 
     /**

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Exports\Vehicle\Sheets;
 
-use App\Vehicles\Application\Export\Services\VehicleExportService;
+use App\Vehicles\Domain\Contracts\Application\Export\Services\VehicleExportServiceInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Exports\Sheets\VehicleWipersSheetExportInterface;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -16,10 +17,10 @@ use Maatwebsite\Excel\Concerns\WithTitle;
  * нужен старый объединённый формат. Expander собирает строки {frontSpec, backSpec},
  * map() склеивает стороны обратно в {front, back} через доменный сервис.
  */
-final readonly class VehicleWipersSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
+final readonly class VehicleWipersSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle, VehicleWipersSheetExportInterface
 {
     public function __construct(
-        private VehicleExportService $exportService,
+        private VehicleExportServiceInterface $exportService,
         private bool $isAllow = false,
     ) {
     }

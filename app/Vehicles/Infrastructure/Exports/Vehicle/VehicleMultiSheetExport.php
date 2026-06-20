@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Exports\Vehicle;
 
 use App\Vehicles\Domain\Contracts\Infrastructure\Exports\VehicleMultiSheetExportInterface;
-use App\Vehicles\Infrastructure\Exports\Vehicle\Sheets\VehicleMainSheetExport;
-use App\Vehicles\Infrastructure\Exports\Vehicle\Sheets\VehicleWipersSheetExport;
+use App\Vehicles\Domain\Contracts\Infrastructure\Exports\Sheets\VehicleMainSheetExportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Exports\Sheets\VehicleWipersSheetExportInterface;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -25,8 +25,14 @@ final readonly class VehicleMultiSheetExport implements VehicleMultiSheetExportI
     public function sheets(): array
     {
         return [
-            app()->makeWith(VehicleMainSheetExport::class, ['isAllow' => $this->isAllow]),
-            app()->makeWith(VehicleWipersSheetExport::class, ['isAllow' => $this->isAllow]),
+            app()->makeWith(
+                VehicleMainSheetExportInterface::class,
+                ['isAllow' => $this->isAllow],
+            ),
+            app()->makeWith(
+                VehicleWipersSheetExportInterface::class,
+                ['isAllow' => $this->isAllow],
+            ),
         ];
     }
 }

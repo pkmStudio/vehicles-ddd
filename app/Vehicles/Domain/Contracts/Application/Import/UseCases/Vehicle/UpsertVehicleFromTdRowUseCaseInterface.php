@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Domain\Contracts\Import\UseCases\Vehicle;
+namespace App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle;
 
 use App\Vehicles\Domain\Models\Vehicle;
 

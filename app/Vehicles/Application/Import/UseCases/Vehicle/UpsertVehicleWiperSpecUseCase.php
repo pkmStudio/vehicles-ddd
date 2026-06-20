@@ -11,7 +11,7 @@ use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehi
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\Vehicle;
-use App\Vehicles\Domain\Services\WiperSpecificationService;
+use App\Vehicles\Domain\Contracts\Application\Common\Services\WiperSpecificationServiceInterface;
 
 /**
  * Use-case: записать спецификацию «дворники» для ТС.
@@ -25,7 +25,7 @@ final readonly class UpsertVehicleWiperSpecUseCase implements UpsertVehicleWiper
         private FeatureValueRepositoryInterface $featureValues,
         private PartSpecificationRepositoryInterface $specifications,
         private PartSpecificationCommandInterface $command,
-        private WiperSpecificationService $wiper,
+        private WiperSpecificationServiceInterface $wiper,
     ) {}
 
     /**

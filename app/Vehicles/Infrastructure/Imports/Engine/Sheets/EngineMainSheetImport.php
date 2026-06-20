@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine\Sheets;
 
-use App\Vehicles\Application\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCase;
-use App\Vehicles\Application\Import\Support\EngineMainSheetImportService;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Support\EngineMainSheetImportServiceInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\EngineMainSheetImportInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -18,15 +19,15 @@ use Maatwebsite\Excel\Validators\Failure;
  * Excel-адаптер edit-листа двигателей (механика): сопоставляет колонки Excel редактируемым
  * полям и на каждую строку зовёт сценарий частичного обновления.
  */
-final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithStartRow
+final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithStartRow, EngineMainSheetImportInterface
 {
     use CachesImportFailures;
 
     public function __construct(
         private readonly int $userId,
         string $cacheKey,
-        private readonly UpdateEngineEditableFieldsUseCase $useCase,
-        private readonly EngineMainSheetImportService $engineMainSheetImportService,
+        private readonly UpdateEngineEditableFieldsUseCaseInterface $useCase,
+        private readonly EngineMainSheetImportServiceInterface $engineMainSheetImportService,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "engine_import_failures_lock_{$userId}";

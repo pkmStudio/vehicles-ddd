@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\UseCases\Vehicle;
 
-use App\Vehicles\Application\Import\Factories\Vehicle\VehicleDataFactory;
+use App\Vehicles\Domain\Contracts\Application\Import\Factories\VehicleDataFactoryInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ManufacturerCommandInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\VehicleCommandInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCaseInterface;
@@ -22,7 +22,7 @@ final readonly class UpsertVehicleFromSheetUseCase implements UpsertVehicleFromS
 {
     public function __construct(
         private VehicleCommandInterface $command,
-        private VehicleDataFactory $factory,
+        private VehicleDataFactoryInterface $factory,
         private VehicleRepositoryInterface $vehicles,
         private ManufacturerRepositoryInterface $manufacturers,
         private ManufacturerCommandInterface $manufacturerCommand,

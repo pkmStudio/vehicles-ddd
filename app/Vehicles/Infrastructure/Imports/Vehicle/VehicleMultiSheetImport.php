@@ -6,8 +6,8 @@ namespace App\Vehicles\Infrastructure\Imports\Vehicle;
 
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleMultiSheetImportInterface;
 use App\Vehicles\Domain\Events\Vehicle\VehicleImportCompleted;
-use App\Vehicles\Infrastructure\Imports\Vehicle\Sheets\VehicleMainSheetImport;
-use App\Vehicles\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\VehicleMainSheetImportInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\VehicleWipersSheetImportInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -36,8 +36,14 @@ final class VehicleMultiSheetImport implements ShouldQueue, VehicleMultiSheetImp
     public function sheets(): array
     {
         return [
-            'Основная информация' => app()->makeWith(VehicleMainSheetImport::class, ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey]),
-            'Дворники' => app()->makeWith(VehicleWipersSheetImport::class, ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey]),
+            'Основная информация' => app()->makeWith(
+                VehicleMainSheetImportInterface::class,
+                ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey],
+            ),
+            'Дворники' => app()->makeWith(
+                VehicleWipersSheetImportInterface::class,
+                ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey],
+            ),
         ];
     }
 

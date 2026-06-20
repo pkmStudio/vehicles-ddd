@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Common;
 
+use App\Vehicles\Domain\Contracts\Application\Common\Services\DetailTemplateResolverInterface;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
 use Dan\FieldTemplates\AbstractTemplate;
 use Illuminate\Contracts\Container\Container;
@@ -11,7 +12,7 @@ use Illuminate\Contracts\Container\Container;
 /**
  * Резолвит класс шаблона по DetailTemplateEnum в экземпляр через контейнер.
  */
-final readonly class DetailTemplateResolver
+final readonly class DetailTemplateResolver implements DetailTemplateResolverInterface
 {
     public function __construct(
         private Container $container,

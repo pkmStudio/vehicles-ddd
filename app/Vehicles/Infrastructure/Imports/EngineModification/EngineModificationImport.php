@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\EngineModification;
 
-use App\Vehicles\Application\Import\UseCases\EngineModification\LinkEngineModificationFromRowUseCase;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\EngineModification\LinkEngineModificationFromRowUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineModificationImportInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
@@ -25,7 +25,7 @@ use Maatwebsite\Excel\Validators\Failure;
 final class EngineModificationImport implements EngineModificationImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithStartRow
 {
     public function __construct(
-        private readonly LinkEngineModificationFromRowUseCase $useCase,
+        private readonly LinkEngineModificationFromRowUseCaseInterface $useCase,
     ) {}
 
     public function import(string $path): void

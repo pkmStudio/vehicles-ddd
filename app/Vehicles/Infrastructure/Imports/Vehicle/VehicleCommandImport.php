@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Vehicle;
 
-use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCase;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleCommandImportInterface;
 use App\Vehicles\Domain\Events\Vehicle\VehicleCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,7 +28,7 @@ use Maatwebsite\Excel\Validators\Failure;
 final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToCollection, VehicleCommandImportInterface, WithChunkReading, WithEvents, WithStartRow
 {
     public function __construct(
-        private readonly UpsertVehicleFromTdRowUseCase $useCase,
+        private readonly UpsertVehicleFromTdRowUseCaseInterface $useCase,
     ) {}
 
     public function import(string $path): void

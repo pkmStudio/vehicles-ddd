@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Presentation\Console\Commands;
 
-use App\Vehicles\Application\Import\Services\EngineModificationReadinessGate;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\EngineModificationReadinessGateInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ManufacturerCommandImportInterface;
 use Illuminate\Console\Command;
 
@@ -32,7 +32,7 @@ class TecDocImportCars extends Command
      * 5. По готовности ТС импортируются модификации
      * 6. По готовности модификаций и двигателей по событию запускается импорт связи между модификацией и двигателями
      */
-    public function handle(EngineModificationReadinessGate $gate): void
+    public function handle(EngineModificationReadinessGateInterface $gate): void
     {
         $gate->reset();
 

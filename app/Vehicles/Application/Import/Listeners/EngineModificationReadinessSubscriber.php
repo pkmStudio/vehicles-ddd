@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\Listeners;
 
-use App\Vehicles\Application\Import\Services\EngineModificationReadinessGate;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\EngineModificationReadinessGateInterface;
 use App\Vehicles\Domain\Events\Engine\EngineCommandImported;
 use App\Vehicles\Domain\Events\Modification\ModificationCommandImported;
 use Illuminate\Events\Dispatcher;
@@ -16,7 +16,7 @@ use Illuminate\Events\Dispatcher;
 final readonly class EngineModificationReadinessSubscriber
 {
     public function __construct(
-        private EngineModificationReadinessGate $gate,
+        private EngineModificationReadinessGateInterface $gate,
     ) {}
 
     public function subscribe(Dispatcher $events): void

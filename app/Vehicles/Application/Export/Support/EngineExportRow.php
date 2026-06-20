@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Export\Support;
 
+use App\Vehicles\Domain\Contracts\Application\Export\Support\EngineExportRowInterface;
 use App\Vehicles\Domain\Models\Engine;
 
-final readonly class EngineExportRow
+final readonly class EngineExportRow implements EngineExportRowInterface
 {
     public function getBaseHeadings(): array
     {

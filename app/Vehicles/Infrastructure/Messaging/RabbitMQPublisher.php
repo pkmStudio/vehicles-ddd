@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Messaging;
 
+use App\Vehicles\Domain\Contracts\Infrastructure\Messaging\RabbitMQPublisherInterface;
 use App\Vehicles\Infrastructure\Messaging\DTOs\RabbitMessageDTO;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Публикатор сообщений в RabbitMQ exchange
  */
-final readonly class RabbitMQPublisher
+final readonly class RabbitMQPublisher implements RabbitMQPublisherInterface
 {
     /**
      * Отправляет сообщение в RabbitMQ exchange:

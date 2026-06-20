@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine\Sheets;
 
-use App\Vehicles\Application\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCase;
 use App\Vehicles\Domain\Enums\DetailTemplateEnum;
-use App\Vehicles\Application\Import\Support\TemplateDataBuilder;
+use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Imports\Sheets\EngineSparkPlugsSheetImportInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
@@ -22,7 +23,7 @@ use Throwable;
  * Excel-адаптер листа «свечи зажигания» (механика): пропускает пустые строки, собирает details
  * из строки по шаблону и на каждую строку зовёт сценарий записи спецификации.
  */
-final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection, WithStartRow
+final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection, WithStartRow, EngineSparkPlugsSheetImportInterface
 {
     use CachesImportFailures;
 
@@ -31,8 +32,8 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
     public function __construct(
         private readonly int $userId,
         string $cacheKey,
-        private readonly UpsertEngineSparkPlugSpecUseCase $useCase,
-        private readonly TemplateDataBuilder $templateDataBuilder,
+        private readonly UpsertEngineSparkPlugSpecUseCaseInterface $useCase,
+        private readonly TemplateDataBuilderInterface $templateDataBuilder,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "engine_import_failures_lock_{$userId}";
