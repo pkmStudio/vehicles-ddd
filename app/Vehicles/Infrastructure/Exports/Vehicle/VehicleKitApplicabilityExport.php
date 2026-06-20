@@ -2,19 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Application\Exports\Vehicle;
+namespace App\Vehicles\Infrastructure\Exports\Vehicle;
 
 use App\Vehicles\Domain\Contracts\Exports\VehicleKitApplicabilityExportInterface;
-use Maatwebsite\Excel\Facades\Excel;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-
 use App\Vehicles\Domain\Models\PartSpecification;
 use App\Vehicles\Domain\Models\Vehicle;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class VehicleKitApplicabilityExport implements FromCollection, WithHeadings, VehicleKitApplicabilityExportInterface
+class VehicleKitApplicabilityExport implements FromCollection, VehicleKitApplicabilityExportInterface, WithHeadings
 {
     public function download(string $fileName): BinaryFileResponse
     {

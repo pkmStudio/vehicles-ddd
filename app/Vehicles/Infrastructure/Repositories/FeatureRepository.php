@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Repositories;
 
-use App\Vehicles\Domain\Models\Feature;
 use App\Vehicles\Domain\Contracts\Repositories\FeatureRepositoryInterface;
+use App\Vehicles\Domain\Models\Feature;
 use Illuminate\Database\Eloquent\Collection;
 
 final readonly class FeatureRepository implements FeatureRepositoryInterface

@@ -2,17 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Application\Exports\Engine;
+namespace App\Vehicles\Infrastructure\Exports\Engine;
 
 use App\Vehicles\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
+use App\Vehicles\Infrastructure\Exports\Engine\Sheets\EngineMainSheetExport;
+use App\Vehicles\Infrastructure\Exports\Engine\Sheets\EngineSparkPlugsSheetExport;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-use App\Vehicles\Application\Exports\Engine\Sheets\EngineMainSheetExport;
-use App\Vehicles\Application\Exports\Engine\Sheets\EngineSparkPlugsSheetExport;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-
-final readonly class EngineMultiSheetExport implements WithMultipleSheets, EngineMultiSheetExportInterface
+final readonly class EngineMultiSheetExport implements EngineMultiSheetExportInterface, WithMultipleSheets
 {
     public function download(string $fileName): BinaryFileResponse
     {

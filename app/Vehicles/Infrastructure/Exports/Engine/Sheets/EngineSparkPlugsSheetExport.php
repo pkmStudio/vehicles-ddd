@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Application\Exports\Engine\Sheets;
+namespace App\Vehicles\Infrastructure\Exports\Engine\Sheets;
 
 use App\Vehicles\Domain\Contracts\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Domain\Templates\Engine\EngineTemplateFactory;
-use App\Vehicles\Infrastructure\Support\ExportDetailsBuilder;
-use App\Vehicles\Infrastructure\Support\EngineExportRow;
+use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Infrastructure\Exports\Support\EngineExportRow;
+use App\Vehicles\Infrastructure\Exports\Support\ExportDetailsBuilder;
+use App\Vehicles\Infrastructure\Exports\Support\PartSpecificationRowExpander;
+use App\Vehicles\Infrastructure\Support\DetailTemplateResolver;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -16,9 +18,6 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 final readonly class EngineSparkPlugsSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
-
-    private const string SPARK_PLUG_TEMPLATE = 'sparkPlugs';
-
     private array $templateConfig;
 
     private array $fieldHeadings;
@@ -27,14 +26,11 @@ final readonly class EngineSparkPlugsSheetExport implements FromCollection, With
         private EngineRepositoryInterface $engines,
         private EngineExportRow $engineRow,
         private ExportDetailsBuilder $exportDetails,
+        private PartSpecificationRowExpander $expander,
+        DetailTemplateResolver $templates,
     ) {
-        try {
-            $this->templateConfig = EngineTemplateFactory::make(self::SPARK_PLUG_TEMPLATE)->getArrayTemplate();
-            $this->fieldHeadings = $this->exportDetails->extractHeadingsFromTemplate($this->templateConfig);
-        } catch (\Exception $e) {
-            $this->templateConfig = [];
-            $this->fieldHeadings = [];
-        }
+        $this->templateConfig = $templates->resolve(DetailTemplateEnum::SPARK_PLUGS)->getArrayTemplate();
+        $this->fieldHeadings = $this->exportDetails->extractHeadingsFromTemplate($this->templateConfig);
     }
 
     public function title(): string
@@ -44,25 +40,12 @@ final readonly class EngineSparkPlugsSheetExport implements FromCollection, With
 
     public function collection(): Collection
     {
-        $engines = $this->engines->forSparkPlugSheet();
-        $expandedCollection = collect();
-
-        foreach ($engines as $engine) {
-            if ($engine->partSpecifications->isEmpty()) {
-                $expandedCollection->push((object) ['engine' => $engine, 'specification' => null]);
-            } else {
-                foreach ($engine->partSpecifications as $specification) {
-                    $expandedCollection->push((object) ['engine' => $engine, 'specification' => $specification]);
-                }
-            }
-        }
-
-        return $expandedCollection;
+        return $this->expander->expand($this->engines->forSparkPlugSheet());
     }
 
     public function map($row): array
     {
-        $baseData = $this->engineRow->getBaseData($row->engine);
+        $baseData = $this->engineRow->getBaseData($row->entity);
 
         if ($row->specification) {
             $detailsData = $this->exportDetails->getDetailsData($row->specification, $this->templateConfig);

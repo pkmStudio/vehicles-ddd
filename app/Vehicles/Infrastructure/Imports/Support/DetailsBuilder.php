@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Infrastructure\Support;
+namespace App\Vehicles\Infrastructure\Imports\Support;
 
 /**
  * Сборка details из строки по шаблону.
@@ -10,8 +10,6 @@ namespace App\Vehicles\Infrastructure\Support;
  * Отвечает за формирование структуры details при импорте данных из Excel.
  * Рекурсивно обходит шаблон полей и извлекает значения из строки импорта.
  * Обрабатывает различные типы данных и преобразует их в формат для сохранения в БД.
- *
- * @package App\Traits\Warehouse
  */
 final readonly class DetailsBuilder
 {

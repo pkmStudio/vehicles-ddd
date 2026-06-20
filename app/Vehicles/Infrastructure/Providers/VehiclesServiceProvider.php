@@ -8,7 +8,7 @@ use App\Vehicles\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Vehicles\Domain\Contracts\Exports\ImportFailureReporterInterface;
 use App\Vehicles\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use App\Vehicles\Infrastructure\Commands\EngineModificationCommand;
-use App\Vehicles\Application\Exports\ImportFailureReporter;
+use App\Vehicles\Infrastructure\Exports\ImportFailureReporter;
 use App\Vehicles\Infrastructure\Notifications\RabbitMqFileNotificationService;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,7 +34,7 @@ class VehiclesServiceProvider extends ServiceProvider
     ];
 
     /**
-     * Порты импорта/экспорта (Domain\Contracts) → реализации (Infrastructure\Imports / Application\Exports).
+     * Порты импорта/экспорта (Domain\Contracts) → реализации (Infrastructure\Imports / Infrastructure\Exports).
      * Поведенческие порты: import(path) / parse(path) / download(fileName); Excel — внутри реализации.
      */
     private const IMPORT_EXPORT_BINDINGS = [
@@ -48,10 +48,10 @@ class VehiclesServiceProvider extends ServiceProvider
         'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineCrossImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EngineCrossImport',
         'App\\Vehicles\\Domain\\Contracts\\Imports\\EngineSparkPlugSpecificationImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EngineSparkPlugSpecificationImport',
         'App\\Vehicles\\Domain\\Contracts\\Imports\\EnginesCodeImportInterface' => 'App\\Vehicles\\Infrastructure\\Imports\\Engine\\EnginesCodeImport',
-        'App\\Vehicles\\Domain\\Contracts\\Exports\\EngineMultiSheetExportInterface' => 'App\\Vehicles\\Application\\Exports\\Engine\\EngineMultiSheetExport',
-        'App\\Vehicles\\Domain\\Contracts\\Exports\\VehicleMultiSheetExportInterface' => 'App\\Vehicles\\Application\\Exports\\Vehicle\\VehicleMultiSheetExport',
-        'App\\Vehicles\\Domain\\Contracts\\Exports\\EngineKitApplicabilityExportInterface' => 'App\\Vehicles\\Application\\Exports\\Engine\\EngineKitApplicabilityExport',
-        'App\\Vehicles\\Domain\\Contracts\\Exports\\VehicleKitApplicabilityExportInterface' => 'App\\Vehicles\\Application\\Exports\\Vehicle\\VehicleKitApplicabilityExport',
+        'App\\Vehicles\\Domain\\Contracts\\Exports\\EngineMultiSheetExportInterface' => 'App\\Vehicles\\Infrastructure\\Exports\\Engine\\EngineMultiSheetExport',
+        'App\\Vehicles\\Domain\\Contracts\\Exports\\VehicleMultiSheetExportInterface' => 'App\\Vehicles\\Infrastructure\\Exports\\Vehicle\\VehicleMultiSheetExport',
+        'App\\Vehicles\\Domain\\Contracts\\Exports\\EngineKitApplicabilityExportInterface' => 'App\\Vehicles\\Infrastructure\\Exports\\Engine\\EngineKitApplicabilityExport',
+        'App\\Vehicles\\Domain\\Contracts\\Exports\\VehicleKitApplicabilityExportInterface' => 'App\\Vehicles\\Infrastructure\\Exports\\Vehicle\\VehicleKitApplicabilityExport',
     ];
 
     public function register(): void

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Application\Exports\Vehicle\Sheets;
+namespace App\Vehicles\Infrastructure\Exports\Vehicle\Sheets;
 
 use App\Vehicles\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Infrastructure\Support\VehicleExportRow;
+use App\Vehicles\Infrastructure\Exports\Support\VehicleExportRow;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -14,7 +14,6 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 final readonly class VehicleMainSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
-
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
         private VehicleExportRow $vehicleRow,

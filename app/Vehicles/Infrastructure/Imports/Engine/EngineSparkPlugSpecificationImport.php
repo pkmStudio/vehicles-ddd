@@ -16,7 +16,7 @@ use App\Vehicles\Domain\Models\Engine;
 use App\Vehicles\Domain\Models\Modification;
 use App\Vehicles\Domain\Models\Vehicle;
 use App\Vehicles\Domain\Templates\Engine\Templates\SparkPlugTemplate;
-use App\Vehicles\Infrastructure\Support\DetailsBuilder;
+use App\Vehicles\Infrastructure\Imports\Support\DetailsBuilder;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;

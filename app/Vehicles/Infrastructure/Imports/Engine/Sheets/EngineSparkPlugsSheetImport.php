@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Vehicles\Infrastructure\Imports\Engine\Sheets;
 
 use App\Vehicles\Application\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCase;
-use App\Vehicles\Domain\Templates\Engine\EngineTemplateFactory;
-use App\Vehicles\Infrastructure\Support\DetailsBuilder;
+use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Infrastructure\Imports\Support\DetailsBuilder;
+use App\Vehicles\Infrastructure\Support\DetailTemplateResolver;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
@@ -26,8 +27,6 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
 {
     use CachesImportFailures;
 
-    private const string TEMPLATE_KEY = 'sparkPlugs';
-
     private const int SPEC_START_COLUMN = 9;
 
     private ?array $templateConfig = null;
@@ -37,6 +36,7 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
         string $cacheKey,
         private readonly UpsertEngineSparkPlugSpecUseCase $useCase,
         private readonly DetailsBuilder $detailsBuilder,
+        private readonly DetailTemplateResolver $templates,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "engine_import_failures_lock_{$userId}";
@@ -100,7 +100,7 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
     private function resolveTemplate(): array
     {
         if ($this->templateConfig === null) {
-            $this->templateConfig = EngineTemplateFactory::make(self::TEMPLATE_KEY)->getArrayTemplate();
+            $this->templateConfig = $this->templates->resolve(DetailTemplateEnum::SPARK_PLUGS)->getArrayTemplate();
         }
 
         return $this->templateConfig;

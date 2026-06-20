@@ -22,8 +22,6 @@ final class InboxConsumer extends RabbitMQJob
      * 5. Вызывает метод хендлера с данными
      * 6. При успехе — удаляет из очереди
      * 7. При ошибке — логирует и release (повторная попытка)
-     *
-     * @return void
      */
     public function fire(): void
     {
@@ -80,6 +78,7 @@ final class InboxConsumer extends RabbitMQJob
     public function payload(): array
     {
         $rawData = json_decode($this->getRawBody(), true);
+
         return [
             'id' => $rawData['id'] ?? \Str::uuid()->toString(),
             'displayName' => $rawData['name'] ?? $rawData['displayName'] ?? '',

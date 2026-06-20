@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Application\Import\Listeners;
 
+use App\Vehicles\Application\Import\Services\EngineModificationReadinessGate;
 use App\Vehicles\Domain\Events\Engine\EngineCommandImported;
-use App\Vehicles\Domain\Events\EnginesAndModificationsReady;
 use App\Vehicles\Domain\Events\Modification\ModificationCommandImported;
 use Illuminate\Events\Dispatcher;
-use Illuminate\Support\Facades\Cache;
 
 /**
- * Гейт готовности: ждёт импорт двигателей И модификаций (кэш-флаги),
- * при готовности обоих — диспатчит EnginesAndModificationsReady.
+ * Тонкий подписчик: слушает завершения импортов двигателей и модификаций,
+ * делегирует координацию готовности в EngineModificationReadinessGate.
  */
-final class EngineModificationReadinessSubscriber
+final readonly class EngineModificationReadinessSubscriber
 {
-    public const FLAG_ENGINES = 'engines_imported';
-
-    public const FLAG_MODIFICATIONS = 'modifications_imported';
+    public function __construct(
+        private EngineModificationReadinessGate $gate,
+    ) {}
 
     public function subscribe(Dispatcher $events): void
     {
@@ -28,27 +27,11 @@ final class EngineModificationReadinessSubscriber
 
     public function onEnginesImported(EngineCommandImported $event): void
     {
-        Cache::forever(self::FLAG_ENGINES, true);
-        $this->dispatchIfReady();
+        $this->gate->markEnginesImported();
     }
 
     public function onModificationsImported(ModificationCommandImported $event): void
     {
-        Cache::forever(self::FLAG_MODIFICATIONS, true);
-        $this->dispatchIfReady();
-    }
-
-    public static function clearFlags(): void
-    {
-        Cache::forget(self::FLAG_ENGINES);
-        Cache::forget(self::FLAG_MODIFICATIONS);
-    }
-
-    private function dispatchIfReady(): void
-    {
-        if (Cache::get(self::FLAG_ENGINES) && Cache::get(self::FLAG_MODIFICATIONS)) {
-            self::clearFlags();
-            event(new EnginesAndModificationsReady);
-        }
+        $this->gate->markModificationsImported();
     }
 }

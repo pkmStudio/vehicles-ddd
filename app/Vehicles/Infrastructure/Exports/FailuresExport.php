@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Application\Exports;
+namespace App\Vehicles\Infrastructure\Exports;
 
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class FailuresExport implements FromCollection, WithHeadings
+final readonly class FailuresExport implements FromCollection, WithHeadings
 {
     public function __construct(
-        private readonly array $failures,
+        private array $failures,
     ) {}
 
     public function headings(): array

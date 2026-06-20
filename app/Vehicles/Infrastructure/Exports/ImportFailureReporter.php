@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Application\Exports;
+namespace App\Vehicles\Infrastructure\Exports;
 
 use App\Vehicles\Domain\Contracts\Exports\ImportFailureReporterInterface;
 use Maatwebsite\Excel\Excel;

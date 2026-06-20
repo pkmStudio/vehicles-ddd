@@ -9,7 +9,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Факт: двигатели и модификации импортированы — можно импортировать связи engine_modification.
- * Гейт готовности (кэш-флаги + диспатч) — в EngineModificationReadinessSubscriber (Application).
+ * Гейт готовности (кэш-флаги + диспатч) — в EngineModificationReadinessGate (Application/Import/Services).
  */
 final readonly class EnginesAndModificationsReady
 {

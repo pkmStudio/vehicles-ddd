@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Infrastructure\Support;
+namespace App\Vehicles\Infrastructure\Exports\Support;
 
 use App\Vehicles\Domain\Models\Vehicle;
 
