@@ -28,13 +28,14 @@ Presentation ──▶ Application ──▶ Domain
 |---|---|---|
 | `Models/` | Eloquent-модели | **АНЕМИЧНЫЕ**: только связи (`hasMany`/`belongsTo`/`morphTo`), `$casts`, `$timestamps`. Без бизнес-логики, без `$with`, без accessor/mutator. Наследуют `BaseModel` (`guarded = []`, unguarded) — `$fillable` не используем; mass-assignment безопасен, т.к. запись идёт через Command+ModelData (фиксированный набор полей), не из сырого ввода. Защитить колонку → переопределить `$guarded` в конкретной модели. |
 | `Contracts/<Concern>/` | **Порты** (интерфейсы) для адаптеров Infrastructure | Группируются по инфра-концерну, зеркально `Infrastructure/`: `Contracts/Repositories/…`, `Contracts/Commands/…`, `Contracts/Imports/…` (поведенческие `import(path)`/`parse(path)`), `Contracts/Exports/…` (`download(fileName)`), `Contracts/Notifications/…`. В будущем — `Contracts/Messaging/`, `Contracts/Cache/`. Реализация — в Infrastructure. Без вложенной папки-сущности: на сущность ровно один Repository и один Command. **Почему в Domain:** порты — часть декларации домена («домен заявляет, как с ним работать»); Repository-порты возвращают Domain-модели, Command-порты принимают `ModelData` (тоже Domain) — всё ссылается внутрь. |
-| `ModelData/<Entity>/` | **Отображения моделей** (бывш. `DTOs`) | `final readonly` + `toArray()`. **Без валидации в конструкторе.** Типизированный «снимок строки» для передачи в Command. Имя класса — `<Entity>Data`. Чистые данные → в Domain. |
-| `Enums/` | Backed-enum'ы (`type`, `template`, …) | Логика значений (label/маппинг) — здесь. `DetailTemplateEnum::template()` резолвит класс шаблона. |
+| `ModelData/<Entity>/` | **Отображения моделей** | `final readonly` + `toArray()`. **Без валидации в конструкторе.** Типизированный «снимок строки» для передачи в Command. Имя класса — `<Entity>Data`. Чистые данные → в Domain. |
+| `DTOs/` | **Транспортные объекты сценариев** (вход/выход use-case, payload) | `final readonly`. Форма данных, которой обменивается приложение и которая **не повторяет модель** (в отличие от `ModelData`): результаты use-case, запросы/ответы сценариев. Пример: `AssignEngineGroupResult` (исход назначения группы — `found`/`reassigned`/`previousGroupId`). Имя — `<Smth>Result`/`<Smth>Input` и т.п. по смыслу. |
+| `Enums/` | Backed-enum'ы (`type`, `template`, …) | Логика значений (label/маппинг) — здесь. `DetailTemplateEnum::templateClass()` резолвит FQCN класса шаблона. |
 | `Events/` | Доменные события | Plain DTO-события (`final readonly`), **без поведения** (никаких `subscribe()`/`handle()` — это листенеры). `AbstractImportCompleted`, `EnginesAndModificationsReady` и т.д. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`, а не `VehicleImportCompletedEvent`): это легитимное исключение из «суффикс по виду класса» — событие читается как факт домена, суффикс несёт потребитель (`…Listener`/`…Subscriber`). |
 | `Templates/` | Описания шаблонов полей (field-template) | Декларативные классы. Общий DSL вынесен в пакет `dan/field-templates`. |
-| `Services/` | **Доменные сервисы** (пока нет) | Бизнес-правила, которым тесно в одной модели и которые не зависят от инфраструктуры. Создаём по мере появления чистых правил. |
+| `Services/` | **Доменные сервисы** | Чистые бизнес-правила над `ModelData`/`DTO`/Enum, без инфраструктуры (без Eloquent-query, без фасадов/IO). Пример: `WiperSpecificationService` (структура деталей дворника: detect/split/merge сторон). Query/IO — за порт. |
 
-> Domain = декларации домена: **модели (данные) + контракты (порты) + ModelData (данные записи) + enums + события + шаблоны**. Без поведения/оркестрации/IO. Самодостаточен — переезжает папкой в отдельный сервис.
+> **Domain = полная декларация того, что происходит в приложении**: модели + контракты (порты) + ModelData (снимки строк) + DTO (транспорт сценариев) + enums + события + шаблоны + доменные сервисы (чистые правила). Без оркестрации/IO. Application/Infrastructure/Presentation **оперируют** этими декларациями и реализуют поведение. Domain самодостаточен — переезжает папкой в отдельный сервис.
 
 **Почему модели анемичные:** бизнес-логика разъезжается по слоям предсказуемо (Services/UseCases), модели остаются сериализуемыми и тестируемыми, нет «магии» автозагрузки.
 
@@ -77,8 +78,8 @@ Application/
 - **Адаптер на границе интеграции** (внешний транспорт/брокер/файлы: `maatwebsite/excel`, RabbitMQ-`InboxConsumer`) → **Infrastructure**.
 
 **ModelData vs DTO (договорённость):**
-- `ModelData/` = **отображение модели** (`VehicleData` ≈ строка таблицы `vehicles`). Это то, что мы передаём в Command на запись.
-- **DTO** (когда появятся) — это уже **отдельная** история: транспортные объекты для входа/выхода сценариев (команды/запросы, payload событий между сервисами). Положим их отдельно (напр. `Application/DTOs/` или рядом со сценарием), и они **не обязаны** повторять модель.
+- `Domain/ModelData/` = **отображение модели** (`VehicleData` ≈ строка таблицы `vehicles`). Это то, что мы передаём в Command на запись.
+- `Domain/DTOs/` = **транспортные объекты сценариев**: вход/выход use-case (команды/запросы, результаты), payload событий. **Не обязаны** повторять модель. Лежат в **Domain** (а не Application): по нашей трактовке Domain декларирует все формы данных приложения; Application их потребляет/возвращает. Пример: `AssignEngineGroupResult`.
 
 **Почему слушатели/джобы/обсерверы тонкие:** их трудно тестировать и переиспользовать. Вся логика — в UseCase/Service, адаптер только «принял сигнал → позвал сценарий».
 
@@ -175,7 +176,8 @@ Application/
 | Новую запись в БД | порт → `Domain/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход — `ModelData`) |
 | Новый порт (брокер/кеш/нотификация) | `Domain/Contracts/<Concern>/`, реализация → `Infrastructure/<Concern>/` |
 | Типизированный снимок модели | `Domain/ModelData/<Entity>/` |
-| Транспортный объект сценария/события | `Application/DTOs/` (отдельно от ModelData) |
+| Транспортный объект сценария (вход/выход use-case, payload) | `Domain/DTOs/` (отдельно от ModelData) |
+| Чистое доменное правило | `Domain/Services/` |
 | Валидацию + сборку `ModelData` | `Application/<Feature>/Factories/<Entity>/` (`make()`) |
 | Реакцию на доменное событие | `Application/<Feature>/Listeners/` (тонко, **без порта в Domain**) |
 | Фоновую задачу | `Application/Jobs/<Entity>/` (тонко) |

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Application\Import\UseCases\Engine;
+namespace App\Vehicles\Domain\DTOs;
 
 /**
  * Исход назначения группы двигателю по коду — адаптер транслирует его в отчёт об ошибках.

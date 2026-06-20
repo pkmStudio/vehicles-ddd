@@ -6,6 +6,7 @@ namespace App\Vehicles\Application\Import\UseCases\Engine;
 
 use App\Vehicles\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Vehicles\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Vehicles\Domain\DTOs\AssignEngineGroupResult;
 
 /**
  * Use-case: назначить двигателю (по коду) группу. Возвращает исход для отчёта:
