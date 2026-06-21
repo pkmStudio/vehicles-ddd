@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine\Sheets;
 
+use App\Vehicles\Domain\Contracts\Application\Import\Support\EngineEditableColumnsMapperInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\Support\EngineMainSheetImportServiceInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,7 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
         private readonly int $userId,
         string $cacheKey,
         private readonly UpdateEngineEditableFieldsUseCaseInterface $useCase,
-        private readonly EngineMainSheetImportServiceInterface $engineMainSheetImportService,
+        private readonly EngineEditableColumnsMapperInterface $editableColumnsMapper,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "engine_import_failures_lock_{$userId}";
@@ -37,7 +37,7 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
         foreach ($collection as $indexRow => $row) {
             DB::beginTransaction();
             try {
-                $attributes = $this->engineMainSheetImportService->extractEditableAttributes($row->toArray());
+                $attributes = $this->editableColumnsMapper->extractEditableAttributes($row->toArray());
 
                 $this->useCase->execute((int) $row[0], $attributes);
                 DB::commit();

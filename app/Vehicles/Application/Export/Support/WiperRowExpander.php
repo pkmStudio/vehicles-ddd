@@ -6,6 +6,7 @@ namespace App\Vehicles\Application\Export\Support;
 
 use App\Vehicles\Domain\Contracts\Application\Common\Services\WiperSpecificationServiceInterface;
 use App\Vehicles\Domain\Contracts\Application\Export\Support\WiperRowExpanderInterface;
+use App\Vehicles\Domain\Enums\Vehicle\WiperSideEnum;
 use Illuminate\Support\Collection;
 
 /**
@@ -37,8 +38,8 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
                 continue;
             }
 
-            $front = $this->singleSide($specs, WiperSpecificationServiceInterface::SIDE_FRONT);
-            $back = $this->singleSide($specs, WiperSpecificationServiceInterface::SIDE_BACK);
+            $front = $this->singleSide($specs, WiperSideEnum::FRONT->value);
+            $back = $this->singleSide($specs, WiperSideEnum::BACK->value);
             $both = $this->bothSides($specs);
             $added = 0;
 
@@ -80,9 +81,9 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
      */
     private function singleSide(Collection $specifications, string $side): Collection
     {
-        $other = $side === WiperSpecificationServiceInterface::SIDE_FRONT
-            ? WiperSpecificationServiceInterface::SIDE_BACK
-            : WiperSpecificationServiceInterface::SIDE_FRONT;
+        $other = $side === WiperSideEnum::FRONT->value
+            ? WiperSideEnum::BACK->value
+            : WiperSideEnum::FRONT->value;
 
         return $specifications->filter(function ($spec) use ($side, $other) {
             $details = (array) $spec->details;
@@ -103,8 +104,8 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
         return $specifications->filter(function ($spec) {
             $details = (array) $spec->details;
 
-            return $this->wiper->sideData($details, WiperSpecificationServiceInterface::SIDE_FRONT) !== []
-                && $this->wiper->sideData($details, WiperSpecificationServiceInterface::SIDE_BACK) !== [];
+            return $this->wiper->sideData($details, WiperSideEnum::FRONT->value) !== []
+                && $this->wiper->sideData($details, WiperSideEnum::BACK->value) !== [];
         })->values();
     }
 }

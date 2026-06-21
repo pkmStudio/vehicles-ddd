@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Templates\Vehicle\Templates;
 
-use App\Vehicles\Application\Common\Services\WiperSpecificationService;
+use App\Vehicles\Domain\Enums\Vehicle\WiperSideEnum;
 use Dan\FieldTemplates\AbstractTemplate;
 use Dan\FieldTemplates\CommonFields;
 use Dan\FieldTemplates\Fields\ConditionalObjectField;
@@ -35,8 +35,8 @@ final readonly class WiperTemplate extends AbstractTemplate
             rules: ['string', 'max:30'],
             required: true,
             options: [
-                WiperSpecificationService::SIDE_FRONT => 'Передняя',
-                WiperSpecificationService::SIDE_BACK => 'Задняя',
+                WiperSideEnum::FRONT->value => 'Передняя',
+                WiperSideEnum::BACK->value => 'Задняя',
             ],
             live: true,
         );
@@ -73,7 +73,7 @@ final readonly class WiperTemplate extends AbstractTemplate
             ],
             containerType: 'section',
             dependency: 'position',
-            dependencyValue: WiperSpecificationService::SIDE_FRONT,
+            dependencyValue: WiperSideEnum::FRONT->value,
         );
     }
 
@@ -102,7 +102,7 @@ final readonly class WiperTemplate extends AbstractTemplate
             ],
             containerType: 'section',
             dependency: 'position',
-            dependencyValue: WiperSpecificationService::SIDE_BACK,
+            dependencyValue: WiperSideEnum::BACK->value,
         );
     }
 

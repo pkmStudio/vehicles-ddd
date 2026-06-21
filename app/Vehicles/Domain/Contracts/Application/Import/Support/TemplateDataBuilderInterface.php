@@ -12,4 +12,3 @@ interface TemplateDataBuilderInterface
 
     public function buildBySlug(array $row, int $startIndex, string $slug): array;
 }
-

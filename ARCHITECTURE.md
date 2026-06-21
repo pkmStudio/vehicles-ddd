@@ -27,11 +27,10 @@ Presentation ──▶ Application ──▶ Domain
 | Папка | Что лежит | Толщина |
 |---|---|---|
 | `Models/` | Eloquent-модели | **АНЕМИЧНЫЕ**: только связи (`hasMany`/`belongsTo`/`morphTo`), `$casts`, `$timestamps`. Без бизнес-логики, без `$with`, без accessor/mutator. Наследуют `BaseModel` (`guarded = []`, unguarded) — `$fillable` не используем; mass-assignment безопасен, т.к. запись идёт через Command+ModelData (фиксированный набор полей), не из сырого ввода. Защитить колонку → переопределить `$guarded` в конкретной модели. |
-| `Contracts/<Concern>/` | **Порты** (интерфейсы) для адаптеров Infrastructure | Группируются по инфра-концерну, зеркально `Infrastructure/`: `Contracts/Repositories/…`, `Contracts/Commands/…`, `Contracts/Imports/…` (поведенческие `import(path)`/`parse(path)`), `Contracts/Exports/…` (`download(fileName)`), `Contracts/Notifications/…`. В будущем — `Contracts/Messaging/`, `Contracts/Cache/`. Реализация — в Infrastructure. Без вложенной папки-сущности: на сущность ровно один Repository и один Command. **Почему в Domain:** порты — часть декларации домена («домен заявляет, как с ним работать»); Repository-порты возвращают Domain-модели, Command-порты принимают `ModelData` (тоже Domain) — всё ссылается внутрь. |
+| `Contracts/<Layer>/<Concern>/` | **Порты** (интерфейсы) для всех слоёв | Сгруппированы по слою-владельцу реализации, зеркально структуре кода: **`Contracts/Infrastructure/{Repositories,Commands,Imports,Exports,Notifications,Messaging}/`** (driven-адаптеры) и **`Contracts/Application/{Common,Import,Export}/…`** (порты UseCases/Factories/Services/Support). Реализация — в соответствующем слое; порт — всегда в Domain (стрелка внутрь). Repository-порты возвращают Domain-модели, Command-порты принимают `ModelData` (тоже Domain). На сущность — один Repository и один Command (без папки-сущности внутри концерна). |
 | `ModelData/<Entity>/` | **Отображения моделей** | `final readonly` + `toArray()`. **Без валидации в конструкторе.** Типизированный «снимок строки» для передачи в Command. Имя класса — `<Entity>Data`. Чистые данные → в Domain. |
 | `DTOs/` | **Транспортные объекты сценариев** (вход/выход use-case, payload) | `final readonly`. Форма данных, которой обменивается приложение и которая **не повторяет модель** (в отличие от `ModelData`): результаты use-case, запросы/ответы сценариев. Пример: `AssignEngineGroupResult` (исход назначения группы — `found`/`reassigned`/`previousGroupId`). Имя — `<Smth>Result`/`<Smth>Input` и т.п. по смыслу. |
-| `Enums/` | Backed-enum'ы (`type`, `template`, …) | Логика значений (label/маппинг) — здесь. `DetailTemplateEnum::templateClass()` резолвит FQCN класса шаблона. |
-| `Enums/` | Схемы потоков импорта/экспорта | `VehicleExportSheet`, `VehicleImportSheet`, `EngineExportSheet`, `EngineImportSheet` и т.п. с названиями листов. Это позволяет не развязать код от русских строк и держать политику в Domain. |
+| `Enums/<Group>/` | Backed-enum'ы, сгруппированы по теме | Подпапки: `Enums/Vehicle/` (`VehicleTypeEnum`, `CarcaseTypeEnum`, `SteeringTypeEnum`, `BrakeSystemTypeEnum`, `GearTypeEnum`, `DriveTypeEnum`, `WiperSideEnum`), `Enums/Engine/` (`EngineFuelTypeEnum`, `EngineTypeEnum`), `Enums/Templates/` (`DetailTemplateEnum` — `templateClass()` резолвит FQCN шаблона), `Enums/InOut/Sheets/` (схемы потоков: `VehicleImportSheet`/`VehicleExportSheet`/`EngineImportSheet`/`EngineExportSheet` — названия листов, чтобы не размазывать строки по коду и держать политику в Domain). Логика значений (label/маппинг) — в самом enum. |
 | `Events/` | Доменные события | Plain DTO-события (`final readonly`), **без поведения** (никаких `subscribe()`/`handle()` — это листенеры). `AbstractImportCompleted`, `EnginesAndModificationsReady` и т.д. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`, а не `VehicleImportCompletedEvent`): это легитимное исключение из «суффикс по виду класса» — событие читается как факт домена, суффикс несёт потребитель (`…Listener`/`…Subscriber`). |
 | `Templates/` | Описания шаблонов полей (field-template) | Декларативные классы. Общий DSL вынесен в пакет `dan/field-templates`. |
 | `Services/` | **Доменные сервисы** | Чистые бизнес-правила над `ModelData`/`DTO`/Enum, без инфраструктуры (без Eloquent-query, без фасадов/IO). Пример: `WiperSpecificationService` (структура деталей дворника: detect/split/merge сторон). Query/IO — за порт. |
@@ -62,7 +61,7 @@ Application/
     UseCases/<Entity>/   UpsertEngineFromSheetUseCase, AssignEngineGroupUseCase, …
     UseCases/Reporting/  ReportImportResultUseCase (кросс-сущностный сценарий)
     Factories/<Entity>/  <Entity>DataFactory
-    Support/             TemplateDataBuilder, DetailsBuilder, EngineMainSheetImportService
+    Support/             TemplateDataBuilder, DetailsBuilder, EngineEditableColumnsMapper
     Services/            VehicleImportService, EngineImportService, EngineModificationReadinessGate (gate-логика готовности процесса)
     Listeners/           Start*ImportListener, EngineModificationReadinessSubscriber, ReportImportResultListener
   Export/
@@ -117,16 +116,16 @@ Application/
 
 | Папка | Что лежит | Правила |
 |---|---|---|
-| `Imports/<Entity>/` | Адаптеры импорта (`maatwebsite/excel`) | **Механика чтения файла:** `Excel::import($this, $path)`, чанки, `onFailure`. На каждую строку зовёт построчный **UseCase** (Application), бизнес-логику в адаптере не держит. **Точка входа** реализует поведенческий порт `Domain/Contracts/Imports/<X>Interface` (`import(string $path, ?*Plan $plan = null): void`). Sub-sheet'ы — внутренние классы без интерфейсов (`*SheetImportInterface` больше не нужны). Зависимости — через конструктор; sub-sheet'ы создаём `app()->makeWith(...)`, не `new`. |
-| `Exports/<Entity>/` | Адаптеры экспорта (`maatwebsite/excel`) | Источник данных — Repository; сборка строк — `Support/*ExportRow`. **Точка входа** реализует порт `Domain/Contracts/Exports/<X>Interface`. Sub-sheet'ы / `FailuresExport` — внутренние. |
-| `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` (реализует порт `Domain/Contracts/Repositories/<Entity>RepositoryInterface`). Только запросы, без записи. Без папки-сущности — один репозиторий на сущность. |
-| `Commands/` | **Запись** (CQRS-lite) | `<Entity>Command` (реализует порт `Domain/Contracts/Commands/<Entity>CommandInterface`). Принимают **`ModelData`**, а не сырые массивы. Здесь `save`/`upsert`/`delete`. Без папки-сущности — одна команда на сущность. |
+| `Imports/<Entity>/` | Адаптеры импорта (`maatwebsite/excel`) | **Механика чтения файла:** `Excel::import($this, $path)`, чанки, `onFailure`. На каждую строку зовёт построчный **UseCase** (Application), бизнес-логику в адаптере не держит. **Точка входа** реализует поведенческий порт `Domain/Contracts/Infrastructure/Imports/<X>Interface` (`import(string $path, ?*Plan $plan = null): void`). Sub-sheet'ы — внутренние классы без интерфейсов (`*SheetImportInterface` больше не нужны). Зависимости — через конструктор; sub-sheet'ы создаём `app()->makeWith(...)`, не `new`. |
+| `Exports/<Entity>/` | Адаптеры экспорта (`maatwebsite/excel`) | Источник данных — Repository; сборка строк — `Support/*ExportRow`. **Точка входа** реализует порт `Domain/Contracts/Infrastructure/Exports/<X>Interface`. Sub-sheet'ы / `FailuresExport` — внутренние. |
+| `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` (реализует порт `Domain/Contracts/Infrastructure/Repositories/<Entity>RepositoryInterface`). Только запросы, без записи. Без папки-сущности — один репозиторий на сущность. |
+| `Commands/` | **Запись** (CQRS-lite) | `<Entity>Command` (реализует порт `Domain/Contracts/Infrastructure/Commands/<Entity>CommandInterface`). Принимают **`ModelData`**, а не сырые массивы. Здесь `save`/`upsert`/`delete`. Без папки-сущности — одна команда на сущность. |
 | `Support/` (нейтральный) | Технические helpers Infrastructure | Если есть общие инфраструктурные технические helpers, которые не относятся к конкретной фиче приложения, они могут жить здесь. Бизнес-правила и сборка доменных данных здесь не выполняются. |
 | `Messaging/` | RabbitMQ | `Consumers/InboxConsumer`, `RabbitMQPublisher`, `Commands/` (setup-команды брокера), `Workers/CustomRabbitMQQueue`, `DTOs/RabbitMessageDTO`, `Enums/{Inbound,Outbound}EventsEnum`. Очереди: `vehicles` (jobs), `vehicles.inbox` (входящие события), exchange `application.events`. |
 | `Notifications/` | Внешние уведомления | Реализации портов уведомлений (напр. `RabbitMqFileNotificationService` → `FileNotificationServiceInterface`). UI-нотификации идут событием в Filament-сервис; файлы ошибок → S3 + сообщение. |
 | `Providers/` | DI и события | `VehiclesServiceProvider` (биндинги интерфейс→реализация по списку `ENTITIES`), `EventServiceProvider` (карта событие→слушатель). |
 
-**Порт (интерфейс) живёт в `Domain/Contracts/<Concern>/`, адаптер (реализация) — в Infrastructure.** Так стрелка зависимости идёт внутрь: и Application, и Infrastructure зависят на порт в Domain. Расположение зеркальное: `Domain/Contracts/Repositories/VehicleRepositoryInterface` ↔ `Infrastructure/Repositories/VehicleRepository`. Биндинги порт→адаптер — в `VehiclesServiceProvider`.
+**Порт (интерфейс) живёт в `Domain/Contracts/<Layer>/<Concern>/`, адаптер (реализация) — в Infrastructure.** Так стрелка зависимости идёт внутрь: и Application, и Infrastructure зависят на порт в Domain. Расположение зеркальное: `Domain/Contracts/Infrastructure/Repositories/VehicleRepositoryInterface` ↔ `Infrastructure/Repositories/VehicleRepository`. Биндинги порт→адаптер — в `VehiclesServiceProvider`.
 
 > Порты в Domain согласованы: Repository-порты возвращают Domain-модели, Command-порты принимают `Domain/ModelData` — всё внутри Domain. Это пакетная связка: `Contracts` и `ModelData` лежат вместе в Domain (иначе Command-порт ссылался бы наружу).
 
@@ -189,17 +188,17 @@ Application/
 |---|---|
 | Новое бизнес-правило одной сущности | `Domain/Services/` (или метод-связь, если это связь) |
 | Новый сценарий (импорт/пересчёт/…) | `Application/<Feature>/UseCases/<Entity>/` (напр. `Import/UseCases/Engine/`) |
-| Новый запрос к БД | порт → `Domain/Contracts/Repositories/`, адаптер → `Infrastructure/Repositories/` |
-| Новую запись в БД | порт → `Domain/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход — `ModelData`) |
-| Новый порт (брокер/кеш/нотификация) | `Domain/Contracts/<Concern>/`, реализация → `Infrastructure/<Concern>/` |
+| Новый запрос к БД | порт → `Domain/Contracts/Infrastructure/Repositories/`, адаптер → `Infrastructure/Repositories/` |
+| Новую запись в БД | порт → `Domain/Contracts/Infrastructure/Commands/`, адаптер → `Infrastructure/Commands/` (вход — `ModelData`) |
+| Новый порт (брокер/кеш/нотификация) | `Domain/Contracts/<Layer>/<Concern>/`, реализация → `Infrastructure/<Concern>/` |
 | Типизированный снимок модели | `Domain/ModelData/<Entity>/` |
 | Транспортный объект сценария (вход/выход use-case, payload) | `Domain/DTOs/` (отдельно от ModelData), включая политики потоков: `VehicleImportPlan`, `VehicleExportPlan`, `EngineImportPlan`, `EngineExportPlan` |
 | Чистое доменное правило | `Domain/Services/` |
 | Валидацию + сборку `ModelData` | `Application/<Feature>/Factories/<Entity>/` (`make()`) |
 | Реакцию на доменное событие | `Application/<Feature>/Listeners/` (тонко, **без порта в Domain**) |
 | Фоновую задачу | `Application/Jobs/<Entity>/` (тонко) |
-| Импорт из Excel | адаптер → `Infrastructure/Imports/<Entity>/` (механика) + построчный UseCase в `Application/Import/UseCases/<Entity>/`; порт точки входа → `Domain/Contracts/Imports/` |
-| Экспорт в Excel | адаптер → `Infrastructure/Exports/<Entity>/`, порт точки входа → `Domain/Contracts/Exports/` |
+| Импорт из Excel | адаптер → `Infrastructure/Imports/<Entity>/` (механика) + построчный UseCase в `Application/Import/UseCases/<Entity>/`; порт точки входа → `Domain/Contracts/Infrastructure/Imports/` |
+| Экспорт в Excel | адаптер → `Infrastructure/Exports/<Entity>/`, порт точки входа → `Domain/Contracts/Infrastructure/Exports/` |
 | Подготовку данных/формата для экспорта | `Application/Export/Services/` |
 | Вспомогательные helpers для импорта/экспорта | `Application/Import/Support/`, `Application/Export/Support/`; общий технический helper для обоих — в `Infrastructure/Support/` |
 | Artisan-команду | `Presentation/Console/Commands/` (тонко) |

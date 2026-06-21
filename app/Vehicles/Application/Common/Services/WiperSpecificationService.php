@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Application\Common\Services;
 
 use App\Vehicles\Domain\Contracts\Application\Common\Services\WiperSpecificationServiceInterface;
+use App\Vehicles\Domain\Enums\Vehicle\WiperSideEnum;
 
 /**
  * Доменное правило структуры деталей дворников ТС.
@@ -12,19 +13,10 @@ use App\Vehicles\Domain\Contracts\Application\Common\Services\WiperSpecification
  * Дворники хранятся как ОДНА PartSpecification на сторону: `details` содержит ровно один
  * корневой ключ — `front` ИЛИ `back`. Сервис чистый (только массивы): определяет сторону,
  * извлекает/нормализует данные стороны, разбивает legacy-структуру `{front,back}` на стороны
- * и склеивает обратно для экспорта.
+ * и склеивает обратно для экспорта. Источник значений сторон — WiperSideEnum (Domain).
  */
 final readonly class WiperSpecificationService implements WiperSpecificationServiceInterface
 {
-    public const string SIDE_FRONT = 'front';
-
-    public const string SIDE_BACK = 'back';
-
-    private const array ADAPTER_FIELD = [
-        self::SIDE_FRONT => 'adapter_type_front',
-        self::SIDE_BACK => 'adapter_type_rear',
-    ];
-
     /**
      * Сторона по корневым ключам: front / back / null (нет данных либо присутствуют обе).
      *
@@ -32,15 +24,15 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
      */
     public function detectSide(array $details): ?string
     {
-        $hasFront = array_key_exists(self::SIDE_FRONT, $details);
-        $hasBack = array_key_exists(self::SIDE_BACK, $details);
+        $hasFront = array_key_exists(WiperSideEnum::FRONT->value, $details);
+        $hasBack = array_key_exists(WiperSideEnum::BACK->value, $details);
 
         if ($hasFront && ! $hasBack) {
-            return self::SIDE_FRONT;
+            return WiperSideEnum::FRONT->value;
         }
 
         if (! $hasFront && $hasBack) {
-            return self::SIDE_BACK;
+            return WiperSideEnum::BACK->value;
         }
 
         return null;
@@ -53,7 +45,7 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
      */
     public function sideData(array $details, string $side): array
     {
-        if (! $this->isSide($side)) {
+        if (WiperSideEnum::tryFrom($side) === null) {
             return [];
         }
 
@@ -97,7 +89,7 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
      */
     public function sanitizeDetailsForSide(array $details, ?string $side): array
     {
-        if (! $this->isSide($side)) {
+        if ($side === null || WiperSideEnum::tryFrom($side) === null) {
             return $details;
         }
 
@@ -116,14 +108,14 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
     {
         $result = [];
 
-        foreach ([self::SIDE_FRONT, self::SIDE_BACK] as $side) {
+        foreach (WiperSideEnum::cases() as $sideEnum) {
+            $side = $sideEnum->value;
             $sideDetails = $this->sideData($details, $side);
             if ($sideDetails === []) {
                 continue;
             }
 
-            $adapterField = self::ADAPTER_FIELD[$side];
-            foreach ($this->expandByAdapters($sideDetails, $adapterField) as $variant) {
+            foreach ($this->expandByAdapters($sideDetails, $sideEnum->adapterField()) as $variant) {
                 $result[] = ['side' => $side, 'details' => [$side => $variant]];
             }
         }
@@ -143,11 +135,11 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
         $merged = [];
 
         if ($frontData !== []) {
-            $merged[self::SIDE_FRONT] = $frontData;
+            $merged[WiperSideEnum::FRONT->value] = $frontData;
         }
 
         if ($backData !== []) {
-            $merged[self::SIDE_BACK] = $backData;
+            $merged[WiperSideEnum::BACK->value] = $backData;
         }
 
         return $merged;
@@ -169,10 +161,5 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
             static fn (string $adapter) => array_merge($sideDetails, [$adapterField => [$adapter]]),
             $adapters,
         );
-    }
-
-    private function isSide(?string $side): bool
-    {
-        return $side === self::SIDE_FRONT || $side === self::SIDE_BACK;
     }
 }

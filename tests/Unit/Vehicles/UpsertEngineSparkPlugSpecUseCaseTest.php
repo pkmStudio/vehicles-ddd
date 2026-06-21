@@ -7,7 +7,7 @@ namespace Tests\Unit\Vehicles;
 use App\Vehicles\Application\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCase;
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationCommandInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\Engine;
 use App\Vehicles\Domain\Models\PartSpecification;

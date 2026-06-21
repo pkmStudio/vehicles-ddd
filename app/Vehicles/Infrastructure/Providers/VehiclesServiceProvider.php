@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Providers;
 
-use App\Vehicles\Application\Common\DetailTemplateResolver;
+use App\Vehicles\Application\Common\Services\DetailTemplateResolver;
 use App\Vehicles\Application\Common\Services\WiperSpecificationService;
 use App\Vehicles\Application\Export\Services\EngineExportService;
 use App\Vehicles\Application\Export\Services\VehicleExportService;
@@ -22,7 +22,7 @@ use App\Vehicles\Application\Import\Services\EngineImportService;
 use App\Vehicles\Application\Import\Services\EngineModificationReadinessGate;
 use App\Vehicles\Application\Import\Services\VehicleImportService;
 use App\Vehicles\Application\Import\Support\DetailsBuilder;
-use App\Vehicles\Application\Import\Support\EngineMainSheetImportService;
+use App\Vehicles\Application\Import\Support\EngineEditableColumnsMapper;
 use App\Vehicles\Application\Import\Support\TemplateDataBuilder;
 use App\Vehicles\Application\Import\UseCases\Engine\AssignEngineGroupUseCase;
 use App\Vehicles\Application\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCase;
@@ -54,7 +54,7 @@ use App\Vehicles\Domain\Contracts\Application\Import\Services\EngineImportServic
 use App\Vehicles\Domain\Contracts\Application\Import\Services\EngineModificationReadinessGateInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Services\VehicleImportServiceInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Support\DetailsBuilderInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\Support\EngineMainSheetImportServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Support\EngineEditableColumnsMapperInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\AssignEngineGroupUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCaseInterface;
@@ -68,7 +68,14 @@ use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Reporting\ReportIm
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCaseInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineCommandInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineModificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\FeatureCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\FeatureValueCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ManufacturerCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ModificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Commands\VehicleCommandInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Exports\EngineMultiSheetExportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Exports\FailuresExportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Exports\ImportFailureReporterInterface;
@@ -85,7 +92,21 @@ use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleCommandImportInt
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleMultiSheetImportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Messaging\RabbitMQPublisherInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Notifications\FileNotificationServiceInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\EngineRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\FeatureRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\FeatureValueRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\ManufacturerRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\ModificationRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\PartSpecificationRepositoryInterface;
+use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Infrastructure\Commands\EngineCommand;
 use App\Vehicles\Infrastructure\Commands\EngineModificationCommand;
+use App\Vehicles\Infrastructure\Commands\FeatureCommand;
+use App\Vehicles\Infrastructure\Commands\FeatureValueCommand;
+use App\Vehicles\Infrastructure\Commands\ManufacturerCommand;
+use App\Vehicles\Infrastructure\Commands\ModificationCommand;
+use App\Vehicles\Infrastructure\Commands\PartSpecificationCommand;
+use App\Vehicles\Infrastructure\Commands\VehicleCommand;
 use App\Vehicles\Infrastructure\Exports\Engine\EngineMultiSheetExport;
 use App\Vehicles\Infrastructure\Exports\FailuresExport;
 use App\Vehicles\Infrastructure\Exports\ImportFailureReporter;
@@ -102,6 +123,13 @@ use App\Vehicles\Infrastructure\Imports\Vehicle\VehicleCommandImport;
 use App\Vehicles\Infrastructure\Imports\Vehicle\VehicleMultiSheetImport;
 use App\Vehicles\Infrastructure\Messaging\RabbitMQPublisher;
 use App\Vehicles\Infrastructure\Notifications\RabbitMqFileNotificationService;
+use App\Vehicles\Infrastructure\Repositories\EngineRepository;
+use App\Vehicles\Infrastructure\Repositories\FeatureRepository;
+use App\Vehicles\Infrastructure\Repositories\FeatureValueRepository;
+use App\Vehicles\Infrastructure\Repositories\ManufacturerRepository;
+use App\Vehicles\Infrastructure\Repositories\ModificationRepository;
+use App\Vehicles\Infrastructure\Repositories\PartSpecificationRepository;
+use App\Vehicles\Infrastructure\Repositories\VehicleRepository;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -112,24 +140,34 @@ use Illuminate\Support\ServiceProvider;
 class VehiclesServiceProvider extends ServiceProvider
 {
     /**
-     * Сущности домена с парой Repository (чтение) + Command (запись).
-     * Добавить сущность = одна строка.
+     * Порты Репозиториев и Команд
      */
-    private const ENTITIES = [
-        'Vehicle',
-        'Modification',
-        'Engine',
-        'PartSpecification',
-        'Manufacturer',
-        'Feature',
-        'FeatureValue',
+    private const array REPOSITORY_BINDINGS = [
+        ManufacturerRepositoryInterface::class => ManufacturerRepository::class,
+        VehicleRepositoryInterface::class => VehicleRepository::class,
+        ModificationRepositoryInterface::class => ModificationRepository::class,
+        EngineRepositoryInterface::class => EngineRepository::class,
+        PartSpecificationRepositoryInterface::class => PartSpecificationRepository::class,
+        FeatureRepositoryInterface::class => FeatureRepository::class,
+        FeatureValueRepositoryInterface::class => FeatureValueRepository::class,
+    ];
+
+    private const array COMMAND_BINDINGS = [
+        ManufacturerCommandInterface::class => ManufacturerCommand::class,
+        VehicleCommandInterface::class => VehicleCommand::class,
+        ModificationCommandInterface::class => ModificationCommand::class,
+        EngineCommandInterface::class => EngineCommand::class,
+        EngineModificationCommandInterface::class => EngineModificationCommand::class,
+        PartSpecificationCommandInterface::class => PartSpecificationCommand::class,
+        FeatureCommandInterface::class => FeatureCommand::class,
+        FeatureValueCommandInterface::class => FeatureValueCommand::class,
     ];
 
     /**
      * Порты импорта/экспорта (Domain\Contracts) → реализации (Infrastructure\Imports / Infrastructure\Exports).
      * Поведенческие порты: import(path) / parse(path) / download(fileName); Excel — внутри реализации.
      */
-    private const IMPORT_EXPORT_BINDINGS = [
+    private const array IMPORT_EXPORT_BINDINGS = [
         ManufacturerCommandImportInterface::class => ManufacturerCommandImport::class,
         VehicleCommandImportInterface::class => VehicleCommandImport::class,
         EngineCommandImportInterface::class => EngineCommandImport::class,
@@ -147,14 +185,14 @@ class VehiclesServiceProvider extends ServiceProvider
     /**
      * Порты Excel-листов / сервисы экспорта, которые остаются через порты.
      */
-    private const IMPORT_EXPORT_SHEET_BINDINGS = [
+    private const array IMPORT_EXPORT_SHEET_BINDINGS = [
         FailuresExportInterface::class => FailuresExport::class,
     ];
 
     /**
      * Порты фабрик (Domain\Contracts\Import\Factories) → реализации (Application\Import\Factories).
      */
-    private const FACTORY_BINDINGS = [
+    private const array FACTORY_BINDINGS = [
         EngineDataFactoryInterface::class => EngineDataFactory::class,
         VehicleDataFactoryInterface::class => VehicleDataFactory::class,
         ModificationDataFactoryInterface::class => ModificationDataFactory::class,
@@ -165,7 +203,7 @@ class VehiclesServiceProvider extends ServiceProvider
     /**
      * Порты сервисов/поддержки application-слоя → concrete реализации.
      */
-    private const SUPPORT_BINDINGS = [
+    private const array SUPPORT_BINDINGS = [
         DetailTemplateResolverInterface::class => DetailTemplateResolver::class,
         WiperSpecificationServiceInterface::class => WiperSpecificationService::class,
         ExportDetailsBuilderInterface::class => ExportDetailsBuilder::class,
@@ -175,7 +213,7 @@ class VehiclesServiceProvider extends ServiceProvider
         WiperRowExpanderInterface::class => WiperRowExpander::class,
         TemplateDataBuilderInterface::class => TemplateDataBuilder::class,
         DetailsBuilderInterface::class => DetailsBuilder::class,
-        EngineMainSheetImportServiceInterface::class => EngineMainSheetImportService::class,
+        EngineEditableColumnsMapperInterface::class => EngineEditableColumnsMapper::class,
         EngineImportServiceInterface::class => EngineImportService::class,
         VehicleImportServiceInterface::class => VehicleImportService::class,
         EngineExportServiceInterface::class => EngineExportService::class,
@@ -187,7 +225,7 @@ class VehiclesServiceProvider extends ServiceProvider
     /**
      * Порты use-case сценариев → реализации (Application\Import\UseCases).
      */
-    private const USECASE_BINDINGS = [
+    private const array USECASE_BINDINGS = [
         UpsertEngineFromSheetUseCaseInterface::class => UpsertEngineFromSheetUseCase::class,
         UpsertEngineSparkPlugSpecUseCaseInterface::class => UpsertEngineSparkPlugSpecUseCase::class,
         UpsertSparkPlugSpecByModificationUseCaseInterface::class => UpsertSparkPlugSpecByModificationUseCase::class,
@@ -216,22 +254,13 @@ class VehiclesServiceProvider extends ServiceProvider
         );
 
         // Repository (read) + Command (write) каждой сущности → их реализации.
-        foreach (self::ENTITIES as $entity) {
-            $this->app->bind(
-                "App\\Vehicles\\Domain\\Contracts\\Repositories\\{$entity}RepositoryInterface",
-                "App\\Vehicles\\Infrastructure\\Repositories\\{$entity}Repository",
-            );
-            $this->app->bind(
-                "App\\Vehicles\\Domain\\Contracts\\Commands\\{$entity}CommandInterface",
-                "App\\Vehicles\\Infrastructure\\Commands\\{$entity}Command",
-            );
+        foreach (self::REPOSITORY_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
         }
 
-        // EngineModification — только запись (пивот engine_modification), без репозитория.
-        $this->app->bind(
-            EngineModificationCommandInterface::class,
-            EngineModificationCommand::class,
-        );
+        foreach (self::COMMAND_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
+        }
 
         // Порты импорта/экспорта → реализации.
         foreach (self::IMPORT_EXPORT_BINDINGS as $interface => $implementation) {

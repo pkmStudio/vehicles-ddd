@@ -10,9 +10,10 @@ use App\Vehicles\Domain\Contracts\Application\Export\Services\VehicleExportServi
 use App\Vehicles\Domain\Contracts\Application\Export\Support\ExportDetailsBuilderInterface;
 use App\Vehicles\Domain\Contracts\Application\Export\Support\VehicleExportRowInterface;
 use App\Vehicles\Domain\Contracts\Application\Export\Support\WiperRowExpanderInterface;
-use App\Vehicles\Domain\DTOs\VehicleExportPlan;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Domain\DTOs\VehicleExportPlan;
 use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
+use App\Vehicles\Domain\Enums\Vehicle\WiperSideEnum;
 use App\Vehicles\Domain\Models\PartSpecification;
 use App\Vehicles\Domain\Models\Vehicle;
 use Illuminate\Support\Collection;
@@ -88,8 +89,8 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
             );
         }
 
-        $frontData = $frontSpec ? $this->wiper->sideData((array) $frontSpec->details, WiperSpecificationServiceInterface::SIDE_FRONT) : [];
-        $backData = $backSpec ? $this->wiper->sideData((array) $backSpec->details, WiperSpecificationServiceInterface::SIDE_BACK) : [];
+        $frontData = $frontSpec ? $this->wiper->sideData((array) $frontSpec->details, WiperSideEnum::FRONT->value) : [];
+        $backData = $backSpec ? $this->wiper->sideData((array) $backSpec->details, WiperSideEnum::BACK->value) : [];
 
         $specData = [
             $frontSpec?->featureValue?->name ?? $backSpec?->featureValue?->name,

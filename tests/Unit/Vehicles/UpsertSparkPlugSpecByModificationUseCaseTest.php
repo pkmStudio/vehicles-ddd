@@ -8,7 +8,7 @@ use App\Vehicles\Application\Import\UseCases\Engine\UpsertSparkPlugSpecByModific
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationCommandInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\ModificationRepositoryInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Domain\Enums\EngineFuelTypeEnum;
+use App\Vehicles\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\Engine;
 use App\Vehicles\Domain\Models\Modification;

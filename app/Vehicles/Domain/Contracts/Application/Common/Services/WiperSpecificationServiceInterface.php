@@ -6,10 +6,6 @@ namespace App\Vehicles\Domain\Contracts\Application\Common\Services;
 
 interface WiperSpecificationServiceInterface
 {
-    public const string SIDE_FRONT = 'front';
-
-    public const string SIDE_BACK = 'back';
-
     public function detectSide(array $details): ?string;
 
     public function sideData(array $details, string $side): array;
