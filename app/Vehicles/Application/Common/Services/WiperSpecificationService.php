@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Domain\Services;
+namespace App\Vehicles\Application\Common\Services;
 
 use App\Vehicles\Domain\Contracts\Application\Common\Services\WiperSpecificationServiceInterface;
 
