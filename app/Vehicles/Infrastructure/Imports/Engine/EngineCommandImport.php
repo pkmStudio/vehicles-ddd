@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine;
 
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertEngineFromSheetUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\UpsertEngineFromSheetServiceInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineCommandImportInterface;
 use App\Vehicles\Domain\Events\Engine\EngineCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,12 +23,12 @@ use Maatwebsite\Excel\Validators\Failure;
 
 /**
  * Excel-адаптер импорта двигателей (механика): читает файл по чанкам и на каждую строку
- * зовёт построчный сценарий. Бизнес-логика строки — в UpsertEngineFromSheetUseCase.
+ * зовёт построчный сценарий. Бизнес-логика строки — в UpsertEngineFromSheetService.
  */
 final class EngineCommandImport implements EngineCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
     public function __construct(
-        private readonly UpsertEngineFromSheetUseCaseInterface $useCase,
+        private readonly UpsertEngineFromSheetServiceInterface $service,
     ) {}
 
     public function import(string $path): void

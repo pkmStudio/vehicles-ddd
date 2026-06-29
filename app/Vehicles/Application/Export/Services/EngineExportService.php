@@ -6,9 +6,9 @@ namespace App\Vehicles\Application\Export\Services;
 
 use App\Vehicles\Domain\Contracts\Application\Common\Services\DetailTemplateResolverInterface;
 use App\Vehicles\Domain\Contracts\Application\Export\Services\EngineExportServiceInterface;
-use App\Vehicles\Domain\Contracts\Application\Export\Support\EngineExportRowInterface;
-use App\Vehicles\Domain\Contracts\Application\Export\Support\ExportDetailsBuilderInterface;
-use App\Vehicles\Domain\Contracts\Application\Export\Support\PartSpecificationRowExpanderInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Services\Rows\EngineExportRowInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Services\Details\ExportDetailsBuilderInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Services\Expanders\PartSpecificationRowExpanderInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Domain\DTOs\EngineExportPlan;
 use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;

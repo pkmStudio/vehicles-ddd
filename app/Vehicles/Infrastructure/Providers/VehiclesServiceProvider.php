@@ -8,43 +8,43 @@ use App\Vehicles\Application\Common\Services\DetailTemplateResolver;
 use App\Vehicles\Application\Common\Services\WiperSpecificationService;
 use App\Vehicles\Application\Export\Services\EngineExportService;
 use App\Vehicles\Application\Export\Services\VehicleExportService;
-use App\Vehicles\Application\Export\Support\EngineExportRow;
-use App\Vehicles\Application\Export\Support\ExportDetailsBuilder;
-use App\Vehicles\Application\Export\Support\PartSpecificationRowExpander;
-use App\Vehicles\Application\Export\Support\VehicleExportRow;
-use App\Vehicles\Application\Export\Support\WiperRowExpander;
+use App\Vehicles\Application\Export\Services\Rows\EngineExportRow;
+use App\Vehicles\Application\Export\Services\Details\ExportDetailsBuilder;
+use App\Vehicles\Application\Export\Services\Expanders\PartSpecificationRowExpander;
+use App\Vehicles\Application\Export\Services\Rows\VehicleExportRow;
+use App\Vehicles\Application\Export\Services\Expanders\WiperRowExpander;
 use App\Vehicles\Application\Import\Factories\Engine\EngineDataFactory;
 use App\Vehicles\Application\Import\Factories\EngineModification\EngineModificationDataFactory;
 use App\Vehicles\Application\Import\Factories\Manufacturer\ManufacturerDataFactory;
 use App\Vehicles\Application\Import\Factories\Modification\ModificationDataFactory;
 use App\Vehicles\Application\Import\Factories\Vehicle\VehicleDataFactory;
 use App\Vehicles\Application\Import\Services\EngineImportService;
+use App\Vehicles\Application\Import\Services\Engine\AssignEngineGroupService;
+use App\Vehicles\Application\Import\Services\Engine\EngineEditableColumnsMapper;
+use App\Vehicles\Application\Import\Services\Engine\UpdateEngineEditableFieldsService;
+use App\Vehicles\Application\Import\Services\Engine\UpsertEngineFromSheetService;
+use App\Vehicles\Application\Import\Services\Engine\UpsertEngineSparkPlugSpecService;
+use App\Vehicles\Application\Import\Services\Engine\UpsertSparkPlugSpecByModificationService;
+use App\Vehicles\Application\Import\Services\EngineModification\LinkEngineModificationFromRowService;
 use App\Vehicles\Application\Import\Services\EngineModificationReadinessGate;
+use App\Vehicles\Application\Import\Services\Manufacturer\UpsertManufacturerFromRowService;
+use App\Vehicles\Application\Import\Services\Modification\UpsertModificationFromRowService;
+use App\Vehicles\Application\Import\Services\Reporting\ReportImportResultService;
+use App\Vehicles\Application\Import\Services\Template\DetailsBuilder;
+use App\Vehicles\Application\Import\Services\Template\TemplateDataBuilder;
+use App\Vehicles\Application\Import\Services\Vehicle\UpsertVehicleFromSheetService;
+use App\Vehicles\Application\Import\Services\Vehicle\UpsertVehicleFromTdRowService;
+use App\Vehicles\Application\Import\Services\Vehicle\VehicleWiperSpecificationImportService;
 use App\Vehicles\Application\Import\Services\VehicleImportService;
-use App\Vehicles\Application\Import\Support\DetailsBuilder;
-use App\Vehicles\Application\Import\Support\EngineEditableColumnsMapper;
-use App\Vehicles\Application\Import\Support\TemplateDataBuilder;
-use App\Vehicles\Application\Import\UseCases\Engine\AssignEngineGroupUseCase;
-use App\Vehicles\Application\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCase;
-use App\Vehicles\Application\Import\UseCases\Engine\UpsertEngineFromSheetUseCase;
-use App\Vehicles\Application\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCase;
-use App\Vehicles\Application\Import\UseCases\Engine\UpsertSparkPlugSpecByModificationUseCase;
-use App\Vehicles\Application\Import\UseCases\EngineModification\LinkEngineModificationFromRowUseCase;
-use App\Vehicles\Application\Import\UseCases\Manufacturer\UpsertManufacturerFromRowUseCase;
-use App\Vehicles\Application\Import\UseCases\Modification\UpsertModificationFromRowUseCase;
-use App\Vehicles\Application\Import\UseCases\Reporting\ReportImportResultUseCase;
-use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCase;
-use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCase;
-use App\Vehicles\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCase;
 use App\Vehicles\Domain\Contracts\Application\Common\Services\DetailTemplateResolverInterface;
 use App\Vehicles\Domain\Contracts\Application\Common\Services\WiperSpecificationServiceInterface;
 use App\Vehicles\Domain\Contracts\Application\Export\Services\EngineExportServiceInterface;
 use App\Vehicles\Domain\Contracts\Application\Export\Services\VehicleExportServiceInterface;
-use App\Vehicles\Domain\Contracts\Application\Export\Support\EngineExportRowInterface;
-use App\Vehicles\Domain\Contracts\Application\Export\Support\ExportDetailsBuilderInterface;
-use App\Vehicles\Domain\Contracts\Application\Export\Support\PartSpecificationRowExpanderInterface;
-use App\Vehicles\Domain\Contracts\Application\Export\Support\VehicleExportRowInterface;
-use App\Vehicles\Domain\Contracts\Application\Export\Support\WiperRowExpanderInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Services\Rows\EngineExportRowInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Services\Details\ExportDetailsBuilderInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Services\Expanders\PartSpecificationRowExpanderInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Services\Rows\VehicleExportRowInterface;
+use App\Vehicles\Domain\Contracts\Application\Export\Services\Expanders\WiperRowExpanderInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Factories\EngineDataFactoryInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Factories\EngineModificationDataFactoryInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Factories\ManufacturerDataFactoryInterface;
@@ -53,21 +53,21 @@ use App\Vehicles\Domain\Contracts\Application\Import\Factories\VehicleDataFactor
 use App\Vehicles\Domain\Contracts\Application\Import\Services\EngineImportServiceInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Services\EngineModificationReadinessGateInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Services\VehicleImportServiceInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\Support\DetailsBuilderInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\Support\EngineEditableColumnsMapperInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\AssignEngineGroupUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertEngineFromSheetUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertSparkPlugSpecByModificationUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\EngineModification\LinkEngineModificationFromRowUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Manufacturer\UpsertManufacturerFromRowUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Modification\UpsertModificationFromRowUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Reporting\ReportImportResultUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromTdRowUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Template\DetailsBuilderInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\EngineEditableColumnsMapperInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Template\TemplateDataBuilderInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\AssignEngineGroupServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\UpdateEngineEditableFieldsServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\UpsertEngineFromSheetServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\EngineModification\LinkEngineModificationFromRowServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Manufacturer\UpsertManufacturerFromRowServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Modification\UpsertModificationFromRowServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Reporting\ReportImportResultServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineCommandInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineModificationCommandInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Commands\FeatureCommandInterface;
@@ -201,9 +201,9 @@ class VehiclesServiceProvider extends ServiceProvider
     ];
 
     /**
-     * Порты сервисов/поддержки application-слоя → concrete реализации.
+     * Порты сервисов application-слоя → concrete реализации.
      */
-    private const array SUPPORT_BINDINGS = [
+    private const array SERVICE_BINDINGS = [
         DetailTemplateResolverInterface::class => DetailTemplateResolver::class,
         WiperSpecificationServiceInterface::class => WiperSpecificationService::class,
         ExportDetailsBuilderInterface::class => ExportDetailsBuilder::class,
@@ -219,24 +219,18 @@ class VehiclesServiceProvider extends ServiceProvider
         EngineExportServiceInterface::class => EngineExportService::class,
         VehicleExportServiceInterface::class => VehicleExportService::class,
         EngineModificationReadinessGateInterface::class => EngineModificationReadinessGate::class,
-        ReportImportResultUseCaseInterface::class => ReportImportResultUseCase::class,
-    ];
-
-    /**
-     * Порты use-case сценариев → реализации (Application\Import\UseCases).
-     */
-    private const array USECASE_BINDINGS = [
-        UpsertEngineFromSheetUseCaseInterface::class => UpsertEngineFromSheetUseCase::class,
-        UpsertEngineSparkPlugSpecUseCaseInterface::class => UpsertEngineSparkPlugSpecUseCase::class,
-        UpsertSparkPlugSpecByModificationUseCaseInterface::class => UpsertSparkPlugSpecByModificationUseCase::class,
-        AssignEngineGroupUseCaseInterface::class => AssignEngineGroupUseCase::class,
-        UpdateEngineEditableFieldsUseCaseInterface::class => UpdateEngineEditableFieldsUseCase::class,
-        UpsertManufacturerFromRowUseCaseInterface::class => UpsertManufacturerFromRowUseCase::class,
-        UpsertModificationFromRowUseCaseInterface::class => UpsertModificationFromRowUseCase::class,
-        UpsertVehicleFromSheetUseCaseInterface::class => UpsertVehicleFromSheetUseCase::class,
-        UpsertVehicleFromTdRowUseCaseInterface::class => UpsertVehicleFromTdRowUseCase::class,
-        UpsertVehicleWiperSpecUseCaseInterface::class => UpsertVehicleWiperSpecUseCase::class,
-        LinkEngineModificationFromRowUseCaseInterface::class => LinkEngineModificationFromRowUseCase::class,
+        ReportImportResultServiceInterface::class => ReportImportResultService::class,
+        UpsertEngineFromSheetServiceInterface::class => UpsertEngineFromSheetService::class,
+        UpsertEngineSparkPlugSpecServiceInterface::class => UpsertEngineSparkPlugSpecService::class,
+        UpsertSparkPlugSpecByModificationServiceInterface::class => UpsertSparkPlugSpecByModificationService::class,
+        AssignEngineGroupServiceInterface::class => AssignEngineGroupService::class,
+        UpdateEngineEditableFieldsServiceInterface::class => UpdateEngineEditableFieldsService::class,
+        UpsertManufacturerFromRowServiceInterface::class => UpsertManufacturerFromRowService::class,
+        UpsertModificationFromRowServiceInterface::class => UpsertModificationFromRowService::class,
+        UpsertVehicleFromSheetServiceInterface::class => UpsertVehicleFromSheetService::class,
+        UpsertVehicleFromTdRowServiceInterface::class => UpsertVehicleFromTdRowService::class,
+        VehicleWiperSpecificationImportServiceInterface::class => VehicleWiperSpecificationImportService::class,
+        LinkEngineModificationFromRowServiceInterface::class => LinkEngineModificationFromRowService::class,
     ];
 
     public function register(): void
@@ -276,12 +270,8 @@ class VehiclesServiceProvider extends ServiceProvider
             $this->app->bind($interface, $implementation);
         }
 
-        // Порты application-слоя (сервисы/поддержка/сценарии) → реализации.
-        foreach (self::SUPPORT_BINDINGS as $interface => $implementation) {
-            $this->app->bind($interface, $implementation);
-        }
-
-        foreach (self::USECASE_BINDINGS as $interface => $implementation) {
+        // Порты application-слоя → реализации.
+        foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
 

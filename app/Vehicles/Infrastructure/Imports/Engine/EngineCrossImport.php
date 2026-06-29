@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine;
 
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\AssignEngineGroupUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\AssignEngineGroupServiceInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineCrossImportInterface;
 use App\Vehicles\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Vehicles\Traits\CachesImportFailures;
@@ -34,7 +34,7 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
     public int $importedByUserId;
 
     public function __construct(
-        private readonly AssignEngineGroupUseCaseInterface $useCase,
+        private readonly AssignEngineGroupServiceInterface $service,
     ) {
         $this->importedByUserId = (int) Auth::id();
         $this->cacheKey = "engine_import_failures_{$this->importedByUserId}";

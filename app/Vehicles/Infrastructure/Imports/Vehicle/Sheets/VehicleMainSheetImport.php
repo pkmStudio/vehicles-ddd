@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Vehicle\Sheets;
 
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +20,7 @@ final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, With
     public function __construct(
         private readonly int $userId,
         string $cacheKey,
-        private readonly UpsertVehicleFromSheetUseCaseInterface $upsertVehicle,
+        private readonly UpsertVehicleFromSheetServiceInterface $upsertVehicle,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = "vehicle_import_failures_lock_{$this->userId}";

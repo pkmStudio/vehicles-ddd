@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Vehicles;
 
 use App\Vehicles\Application\Common\Services\WiperSpecificationService;
-use PHPUnit\Framework\TestCase;
+use App\Vehicles\Domain\Models\PartSpecification;
+use Tests\TestCase;
 
 final class WiperSpecificationServiceTest extends TestCase
 {
@@ -66,6 +67,27 @@ final class WiperSpecificationServiceTest extends TestCase
 
         $this->assertCount(1, $parts);
         $this->assertSame('back', $parts[0]['side']);
+    }
+
+    public function test_split_specification_expands_sides_and_adapters(): void
+    {
+        $specification = new PartSpecification;
+        $specification->id = 123;
+        $specification->details = [
+            'front' => ['adapter_type_front' => ['A1', 'A2'], 'count_wipers' => 2],
+            'back' => ['adapter_type_rear' => 'B1'],
+        ];
+
+        $parts = $this->service->splitSpecification($specification);
+
+        $this->assertCount(3, $parts);
+        $this->assertSame([123, 123, 123], array_column($parts, 'part_specification_id'));
+        $this->assertSame('front', $parts[0]['side']);
+        $this->assertSame(['A1'], $parts[0]['details']['front']['adapter_type_front']);
+        $this->assertSame('front', $parts[1]['side']);
+        $this->assertSame(['A2'], $parts[1]['details']['front']['adapter_type_front']);
+        $this->assertSame('back', $parts[2]['side']);
+        $this->assertSame(['B1'], $parts[2]['details']['back']['adapter_type_rear']);
     }
 
     public function test_merge_for_export(): void

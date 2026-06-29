@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine\Sheets;
 
-use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpsertEngineSparkPlugSpecUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Template\TemplateDataBuilderInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
 use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
@@ -31,7 +31,7 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
     public function __construct(
         private readonly int $userId,
         string $cacheKey,
-        private readonly UpsertEngineSparkPlugSpecUseCaseInterface $useCase,
+        private readonly UpsertEngineSparkPlugSpecServiceInterface $service,
         private readonly TemplateDataBuilderInterface $templateDataBuilder,
     ) {
         $this->cacheKey = $cacheKey;

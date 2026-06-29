@@ -6,6 +6,8 @@ namespace App\Vehicles\Application\Common\Services;
 
 use App\Vehicles\Domain\Contracts\Application\Common\Services\WiperSpecificationServiceInterface;
 use App\Vehicles\Domain\Enums\Vehicle\WiperSideEnum;
+use App\Vehicles\Domain\Models\PartSpecification;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Доменное правило структуры деталей дворников ТС.
@@ -36,6 +38,19 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
         }
 
         return null;
+    }
+
+    /**
+     * Определяет сторону сохраненной PartSpecification.
+     *
+     * Шаги:
+     * 1. Берет details из модели.
+     * 2. Делегирует определение стороны в detectSide().
+     * 3. Передает результат вызывающему сервису для принятия решения.
+     */
+    public function detectSideByPartSpecification(PartSpecification $partSpecification): ?string
+    {
+        return $this->detectSide((array) ($partSpecification->details ?? []));
     }
 
     /**
@@ -81,6 +96,75 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
     }
 
     /**
+     * Нормализует адаптеры машины и логирует нарушение инварианта "один адаптер на вариант".
+     *
+     * Шаги:
+     * 1. Приводит входное значение к массиву кодов.
+     * 2. Логирует предупреждение, если кодов больше одного.
+     * 3. Возвращает нормализованный массив без потери данных.
+     */
+    public function normalizeVehicleAdapters(PartSpecification $partSpecification, string $side, mixed $rawAdapters): array
+    {
+        $adapters = $this->normalizeAdapters($rawAdapters);
+
+        if (count($adapters) > 1) {
+            Log::warning('В adapter_type_* найдено более одного значения для ТС', [
+                'part_specification_id' => $partSpecification->id,
+                'side' => $side,
+                'adapter_count' => count($adapters),
+                'adapters' => $adapters,
+            ]);
+        }
+
+        return $adapters;
+    }
+
+    /**
+     * Нормализует details одной стороны.
+     *
+     * Шаги:
+     * 1. Определяет поле адаптера по стороне.
+     * 2. Нормализует значение адаптера.
+     * 3. Возвращает side-details с адаптером в массивном формате.
+     */
+    public function normalizeSideDetails(array $sideDetails, PartSpecification $partSpecification, string $side): array
+    {
+        $sideEnum = WiperSideEnum::tryFrom($side);
+        if ($sideEnum === null) {
+            return $sideDetails;
+        }
+
+        $adapterField = $sideEnum->adapterField();
+        $sideDetails[$adapterField] = $this->normalizeVehicleAdapters(
+            $partSpecification,
+            $side,
+            $sideDetails[$adapterField] ?? [],
+        );
+
+        return $sideDetails;
+    }
+
+    /**
+     * Считает количество адаптеров у details конкретной стороны.
+     *
+     * Шаги:
+     * 1. Валидирует сторону через enum.
+     * 2. Достает side-details и поле адаптера.
+     * 3. Возвращает количество нормализованных кодов.
+     */
+    public function getVehicleAdapterCount(array $details, string $side): int
+    {
+        $sideEnum = WiperSideEnum::tryFrom($side);
+        if ($sideEnum === null) {
+            return 0;
+        }
+
+        $sideData = $this->sideData($details, $side);
+
+        return count($this->normalizeAdapters($sideData[$sideEnum->adapterField()] ?? []));
+    }
+
+    /**
      * Оставляет в структуре деталей только выбранную сторону: `[side => sideData]`.
      * Для неизвестной стороны возвращает исходные данные без изменений.
      *
@@ -117,6 +201,41 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
 
             foreach ($this->expandByAdapters($sideDetails, $sideEnum->adapterField()) as $variant) {
                 $result[] = ['side' => $side, 'details' => [$side => $variant]];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Разбивает сохраненную спецификацию на отдельные side-варианты.
+     *
+     * Шаги:
+     * 1. Читает details модели.
+     * 2. Для каждой стороны нормализует данные.
+     * 3. Возвращает варианты с одним корневым ключом details.
+     *
+     * @return array<int, array{part_specification_id: int, side: string, details: array<string, mixed>}>
+     */
+    public function splitSpecification(PartSpecification $partSpecification): array
+    {
+        $result = [];
+        $details = (array) ($partSpecification->details ?? []);
+
+        foreach (WiperSideEnum::cases() as $sideEnum) {
+            $side = $sideEnum->value;
+            $sideDetails = $this->sideData($details, $side);
+            if ($sideDetails === []) {
+                continue;
+            }
+
+            $normalizedDetails = $this->normalizeSideDetails($sideDetails, $partSpecification, $side);
+            foreach ($this->expandByAdapters($normalizedDetails, $sideEnum->adapterField()) as $variant) {
+                $result[] = [
+                    'part_specification_id' => (int) $partSpecification->id,
+                    'side' => $side,
+                    'details' => [$side => $variant],
+                ];
             }
         }
 

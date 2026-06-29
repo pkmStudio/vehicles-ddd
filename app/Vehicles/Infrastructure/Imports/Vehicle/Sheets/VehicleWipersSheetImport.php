@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Vehicle\Sheets;
 
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleFromSheetUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Vehicle\UpsertVehicleWiperSpecUseCaseInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\Support\TemplateDataBuilderInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Template\TemplateDataBuilderInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
@@ -30,8 +30,8 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
     public function __construct(
         private readonly int $userId,
         string $cacheKey,
-        private readonly UpsertVehicleFromSheetUseCaseInterface $upsertVehicle,
-        private readonly UpsertVehicleWiperSpecUseCaseInterface $upsertWiperSpec,
+        private readonly UpsertVehicleFromSheetServiceInterface $upsertVehicle,
+        private readonly VehicleWiperSpecificationImportServiceInterface $upsertWiperSpec,
         private readonly TemplateDataBuilderInterface $templateDataBuilder,
     ) {
         $this->cacheKey = $cacheKey;

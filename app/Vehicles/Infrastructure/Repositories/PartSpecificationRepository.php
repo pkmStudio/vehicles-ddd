@@ -27,13 +27,32 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
         return PartSpecification::query()->get();
     }
 
-    public function firstByVehicleTemplateAndSide(int $vehicleId, DetailTemplateEnum $template, string $side): ?PartSpecification
+    public function forVehicleTemplateAndSide(int $vehicleId, DetailTemplateEnum $template, string $side): Collection
     {
         return PartSpecification::query()
             ->where('partable_type', Vehicle::class)
             ->where('partable_id', $vehicleId)
             ->where('template', $template->value)
             ->whereRaw('jsonb_exists(details, ?)', [$side])
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function firstByVehicleTemplateSideAndDetails(
+        int $vehicleId,
+        DetailTemplateEnum $template,
+        string $side,
+        array $details,
+    ): ?PartSpecification {
+        return PartSpecification::query()
+            ->where('partable_type', Vehicle::class)
+            ->where('partable_id', $vehicleId)
+            ->where('template', $template->value)
+            ->whereRaw('jsonb_exists(details, ?)', [$side])
+            ->whereRaw('details = CAST(? AS jsonb)', [
+                json_encode($details, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            ])
+            ->orderBy('id')
             ->first();
     }
 }

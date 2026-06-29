@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Engine\Sheets;
 
-use App\Vehicles\Domain\Contracts\Application\Import\Support\EngineEditableColumnsMapperInterface;
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Engine\UpdateEngineEditableFieldsUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\EngineEditableColumnsMapperInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\UpdateEngineEditableFieldsServiceInterface;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +25,7 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
     public function __construct(
         private readonly int $userId,
         string $cacheKey,
-        private readonly UpdateEngineEditableFieldsUseCaseInterface $useCase,
+        private readonly UpdateEngineEditableFieldsServiceInterface $service,
         private readonly EngineEditableColumnsMapperInterface $editableColumnsMapper,
     ) {
         $this->cacheKey = $cacheKey;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Manufacturer;
 
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Manufacturer\UpsertManufacturerFromRowUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Manufacturer\UpsertManufacturerFromRowServiceInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ManufacturerCommandImportInterface;
 use App\Vehicles\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,12 +23,12 @@ use Maatwebsite\Excel\Validators\Failure;
 
 /**
  * Excel-адаптер импорта производителей (механика): читает файл по чанкам и на каждую строку
- * зовёт построчный сценарий. Бизнес-логика строки — в UpsertManufacturerFromRowUseCase.
+ * зовёт построчный сценарий. Бизнес-логика строки — в UpsertManufacturerFromRowService.
  */
 final class ManufacturerCommandImport implements ManufacturerCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
     public function __construct(
-        private readonly UpsertManufacturerFromRowUseCaseInterface $useCase,
+        private readonly UpsertManufacturerFromRowServiceInterface $service,
     ) {}
 
     public function import(string $path): void

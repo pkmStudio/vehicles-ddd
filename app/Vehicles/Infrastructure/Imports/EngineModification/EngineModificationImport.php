@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\EngineModification;
 
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\EngineModification\LinkEngineModificationFromRowUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\EngineModification\LinkEngineModificationFromRowServiceInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineModificationImportInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
@@ -20,12 +20,12 @@ use Maatwebsite\Excel\Validators\Failure;
 
 /**
  * Excel-адаптер импорта связи двигатель↔модификация (механика): читает файл по чанкам и на
- * каждую строку зовёт сценарий привязки. Логика строки — в LinkEngineModificationFromRowUseCase.
+ * каждую строку зовёт сценарий привязки. Логика строки — в LinkEngineModificationFromRowService.
  */
 final class EngineModificationImport implements EngineModificationImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithStartRow
 {
     public function __construct(
-        private readonly LinkEngineModificationFromRowUseCaseInterface $useCase,
+        private readonly LinkEngineModificationFromRowServiceInterface $service,
     ) {}
 
     public function import(string $path): void

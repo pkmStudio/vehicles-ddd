@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Modification;
 
-use App\Vehicles\Domain\Contracts\Application\Import\UseCases\Modification\UpsertModificationFromRowUseCaseInterface;
+use App\Vehicles\Domain\Contracts\Application\Import\Services\Modification\UpsertModificationFromRowServiceInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ModificationCommandImportInterface;
 use App\Vehicles\Domain\Events\Modification\ModificationCommandImported;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,12 +23,12 @@ use Maatwebsite\Excel\Validators\Failure;
 
 /**
  * Excel-адаптер импорта модификаций (механика): читает файл по чанкам и на каждую строку
- * зовёт построчный сценарий. Бизнес-логика строки — в UpsertModificationFromRowUseCase.
+ * зовёт построчный сценарий. Бизнес-логика строки — в UpsertModificationFromRowService.
  */
 final class ModificationCommandImport implements ModificationCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
     public function __construct(
-        private readonly UpsertModificationFromRowUseCaseInterface $useCase,
+        private readonly UpsertModificationFromRowServiceInterface $service,
     ) {}
 
     public function import(string $path): void

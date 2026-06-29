@@ -20,8 +20,12 @@ interface PartSpecificationRepositoryInterface
     public function all(): Collection;
 
     /**
-     * Спецификация ТС по шаблону и стороне дворника (front/back), независимо от feature_value_id.
-     * Сторона определяется наличием корневого JSON-ключа (`jsonb_exists`, PostgreSQL).
+     * Все спецификации ТС по шаблону и стороне дворника.
      */
-    public function firstByVehicleTemplateAndSide(int $vehicleId, DetailTemplateEnum $template, string $side): ?PartSpecification;
+    public function forVehicleTemplateAndSide(int $vehicleId, DetailTemplateEnum $template, string $side): Collection;
+
+    /**
+     * Точная спецификация ТС по шаблону, стороне и JSON details.
+     */
+    public function firstByVehicleTemplateSideAndDetails(int $vehicleId, DetailTemplateEnum $template, string $side, array $details): ?PartSpecification;
 }
