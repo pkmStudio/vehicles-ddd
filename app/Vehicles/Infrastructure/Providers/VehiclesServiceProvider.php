@@ -90,7 +90,6 @@ use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ManufacturerCommandImpo
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ModificationCommandImportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleCommandImportInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleMultiSheetImportInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Messaging\RabbitMQPublisherInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Notifications\FileNotificationServiceInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\FeatureRepositoryInterface;
@@ -121,7 +120,6 @@ use App\Vehicles\Infrastructure\Imports\Manufacturer\ManufacturerCommandImport;
 use App\Vehicles\Infrastructure\Imports\Modification\ModificationCommandImport;
 use App\Vehicles\Infrastructure\Imports\Vehicle\VehicleCommandImport;
 use App\Vehicles\Infrastructure\Imports\Vehicle\VehicleMultiSheetImport;
-use App\Vehicles\Infrastructure\Messaging\RabbitMQPublisher;
 use App\Vehicles\Infrastructure\Notifications\RabbitMqFileNotificationService;
 use App\Vehicles\Infrastructure\Repositories\EngineRepository;
 use App\Vehicles\Infrastructure\Repositories\FeatureRepository;
@@ -274,12 +272,6 @@ class VehiclesServiceProvider extends ServiceProvider
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
-
-        // Итого для внутреннего DI.
-        $this->app->bind(
-            RabbitMQPublisherInterface::class,
-            RabbitMQPublisher::class,
-        );
     }
 
     public function boot(): void

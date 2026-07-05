@@ -25,7 +25,7 @@ final class EngineSparkPlugsSheetImportTest extends TestCase
 
         /** @var EngineSparkPlugsSheetImport $import */
         $import = app()->makeWith(EngineSparkPlugsSheetImport::class, [
-            'userId' => 1,
+            'runId' => 'test-run-spark-plugs-sheet',
             'cacheKey' => 'engine_spark_plugs_sheet_test',
         ]);
 

@@ -30,7 +30,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
             if ($path !== null) {
                 $this->notifier->send($userId, $path);
             } else {
-                // TODO: опубликовать IMPORT_SUCCEEDED в RabbitMQ сервису с Filament (см. OutboundEventsEnum).
+                // TODO: опубликовать IMPORT_SUCCEEDED в RabbitMQ сервису с Filament (config/rabbit-transport.php outbound).
                 Log::info('Import completed without failures', ['user_id' => $userId]);
             }
         } catch (Throwable $e) {

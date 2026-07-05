@@ -5,18 +5,20 @@ declare(strict_types=1);
 namespace Tests\Feature\Vehicles;
 
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineSparkPlugSpecificationImportInterface;
+use App\Vehicles\Domain\DTOs\ImportRunContext;
+use App\Vehicles\Domain\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Domain\Models\Engine;
 use App\Vehicles\Domain\Models\Manufacturer;
 use App\Vehicles\Domain\Models\Modification;
 use App\Vehicles\Domain\Models\PartSpecification;
 use App\Vehicles\Domain\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 /**
- * Регрессионный тест на plan.md §6.1 для EngineSparkPlugSpecificationImport. Гоняет collection()
- * напрямую с реальным TemplateDataBuilder/UpsertSparkPlugSpecByModificationService/Command.
+ * Регрессионный тест на plan.md §6.1 (баг $this->useCase) и §6.3 (ImportRunContext вместо
+ * Auth::id()). Гоняет реальный Excel::import (WithMultipleSheets-самоссылка на CSV).
  */
 final class EngineSparkPlugSpecificationImportTest extends TestCase
 {
@@ -24,6 +26,8 @@ final class EngineSparkPlugSpecificationImportTest extends TestCase
 
     public function test_writes_spark_plug_spec_to_engines_of_modification(): void
     {
+        Event::fake([EngineImportCompleted::class]);
+
         $manufacturer = Manufacturer::query()->create(['mfa_id' => 10, 'name' => 'Skoda', 'provider' => 'TD']);
         $vehicle = Vehicle::query()->create([
             'manufacturer_id' => $manufacturer->id,
@@ -46,14 +50,10 @@ final class EngineSparkPlugSpecificationImportTest extends TestCase
         ]);
         $engine->modifications()->attach($modification->id, ['eng_id' => 500, 'mod_id' => 50, 'type' => 'PC']);
 
-        $import = app(EngineSparkPlugSpecificationImportInterface::class);
+        $context = new ImportRunContext(userId: 42, runId: 'test-run-spark-by-mod');
+        $path = base_path('tests/Fixtures/engine_spark_plugs_by_modification_sample.csv');
 
-        // [ms_id, mod_id, thread.size, thread.pitch, thread.length, electrode.gap, wrench_jaw_width]
-        $rows = new Collection([
-            new Collection([300, 50, 'M14x1.25', '1.25', '19', '0.9', '19']),
-        ]);
-
-        $import->collection($rows);
+        app(EngineSparkPlugSpecificationImportInterface::class)->import($path, $context);
 
         $spec = PartSpecification::query()->where('partable_id', $engine->id)->where('partable_type', Engine::class)->first();
 
@@ -63,5 +63,10 @@ final class EngineSparkPlugSpecificationImportTest extends TestCase
             'electrode' => ['gap' => 'G09'],
             'wrench_jaw_width' => 'WJ19',
         ], $spec->details);
+
+        Event::assertDispatched(
+            EngineImportCompleted::class,
+            fn (EngineImportCompleted $event): bool => $event->userId === 42,
+        );
     }
 }

@@ -18,12 +18,12 @@ final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, With
     use CachesImportFailures;
 
     public function __construct(
-        private readonly int $userId,
+        string $runId,
         string $cacheKey,
         private readonly UpsertVehicleFromSheetServiceInterface $upsertVehicle,
     ) {
         $this->cacheKey = $cacheKey;
-        $this->lockKey = "vehicle_import_failures_lock_{$this->userId}";
+        $this->lockKey = "vehicle_import_failures_lock_{$runId}";
     }
 
     /**

@@ -28,14 +28,14 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
     private const int SPEC_START_COLUMN = 20;
 
     public function __construct(
-        private readonly int $userId,
+        string $runId,
         string $cacheKey,
         private readonly UpsertVehicleFromSheetServiceInterface $upsertVehicle,
         private readonly VehicleWiperSpecificationImportServiceInterface $upsertWiperSpec,
         private readonly TemplateDataBuilderInterface $templateDataBuilder,
     ) {
         $this->cacheKey = $cacheKey;
-        $this->lockKey = "vehicle_import_failures_lock_{$this->userId}";
+        $this->lockKey = "vehicle_import_failures_lock_{$runId}";
     }
 
     /**

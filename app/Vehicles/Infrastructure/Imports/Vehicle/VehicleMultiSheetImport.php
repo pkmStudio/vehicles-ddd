@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Infrastructure\Imports\Vehicle;
 
+use App\Vehicles\Domain\DTOs\ImportRunContext;
 use App\Vehicles\Domain\DTOs\VehicleImportPlan;
 use App\Vehicles\Domain\Enums\InOut\Sheets\VehicleImportSheet;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\VehicleMultiSheetImportInterface;
 use App\Vehicles\Domain\Events\Vehicle\VehicleImportCompleted;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Support\Facades\Auth;
 use App\Vehicles\Infrastructure\Imports\Vehicle\Sheets\VehicleMainSheetImport;
 use App\Vehicles\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -22,21 +22,16 @@ final class VehicleMultiSheetImport implements ShouldQueue, VehicleMultiSheetImp
 {
     private VehicleImportPlan $plan;
 
-    public function import(string $path, ?VehicleImportPlan $plan = null): void
-    {
-        $this->plan = $plan ?? VehicleImportPlan::all();
-        Excel::import($this, $path);
-    }
-
-    public int $importedByUserId;
+    public ImportRunContext $context;
 
     private string $cacheKey;
 
-    public function __construct()
+    public function import(string $path, ImportRunContext $context, ?VehicleImportPlan $plan = null): void
     {
-        $this->importedByUserId = (int) Auth::id();
-        $this->cacheKey = "vehicle_import_failures_{$this->importedByUserId}";
-        $this->plan = VehicleImportPlan::all();
+        $this->context = $context;
+        $this->cacheKey = "vehicle_import_failures_{$context->runId}";
+        $this->plan = $plan ?? VehicleImportPlan::all();
+        Excel::import($this, $path);
     }
 
     public function sheets(): array
@@ -46,14 +41,14 @@ final class VehicleMultiSheetImport implements ShouldQueue, VehicleMultiSheetImp
         if ($this->plan->hasSheet(VehicleImportSheet::Main)) {
             $sheets[VehicleImportSheet::Main->value] = app()->makeWith(
                 VehicleMainSheetImport::class,
-                ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey],
+                ['runId' => $this->context->runId, 'cacheKey' => $this->cacheKey],
             );
         }
 
         if ($this->plan->hasSheet(VehicleImportSheet::Wipers)) {
             $sheets[VehicleImportSheet::Wipers->value] = app()->makeWith(
                 VehicleWipersSheetImport::class,
-                ['userId' => $this->importedByUserId, 'cacheKey' => $this->cacheKey],
+                ['runId' => $this->context->runId, 'cacheKey' => $this->cacheKey],
             );
         }
 
@@ -72,9 +67,7 @@ final class VehicleMultiSheetImport implements ShouldQueue, VehicleMultiSheetImp
         /** @var VehicleMultiSheetImport $import */
         $import = $event->getConcernable();
 
-        if ($import->importedByUserId > 0) {
-            VehicleImportCompleted::dispatch($import->importedByUserId, $import->cacheKey);
-        }
+        VehicleImportCompleted::dispatch($import->context->userId, $import->cacheKey);
     }
 
     public function chunkSize(): int

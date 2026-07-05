@@ -6,11 +6,11 @@ namespace App\Vehicles\Infrastructure\Imports\Engine;
 
 use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\AssignEngineGroupServiceInterface;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineCrossImportInterface;
+use App\Vehicles\Domain\DTOs\ImportRunContext;
 use App\Vehicles\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -31,18 +31,17 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
 {
     use CachesImportFailures;
 
-    public int $importedByUserId;
+    public ImportRunContext $context;
 
     public function __construct(
         private readonly AssignEngineGroupServiceInterface $service,
-    ) {
-        $this->importedByUserId = (int) Auth::id();
-        $this->cacheKey = "engine_import_failures_{$this->importedByUserId}";
-        $this->lockKey = "engine_import_failures_lock_{$this->importedByUserId}";
-    }
+    ) {}
 
-    public function import(string $path): void
+    public function import(string $path, ImportRunContext $context): void
     {
+        $this->context = $context;
+        $this->cacheKey = "engine_import_failures_{$context->runId}";
+        $this->lockKey = "engine_import_failures_lock_{$context->runId}";
         Excel::import($this, $path);
     }
 
@@ -121,9 +120,7 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         /** @var EngineCrossImport $import */
         $import = $event->getConcernable();
 
-        if ($import->importedByUserId > 0) {
-            EngineCrossImportCompleted::dispatch($import->importedByUserId, $import->cacheKey);
-        }
+        EngineCrossImportCompleted::dispatch($import->context->userId, $import->cacheKey);
     }
 
     public function startRow(): int

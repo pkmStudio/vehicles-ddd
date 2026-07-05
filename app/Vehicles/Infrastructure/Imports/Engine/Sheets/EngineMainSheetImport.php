@@ -23,13 +23,13 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
     use CachesImportFailures;
 
     public function __construct(
-        private readonly int $userId,
+        string $runId,
         string $cacheKey,
         private readonly UpdateEngineEditableFieldsServiceInterface $service,
         private readonly EngineEditableColumnsMapperInterface $editableColumnsMapper,
     ) {
         $this->cacheKey = $cacheKey;
-        $this->lockKey = "engine_import_failures_lock_{$userId}";
+        $this->lockKey = "engine_import_failures_lock_{$runId}";
     }
 
     public function collection(Collection $collection): void

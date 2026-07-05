@@ -7,12 +7,12 @@ namespace App\Vehicles\Infrastructure\Imports\Engine;
 use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineSparkPlugSpecificationImportInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Services\Template\TemplateDataBuilderInterface;
 use App\Vehicles\Domain\Contracts\Application\Import\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
+use App\Vehicles\Domain\DTOs\ImportRunContext;
 use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
 use App\Vehicles\Domain\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -37,19 +37,18 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
 
     private const int SPEC_START_COLUMN = 2;
 
-    public int $importedByUserId;
+    public ImportRunContext $context;
 
     public function __construct(
         private readonly UpsertSparkPlugSpecByModificationServiceInterface $service,
         private readonly TemplateDataBuilderInterface $templateDataBuilder,
-    ) {
-        $this->importedByUserId = (int) Auth::id();
-        $this->cacheKey = "engine_import_failures_{$this->importedByUserId}";
-        $this->lockKey = "engine_import_failures_lock_{$this->importedByUserId}";
-    }
+    ) {}
 
-    public function import(string $path): void
+    public function import(string $path, ImportRunContext $context): void
     {
+        $this->context = $context;
+        $this->cacheKey = "engine_import_failures_{$context->runId}";
+        $this->lockKey = "engine_import_failures_lock_{$context->runId}";
         Excel::import($this, $path);
     }
 
@@ -113,9 +112,7 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         /** @var EngineSparkPlugSpecificationImport $import */
         $import = $event->getConcernable();
 
-        if ($import->importedByUserId > 0) {
-            EngineImportCompleted::dispatch($import->importedByUserId, $import->cacheKey);
-        }
+        EngineImportCompleted::dispatch($import->context->userId, $import->cacheKey);
     }
 
     public function startRow(): int
