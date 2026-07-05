@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Application\Import\Services\EngineModificationReadinessGate;
-use App\Vehicles\Domain\Events\EnginesAndModificationsReady;
+use App\Vehicles\Import\Application\Services\EngineModificationReadinessGate;
+use App\Vehicles\Import\Domain\Events\EnginesAndModificationsReady;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Facades\Cache;
 use Mockery;

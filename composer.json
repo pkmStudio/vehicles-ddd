@@ -24,6 +24,7 @@
         "laravel/tinker": "^3.0",
         "maatwebsite/excel": "^3.1",
         "pkmstudio/rabbit-transport": "dev-master",
+        "spatie/laravel-data": "^4.23",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^15.0"
     },
     "require-dev": {

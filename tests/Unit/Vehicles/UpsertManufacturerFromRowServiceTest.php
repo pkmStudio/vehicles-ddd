@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Application\Import\Factories\Manufacturer\ManufacturerDataFactory;
-use App\Vehicles\Application\Import\Services\Manufacturer\UpsertManufacturerFromRowService;
-use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ManufacturerCommandInterface;
-use App\Vehicles\Domain\ModelData\Manufacturer\ManufacturerData;
-use App\Vehicles\Domain\Models\Manufacturer;
+use App\Vehicles\Import\Application\Factories\Manufacturer\ManufacturerDataFactory;
+use App\Vehicles\Import\Application\Services\Manufacturer\UpsertManufacturerFromRowService;
+use App\Vehicles\Import\Domain\Contracts\Commands\ManufacturerCommandInterface;
+use App\Vehicles\Import\Domain\ModelData\Manufacturer\ManufacturerData;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;
@@ -17,7 +16,7 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
 {
     public function test_maps_row_and_upserts_with_td_provider(): void
     {
-        $expected = new Manufacturer;
+        $expected = new ManufacturerData(mfaId: 10, name: 'Skoda', provider: 'TD', id: 3);
 
         $command = Mockery::mock(ManufacturerCommandInterface::class);
         $command->shouldReceive('upsertByMfaId')

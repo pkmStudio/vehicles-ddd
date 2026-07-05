@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles;
 
-use App\Vehicles\Domain\Contracts\Infrastructure\Imports\EngineCrossImportInterface;
-use App\Vehicles\Domain\DTOs\ImportRunContext;
-use App\Vehicles\Domain\Events\Engine\EngineCrossImportCompleted;
+use App\Vehicles\Import\Domain\Contracts\Imports\EngineCrossImportInterface;
+use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
+use App\Vehicles\Import\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Vehicles\Domain\Models\Engine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;

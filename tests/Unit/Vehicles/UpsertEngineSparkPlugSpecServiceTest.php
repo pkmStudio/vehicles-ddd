@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Application\Import\Services\Engine\UpsertEngineSparkPlugSpecService;
-use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationCommandInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
-use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Import\Application\Services\Engine\UpsertEngineSparkPlugSpecService;
+use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
+use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Domain\Models\Engine;
-use App\Vehicles\Domain\Models\PartSpecification;
 use Mockery;
 use Tests\TestCase;
 
@@ -18,10 +18,14 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
 {
     public function test_resolves_engine_and_upserts_spec(): void
     {
-        $engine = new Engine;
-        $engine->id = 42;
+        $engine = new EngineData(engId: 101, id: 42);
         $details = ['gap' => '0.9'];
-        $expected = new PartSpecification;
+        $expected = new PartSpecificationData(
+            partableType: Engine::class,
+            partableId: 42,
+            template: DetailTemplateEnum::SPARK_PLUGS,
+            details: $details,
+        );
 
         $engines = Mockery::mock(EngineRepositoryInterface::class);
         $engines->shouldReceive('firstByEngId')->once()->with(101)->andReturn($engine);

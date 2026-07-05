@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles;
 
-use App\Vehicles\Application\Import\Listeners\ReportImportResultListener;
-use App\Vehicles\Domain\Contracts\Infrastructure\Notifications\FileNotificationServiceInterface;
-use App\Vehicles\Domain\Events\Vehicle\VehicleImportCompleted;
+use App\Vehicles\Import\Application\Listeners\ReportImportResultListener;
+use App\Vehicles\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
+use App\Vehicles\Import\Domain\Events\Vehicle\VehicleImportCompleted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;

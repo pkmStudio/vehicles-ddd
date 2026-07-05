@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Application\Import\Factories\Engine\EngineDataFactory;
-use App\Vehicles\Application\Import\Services\Engine\UpsertEngineFromSheetService;
-use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineCommandInterface;
-use App\Vehicles\Domain\Enums\Engine\EngineFuelTypeEnum;
-use App\Vehicles\Domain\ModelData\Engine\EngineData;
-use App\Vehicles\Domain\Models\Engine;
+use App\Vehicles\Import\Application\Factories\Engine\EngineDataFactory;
+use App\Vehicles\Import\Application\Services\Engine\UpsertEngineFromSheetService;
+use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;
@@ -22,7 +21,7 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
     public function test_maps_row_and_upserts_via_command(): void
     {
         $captured = null;
-        $expected = new Engine;
+        $expected = new EngineData(engId: 101);
 
         $command = Mockery::mock(EngineCommandInterface::class);
         $command->shouldReceive('upsertByEngId')
@@ -44,7 +43,7 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
         $this->assertSame('M54B30', $captured->codeEngine);
         $this->assertSame(170, $captured->engPowerKwStart);
         $this->assertSame(6, $captured->cylinderCount);
-        $this->assertSame(EngineFuelTypeEnum::PETROL->value, $captured->engFuelType);
+        $this->assertSame(EngineFuelTypeEnum::PETROL, $captured->engFuelType);
     }
 
     public function test_invalid_enum_throws_validation_exception(): void

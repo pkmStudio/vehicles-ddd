@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Application\Common\Services\WiperSpecificationService;
-use App\Vehicles\Application\Import\Services\Vehicle\VehicleWiperSpecificationImportService;
-use App\Vehicles\Domain\Contracts\Infrastructure\Commands\PartSpecificationCommandInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\FeatureValueRepositoryInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\PartSpecificationRepositoryInterface;
-use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
-use App\Vehicles\Domain\ModelData\PartSpecification\PartSpecificationData;
-use App\Vehicles\Domain\Models\FeatureValue;
-use App\Vehicles\Domain\Models\PartSpecification;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use App\Vehicles\Templates\Application\WiperSpecificationService;
+use App\Vehicles\Import\Application\Services\Vehicle\VehicleWiperSpecificationImportService;
+use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
+use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
+use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Import\Domain\ModelData\FeatureValue\FeatureValueData;
+use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;
 
@@ -43,10 +42,10 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
             ->andReturnNull();
         $specs->shouldReceive('forVehicleTemplateAndSide')->once()
             ->with(77, DetailTemplateEnum::WIPER, 'front')
-            ->andReturn(new EloquentCollection);
+            ->andReturn(new Collection);
         $specs->shouldReceive('forVehicleTemplateAndSide')->once()
             ->with(77, DetailTemplateEnum::WIPER, 'back')
-            ->andReturn(new EloquentCollection);
+            ->andReturn(new Collection);
 
         $created = [];
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
@@ -56,7 +55,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
                 return true;
             }))
-            ->andReturn(new PartSpecification);
+            ->andReturnUsing(fn (PartSpecificationData $d) => $d);
         $command->shouldNotReceive('update');
 
         $details = [
@@ -71,8 +70,13 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
     public function test_updates_existing_side(): void
     {
-        $existing = new PartSpecification;
-        $existing->details = ['front' => ['adapter_type_front' => ['A1']]];
+        $existing = new PartSpecificationData(
+            partableType: 'App\Vehicles\Domain\Models\Vehicle',
+            partableId: 77,
+            template: DetailTemplateEnum::WIPER,
+            details: ['front' => ['adapter_type_front' => ['A1']]],
+            id: 5,
+        );
 
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
         $specs->shouldReceive('firstByVehicleTemplateSideAndDetails')->once()
@@ -82,7 +86,8 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
         $command->shouldReceive('update')->once()
-            ->with($existing, Mockery::type(PartSpecificationData::class))->andReturn($existing);
+            ->with(Mockery::on(fn (PartSpecificationData $d) => $d->id === 5))
+            ->andReturnUsing(fn (PartSpecificationData $d) => $d);
         $command->shouldNotReceive('create');
 
         // только front
@@ -95,9 +100,13 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
     public function test_updates_single_existing_side_when_exact_details_are_missing(): void
     {
-        $existing = new PartSpecification;
-        $existing->id = 5;
-        $existing->details = ['front' => ['adapter_type_front' => ['OLD']]];
+        $existing = new PartSpecificationData(
+            partableType: 'App\Vehicles\Domain\Models\Vehicle',
+            partableId: 77,
+            template: DetailTemplateEnum::WIPER,
+            details: ['front' => ['adapter_type_front' => ['OLD']]],
+            id: 5,
+        );
 
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
         $specs->shouldReceive('firstByVehicleTemplateSideAndDetails')->once()
@@ -105,12 +114,12 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
             ->andReturnNull();
         $specs->shouldReceive('forVehicleTemplateAndSide')->once()
             ->with(77, DetailTemplateEnum::WIPER, 'front')
-            ->andReturn(new EloquentCollection([$existing]));
+            ->andReturn(new Collection([$existing]));
 
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
         $command->shouldReceive('update')->once()
-            ->with($existing, Mockery::type(PartSpecificationData::class))
-            ->andReturn($existing);
+            ->with(Mockery::on(fn (PartSpecificationData $d) => $d->id === 5))
+            ->andReturnUsing(fn (PartSpecificationData $d) => $d);
         $command->shouldNotReceive('create');
 
         $details = ['front' => ['adapter_type_front' => ['A1']]];
@@ -122,19 +131,18 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
     public function test_resolves_feature_value_by_name(): void
     {
-        $fv = new FeatureValue;
-        $fv->id = 9;
+        $fv = new FeatureValueData(featureId: 1, name: 'Левый руль', id: 9);
         $featureValues = Mockery::mock(FeatureValueRepositoryInterface::class);
         $featureValues->shouldReceive('firstByName')->once()->with('Левый руль')->andReturn($fv);
 
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
         $specs->shouldReceive('firstByVehicleTemplateSideAndDetails')->once()->andReturnNull();
-        $specs->shouldReceive('forVehicleTemplateAndSide')->once()->andReturn(new EloquentCollection);
+        $specs->shouldReceive('forVehicleTemplateAndSide')->once()->andReturn(new Collection);
 
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
         $command->shouldReceive('create')->once()
             ->with(Mockery::on(fn (PartSpecificationData $d) => $d->featureValueId === 9))
-            ->andReturn(new PartSpecification);
+            ->andReturnUsing(fn (PartSpecificationData $d) => $d);
 
         $details = ['front' => ['adapter_type_front' => ['A1']]];
 
@@ -163,7 +171,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
                 return true;
             }))
-            ->andReturn(new PartSpecification);
+            ->andReturnUsing(fn (PartSpecificationData $d) => $d);
         $command->shouldNotReceive('update');
 
         $details = ['front' => ['adapter_type_front' => ['A1', 'A2'], 'count_wipers' => 2]];

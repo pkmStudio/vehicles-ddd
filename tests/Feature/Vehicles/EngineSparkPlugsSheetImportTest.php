@@ -6,7 +6,7 @@ namespace Tests\Feature\Vehicles;
 
 use App\Vehicles\Domain\Models\Engine;
 use App\Vehicles\Domain\Models\PartSpecification;
-use App\Vehicles\Infrastructure\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
+use App\Vehicles\Import\Infrastructure\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Tests\TestCase;

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Application\Import\Factories\EngineModification\EngineModificationDataFactory;
-use App\Vehicles\Application\Import\Services\EngineModification\LinkEngineModificationFromRowService;
-use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineModificationCommandInterface;
-use App\Vehicles\Domain\ModelData\EngineModification\EngineModificationData;
+use App\Vehicles\Import\Application\Factories\EngineModification\EngineModificationDataFactory;
+use App\Vehicles\Import\Application\Services\EngineModification\LinkEngineModificationFromRowService;
+use App\Vehicles\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
+use App\Vehicles\Import\Domain\ModelData\EngineModification\EngineModificationData;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;

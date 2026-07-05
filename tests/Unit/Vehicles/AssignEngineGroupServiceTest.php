@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Application\Import\Services\Engine\AssignEngineGroupService;
-use App\Vehicles\Domain\Contracts\Infrastructure\Commands\EngineCommandInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Domain\Models\Engine;
+use App\Vehicles\Import\Application\Services\Engine\AssignEngineGroupService;
+use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
 use Mockery;
 use Tests\TestCase;
 
@@ -15,8 +15,7 @@ final class AssignEngineGroupServiceTest extends TestCase
 {
     public function test_assigns_group_to_engine_without_previous_group(): void
     {
-        $engine = new Engine;
-        $engine->group_id = null;
+        $engine = new EngineData(engId: 555, id: 1, groupId: null);
 
         $engines = Mockery::mock(EngineRepositoryInterface::class);
         $engines->shouldReceive('firstByCodeEngine')->once()->with('M54B30')->andReturn($engine);
@@ -33,8 +32,7 @@ final class AssignEngineGroupServiceTest extends TestCase
 
     public function test_flags_reassignment_when_group_changes(): void
     {
-        $engine = new Engine;
-        $engine->group_id = 3;
+        $engine = new EngineData(engId: 555, id: 1, groupId: 3);
 
         $engines = Mockery::mock(EngineRepositoryInterface::class);
         $engines->shouldReceive('firstByCodeEngine')->once()->with('M54B30')->andReturn($engine);

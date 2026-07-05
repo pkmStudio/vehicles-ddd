@@ -1,0 +1,36 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Vehicles\Import\Infrastructure\Models;
+
+use App\Vehicles\Domain\Models\Vehicle as PartableVehicleType;
+use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+
+class PartSpecification extends BaseModel
+{
+    protected $casts = [
+        'template' => DetailTemplateEnum::class,
+        'details' => 'array',
+    ];
+
+    // RELATIONS
+    public function featureValue(): BelongsTo
+    {
+        return $this->belongsTo(FeatureValue::class, 'feature_value_id', 'id');
+    }
+
+    public function partable(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function vehicle(): BelongsTo
+    {
+        return $this
+            ->belongsTo(Vehicle::class, 'partable_id', 'id')
+            ->where('part_specifications.partable_type', PartableVehicleType::class);
+    }
+}

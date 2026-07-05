@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Application\Import\Factories\Modification\ModificationDataFactory;
-use App\Vehicles\Application\Import\Services\Modification\UpsertModificationFromRowService;
-use App\Vehicles\Domain\Contracts\Infrastructure\Commands\ModificationCommandInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Domain\ModelData\Modification\ModificationData;
-use App\Vehicles\Domain\Models\Modification;
-use App\Vehicles\Domain\Models\Vehicle;
+use App\Vehicles\Import\Application\Factories\Modification\ModificationDataFactory;
+use App\Vehicles\Import\Application\Services\Modification\UpsertModificationFromRowService;
+use App\Vehicles\Import\Domain\Contracts\Commands\ModificationCommandInterface;
+use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Import\Domain\ModelData\Modification\ModificationData;
+use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
+use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Mockery;
 use Tests\TestCase;
 
@@ -21,9 +22,16 @@ final class UpsertModificationFromRowServiceTest extends TestCase
 
     public function test_resolves_vehicle_and_upserts_modification(): void
     {
-        $vehicle = new Vehicle;
-        $vehicle->id = 9;
-        $expected = new Modification;
+        $vehicle = new VehicleData(
+            msId: 200,
+            mfaId: 10,
+            manufacturerId: 3,
+            name: 'Octavia',
+            type: VehicleTypeEnum::PC,
+            steeringType: SteeringTypeEnum::LEFT,
+            id: 9,
+        );
+        $expected = new ModificationData(modId: 50, type: VehicleTypeEnum::PC, vehicleId: 9, msId: 200);
 
         $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
         $vehicles->shouldReceive('firstByMsId')->once()->with(200)->andReturn($vehicle);
@@ -31,7 +39,7 @@ final class UpsertModificationFromRowServiceTest extends TestCase
         $command = Mockery::mock(ModificationCommandInterface::class);
         $command->shouldReceive('upsertByModIdAndType')
             ->once()
-            ->with(Mockery::on(fn (ModificationData $d) => $d->modId === 50 && $d->msId === 200 && $d->type === 'PC' && $d->vehicleId === 9))
+            ->with(Mockery::on(fn (ModificationData $d) => $d->modId === 50 && $d->msId === 200 && $d->type === VehicleTypeEnum::PC && $d->vehicleId === 9))
             ->andReturn($expected);
 
         $service = new UpsertModificationFromRowService($command, new ModificationDataFactory, $vehicles);

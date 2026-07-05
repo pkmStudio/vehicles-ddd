@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Models;
 
-use App\Vehicles\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;

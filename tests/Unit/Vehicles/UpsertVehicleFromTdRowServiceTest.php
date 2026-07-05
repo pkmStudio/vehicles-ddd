@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Application\Import\Factories\Vehicle\VehicleDataFactory;
-use App\Vehicles\Application\Import\Services\Vehicle\UpsertVehicleFromTdRowService;
-use App\Vehicles\Domain\Contracts\Infrastructure\Commands\VehicleCommandInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\ManufacturerRepositoryInterface;
-use App\Vehicles\Domain\ModelData\Vehicle\VehicleData;
-use App\Vehicles\Domain\Models\Manufacturer;
-use App\Vehicles\Domain\Models\Vehicle;
+use App\Vehicles\Import\Application\Factories\Vehicle\VehicleDataFactory;
+use App\Vehicles\Import\Application\Services\Vehicle\UpsertVehicleFromTdRowService;
+use App\Vehicles\Import\Domain\Contracts\Commands\VehicleCommandInterface;
+use App\Vehicles\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
+use App\Vehicles\Import\Domain\ModelData\Manufacturer\ManufacturerData;
+use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
+use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Mockery;
 use Tests\TestCase;
 
@@ -21,9 +22,15 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
 
     public function test_resolves_manufacturer_and_upserts_vehicle(): void
     {
-        $manufacturer = new Manufacturer;
-        $manufacturer->id = 3;
-        $expected = new Vehicle;
+        $manufacturer = new ManufacturerData(mfaId: 10, name: 'Skoda', provider: 'TD', id: 3);
+        $expected = new VehicleData(
+            msId: 200,
+            mfaId: 10,
+            manufacturerId: 3,
+            name: 'Octavia',
+            type: VehicleTypeEnum::PC,
+            steeringType: SteeringTypeEnum::LEFT,
+        );
 
         $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
         $manufacturers->shouldReceive('firstByMfaId')->once()->with(10)->andReturn($manufacturer);
@@ -36,7 +43,7 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
                     && $data->mfaId === 10
                     && $data->manufacturerId === 3
                     && $data->name === 'Octavia'
-                    && $data->type === 'PC';
+                    && $data->type === VehicleTypeEnum::PC;
             }))
             ->andReturn($expected);
 

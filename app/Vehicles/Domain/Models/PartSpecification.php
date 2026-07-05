@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Domain\Models;
 
-use App\Vehicles\Domain\Enums\Templates\DetailTemplateEnum;
+use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 

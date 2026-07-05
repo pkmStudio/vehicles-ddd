@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Application\Common\Services\WiperSpecificationService;
-use App\Vehicles\Domain\Models\PartSpecification;
+use App\Vehicles\Templates\Application\WiperSpecificationService;
 use Tests\TestCase;
 
 final class WiperSpecificationServiceTest extends TestCase
@@ -71,14 +70,12 @@ final class WiperSpecificationServiceTest extends TestCase
 
     public function test_split_specification_expands_sides_and_adapters(): void
     {
-        $specification = new PartSpecification;
-        $specification->id = 123;
-        $specification->details = [
+        $details = [
             'front' => ['adapter_type_front' => ['A1', 'A2'], 'count_wipers' => 2],
             'back' => ['adapter_type_rear' => 'B1'],
         ];
 
-        $parts = $this->service->splitSpecification($specification);
+        $parts = $this->service->splitSpecification($details, 123);
 
         $this->assertCount(3, $parts);
         $this->assertSame([123, 123, 123], array_column($parts, 'part_specification_id'));

@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Vehicles\Import\Domain\Contracts\Repositories;
+
+use App\Vehicles\Import\Domain\ModelData\Modification\ModificationData;
+use Illuminate\Support\Collection;
+
+/**
+ * Чтение Modification (read-only).
+ */
+interface ModificationRepositoryInterface
+{
+    public function find(int $id): ?ModificationData;
+
+    public function findOrFail(int $id): ModificationData;
+
+    /** @return Collection<int, ModificationData> */
+    public function all(): Collection;
+
+    /**
+     * Модификация по натуральному ключу (ms_id + mod_id), имеющая двигатели, с загруженными
+     * engines (ModificationData::$engines заполнен).
+     */
+    public function firstByMsIdAndModIdWithEngines(int $msId, int $modId): ?ModificationData;
+}

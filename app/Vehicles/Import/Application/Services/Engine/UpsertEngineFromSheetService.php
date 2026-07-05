@@ -1,0 +1,48 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Vehicles\Import\Application\Services\Engine;
+
+use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Import\Domain\Contracts\Factories\EngineDataFactoryInterface;
+use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
+use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
+use Illuminate\Validation\ValidationException;
+
+/**
+ * Use-case: создать/обновить двигатель из строки листа импорта.
+ * Бизнес-логика одной строки: маппинг колонок → валидация+сборка (Factory) → запись (Command).
+ * Персистентность — только через порт Command, прямого Eloquent в Application нет.
+ */
+final readonly class UpsertEngineFromSheetService implements UpsertEngineFromSheetServiceInterface
+{
+    public function __construct(
+        private EngineCommandInterface $command,
+        private EngineDataFactoryInterface $factory,
+    ) {}
+
+    /**
+     * @param  array<int, mixed>  $row
+     *
+     * @throws ValidationException
+     */
+    public function upsertFromRow(array $row): EngineData
+    {
+        $data = $this->factory->make([
+            'eng_id' => $row[0] ?? null,
+            'code_engine' => $row[1] ?? null,
+            'eng_power_kw_start' => $row[2] ?? null,
+            'eng_power_kw_upto' => $row[3] ?? null,
+            'eng_power_ps_start' => $row[4] ?? null,
+            'eng_power_ps_upto' => $row[5] ?? null,
+            'engine_capacity' => $row[6] ?? null,
+            'cylinder_diameter' => $row[7] ?? null,
+            'cylinder_count' => $row[8] ?? null,
+            'eng_number_of_valves' => $row[9] ?? null,
+            'eng_fuel_type' => ($row[10] ?? null) ?: null,
+        ]);
+
+        return $this->command->upsertByEngId($data);
+    }
+}

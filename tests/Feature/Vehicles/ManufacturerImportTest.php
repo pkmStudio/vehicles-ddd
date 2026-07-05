@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles;
 
-use App\Vehicles\Domain\Contracts\Infrastructure\Imports\ManufacturerCommandImportInterface;
-use App\Vehicles\Domain\Events\Manufacturer\ManufacturerCommandImported;
+use App\Vehicles\Import\Domain\Contracts\Imports\ManufacturerCommandImportInterface;
+use App\Vehicles\Import\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use App\Vehicles\Domain\Models\Manufacturer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
