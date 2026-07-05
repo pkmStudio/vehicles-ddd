@@ -10,6 +10,7 @@ use App\Vehicles\Shared\Domain\Enums\Vehicle\BrakeSystemTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\DriveTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\GearTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
+use Illuminate\Support\Collection;
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;
@@ -18,8 +19,8 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class ModificationData extends Data
 {
     /**
-     * @param  array<EngineData>|null  $engines  двигатели модификации — заполняется только
-     *                                            Repository::firstByMsIdAndModIdWithEngines()
+     * @param  Collection<int, EngineData>|null  $engines  двигатели модификации — заполняется
+     *                                            только Repository::firstByMsIdAndModIdWithEngines()
      *                                            (с eager load), в остальных путях null и не
      *                                            участвует в записи через Command
      */
@@ -40,6 +41,6 @@ final class ModificationData extends Data
         public readonly ?int $numberOfCylinders = null,
         public readonly ?float $capacityLt = null,
         public readonly ?int $id = null,
-        public readonly ?array $engines = null,
+        public readonly ?Collection $engines = null,
     ) {}
 }

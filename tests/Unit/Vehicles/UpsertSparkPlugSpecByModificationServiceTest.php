@@ -17,6 +17,7 @@ use App\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;
 
@@ -27,9 +28,10 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
         return new EngineData(engId: $id * 1000, codeEngine: $code, engFuelType: $fuel, id: $id);
     }
 
+    /** @param  array<EngineData>  $engines */
     private function modification(array $engines): ModificationData
     {
-        return new ModificationData(modId: 50, type: VehicleTypeEnum::PC, vehicleId: 9, msId: 200, engines: $engines);
+        return new ModificationData(modId: 50, type: VehicleTypeEnum::PC, vehicleId: 9, msId: 200, engines: new Collection($engines));
     }
 
     public function test_writes_spec_only_for_engines_that_need_spark_plugs(): void

@@ -42,7 +42,7 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
 
         return ModificationData::from([
             ...$modification->toArray(),
-            'engines' => EngineData::collect($modification->engines, Collection::class)->all(),
+            'engines' => EngineData::collect($modification->engines, Collection::class),
         ]);
     }
 }
