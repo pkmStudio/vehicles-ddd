@@ -15,6 +15,6 @@ final readonly class ReportImportResultListener
 
     public function handle(AbstractImportCompleted $event): void
     {
-        $this->useCase->execute($event->userId, $event->cacheKey);
+        $this->service->execute($event->userId, $event->cacheKey);
     }
 }

@@ -74,7 +74,7 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
                     self::SPEC_START_COLUMN,
                     DetailTemplateEnum::SPARK_PLUGS,
                 );
-                $result = $this->useCase->execute((int) $msId, (int) $modId, $details);
+                $result = $this->service->execute((int) $msId, (int) $modId, $details);
 
                 if (! $result->found) {
                     $this->onFailure(new Failure($rowNumber, 'Свечи', [$result->notFoundReason], $row->toArray()));

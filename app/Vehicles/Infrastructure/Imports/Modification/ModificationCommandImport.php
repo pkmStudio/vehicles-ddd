@@ -46,7 +46,7 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
         foreach ($collection as $index => $row) {
             $line = $index + $this->startRow();
             try {
-                $modification = $this->useCase->execute($row->toArray());
+                $modification = $this->service->execute($row->toArray());
 
                 if (! $modification) {
                     $this->fail($line, "ТС ms_id={$row[0]} не найдено", $row->toArray());

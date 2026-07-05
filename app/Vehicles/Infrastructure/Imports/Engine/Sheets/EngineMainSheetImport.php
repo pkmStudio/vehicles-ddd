@@ -39,7 +39,7 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
             try {
                 $attributes = $this->editableColumnsMapper->extractEditableAttributes($row->toArray());
 
-                $this->useCase->execute((int) $row[0], $attributes);
+                $this->service->execute((int) $row[0], $attributes);
                 DB::commit();
             } catch (\Throwable $e) {
                 DB::rollBack();

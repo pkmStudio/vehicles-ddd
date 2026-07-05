@@ -46,7 +46,7 @@ final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToColle
         foreach ($collection as $index => $row) {
             $line = $index + $this->startRow();
             try {
-                $vehicle = $this->useCase->execute($row->toArray());
+                $vehicle = $this->service->execute($row->toArray());
 
                 if (! $vehicle) {
                     $this->fail($line, "Производитель mfa_id={$row[0]} не найден", $row->toArray());
