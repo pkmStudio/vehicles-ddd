@@ -8,5 +8,5 @@ use App\Vehicles\Domain\Models\Engine;
 
 interface UpsertEngineFromSheetServiceInterface
 {
-    public function execute(array $row): Engine;
+    public function upsertFromRow(array $row): Engine;
 }

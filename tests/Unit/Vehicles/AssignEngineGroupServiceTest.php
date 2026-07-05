@@ -24,7 +24,7 @@ final class AssignEngineGroupServiceTest extends TestCase
         $command = Mockery::mock(EngineCommandInterface::class);
         $command->shouldReceive('setGroupId')->once()->with($engine, 7);
 
-        $result = (new AssignEngineGroupService($engines, $command))->execute('M54B30', 7);
+        $result = (new AssignEngineGroupService($engines, $command))->assignGroup('M54B30', 7);
 
         $this->assertTrue($result->found);
         $this->assertFalse($result->reassigned);
@@ -42,7 +42,7 @@ final class AssignEngineGroupServiceTest extends TestCase
         $command = Mockery::mock(EngineCommandInterface::class);
         $command->shouldReceive('setGroupId')->once()->with($engine, 7);
 
-        $result = (new AssignEngineGroupService($engines, $command))->execute('M54B30', 7);
+        $result = (new AssignEngineGroupService($engines, $command))->assignGroup('M54B30', 7);
 
         $this->assertTrue($result->found);
         $this->assertTrue($result->reassigned);
@@ -57,7 +57,7 @@ final class AssignEngineGroupServiceTest extends TestCase
         $command = Mockery::mock(EngineCommandInterface::class);
         $command->shouldNotReceive('setGroupId');
 
-        $result = (new AssignEngineGroupService($engines, $command))->execute('UNKNOWN', 7);
+        $result = (new AssignEngineGroupService($engines, $command))->assignGroup('UNKNOWN', 7);
 
         $this->assertFalse($result->found);
     }

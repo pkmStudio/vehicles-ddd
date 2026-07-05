@@ -30,7 +30,7 @@ final readonly class UpsertModificationFromRowService implements UpsertModificat
      *
      * @throws ValidationException
      */
-    public function execute(array $row): ?Modification
+    public function upsertFromRow(array $row): ?Modification
     {
         $vehicle = $this->vehicles->firstByMsId((int) $row[0]);
 

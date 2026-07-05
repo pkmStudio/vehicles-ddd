@@ -1,0 +1,2 @@
+ms_id,mod_id,year_from,year_to,description,power_ps,power_kw,engine_type,gear_type,drive_type,brake_system_type,number_of_cylinders,capacity_lt,type
+300,50,2013,2020,1.8 TSI,180,132,Бензиновый двигатель,Механическая коробка передач,Привод на передние колеса,Дисковой тормозной механизм,4,1.8,PC

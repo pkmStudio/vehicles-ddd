@@ -20,7 +20,7 @@ final readonly class AssignEngineGroupService implements AssignEngineGroupServic
         private EngineCommandInterface $command,
     ) {}
 
-    public function execute(string $code, int $groupId): AssignEngineGroupResult
+    public function assignGroup(string $code, int $groupId): AssignEngineGroupResult
     {
         $engine = $this->engines->firstByCodeEngine($code);
 

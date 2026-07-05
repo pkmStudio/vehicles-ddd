@@ -8,5 +8,5 @@ use App\Vehicles\Domain\Models\Manufacturer;
 
 interface UpsertManufacturerFromRowServiceInterface
 {
-    public function execute(array $row): Manufacturer;
+    public function upsertFromRow(array $row): Manufacturer;
 }

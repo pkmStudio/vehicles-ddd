@@ -8,5 +8,5 @@ use App\Vehicles\Domain\DTOs\AssignEngineGroupResult;
 
 interface AssignEngineGroupServiceInterface
 {
-    public function execute(string $code, int $groupId): AssignEngineGroupResult;
+    public function assignGroup(string $code, int $groupId): AssignEngineGroupResult;
 }

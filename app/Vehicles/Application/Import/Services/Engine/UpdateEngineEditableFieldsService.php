@@ -22,7 +22,7 @@ final readonly class UpdateEngineEditableFieldsService implements UpdateEngineEd
     /**
      * @param  array<string, mixed>  $attributes  поле модели => значение
      */
-    public function execute(int $engId, array $attributes): Engine
+    public function updateEditableFields(int $engId, array $attributes): Engine
     {
         return $this->command->updateEditableByEngId($engId, $attributes);
     }

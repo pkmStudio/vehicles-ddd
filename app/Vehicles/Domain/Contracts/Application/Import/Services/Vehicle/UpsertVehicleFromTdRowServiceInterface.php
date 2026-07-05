@@ -8,5 +8,5 @@ use App\Vehicles\Domain\Models\Vehicle;
 
 interface UpsertVehicleFromTdRowServiceInterface
 {
-    public function execute(array $row): ?Vehicle;
+    public function upsertFromRow(array $row): ?Vehicle;
 }

@@ -22,7 +22,7 @@ final class LinkEngineModificationFromRowServiceTest extends TestCase
             ->with(Mockery::on(fn (EngineModificationData $d) => $d->engId === 1 && $d->modId === 2 && $d->type === 'PC'));
 
         $service = new LinkEngineModificationFromRowService($command, new EngineModificationDataFactory);
-        $service->execute([1, 2, 'PC']);
+        $service->linkFromRow([1, 2, 'PC']);
 
         $this->addToAssertionCount(1);
     }
@@ -35,7 +35,7 @@ final class LinkEngineModificationFromRowServiceTest extends TestCase
         $service = new LinkEngineModificationFromRowService($command, new EngineModificationDataFactory);
 
         $this->expectException(ValidationException::class);
-        $service->execute([1, 2, 'НЕВЕРНО']);
+        $service->linkFromRow([1, 2, 'НЕВЕРНО']);
     }
 
     protected function tearDown(): void

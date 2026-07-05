@@ -8,5 +8,5 @@ use App\Vehicles\Domain\Models\Modification;
 
 interface UpsertModificationFromRowServiceInterface
 {
-    public function execute(array $row): ?Modification;
+    public function upsertFromRow(array $row): ?Modification;
 }

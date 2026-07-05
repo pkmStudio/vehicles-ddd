@@ -39,7 +39,7 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
 
         $service = new UpsertEngineSparkPlugSpecService($engines, $partSpecs);
 
-        $this->assertSame($expected, $service->execute(101, $details));
+        $this->assertSame($expected, $service->upsertByEngine(101, $details));
     }
 
     public function test_returns_null_when_engine_not_found(): void
@@ -52,7 +52,7 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
 
         $service = new UpsertEngineSparkPlugSpecService($engines, $partSpecs);
 
-        $this->assertNull($service->execute(999, ['gap' => '0.9']));
+        $this->assertNull($service->upsertByEngine(999, ['gap' => '0.9']));
     }
 
     protected function tearDown(): void

@@ -18,6 +18,7 @@ return new class extends Migration
 
             $table->string('name');
             $table->string('localized_name')->nullable();
+            $table->string('excel_table_id')->nullable()->comment('ID таблицы Excel');
 
             $table->string('generation')->nullable();
             $table->string('generation_short')->nullable();

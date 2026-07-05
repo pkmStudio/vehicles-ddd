@@ -28,7 +28,7 @@ final readonly class UpsertEngineSparkPlugSpecService implements UpsertEngineSpa
      * @param  array<string, mixed>  $details  собранные значения спецификации
      * @return PartSpecification|null null, если двигатель с таким eng_id не найден
      */
-    public function execute(int $engId, array $details): ?PartSpecification
+    public function upsertByEngine(int $engId, array $details): ?PartSpecification
     {
         $engine = $this->engines->firstByEngId($engId);
 

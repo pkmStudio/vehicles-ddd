@@ -67,7 +67,7 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
 
         foreach ($this->parseCodes($rawCodes) as $code) {
             try {
-                $result = $this->service->execute($code, $groupId);
+                $result = $this->service->assignGroup($code, $groupId);
 
                 if (! $result->found) {
                     $this->onFailure(new Failure(

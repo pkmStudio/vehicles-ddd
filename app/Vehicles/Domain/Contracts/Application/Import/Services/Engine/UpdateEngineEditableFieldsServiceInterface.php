@@ -8,5 +8,5 @@ use App\Vehicles\Domain\Models\Engine;
 
 interface UpdateEngineEditableFieldsServiceInterface
 {
-    public function execute(int $engId, array $attributes): Engine;
+    public function updateEditableFields(int $engId, array $attributes): Engine;
 }

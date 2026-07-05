@@ -45,7 +45,7 @@ final class EngineCommandImport implements EngineCommandImportInterface, ShouldQ
     {
         foreach ($collection as $index => $row) {
             try {
-                $this->service->execute($row->toArray());
+                $this->service->upsertFromRow($row->toArray());
             } catch (ValidationException $e) {
                 $this->onFailure(new Failure($index + $this->startRow(), 'Двигатель', Arr::flatten($e->errors()), $row->toArray()));
             }

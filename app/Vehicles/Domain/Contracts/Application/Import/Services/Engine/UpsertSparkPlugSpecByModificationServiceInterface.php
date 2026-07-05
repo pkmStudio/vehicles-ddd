@@ -8,5 +8,5 @@ use App\Vehicles\Domain\DTOs\ModificationSparkPlugResult;
 
 interface UpsertSparkPlugSpecByModificationServiceInterface
 {
-    public function execute(int $msId, int $modId, array $details): ModificationSparkPlugResult;
+    public function upsertByModification(int $msId, int $modId, array $details): ModificationSparkPlugResult;
 }

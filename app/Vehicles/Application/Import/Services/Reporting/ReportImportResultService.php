@@ -22,7 +22,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
         private FileNotificationServiceInterface $notifier,
     ) {}
 
-    public function execute(int $userId, string $cacheKey): void
+    public function report(int $userId, string $cacheKey): void
     {
         try {
             $path = $this->reporter->store(Cache::get($cacheKey, []));

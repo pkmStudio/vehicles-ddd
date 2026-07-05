@@ -61,7 +61,7 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
                 $startIndex = self::SPEC_START_COLUMN;
                 $details = $this->templateDataBuilder->buildByTemplate($row->toArray(), $startIndex, DetailTemplateEnum::SPARK_PLUGS);
 
-                $spec = $this->service->execute((int) $engId, $details);
+                $spec = $this->service->upsertByEngine((int) $engId, $details);
 
                 if (! $spec) {
                     Log::warning('EngineSparkPlugsSheetImport: двигатель не найден', [

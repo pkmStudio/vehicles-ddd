@@ -42,7 +42,7 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
 
         $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers);
 
-        $this->assertSame($expected, $service->execute(self::VALID_ROW));
+        $this->assertSame($expected, $service->upsertFromRow(self::VALID_ROW));
     }
 
     public function test_returns_null_when_manufacturer_not_found(): void
@@ -55,7 +55,7 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
 
         $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers);
 
-        $this->assertNull($service->execute(self::VALID_ROW));
+        $this->assertNull($service->upsertFromRow(self::VALID_ROW));
     }
 
     protected function tearDown(): void

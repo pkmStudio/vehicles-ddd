@@ -36,7 +36,7 @@ final class UpsertModificationFromRowServiceTest extends TestCase
 
         $service = new UpsertModificationFromRowService($command, new ModificationDataFactory, $vehicles);
 
-        $this->assertSame($expected, $service->execute(self::VALID_ROW));
+        $this->assertSame($expected, $service->upsertFromRow(self::VALID_ROW));
     }
 
     public function test_returns_null_when_vehicle_not_found(): void
@@ -49,7 +49,7 @@ final class UpsertModificationFromRowServiceTest extends TestCase
 
         $service = new UpsertModificationFromRowService($command, new ModificationDataFactory, $vehicles);
 
-        $this->assertNull($service->execute(self::VALID_ROW));
+        $this->assertNull($service->upsertFromRow(self::VALID_ROW));
     }
 
     protected function tearDown(): void

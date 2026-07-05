@@ -27,7 +27,7 @@ final readonly class UpsertEngineFromSheetService implements UpsertEngineFromShe
      *
      * @throws ValidationException
      */
-    public function execute(array $row): Engine
+    public function upsertFromRow(array $row): Engine
     {
         $data = $this->factory->make([
             'eng_id' => $row[0] ?? null,

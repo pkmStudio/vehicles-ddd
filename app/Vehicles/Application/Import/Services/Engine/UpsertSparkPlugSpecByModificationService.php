@@ -30,7 +30,7 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
     /**
      * @param  array<string, mixed>  $details
      */
-    public function execute(int $msId, int $modId, array $details): ModificationSparkPlugResult
+    public function upsertByModification(int $msId, int $modId, array $details): ModificationSparkPlugResult
     {
         [$resolvedMsId, $reason] = $this->resolveMsId($msId);
         if ($resolvedMsId === null) {

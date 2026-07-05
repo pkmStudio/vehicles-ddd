@@ -52,7 +52,7 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
             $command,
         );
 
-        $result = $service->execute(200, 50, ['gap' => '0.9']);
+        $result = $service->upsertByModification(200, 50, ['gap' => '0.9']);
 
         $this->assertTrue($result->found);
         $this->assertSame(1, $result->writtenCount);
@@ -73,7 +73,7 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
             $command,
         );
 
-        $result = $service->execute(200, 50, []);
+        $result = $service->upsertByModification(200, 50, []);
 
         $this->assertFalse($result->found);
         $this->assertNotNull($result->notFoundReason);
@@ -99,7 +99,7 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
 
         $service = new UpsertSparkPlugSpecByModificationService($vehicles, $modifications, $command);
 
-        $result = $service->execute(-5, 50, []);
+        $result = $service->upsertByModification(-5, 50, []);
 
         $this->assertTrue($result->found);
         $this->assertSame(1, $result->writtenCount);

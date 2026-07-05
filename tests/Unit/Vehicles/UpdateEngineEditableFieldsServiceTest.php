@@ -25,7 +25,7 @@ final class UpdateEngineEditableFieldsServiceTest extends TestCase
 
         $service = new UpdateEngineEditableFieldsService($command);
 
-        $this->assertSame($expected, $service->execute(101, $attributes));
+        $this->assertSame($expected, $service->updateEditableFields(101, $attributes));
     }
 
     protected function tearDown(): void

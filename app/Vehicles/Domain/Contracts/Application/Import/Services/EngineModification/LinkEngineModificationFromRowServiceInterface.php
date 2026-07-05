@@ -6,5 +6,5 @@ namespace App\Vehicles\Domain\Contracts\Application\Import\Services\EngineModifi
 
 interface LinkEngineModificationFromRowServiceInterface
 {
-    public function execute(array $row): void;
+    public function linkFromRow(array $row): void;
 }

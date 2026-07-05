@@ -30,7 +30,7 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
      *
      * @throws ValidationException
      */
-    public function execute(array $row): ?Vehicle
+    public function upsertFromRow(array $row): ?Vehicle
     {
         $manufacturer = $this->manufacturers->firstByMfaId((int) $row[0]);
 

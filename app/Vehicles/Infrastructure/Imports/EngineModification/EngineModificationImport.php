@@ -42,7 +42,7 @@ final class EngineModificationImport implements EngineModificationImportInterfac
     {
         foreach ($collection as $index => $row) {
             try {
-                $this->service->execute($row->toArray());
+                $this->service->linkFromRow($row->toArray());
             } catch (ValidationException $e) {
                 $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', Arr::flatten($e->errors()), $row->toArray()));
             }

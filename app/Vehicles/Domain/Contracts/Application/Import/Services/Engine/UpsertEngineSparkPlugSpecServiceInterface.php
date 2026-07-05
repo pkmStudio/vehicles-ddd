@@ -8,5 +8,5 @@ use App\Vehicles\Domain\Models\PartSpecification;
 
 interface UpsertEngineSparkPlugSpecServiceInterface
 {
-    public function execute(int $engId, array $details): ?PartSpecification;
+    public function upsertByEngine(int $engId, array $details): ?PartSpecification;
 }

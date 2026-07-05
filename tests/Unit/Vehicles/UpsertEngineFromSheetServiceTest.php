@@ -37,7 +37,7 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
         $service = new UpsertEngineFromSheetService($command, new EngineDataFactory);
 
         // [eng_id, code_engine, kw_start, kw_upto, ps_start, ps_upto, capacity, cyl_diam, cyl_count, valves, fuel]
-        $result = $service->execute([101, 'M54B30', 170, null, 231, null, '2979', 3.0, 6, 24, 'бензин']);
+        $result = $service->upsertFromRow([101, 'M54B30', 170, null, 231, null, '2979', 3.0, 6, 24, 'бензин']);
 
         $this->assertSame($expected, $result);
         $this->assertSame(101, $captured->engId);
@@ -56,7 +56,7 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
 
         $this->expectException(ValidationException::class);
         // несуществующий вид топлива — фабрика валидирует сырое значение через Rule::enum
-        $service->execute([101, 'M54B30', null, null, null, null, null, null, null, null, 'плазма']);
+        $service->upsertFromRow([101, 'M54B30', null, null, null, null, null, null, null, null, 'плазма']);
     }
 
     public function test_missing_eng_id_throws_validation_exception(): void
@@ -67,7 +67,7 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
         $service = new UpsertEngineFromSheetService($command, new EngineDataFactory);
 
         $this->expectException(ValidationException::class);
-        $service->execute([null, 'M54B30']);
+        $service->upsertFromRow([null, 'M54B30']);
     }
 
     protected function tearDown(): void

@@ -27,7 +27,7 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
 
         $service = new UpsertManufacturerFromRowService($command, new ManufacturerDataFactory);
 
-        $this->assertSame($expected, $service->execute([10, 'Skoda']));
+        $this->assertSame($expected, $service->upsertFromRow([10, 'Skoda']));
     }
 
     public function test_missing_name_throws_validation_exception(): void
@@ -38,7 +38,7 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
         $service = new UpsertManufacturerFromRowService($command, new ManufacturerDataFactory);
 
         $this->expectException(ValidationException::class);
-        $service->execute([10]);
+        $service->upsertFromRow([10]);
     }
 
     protected function tearDown(): void

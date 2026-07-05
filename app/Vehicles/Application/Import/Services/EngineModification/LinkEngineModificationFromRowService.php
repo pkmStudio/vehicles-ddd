@@ -24,7 +24,7 @@ final readonly class LinkEngineModificationFromRowService implements LinkEngineM
      *
      * @throws ValidationException
      */
-    public function execute(array $row): void
+    public function linkFromRow(array $row): void
     {
         $data = $this->factory->make([
             'eng_id' => $row[0] ?? null,

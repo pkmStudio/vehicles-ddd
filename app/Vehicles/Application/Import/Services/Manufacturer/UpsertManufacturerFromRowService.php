@@ -25,7 +25,7 @@ final readonly class UpsertManufacturerFromRowService implements UpsertManufactu
      *
      * @throws ValidationException
      */
-    public function execute(array $row): Manufacturer
+    public function upsertFromRow(array $row): Manufacturer
     {
         $data = $this->factory->make([
             'mfa_id' => $row[0] ?? null,
