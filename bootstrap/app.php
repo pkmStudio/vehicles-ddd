@@ -14,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         // Папки с командами вне стандартной app/Console/Commands (доменные/инфраструктурные).
         // Laravel рекурсивно найдёт в них все классы-команды. Добавляйте сюда новые папки.
-        __DIR__.'/../app/Vehicles/Infrastructure/Messaging/Commands',
+        // rabbit-transport:setup регистрируется самим пакетом pkmstudio/rabbit-transport.
         __DIR__.'/../app/Vehicles/Presentation/Console/Commands',
     ])
     ->withMiddleware(function (Middleware $middleware): void {

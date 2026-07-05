@@ -1,6 +1,7 @@
 <?php
 
-use App\Vehicles\Infrastructure\Messaging\Workers\CustomRabbitMQQueue;
+use PkmStudio\RabbitTransport\Consumers\InboxConsumer;
+use PkmStudio\RabbitTransport\Workers\CustomRabbitMQQueue;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Jobs\RabbitMQJob;
 
 return [
@@ -124,9 +125,12 @@ return [
             'worker' => env('RABBITMQ_WORKER', 'default'),
         ],
 
-        'vehicles_inbox' => [
+        // Входящие интеграционные события (rabbit-transport). Имя connection и
+        // класс InboxConsumer/CustomRabbitMQQueue — из пакета pkmstudio/rabbit-transport,
+        // сама топология (exchange/queue/bindings) — в config/rabbit-transport.php.
+        'rabbitmq_inbox' => [
             'driver' => 'rabbitmq',
-            'queue' => env('VEHICLES_INBOX_QUEUE', 'vehicles.inbox'),
+            'queue' => env('RABBIT_TRANSPORT_QUEUE', 'vehicles.inbox'),
             'hosts' => [
                 [
                     'host' => env('RABBITMQ_HOST', '127.0.0.1'),
@@ -145,13 +149,13 @@ return [
                     'passphrase' => env('RABBITMQ_SSL_PASSPHRASE', null),
                 ],
                 'queue' => [
-                    'exchange' => 'application.events',
-                    'exchange_type' => 'topic',
+                    'exchange' => env('RABBIT_TRANSPORT_EXCHANGE', 'application.events'),
+                    'exchange_type' => env('RABBIT_TRANSPORT_EXCHANGE_TYPE', 'topic'),
                     'exchange_routing_key' => '',
 
                     'declare' => true,
 
-                    'job' => \App\Vehicles\Infrastructure\Messaging\Consumers\InboxConsumer::class,
+                    'job' => InboxConsumer::class,
                     'prefetch_count' => 10,
                 ],
             ],

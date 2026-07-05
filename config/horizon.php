@@ -211,18 +211,20 @@ return [
             'timeout' => 60,
             'nice' => 0,
         ],
-        // Входящие события из общего обменника application.events
+        // Входящие события из общего обменника application.events (rabbit-transport)
         'supervisor-inbox' => [
-            'connection' => 'vehicles_inbox',
-            'queue' => [env('VEHICLES_INBOX_QUEUE', 'vehicles.inbox')],
+            'connection' => 'rabbitmq_inbox',
+            'queue' => [env('RABBIT_TRANSPORT_QUEUE', 'vehicles.inbox')],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 128,
-            'tries' => 1,
-            'timeout' => 60,
+            // tries/timeout по рекомендации пакета — доп. страховка сверх его
+            // собственных consumer.max_attempts/release_delay (config/rabbit-transport.php).
+            'tries' => 3,
+            'timeout' => 90,
             'nice' => 0,
         ],
     ],
