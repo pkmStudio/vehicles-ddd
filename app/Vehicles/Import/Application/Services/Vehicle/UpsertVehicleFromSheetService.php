@@ -14,6 +14,8 @@ use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheet
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleSheetRowDTO;
 use App\Vehicles\Import\Domain\ModelData\VehicleData;
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
+use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -44,6 +46,16 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
             ? $this->vehicles->firstByMsId($row->parentMsId)?->id
             : null;
 
+        $type = $row->type;
+        $typeCarcase = $row->typeCarcase;
+
+        // TODO: удалить после прогонки импорта и экспорта.
+        // TecDoc не даёт тип кузова для мотоциклов — подставляем безопасный дефолт,
+        // иначе падает валидатор VehicleDataFactory.
+        if (! $typeCarcase && $type === VehicleTypeEnum::MB->value) {
+            $typeCarcase = CarcaseTypeEnum::MOTORCYCLE->value;
+        }
+
         [$mfaId, $manufacturerId] = $this->resolveManufacturer($minMfaId, $row);
         $msId = $row->msId ?? --$minMsId;
 
@@ -52,7 +64,7 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
             'mfa_id' => $mfaId,
             'name' => $row->name,
             'type' => $row->type,
-            'type_carcase' => $row->typeCarcase,
+            'type_carcase' => $typeCarcase,
             'steering_type' => $row->steeringType,
             'generation' => $row->generation,
             'generation_short' => $row->generationShort,

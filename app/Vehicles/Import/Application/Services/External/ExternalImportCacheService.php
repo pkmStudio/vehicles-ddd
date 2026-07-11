@@ -8,7 +8,6 @@ use App\Vehicles\Import\Domain\Contracts\Services\External\ExternalImportCacheSe
 use App\Vehicles\Import\Domain\DTOs\ExternalImportFileCleanupDTO;
 use App\Vehicles\Import\Domain\DTOs\ExternalImportFileRequestDTO;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Управляет cache-состоянием внешнего импорта: идемпотентность и отложенная очистка файла.
@@ -21,11 +20,6 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
             return true;
         }
 
-        Log::warning('External import file request has already been accepted', [
-            'run_id' => $request->runId,
-            'import_type' => $request->importType->value,
-        ]);
-
         return false;
     }
 
@@ -36,12 +30,14 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
 
     public function rememberCleanup(ExternalImportFileRequestDTO $request): void
     {
+        $cleanup = new ExternalImportFileCleanupDTO(
+            disk: $request->disk,
+            path: $request->path,
+        );
+
         Cache::put(
             $this->cleanupCacheKey($request->runId),
-            new ExternalImportFileCleanupDTO(
-                disk: $request->disk,
-                path: $request->path,
-            )->toArray(),
+            $cleanup->toArray(),
             now()->addSeconds($this->cacheTtlSeconds()),
         );
     }

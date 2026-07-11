@@ -6,7 +6,6 @@ namespace App\Vehicles\Import\Application\Services\External;
 
 use App\Vehicles\Import\Domain\Contracts\Services\External\CleanupExternalImportFileServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -33,11 +32,5 @@ final readonly class CleanupExternalImportFileService implements CleanupExternal
         }
 
         Storage::disk($cleanup->disk)->delete($cleanup->path);
-
-        Log::info('External import file cleaned up', [
-            'run_id' => $runId,
-            'disk' => $cleanup->disk,
-            'path' => $cleanup->path,
-        ]);
     }
 }

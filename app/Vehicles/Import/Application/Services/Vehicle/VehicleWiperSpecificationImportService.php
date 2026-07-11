@@ -7,7 +7,9 @@ namespace App\Vehicles\Import\Application\Services\Vehicle;
 use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
+use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
+use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Vehicles\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
@@ -28,33 +30,36 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
         private PartSpecificationRepositoryInterface $specifications,
         private PartSpecificationCommandInterface $command,
         private WiperSpecificationServiceInterface $wiper,
+        private VehicleRepositoryInterface $vehicles,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $details  собранные значения спецификации (front/back)
-     * @param  ?string  $featureValueName  название особенности; если указано, но не найдено, выбрасывается исключение
-     *
-     * @throws \RuntimeException при указании featureValueName, которого нет в справочнике особенностей
-     */
-    public function importForVehicle(
-        int $vehicleId,
-        string $templateSlug,
-        array $details,
-        ?string $featureValueName = null,
-        ?string $name = null,
-        ?string $text = null,
-    ): void {
-        $template = DetailTemplateEnum::from($templateSlug);
+    public function upsertFromRow(VehicleWiperSheetRowDTO $row): void
+    {
+        if ($row->msId === null) {
+            throw new RuntimeException('Не указан ms_id для записи спецификации дворников.');
+        }
+
+        $vehicle = $this->vehicles->firstByMsId($row->msId);
+        if ($vehicle?->id === null) {
+            throw new RuntimeException("ТС с ms_id {$row->msId} не найдено. Сначала импортируйте основной лист.");
+        }
+
+        if ($row->templateSlug === null) {
+            return;
+        }
+
+        $template = DetailTemplateEnum::from($row->templateSlug);
         $featureValueId = null;
-        if (! empty($featureValueName)) {
-            $featureValue = $this->featureValues->firstByName($featureValueName);
+        if (! empty($row->featureValueName)) {
+            $featureValue = $this->featureValues->firstByName($row->featureValueName);
             if ($featureValue === null) {
-                throw new RuntimeException("Особенность \"{$featureValueName}\" не найдена. Сначала импортируйте особенности.");
+                throw new RuntimeException("Особенность \"{$row->featureValueName}\" не найдена. Сначала импортируйте особенности.");
             }
 
             $featureValueId = $featureValue->id;
         }
-        $parts = $this->wiper->splitDetails($details);
+
+        $parts = $this->wiper->splitDetails($row->details);
         $sideCounts = array_count_values(array_column($parts, 'side'));
 
         foreach ($parts as $part) {
@@ -63,7 +68,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
             $sideDetails = $this->wiper->sideData($partDetails, $side);
             if (! $this->hasUsableSideDetails($sideDetails)) {
                 Log::warning('Импорт дворников: пустые данные стороны пропущены', [
-                    'vehicle_id' => $vehicleId,
+                    'vehicle_id' => $vehicle->id,
                     'template' => $template->value,
                     'side' => $side,
                 ]);
@@ -73,16 +78,16 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
 
             $data = new PartSpecificationData(
                 partableType: PartableTypeEnum::VEHICLE->value,
-                partableId: $vehicleId,
+                partableId: $vehicle->id,
                 template: $template,
                 details: $partDetails,
                 featureValueId: $featureValueId,
-                name: $name,
-                text: $text,
+                name: $row->name,
+                text: $row->text,
             );
 
             $existing = $this->resolveExistingSpecification(
-                vehicleId: $vehicleId,
+                vehicleId: $vehicle->id,
                 template: $template,
                 side: $side,
                 details: $partDetails,
@@ -90,10 +95,10 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
             );
 
             if ($existing !== null) {
-                $this->warnFeatureValueConflict($existing, $featureValueId, $vehicleId, $side);
+                $this->warnFeatureValueConflict($existing, $featureValueId, $vehicle->id, $side);
                 $this->command->update(new PartSpecificationData(
                     partableType: $data->partableType,
-                    partableId: $data->partableId,
+                    partableId: $vehicle->id,
                     template: $data->template,
                     details: $data->details,
                     featureValueId: $data->featureValueId,
@@ -142,15 +147,6 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
             return $candidates->first();
         }
 
-        if ($candidates->count() > 1) {
-            Log::warning('Импорт дворников: несколько PartSpecification для одного авто/шаблона/стороны', [
-                'vehicle_id' => $vehicleId,
-                'template' => $template->value,
-                'side' => $side,
-                'part_specification_ids' => $candidates->pluck('id')->all(),
-            ]);
-        }
-
         return null;
     }
 
@@ -196,7 +192,19 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
     private function hasUsableSideDetails(array $sideDetails): bool
     {
         foreach ($sideDetails as $value) {
-            if ($this->hasUsableValue($value)) {
+            if (is_array($value)) {
+                if ($value === []) {
+                    continue;
+                }
+
+                if ($this->hasUsableSideDetails($value)) {
+                    return true;
+                }
+
+                continue;
+            }
+
+            if ($value !== null && $value !== '') {
                 return true;
             }
         }
@@ -204,26 +212,4 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
         return false;
     }
 
-    /**
-     * Проверяет одно значение side-details на заполненность.
-     *
-     * Шаги:
-     * 1. Для массивов проверяет вложенные элементы.
-     * 2. Считает null и пустую строку пустыми.
-     * 3. Все остальные значения считает полезными.
-     */
-    private function hasUsableValue(mixed $value): bool
-    {
-        if (is_array($value)) {
-            foreach ($value as $innerValue) {
-                if ($this->hasUsableValue($innerValue)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        return $value !== null && $value !== '';
-    }
 }

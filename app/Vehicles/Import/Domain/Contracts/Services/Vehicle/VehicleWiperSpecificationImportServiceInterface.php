@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Domain\Contracts\Services\Vehicle;
 
+use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
+
 interface VehicleWiperSpecificationImportServiceInterface
 {
-    public function importForVehicle(int $vehicleId, string $templateSlug, array $details, ?string $featureValueName = null, ?string $name = null, ?string $text = null): void;
+    public function upsertFromRow(VehicleWiperSheetRowDTO $row): void;
 }

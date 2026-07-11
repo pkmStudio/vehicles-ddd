@@ -7,12 +7,19 @@ namespace Tests\Unit\Vehicles;
 use App\Vehicles\Templates\Application\WiperSpecificationService;
 use App\Vehicles\Import\Application\Services\Vehicle\VehicleWiperSpecificationImportService;
 use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
+use App\Vehicles\Import\Domain\ModelData\VehicleData;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
+use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Vehicles\Import\Domain\ModelData\FeatureValueData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
+use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
+use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;
@@ -23,12 +30,47 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         PartSpecificationRepositoryInterface $specs,
         PartSpecificationCommandInterface $command,
         ?FeatureValueRepositoryInterface $featureValues = null,
+        ?VehicleRepositoryInterface $vehicles = null,
     ): VehicleWiperSpecificationImportService {
+        $vehicles ??= Mockery::mock(VehicleRepositoryInterface::class);
+        $vehicles
+            ->shouldReceive('firstByMsId')
+            ->with(77)
+            ->andReturn($this->vehicleData());
+
         return new VehicleWiperSpecificationImportService(
             $featureValues ?? Mockery::mock(FeatureValueRepositoryInterface::class),
             $specs,
             $command,
             new WiperSpecificationService,
+            $vehicles,
+        );
+    }
+
+    private function vehicleData(): VehicleData
+    {
+        return new VehicleData(
+            msId: 77,
+            mfaId: 10,
+            manufacturerId: 3,
+            name: 'Octavia',
+            type: VehicleTypeEnum::PC,
+            steeringType: SteeringTypeEnum::LEFT,
+            typeCarcase: CarcaseTypeEnum::HATCHBACK,
+            provider: ProviderEnum::TD,
+            id: 77,
+        );
+    }
+
+    private function wiperRow(array $details, int $msId = 77, ?string $featureValueName = null, ?string $name = null, ?string $text = null): VehicleWiperSheetRowDTO
+    {
+        return new VehicleWiperSheetRowDTO(
+            msId: $msId,
+            templateSlug: DetailTemplateEnum::WIPER->value,
+            featureValueName: $featureValueName,
+            name: $name,
+            text: $text,
+            details: $details,
         );
     }
 
@@ -64,7 +106,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
             'back' => ['adapter_type_rear' => ['B1']],
         ];
 
-        $this->service($specs, $command)->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details);
+        $this->service($specs, $command)->upsertFromRow($this->wiperRow($details));
 
         $this->assertSame(['front', 'back'], $created);
     }
@@ -94,7 +136,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         // только front
         $details = ['front' => ['adapter_type_front' => ['A1']]];
 
-        $this->service($specs, $command)->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details);
+        $this->service($specs, $command)->upsertFromRow($this->wiperRow($details));
 
         $this->addToAssertionCount(1);
     }
@@ -125,7 +167,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
         $details = ['front' => ['adapter_type_front' => ['A1']]];
 
-        $this->service($specs, $command)->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details);
+        $this->service($specs, $command)->upsertFromRow($this->wiperRow($details));
 
         $this->addToAssertionCount(1);
     }
@@ -148,7 +190,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         $details = ['front' => ['adapter_type_front' => ['A1']]];
 
         $this->service($specs, $command, $featureValues)
-            ->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details, featureValueName: 'Левый руль');
+            ->upsertFromRow($this->wiperRow($details, featureValueName: 'Левый руль'));
 
         $this->addToAssertionCount(1);
     }
@@ -167,7 +209,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         $details = ['front' => ['adapter_type_front' => ['A1']]];
 
         $this->service($specs, $command, $featureValues)
-            ->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details, featureValueName: 'Неизвестная особенность');
+            ->upsertFromRow($this->wiperRow($details, featureValueName: 'Неизвестная особенность'));
     }
 
     public function test_creates_separate_specs_for_multiple_front_adapters_without_fallback_update(): void
@@ -194,7 +236,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
         $details = ['front' => ['adapter_type_front' => ['A1', 'A2'], 'count_wipers' => 2]];
 
-        $this->service($specs, $command)->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details);
+        $this->service($specs, $command)->upsertFromRow($this->wiperRow($details));
 
         $this->assertSame([['A1'], ['A2']], $createdAdapters);
     }
