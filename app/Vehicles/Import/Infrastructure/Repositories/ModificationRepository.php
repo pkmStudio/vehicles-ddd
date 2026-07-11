@@ -8,6 +8,7 @@ use App\Vehicles\Import\Domain\Contracts\Repositories\ModificationRepositoryInte
 use App\Vehicles\Import\Domain\ModelData\EngineData;
 use App\Vehicles\Import\Domain\ModelData\ModificationData;
 use App\Vehicles\Import\Infrastructure\Models\Modification;
+use Illuminate\Support\Collection;
 
 final readonly class ModificationRepository implements ModificationRepositoryInterface
 {
