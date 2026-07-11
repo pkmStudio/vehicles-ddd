@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Import\Domain\Contracts\Imports;
+namespace App\Vehicles\Import\Domain\Contracts\Imports\Command;
 
-interface ModificationCommandImportInterface
+interface EngineModificationImportInterface
 {
     /**
      * Запустить импорт из файла $path. Транспорт (Excel) — в реализации.

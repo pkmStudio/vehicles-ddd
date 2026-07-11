@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Import\Domain\Contracts\Imports;
+namespace App\Vehicles\Import\Domain\Contracts\Imports\Command;
 
 use Illuminate\Support\Collection;
 
