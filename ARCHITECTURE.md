@@ -1,9 +1,15 @@
 # Архитектура `dan-vehicles`
 
-Справочник: **что куда класть, что должно быть тонким, что к какому слою относится и почему.**
-Домен живёт в `app/Vehicles/`. Внутри — 4 слоя: **Domain → Application → Infrastructure → Presentation**.
+Справочник: **что куда класть, что должно быть тонким, что к какому слою/фиче относится и почему.**
 
-Правило зависимостей (Dependency Rule): стрелки внутрь.
+Раскладка — **feature-first**. Домен живёт в `app/Vehicles/`, разбит на фичи; внутри каждой
+фичи — 4 слоя: **Domain → Application → Infrastructure → Presentation**.
+
+> История перехода layer-first → feature-first, переход на `spatie/laravel-data`, удаление
+> общей `Domain/Models` и т.п. зафиксированы в `plan.md` (§1–§3, §11). Здесь — только **целевое
+> состояние конвенций**, а не путь к нему.
+
+Правило зависимостей (Dependency Rule) действует **внутри каждой фичи**: стрелки внутрь.
 
 ```
 Presentation ──▶ Application ──▶ Domain
@@ -11,195 +17,233 @@ Presentation ──▶ Application ──▶ Domain
        └─────▶ Infrastructure ─────┘
 ```
 
-- **Domain** — декларации домена: Eloquent-модели (только связи) + Contracts (порты) + ModelData + DTOs + Enums + Events + Templates + Services (чистые правила).
-- **Application** знает только Domain. Оркестрация: UseCases, Factories, Services, тонкие Listeners/Jobs/Observers.
-- **Infrastructure** реализует интерфейсы, знает Domain и Application, тащит фреймворк/внешний мир (БД, Excel, RabbitMQ, S3).
-- **Presentation** — точки входа (console, http), максимально тонкие, дёргают Application.
+- **Domain** — декларации фичи: Contracts (порты) + ModelData (`spatie/laravel-data`) + DTOs +
+  Enums (фиче-специфичные) + Events + Templates-декларации. Без фреймворковой инфраструктуры.
+- **Application** знает только Domain своей фичи (+ Domain-контракты фичи `Templates`/`Shared`).
+  Оркестрация и правила: Services, UseCases (точки входа), Factories, тонкие Listeners.
+- **Infrastructure** реализует порты фичи: Eloquent-**Models**, Repositories, Commands,
+  Excel-Imports/Exports, Notifications, Providers. Тащит фреймворк/внешний мир.
+- **Presentation** — точки входа фичи (console, http), максимально тонкие, дёргают Application.
 
-Нарушение, за которым следим: Domain/Application **не импортируют** `Maatwebsite\Excel`, `PhpAmqpLib`, конкретные фасады записи и т.п. — только через порты-интерфейсы.
+Нарушение, за которым следим: Domain/Application фичи **не импортируют** `Maatwebsite\Excel`,
+конкретные пакеты брокера, фасады записи и т.п. — только через порты в `Domain/Contracts`.
 
 ---
 
-## 1. Domain — `app/Vehicles/Domain`
+## 0. Карта фич — `app/Vehicles/`
 
-Бизнес-сердце. Без фреймворковой инфраструктуры.
-
-| Папка | Что лежит | Толщина |
+| Папка | Что это | Полнота слоёв |
 |---|---|---|
-| `Models/` | Eloquent-модели | **АНЕМИЧНЫЕ**: только связи (`hasMany`/`belongsTo`/`morphTo`), `$casts`, `$timestamps`. Без бизнес-логики, без `$with`, без accessor/mutator. Наследуют `BaseModel` (`guarded = []`, unguarded) — `$fillable` не используем; mass-assignment безопасен, т.к. запись идёт через Command+ModelData (фиксированный набор полей), не из сырого ввода. Защитить колонку → переопределить `$guarded` в конкретной модели. |
-| `Contracts/<Layer>/<Concern>/` | **Порты** (интерфейсы) для всех слоёв | Сгруппированы по слою-владельцу реализации, зеркально структуре кода: **`Contracts/Infrastructure/{Repositories,Commands,Imports,Exports,Notifications,Messaging}/`** (driven-адаптеры) и **`Contracts/Application/{Common,Import,Export}/…`** (порты UseCases/Factories/Services/Support). Реализация — в соответствующем слое; порт — всегда в Domain (стрелка внутрь). Repository-порты возвращают Domain-модели, Command-порты принимают `ModelData` (тоже Domain). На сущность — один Repository и один Command (без папки-сущности внутри концерна). |
-| `ModelData/<Entity>/` | **Отображения моделей** | `final readonly` + `toArray()`. **Без валидации в конструкторе.** Типизированный «снимок строки» для передачи в Command. Имя класса — `<Entity>Data`. Чистые данные → в Domain. |
-| `DTOs/` | **Транспортные объекты сценариев** (вход/выход use-case, payload) | `final readonly`. Форма данных, которой обменивается приложение и которая **не повторяет модель** (в отличие от `ModelData`): результаты use-case, запросы/ответы сценариев. Пример: `AssignEngineGroupResult` (исход назначения группы — `found`/`reassigned`/`previousGroupId`). Имя — `<Smth>Result`/`<Smth>Input` и т.п. по смыслу. |
-| `Enums/<Group>/` | Backed-enum'ы, сгруппированы по теме | Подпапки: `Enums/Vehicle/` (`VehicleTypeEnum`, `CarcaseTypeEnum`, `SteeringTypeEnum`, `BrakeSystemTypeEnum`, `GearTypeEnum`, `DriveTypeEnum`, `WiperSideEnum`), `Enums/Engine/` (`EngineFuelTypeEnum`, `EngineTypeEnum`), `Enums/Templates/` (`DetailTemplateEnum` — `templateClass()` резолвит FQCN шаблона), `Enums/InOut/Sheets/` (схемы потоков: `VehicleImportSheet`/`VehicleExportSheet`/`EngineImportSheet`/`EngineExportSheet` — названия листов, чтобы не размазывать строки по коду и держать политику в Domain). Логика значений (label/маппинг) — в самом enum. |
-| `Events/` | Доменные события | Plain DTO-события (`final readonly`), **без поведения** (никаких `subscribe()`/`handle()` — это листенеры). `AbstractImportCompleted`, `EnginesAndModificationsReady` и т.д. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`, а не `VehicleImportCompletedEvent`): это легитимное исключение из «суффикс по виду класса» — событие читается как факт домена, суффикс несёт потребитель (`…Listener`/`…Subscriber`). |
-| `Templates/` | Описания шаблонов полей (field-template) | Декларативные классы. Общий DSL вынесен в пакет `dan/field-templates`. |
-| `Services/` | **Доменные сервисы** | Чистые бизнес-правила над `ModelData`/`DTO`/Enum, без инфраструктуры (без Eloquent-query, без фасадов/IO). Пример: `WiperSpecificationService` (структура деталей дворника: detect/split/merge сторон). Query/IO — за порт. |
+| `Shared/` | Общий «словарь» без поведения: enum'ы, на которые завязаны `$casts` (`Vehicle/*`, `Engine/*`, `PartableTypeEnum`, `ProviderEnum`) + `EnumHelperTrait`. **НЕ дублируется по фичам** (два разных `VehicleTypeEnum` = риск рассинхрона данных, а не просто лишний код). | только `Domain/` |
+| `Templates/` | Декларации полей деталей (field-template) + резолвер шаблонов + `WiperSpecificationService`. Общая для Import/Export/Maintenance фича; они зависят на её **Domain-контракты**. | `Domain/` + `Application/` |
+| `Import/` | Приём CSV/Excel → каталог. Единственная фича с записью (`Command`). | полный вертикальный срез |
+| `Export/` | Каталог → Excel. **Только чтение** — `Repository` есть, `Command` нет. Дублирует лишь 5 сущностей, которые реально читает. | `Domain/Application/Infrastructure` |
+| `Maintenance/` | Разовые фиксы каталога (артизан-команды). Без слоя `Repository` — читает/пишет напрямую через Eloquent, это осознанно для «разовых фиксов». | `Application/Infrastructure/Presentation` |
 
-> **Domain = полная декларация того, что происходит в приложении**: модели + контракты (порты) + ModelData (снимки строк) + DTO (транспорт сценариев) + enums + события + шаблоны + доменные сервисы (чистые правила). Без оркестрации/IO. Application/Infrastructure/Presentation **оперируют** этими декларациями и реализуют поведение. Domain самодостаточен — переезжает папкой в отдельный сервис.
+**Почему feature-first, а Enums — в `Shared`:** фичи режем по способностям (Import/Export/…),
+каждая независима и переезжаемая. Но enum'ы — это словарь значений колонок (`$casts`), а не
+сервис и не модель с данными: дублировать их = риск рассинхрона схемы. Поэтому единая точка
+истины в `Shared/`. Eloquent-модели, наоборот, **дублируются по фичам** (каждая фича — своя
+копия в `Infrastructure/Models`), потому что это деталь реализации Repository/Command, и
+независимость фич важнее отсутствия дублирования (осознанная плата — `plan.md §3`).
 
-**Почему модели анемичные:** бизнес-логика разъезжается по слоям предсказуемо (Services/UseCases), модели остаются сериализуемыми и тестируемыми, нет «магии» автозагрузки.
-
-**Enum через casts:** колонки в миграциях — `string` с `->comment('XxxEnum')`; преобразование — в `$casts` модели. В миграциях `enum()` не используем.
+> **Цена:** пока схема (миграции) одна на все копии, расхождения колонок между копиями
+> обнаружатся только в рантайме, не на уровне БД. Это принятый компромисс.
 
 ---
 
-## 2. Application — `app/Vehicles/Application`
+## 1. Domain фичи — `<Feature>/Domain`
 
-Оркестрация и поведение. Сценарии, фабрики, тонкие адаптеры событий. Порты и `ModelData` живут в Domain; Application их потребляет. **Excel-адаптеры импорта/экспорта — НЕ здесь, а в Infrastructure** (см. секцию 3): чтение/запись файлов — внешний мир.
+Бизнес-сердце фичи. Без фреймворковой инфраструктуры (Eloquent-модель сюда **не** входит —
+она в `Infrastructure/Models`, см. §3).
 
-Правило по слоям:
-- `UseCase` — сценарный вход с точки входа внешнего мира (`execute(...)`): импорт, экспорт, пересчёт, отчёт.
-- `Service` — оркестрация внутри Application: подготовка данных, правил, последовательностей шагов и вызов инфраструктурных портов. Для импорта/экспорта здесь также лежат методы сборки политики (`buildImportPlan`, `buildExportPlan`), возвращающие соответствующие `*Plan`.
-- `Support` — только вспомогательные helper-классы (маппинг/форматирование/разделение данных), без бизнес-сценариев и без “оркестрации”.
-
-### Группировка — по фиче (feature-first)
-Внутри Application делим **по фиче (способности)**, не по техническому типу: `Application/<Feature>/...`. Сейчас фичей две: `Import/` и `Export/`. Внутри фичи — под-папки по типу там, где файлов несколько: `UseCases/`, `Factories/`, `Support/`, `Services/`, `Listeners/`.
-
-```
-Application/
-  Import/
-    UseCases/<Entity>/   UpsertEngineFromSheetUseCase, AssignEngineGroupUseCase, …
-    UseCases/Reporting/  ReportImportResultUseCase (кросс-сущностный сценарий)
-    Factories/<Entity>/  <Entity>DataFactory
-    Support/             TemplateDataBuilder, DetailsBuilder, EngineEditableColumnsMapper
-    Services/            VehicleImportService, EngineImportService, EngineModificationReadinessGate (gate-логика готовности процесса)
-    Listeners/           Start*ImportListener, EngineModificationReadinessSubscriber, ReportImportResultListener
-  Export/
-    Support/             ExportDetailsBuilder, VehicleExportRow, EngineExportRow, PartSpecificationRowExpander, WiperRowExpander
-    Services/            VehicleExportService, EngineExportService
-    ...
-  Jobs/<Entity>/         InvalidateMpCards*Job        ⚠️ ещё не под фичей
-  Observers/<Entity>/    EngineObserver, VehicleObserver ⚠️ ещё не под фичей
-```
-
-> ⚠️ **Расхождение (не доделано):** `Jobs/` и `Observers/` пока лежат плоско, не под фичей — целевая раскладка feature-first до них ещё не дошла. Привести к `Application/<Feature>/{Jobs,Observers}/` при переносе домена MpSale (на нём завязана инвалидация MP-карточек). Это TODO, а не утверждённое исключение.
-
-> **Почему feature-first только в Application:** Domain — общее ядро (модели/порты/enum), делить его по фичам нельзя (один `EngineData` нужен и импорту, и экспорту). Infrastructure — адаптеры (`Imports/`, `Repositories/` — это инфра-сторона фич). Application — слой самих сценариев, поэтому его и режем по фичам. Фича «размазана» по слоям (use-case в Application, Excel-адаптер в Infra) — это нормально.
-
-| Папка фичи | Что лежит | Толщина / правила |
+| Папка | Что лежит | Толщина / правила |
 |---|---|---|
-| `<Feature>/UseCases/<Entity>/` | **Оркестраторы** одного сценария | Единый `execute()`. Координируют: `Factory->make()` (валидация+сборка `ModelData`) → дёргают `Command`/`Repository`/доменный Service. Без прямого Eloquent, без Excel. Пример: `Import/UseCases/Vehicle/UpsertVehicleFromSheetUseCase`. |
-| `<Feature>/Factories/<Entity>/` | **Сборка `ModelData` из сырой строки** (`<Entity>DataFactory`) | `make(array $row): <Entity>Data` валидирует И собирает Data в одном месте. Один параметр-массив; вычисляемые вызывающим поля (`manufacturer_id`, `parent_id`) кладём тем же массивом (тем же ключом). Enum-поля валидируем **сырыми значениями** через `Rule::enum(...)`, без `tryFrom` (см. «Грабли»). |
-| `<Feature>/Support/` | Helpers | Вспомогательные утилиты (маппинг, форматирование, разбиение/компоновка), без сценарной оркестрации и без бизнес-решений. |
-| `<Feature>/Listeners/` | Слушатели доменных событий | **ТОНКИЕ.** Делегируют в UseCase/Service. **Порт в Domain НЕ нужен** (см. ниже). Нейминг и количество — см. ниже. |
-| `<Feature>/Services/` | Бизнес-логика фичи | Прикладные правила/координация портов, которым тесно в одном use-case. Порт нужен, только если сервис «ходит наружу» (тогда это driven-порт в Domain). |
-| `Jobs/<Entity>/` | Очередные задачи | **ТОНКИЕ.** `handle()` резолвит сервис/use-case и зовёт его. Состояние job'ы — сериализуемые скаляры/DTO. (Группируются по своей фиче, когда она появится.) |
-| `Observers/<Entity>/` | Обсерверы моделей | **ТОНКИЕ.** Только реакция на события модели → делегат в Service/UseCase. |
+| `Contracts/<Concern>/` | **Порты** (интерфейсы) для всех инъектируемых классов фичи | Плоско по концерну: `Commands/`, `Repositories/`, `Imports/`, `Exports/`, `Factories/`, `Notifications/`, `Services/<Entity>/`, `UseCases/`. Порт всегда в Domain (стрелка внутрь), реализация — в своём слое. |
+| `ModelData/<Entity>/` | **`<Entity>Data extends Spatie\LaravelData\Data`** | Работает в обе стороны: вход `Command` (запись) и выход `Repository` (чтение). Enum-поля — реального enum-типа (пакет кастует туда-обратно). Вложенные связи — только те, что реально читаются, и только когда Repository их eager-load'ит (не через `#[LoadRelation]` — риск бесконечного цикла на двусторонних связях). |
+| `DTOs/` | **Транспортные объекты сценариев** (вход/выход, payload, контекст, план потока) | `final readonly`. Не повторяют модель. Примеры: `ImportRunContext` (кто/какой прогон), `VehicleImportPlan`/`EngineImportPlan` (политика потока), `AssignEngineGroupResult`, `ExternalFileImportFileRequestDTO`. |
+| `Enums/` | Фиче-специфичные enum'ы потоков | Напр. схемы листов `InOut/Sheets/*`. Общий словарь значений — в `Shared`, не здесь. |
+| `Events/` | Доменные события фичи | Plain DTO-события (`final readonly`), **без поведения**. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`). Все события пока в одной папке `Domain/Events` (деление на доменные/интеграционные — открытый вопрос, `plan.md §12`). |
 
-**Слушателям/джобам/обсерверам/командам/контроллерам контракт (порт) в Domain НЕ нужен.** Порт существует ради инверсии зависимости — для того, что use-case **зовёт наружу** (Repository/Command/Import/Export/Notification = driven-адаптеры). Слушатель — наоборот, **точка входа**: его дёргает диспетчер, он сам зовёт use-case. От него никто внутри не зависит (ссылается только `EventServiceProvider` картой событие→класс — это проводка). «Контракт» события — само событие в `Domain/Events`.
+**`Templates/Domain`** дополнительно держит `Templates/<Entity>/Templates/*` (декларативные
+описания полей: `AirFilterTemplate`, `WiperTemplate`, …) и `Enums/DetailTemplateEnum`
+(`templateClass()` резолвит FQCN шаблона). Общий DSL — в пакете `dan/field-templates`.
+Templates остаётся фичей-декларацией именно потому, что `DetailTemplateEnum` ссылается на классы
+Template: уедь Template в Application — доменный enum смотрел бы наружу.
 
-**Слушатели/обсерверы остаются в Application, не уезжают в Infrastructure.** «Нет порта» ≠ «другой слой» (порт и слой — независимы; у контроллеров/команд порта тоже нет, а живут в Presentation). Критерий слоя — **насколько тяжело класс завязан на внешний мир**:
-- **In-process реакция на `Domain/Events` / Eloquent-события, тонкая, дёргает use-case** → **Application** (`Start*ImportListener`, `EngineObserver`). Это оркестрация приложением собственного домена.
-- **Адаптер на границе интеграции** (внешний транспорт/брокер/файлы: `maatwebsite/excel`, RabbitMQ-`InboxConsumer`) → **Infrastructure**.
-
-**ModelData vs DTO (договорённость):**
-- `Domain/ModelData/` = **отображение модели** (`VehicleData` ≈ строка таблицы `vehicles`). Это то, что мы передаём в Command на запись.
-- `Domain/DTOs/` = **транспортные объекты сценариев**: вход/выход use-case (команды/запросы, результаты), payload событий. **Не обязаны** повторять модель. Лежат в **Domain** (а не Application): по нашей трактовке Domain декларирует все формы данных приложения; Application их потребляет/возвращает. Пример: `AssignEngineGroupResult`.
-
-**Почему слушатели/джобы/обсерверы тонкие:** их трудно тестировать и переиспользовать. Вся логика — в UseCase/Service, адаптер только «принял сигнал → позвал сценарий».
-
-**Слушатели — сколько на событие:**
-- **Реакции независимы** (порядок не важен, нужна изоляция ретрая/очередей) → **несколько слушателей** на событие, по одному на реакцию. Каждый — свой queued-job, свой failure-домен, своя конфигурация очереди; реакции явно видны в `EventServiceProvider`. Пример: `ManufacturerCommandImported` → `StartVehicleImportListener` + `StartEngineImportListener`.
-- **Реакции связны** (по порядку / B зависит от A / общая транзакция) → **один слушатель → один UseCase-оркестратор**, который и выстраивает шаги. Не размазываем процесс по слушателям и не пишем `A(); B(); C();` прямо в слушателе — оркестрацию в use-case (тестируется без событийного слоя).
-
-**Слушатели — нейминг:**
-- На событие **один** слушатель → имя **по событию**: `<Event>Listener`.
-- На событие **несколько** слушателей → имя **по действию**: `<Action>Listener` (по событию назвать нельзя — коллизия).
-- Класс, слушающий **несколько событий** через Laravel `subscribe()`, — это **`…Subscriber`** (`EngineModificationReadinessSubscriber`), тоже в `Application/Listeners/`. Сам он тонкий-координатор; событие-факт остаётся плоским DTO в `Domain/Events`.
-- UseCase при этом всегда именуется по действию (`ReportImportResultUseCase`), слушатель/подписчик — по правилу выше.
+> **Domain = полная декларация того, что делает фича**: порты + `Data` + DTO + enum'ы + события
+> (+ шаблоны у Templates). Без оркестрации/IO. Application/Infrastructure реализуют поведение.
 
 ---
 
-## 3. Infrastructure — `app/Vehicles/Infrastructure`
+## 2. Application фичи — `<Feature>/Application`
 
-Реализация портов: БД, брокер, файлы, нотификации, **и Excel-адаптеры импорта/экспорта** (`maatwebsite/excel`) — это внешний мир.
+Оркестрация и поведение. **Каждый инъектируемый класс — за интерфейсом** из `Domain/Contracts`
+(см. §5 «Интерфейс у каждого класса»).
+
+| Папка | Что лежит | Толщина / правила |
+|---|---|---|
+| `Services/<Entity>/` и `Services/<Group>/` | **Основной строительный блок.** Прикладные правила и координация портов | `Upsert*FromRowService`, `AssignEngineGroupService`, `ReportImportResultService`, `EngineModificationReadinessGate` (gate-логика), `Template/{TemplateDataBuilder,DetailsBuilder}`, `Engine/EngineEditableColumnsMapper` и т.п. Порт обязателен (`Contracts/Services/<Entity>/`). |
+| `UseCases/<Group>/` | **Точка входа сценария**, вызываемая внешним триггером | `execute(...)`. Оркестратор, который дёргают Presentation/Listener/consumer (напр. `External/StartExternalFileImportUseCase` — старт импорта по внешнему запросу). Тоже за портом (`Contracts/UseCases/`). Заводим, когда есть внешний триггер сценария; для внутренних правил хватает `Service`. |
+| `Factories/<Entity>/` | **Валидация + сборка `<Entity>Data` из сырой строки** | `make(array $row): <Entity>Data`. Enum-поля валидируем **сырыми значениями** через `Rule::enum(...)`, без `tryFrom` (см. «Грабли»). Приведение типов (напр. `(string)`) — до передачи в `strict_types` конструктор `Data`. За портом (`Contracts/Factories/`). |
+| `Listeners/` | Слушатели доменных событий | **ТОНКИЕ.** Делегируют в Service/UseCase. **Порт НЕ нужен** (см. ниже). |
+
+**Слушателям порт в Domain НЕ нужен** — в отличие от всего остального в Application. Порт есть
+ради инверсии зависимости для того, что код **зовёт наружу** (или что подменяют/мокают в DI).
+Слушатель — **точка входа**: его дёргает диспетчер, он сам зовёт Service/UseCase; от него внутри
+никто не зависит (ссылается только `*EventServiceProvider` картой событие→класс). «Контракт»
+слушателя — само событие в `Domain/Events`.
+
+**Слушатели остаются в Application, не уезжают в Infrastructure.** Критерий слоя — тяжесть
+завязки на внешний мир: тонкая in-process реакция на `Domain/Events` → Application
+(`StartVehicleImportListener`, `EngineModificationReadinessSubscriber`); адаптер на границе
+интеграции (Excel, брокер) → Infrastructure.
+
+**Слушатели — сколько на событие и нейминг:**
+- Реакции независимы → **несколько** слушателей, по одному на реакцию (свой queued-job/failure-
+  домен). Имя — **по действию**: `<Action>Listener` (`StartVehicleImportListener`).
+- Реакции связны (порядок / общая транзакция) → **один** слушатель → один UseCase/Service-
+  оркестратор. Не размазываем `A(); B(); C();` по слушателю.
+- Один слушатель на **одно** событие → имя по событию: `<Event>Listener`.
+- Слушатель **нескольких** событий через `subscribe()` → `…Subscriber`
+  (`EngineModificationReadinessSubscriber`), тоже в `Application/Listeners/`.
+
+---
+
+## 3. Infrastructure фичи — `<Feature>/Infrastructure`
+
+Реализация портов: Eloquent-модели, БД, файлы, брокер, Excel-адаптеры (`maatwebsite/excel`).
 
 | Папка | Что лежит | Правила |
 |---|---|---|
-| `Imports/<Entity>/` | Адаптеры импорта (`maatwebsite/excel`) | **Механика чтения файла:** `Excel::import($this, $path)`, чанки, `onFailure`. На каждую строку зовёт построчный **UseCase** (Application), бизнес-логику в адаптере не держит. **Точка входа** реализует поведенческий порт `Domain/Contracts/Infrastructure/Imports/<X>Interface` (`import(string $path, ?*Plan $plan = null): void`). Sub-sheet'ы — внутренние классы без интерфейсов (`*SheetImportInterface` больше не нужны). Зависимости — через конструктор; sub-sheet'ы создаём `app()->makeWith(...)`, не `new`. |
-| `Exports/<Entity>/` | Адаптеры экспорта (`maatwebsite/excel`) | Источник данных — Repository; сборка строк — `Support/*ExportRow`. **Точка входа** реализует порт `Domain/Contracts/Infrastructure/Exports/<X>Interface`. Sub-sheet'ы / `FailuresExport` — внутренние. |
-| `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` (реализует порт `Domain/Contracts/Infrastructure/Repositories/<Entity>RepositoryInterface`). Только запросы, без записи. Без папки-сущности — один репозиторий на сущность. |
-| `Commands/` | **Запись** (CQRS-lite) | `<Entity>Command` (реализует порт `Domain/Contracts/Infrastructure/Commands/<Entity>CommandInterface`). Принимают **`ModelData`**, а не сырые массивы. Здесь `save`/`upsert`/`delete`. Без папки-сущности — одна команда на сущность. |
-| `Support/` (нейтральный) | Технические helpers Infrastructure | Если есть общие инфраструктурные технические helpers, которые не относятся к конкретной фиче приложения, они могут жить здесь. Бизнес-правила и сборка доменных данных здесь не выполняются. |
-| `Messaging/` | RabbitMQ | `Consumers/InboxConsumer`, `RabbitMQPublisher`, `Commands/` (setup-команды брокера), `Workers/CustomRabbitMQQueue`, `DTOs/RabbitMessageDTO`, `Enums/{Inbound,Outbound}EventsEnum`. Очереди: `vehicles` (jobs), `vehicles.inbox` (входящие события), exchange `application.events`. |
-| `Notifications/` | Внешние уведомления | Реализации портов уведомлений (напр. `RabbitMqFileNotificationService` → `FileNotificationServiceInterface`). UI-нотификации идут событием в Filament-сервис; файлы ошибок → S3 + сообщение. |
-| `Providers/` | DI и события | `VehiclesServiceProvider` (биндинги интерфейс→реализация по списку `ENTITIES`), `EventServiceProvider` (карта событие→слушатель). |
+| `Models/` | **Eloquent-модели фичи** (своя копия набора сущностей) | **АНЕМИЧНЫЕ**: связи, `$casts`, `$timestamps`. Без бизнес-логики. Наследуют `BaseModel` (`guarded = []`; запись идёт через Command+`Data`, фиксированный набор полей → mass-assignment безопасен). Deдуп по фичам: Import — все 8 сущностей (Command пишет во все), Export — только 5 читаемых, Maintenance — только 4. Relation-методы на **недублированные** сущности убираем (иначе мина: `Class::class` на несуществующий класс падает при первом вызове связи). |
+| `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` реализует `Contracts/Repositories/<Entity>RepositoryInterface`. Внутри `<Entity>Data::from($model)` — отдаёт **`Data`**, не модель. Скалярные read-агрегаты (`minMsId(): int`) легитимны (`plan.md §12`). Только запросы, без записи. (У Export есть, у Maintenance нет.) |
+| `Commands/` | **Запись** (CQRS-lite) — **только Import** | `<Entity>Command` реализует `Contracts/Commands/<Entity>CommandInterface`. Принимают **`<Entity>Data`**. `save`/`upsert`/`delete`. `update`/`delete` принимают `Data` с обязательным `id` (identity вместо живого объекта). Из payload на запись исключают поля, которые не колонки (`Arr::except` для `engines`/`groupId` и т.п.). |
+| `Imports/<Entity>/` | Адаптеры импорта (`maatwebsite/excel`) — **только Import** | Механика чтения: `Excel::import`, чанки, `onFailure`. На каждую строку зовёт построчный **Service** (Application). Точка входа реализует порт `Contracts/Imports/<X>Interface`. Sub-sheet'ы — внутренние, создаём `app()->makeWith(...)`, не `new`. |
+| `Exports/<Entity>/` | Адаптеры экспорта — Export + `ImportFailureReporter`/`FailuresExport` в Import (отчёт об ошибках) | Источник — Repository; сборка строк — `Application/Services/Rows|Expanders`. Точка входа реализует порт `Contracts/Exports/<X>Interface`. |
+| `Notifications/` | Внешние уведомления | Напр. `RabbitMqFileNotificationService` → `FileNotificationServiceInterface`; внутри — напрямую `PkmStudio\RabbitTransport\RabbitMQPublisher` (Infra→Infra, отдельный порт-обёртка не нужен). |
+| `Providers/` | DI и события фичи | `<Feature>ServiceProvider` (биндинги `Interface::class => Impl::class`), `ImportEventServiceProvider` (карта событие→слушатель). |
 
-**Порт (интерфейс) живёт в `Domain/Contracts/<Layer>/<Concern>/`, адаптер (реализация) — в Infrastructure.** Так стрелка зависимости идёт внутрь: и Application, и Infrastructure зависят на порт в Domain. Расположение зеркальное: `Domain/Contracts/Infrastructure/Repositories/VehicleRepositoryInterface` ↔ `Infrastructure/Repositories/VehicleRepository`. Биндинги порт→адаптер — в `VehiclesServiceProvider`.
+**Порт — в `Domain/Contracts/<Concern>/`, реализация — в Infrastructure.** Расположение
+зеркальное: `Contracts/Repositories/VehicleRepositoryInterface` ↔ `Repositories/VehicleRepository`.
 
-> Порты в Domain согласованы: Repository-порты возвращают Domain-модели, Command-порты принимают `Domain/ModelData` — всё внутри Domain. Это пакетная связка: `Contracts` и `ModelData` лежат вместе в Domain (иначе Command-порт ссылался бы наружу).
+**RabbitMQ** — вынесен в пакет `pkmstudio/rabbit-transport` (не свой модуль). Конфиг —
+`config/rabbit-transport.php` (exchange `application.events`, очередь `vehicles.inbox`, DLQ).
+Реальные inbound/outbound-обработчики пока почти пусты — заводим по мере интеграций.
+
+### `partable_type` без `Relation::morphMap()`
+
+Полиморфный дискриминатор `part_specifications.partable_type` хранит **стабильное имя**
+`PartableTypeEnum::VEHICLE = 'vehicle'` / `::ENGINE = 'engine'`, не FQCN (копий модели несколько,
+глобальный `morphMap` пришлось бы делать «канонической» одну копию — тихое восстановление
+межфичевой связанности). Резолв владельца — типобезопасный, в самом Repository:
+`PartSpecificationRepository::partable(PartSpecificationData): VehicleData|EngineData|null`
+(`match` по `PartableTypeEnum`). Связь-`MorphTo` `partable()` на модели **убрана** (без `morphMap`
+она бы падала на `'vehicle'`). Где `partSpecifications()` (`MorphMany`) реально нужна (Export) —
+`getMorphClass()` переопределён на стабильную строку, иначе связь молча вернула бы 0 строк.
 
 ---
 
-## 4. Presentation — `app/Vehicles/Presentation`
+## 4. Presentation фичи — `<Feature>/Presentation`
 
 Точки входа. **Максимально тонкие.**
 
 | Папка | Что лежит | Правила |
 |---|---|---|
-| `Console/Commands/` | Artisan-команды домена | Парсят аргументы → зовут UseCase/Service. Без бизнес-логики. |
-| `Http/Controllers/` | Контроллеры | Тонкие: валидация запроса → UseCase → ответ. |
+| `Console/Commands/` | Artisan-команды фичи | Парсят аргументы → зовут UseCase/Service. Без бизнес-логики. Import: `TecDocImportCars`. Maintenance: `ChangeProviderManufacturersToTD`, `UpdateVehicleYears`, `DeduplicatePartSpecificationsCommand`, … |
+| `Http/Controllers/` | Контроллеры | Тонкие: валидация → UseCase → ответ. (Общей Presentation-папки на весь домен нет — только внутри фичи.) |
 
-Регистрация команд — в `bootstrap/app.php` через `->withCommands([...])` (папки `Messaging/Commands` и `Presentation/Console/Commands`).
+Регистрация команд — через `bootstrap/app.php` `->withCommands([...])`.
 
 ---
 
 ## 5. Сквозные правила
 
-### Application × модели (правило A)
-- Application **может держать и читать** Domain-модели (это доменный тип данных; Repository их и возвращает) — передавать дальше, читать свойства, отдавать в Command.
-- Application **не делает персистентность сам**: никакого инлайн `Model::query()`/`::where`/`firstOrCreate`/`updateOrCreate`/`->save()`. **Чтения → через Repository-порт, записи → через Command-порт** (вход — `ModelData`).
-- Эталон — `UpsertVehicleFromSheetUseCase`: min-id/parent/резолв марки ушли в `VehicleRepository`/`ManufacturerRepository`/`ManufacturerCommand` за портами.
-- «Всё на интерфейсах» = только про **поведение** (repo/command/import/export/notification). `Data`/`Model` — значения, их не интерфейсят.
-- Почему A, а не строгий «Application без Eloquent»: один Eloquent/Postgres навсегда, нет тестов домена без БД, read-формы = таблицы → налог маппинга model↔Data не оправдан.
+### Интерфейс у каждого инъектируемого класса
+В коде принята сильная версия: **порт есть у каждого класса, который резолвится из
+контейнера** — Repository, Command, Import, Export, Factory, **Service, UseCase**, Notification.
+Все биндятся в `<Feature>ServiceProvider` картами `Interface::class => Impl::class`
+(`COMMAND_BINDINGS`, `SERVICE_BINDINGS`, `USE_CASE_BINDINGS`, …).
+
+**Единственное исключение — Listeners/Subscriber**: они точки входа (их зовёт диспетчер, сами
+ни от кого внутри не зависят), контракт = само событие. `Data`/`Model`/`DTO`/`Enum`/`Event` —
+это **значения**, их не интерфейсим.
+
+> Это осознанно строже, чем «порт только driven-адаптерам»: цена — много интерфейсов, выгода —
+> любой класс подменяем/мокаем единообразно, DI однороден.
+
+### Application × модели
+- Application **не видит Eloquent-модель вообще**: Repository отдаёт `<Entity>Data`, Command
+  принимает `<Entity>Data`. Живой модели, которую можно случайно `->save()` в обход Command, в
+  Application не существует — это гарантируется типами, а не соглашением (`spatie/laravel-data`).
+- Никакого инлайн `Model::query()`/`where`/`updateOrCreate`/`->save()` в Application/Domain.
+  Чтения → Repository-порт, записи → Command-порт (вход `Data`).
+- Исключение — `Maintenance`: у неё нет слоя Repository, разовые фиксы ходят в Eloquent напрямую
+  (осознанно, это не общий цикл импорта/экспорта).
 
 ### DI — «вариант А»
-- Реальная конструкторная инъекция: зависимости — параметры конструктора (`private Xxx $x`).
-- Экземпляры получаем через контейнер: `app(...)`, `app()->makeWith(...)`. **Не `new`** для классов с зависимостями.
-- Биндинги интерфейс→реализация — в `VehiclesServiceProvider` (цикл по `ENTITIES`).
-- Сервисы — без состояния → корректно сериализуются для очередей.
-- **`final readonly class` для всех stateless-классов с инъекцией** — Repositories, Commands, UseCases, Services, Support-сервисы, тонкие Listeners с зависимостями. Зависимости — только промотированные `private readonly`-параметры конструктора; своего мутируемого состояния нет. `readonly` гарантирует это на уровне языка (нельзя случайно завести изменяемое поле) и подчёркивает, что объект — чистый исполнитель. Исключение — классы с легитимным изменяемым состоянием (если появятся): тогда не `readonly`, и это повод задуматься, не тянет ли класс на что-то другое.
+- Реальная конструкторная инъекция: зависимости — промотированные `private readonly`-параметры.
+- Экземпляры — через контейнер: `app(...)`, `app()->makeWith(...)`. **Не `new`** для классов с
+  зависимостями.
+- Биндинги интерфейс→реализация — в `<Feature>ServiceProvider`.
+- **`final readonly class` для всех stateless-классов с инъекцией** (Repositories, Commands,
+  Services, UseCases, Factories, тонкие Listeners). Своего мутируемого состояния нет →
+  корректно сериализуются для очередей. Легитимное изменяемое состояние (если появится) — не
+  `readonly`, и это повод задуматься, не тянет ли класс на другое.
 
 ### Naming
-- Сущности: `Vehicle`, `Engine`, `Modification`, `Manufacturer`, `PartSpecification`.
-- Группировка по сущности — там, где на сущность несколько файлов: `Imports/<Entity>/`, `Exports/<Entity>/`, `ModelData/<Entity>/`, `UseCases/<Entity>/`, `Factories/<Entity>/`. Где файл один на сущность (`Repositories/`, `Commands/`) — плоско, без папки-сущности.
-- Read = `…Repository`, Write = `…Command`, отображение = `…Data`.
-- **UseCase = глагольная фраза + суффикс `UseCase`** (`UpsertVehicleFromSheetUseCase`, `ReportImportResultUseCase`): use-case — это действие системы, поэтому имя глагольное; суффикс несём по виду класса — единообразно со всеми остальными (`…Repository`, `…Command`, `…Validator`, `…Listener`, `…Data`), и зеркалит папку `UseCases`. Единая точка входа — публичный метод `execute()` (один use-case = одно действие = один публичный метод). Вызов: `$this->useCase->execute(...)`.
-- Listener — см. раздел про слушателей (по событию / по действию).
+- Сущности: `Vehicle`, `Engine`, `Modification`, `Manufacturer`, `EngineModification`,
+  `PartSpecification`, `Feature`, `FeatureValue`.
+- Группировка по сущности — где на сущность несколько файлов (`Imports/<Entity>/`,
+  `ModelData/<Entity>/`, `Services/<Entity>/`, `Factories/<Entity>/`). Где файл один
+  (`Repositories/`, `Commands/`) — плоско.
+- Read = `…Repository`, Write = `…Command`, снимок = `…Data`, порт = `…Interface`.
+- **Service** — глагольная фраза + суффикс: `UpsertVehicleFromSheetService`. Единая точка входа —
+  публичный `execute()`.
+- **UseCase** — глагольная фраза + суффикс `UseCase`, публичный `execute()`
+  (`StartExternalFileImportUseCase`). Заводим для сценариев с внешним триггером.
+- Listener/Subscriber — см. §2.
+
+### Enum через casts
+Колонки в миграциях — `string` с `->comment('XxxEnum')`; преобразование — в `$casts` модели.
+`enum()` в миграциях не используем. `Data`-поля, зеркалящие enum-cast колонки, — реального
+enum-типа (`spatie/laravel-data` кастует туда-обратно сам).
 
 ### Трейты (политика)
-- Лежат в `app/Vehicles/Traits/` (`EnumHelperTrait`, `CachesImportFailures`).
-- Трейт допустим для **чистого, самодостаточного** поведения без скрытого контракта с хостом: `EnumHelperTrait` (логика enum'ов), `CachesImportFailures` (своё состояние + поведение).
-- Поведение с «скрытым контрактом», крупная логика, переиспользуемые мапперы → **сервис/use-case** (инъекция), а не трейт.
-  Уже переведено: `HasVehicleImportBaseData`→`UpsertVehicleFromSheet`, `BuildDetails`→`DetailsBuilder`, `BuildExportDetails`→`ExportDetailsBuilder`, `HasVehicleBaseData`/`HasEngineBaseData`→`VehicleExportRow`/`EngineExportRow`.
+- `Shared/Domain/Traits/EnumHelperTrait` (логика enum'ов), `Import/Infrastructure/Traits/
+  CachesImportFailures` (своё состояние `$cacheKey`/`$lockKey` + поведение).
+- Трейт допустим для **чистого самодостаточного** поведения без скрытого контракта с хостом.
+  Крупная логика / переиспользуемые мапперы / «скрытый контракт» → сервис за портом, не трейт.
 
 ### Грабли
-- **`tryFrom` молча даёт null.** Нельзя `Enum::tryFrom($row)?->value` до валидации — невалидное значение тихо станет `null`. Валидируем **сырое** значение через `Rule::enum(...)`, маппинг в enum — уже в casts модели.
-- В DI-строках провайдера осторожно с двойными бэкслешами при sed-правках namespace.
-
-### События
-- Пока все события — в `Domain/Events`. Возможно позже разделение на доменные vs интеграционные (между сервисами). Решение отложено.
+- **`tryFrom` молча даёт `null`.** Нельзя `Enum::tryFrom($row)?->value` до валидации — невалидное
+  значение тихо станет `null`. Валидируем **сырое** значение через `Rule::enum(...)`, маппинг в
+  enum — в casts модели.
+- **Relation-методы на недублированные в фиче сущности** — мина: строка-класс не падает при
+  объявлении, только при первом вызове связи. Убирать.
+- **Backed enum не приводится к строке через `(string)`** — использовать `->value`.
 
 ---
 
 ## 6. Куда класть новое — шпаргалка
 
+Сначала выбери **фичу** (`Import`/`Export`/`Maintenance`/`Templates`), потом слой.
+
 | Хочу добавить… | Кладу в… |
 |---|---|
-| Новое бизнес-правило одной сущности | `Domain/Services/` (или метод-связь, если это связь) |
-| Новый сценарий (импорт/пересчёт/…) | `Application/<Feature>/UseCases/<Entity>/` (напр. `Import/UseCases/Engine/`) |
-| Новый запрос к БД | порт → `Domain/Contracts/Infrastructure/Repositories/`, адаптер → `Infrastructure/Repositories/` |
-| Новую запись в БД | порт → `Domain/Contracts/Infrastructure/Commands/`, адаптер → `Infrastructure/Commands/` (вход — `ModelData`) |
-| Новый порт (брокер/кеш/нотификация) | `Domain/Contracts/<Layer>/<Concern>/`, реализация → `Infrastructure/<Concern>/` |
-| Типизированный снимок модели | `Domain/ModelData/<Entity>/` |
-| Транспортный объект сценария (вход/выход use-case, payload) | `Domain/DTOs/` (отдельно от ModelData), включая политики потоков: `VehicleImportPlan`, `VehicleExportPlan`, `EngineImportPlan`, `EngineExportPlan` |
-| Чистое доменное правило | `Domain/Services/` |
-| Валидацию + сборку `ModelData` | `Application/<Feature>/Factories/<Entity>/` (`make()`) |
-| Реакцию на доменное событие | `Application/<Feature>/Listeners/` (тонко, **без порта в Domain**) |
-| Фоновую задачу | `Application/Jobs/<Entity>/` (тонко) |
-| Импорт из Excel | адаптер → `Infrastructure/Imports/<Entity>/` (механика) + построчный UseCase в `Application/Import/UseCases/<Entity>/`; порт точки входа → `Domain/Contracts/Infrastructure/Imports/` |
-| Экспорт в Excel | адаптер → `Infrastructure/Exports/<Entity>/`, порт точки входа → `Domain/Contracts/Infrastructure/Exports/` |
-| Подготовку данных/формата для экспорта | `Application/Export/Services/` |
-| Вспомогательные helpers для импорта/экспорта | `Application/Import/Support/`, `Application/Export/Support/`; общий технический helper для обоих — в `Infrastructure/Support/` |
-| Artisan-команду | `Presentation/Console/Commands/` (тонко) |
-| HTTP-эндпоинт | `Presentation/Http/Controllers/` (тонко) |
+| Общий enum-словарь значений (cast колонки) | `Shared/Domain/Enums/` (не дублировать по фичам) |
+| Описание полей детали (field-template) | `Templates/Domain/Templates/<Entity>/Templates/` |
+| Новый сценарий с внешним триггером (старт импорта по запросу) | `<Feature>/Application/UseCases/<Group>/` + порт `Domain/Contracts/UseCases/` |
+| Новое прикладное правило/координацию | `<Feature>/Application/Services/<Entity>/` + порт `Domain/Contracts/Services/<Entity>/` |
+| Валидацию + сборку `<Entity>Data` | `<Feature>/Application/Factories/<Entity>/` (`make()`) + порт `Contracts/Factories/` |
+| Реакцию на доменное событие | `<Feature>/Application/Listeners/` (тонко, **без порта**) |
+| Новый запрос к БД | порт → `Domain/Contracts/Repositories/`, адаптер → `Infrastructure/Repositories/` (отдаёт `Data`) |
+| Новую запись в БД (только Import) | порт → `Domain/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход `Data`) |
+| Снимок строки / транспорт | `Domain/ModelData/<Entity>/` (`extends Data`) или `Domain/DTOs/` (транспорт сценария) |
+| Доменное событие | `Domain/Events/` (плоский `final readonly`, факт в прошедшем времени) |
+| Импорт из Excel | адаптер → `Import/Infrastructure/Imports/<Entity>/` + построчный Service; порт → `Contracts/Imports/` |
+| Экспорт в Excel | адаптер → `Export/Infrastructure/Exports/<Entity>/`; порт → `Contracts/Exports/`; сборка строк → `Export/Application/Services/Rows|Expanders/` |
+| Внешнее уведомление/интеграцию | порт → `Domain/Contracts/Notifications/`, реализация → `Infrastructure/Notifications/` (внутри — пакет rabbit-transport) |
+| Разовый фикс каталога | `Maintenance/` (команда в `Presentation/Console/Commands/` + `Application/Services/`; Eloquent напрямую, без Repository) |
+| Artisan-команду / HTTP-эндпоинт | `<Feature>/Presentation/Console/Commands/` или `Http/Controllers/` (тонко) |
+| Новую копию Eloquent-модели для фичи | `<Feature>/Infrastructure/Models/` (только сущности, которые фича реально трогает) |

@@ -955,3 +955,40 @@ event()` `vladimir-yuldashev/laravel-queue-rabbitmq`, "во избежание �
     Postgres. Отдельного покрытия `PartSpecificationDeduplicationService`/
     `VehicleWiperPartSpecificationSplitService` тестами по-прежнему нет — это не покрытие
     jsonb-сравнения, а отсутствие тестов на эти сервисы вообще, отдельная задача при желании.
+
+---
+
+## 12. Открытые вопросы (перенесено при чистке `*.md`, 2026-07-11)
+
+> Удалены как устаревшие: `Final-audit.md`, `RESEARCH.md` (оба описывали старую layer-first
+> раскладку `app/Vehicles/Domain|Application|…`, которой больше нет — код на feature-first, §1).
+> `app/Vehicles/EventAudit.md` **оставлен по просьбе владельца** (может понадобиться) — но учти,
+> что его пути/номера строк тоже указывают на старую раскладку (`app/Vehicles/Domain/Events`,
+> `EventServiceProvider`); при использовании сверяйся с актуальными путями
+> (`Import/Domain/Events`, `Import/Infrastructure/Providers/ImportEventServiceProvider`).
+> Ниже — единственные пункты из удалённых файлов, которые
+> на 2026-07-11 ещё живы в коде и не покрыты другими разделами. Всё остальное из тех файлов
+> либо уже сделано (`firstWhere` удалён, `Auth::id()` → `ImportRunContext`,
+> `WiperSpecificationService` → фича `Templates`, биндинги → `Interface::class => Impl::class`),
+> либо отменено новым решением (`MessagePublisherInterface` не нужен — взят
+> `pkmstudio/rabbit-transport`; «правило A» отменено переходом на `spatie/laravel-data`, §3).
+
+- **События: Domain vs Application/Integration — не решено.** Сейчас все события лежат в одной
+  папке `Import/Domain/Events` (бизнес-факты `*CommandImported`/`*ImportCompleted` +
+  служебный `EnginesAndModificationsReady`). Возможное будущее деление: доменные (in-process)
+  остаются в `Domain/Events`; интеграционные (контракт для других сервисов, сериализуемые,
+  версионируемый shape) — публикуются наружу через `pkmstudio/rabbit-transport`, а доменное
+  событие транслирует в интеграционное тонкий Application-листенер. Решать, когда появится
+  второй потребитель / первая реальная исходящая интеграция (пересекается с §11 п.17).
+- **Read-агрегаты в репозиториях — осознанно оставлены** (бывш. Final-audit П.5).
+  `VehicleRepository::minMsId(): int` и `ManufacturerRepository::minMfaId(): int` возвращают
+  скаляр, а не `Data`/коллекцию (нужны `UpsertVehicleFromSheetService` для генерации
+  синтетических отрицательных id). Это легитимные read-агрегаты уровня `count()`/`exists()`;
+  правило «Repository отдаёт `Data`/коллекцию `Data`» их не запрещает. Рефакторинг не нужен —
+  зафиксировано, чтобы не всплывало заново на ревью.
+- **`types` (master-data Warehouse) — на будущее.** Не enum и не общая БД: локальная таблица
+  в каждом домене, синхронизируемая событиями (владелец публикует изменения в
+  `application.events`). Для Vehicles сейчас неактуально; относится к переносу домена Warehouse
+  (см. `Applicability-dizajn.md`).
+- **Прод-миграции ещё не запускались** (только тестовая БД `dan_vehicles_test` на Postgres,
+  §18). Правки самих файлов миграций поэтому безопасны (см. §6.4).
