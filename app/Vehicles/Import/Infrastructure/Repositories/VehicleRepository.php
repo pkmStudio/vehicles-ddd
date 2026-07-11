@@ -7,25 +7,9 @@ namespace App\Vehicles\Import\Infrastructure\Repositories;
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\ModelData\VehicleData;
 use App\Vehicles\Import\Infrastructure\Models\Vehicle;
-use Illuminate\Support\Collection;
 
 final readonly class VehicleRepository implements VehicleRepositoryInterface
 {
-    public function find(int $id): ?VehicleData
-    {
-        return VehicleData::optional(Vehicle::query()->find($id));
-    }
-
-    public function findOrFail(int $id): VehicleData
-    {
-        return VehicleData::from(Vehicle::query()->findOrFail($id));
-    }
-
-    public function all(): Collection
-    {
-        return VehicleData::collect(Vehicle::query()->get(), Collection::class);
-    }
-
     public function firstByMsId(int $msId): ?VehicleData
     {
         return VehicleData::optional(Vehicle::query()->where('ms_id', $msId)->first());

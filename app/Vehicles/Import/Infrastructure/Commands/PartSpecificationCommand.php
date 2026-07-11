@@ -44,9 +44,4 @@ final readonly class PartSpecificationCommand implements PartSpecificationComman
             ),
         );
     }
-
-    public function delete(PartSpecificationData $data): bool
-    {
-        return (bool) PartSpecification::query()->whereKey($data->id)->delete();
-    }
 }

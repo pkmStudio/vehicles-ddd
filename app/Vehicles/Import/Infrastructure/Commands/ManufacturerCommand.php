@@ -11,21 +11,6 @@ use Illuminate\Support\Arr;
 
 final readonly class ManufacturerCommand implements ManufacturerCommandInterface
 {
-    public function create(ManufacturerData $data): ManufacturerData
-    {
-        return ManufacturerData::from(
-            Manufacturer::query()->create(Arr::except($data->toArray(), ['id'])),
-        );
-    }
-
-    public function update(ManufacturerData $data): ManufacturerData
-    {
-        $manufacturer = Manufacturer::query()->findOrFail($data->id);
-        $manufacturer->update(Arr::except($data->toArray(), ['id']));
-
-        return ManufacturerData::from($manufacturer);
-    }
-
     public function upsertByMfaId(ManufacturerData $data): ManufacturerData
     {
         return ManufacturerData::from(
@@ -54,10 +39,5 @@ final readonly class ManufacturerCommand implements ManufacturerCommandInterface
                 ['name' => $name],
             ),
         );
-    }
-
-    public function delete(ManufacturerData $data): bool
-    {
-        return (bool) Manufacturer::query()->whereKey($data->id)->delete();
     }
 }

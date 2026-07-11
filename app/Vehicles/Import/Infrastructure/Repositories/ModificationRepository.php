@@ -8,25 +8,9 @@ use App\Vehicles\Import\Domain\Contracts\Repositories\ModificationRepositoryInte
 use App\Vehicles\Import\Domain\ModelData\EngineData;
 use App\Vehicles\Import\Domain\ModelData\ModificationData;
 use App\Vehicles\Import\Infrastructure\Models\Modification;
-use Illuminate\Support\Collection;
 
 final readonly class ModificationRepository implements ModificationRepositoryInterface
 {
-    public function find(int $id): ?ModificationData
-    {
-        return ModificationData::optional(Modification::query()->find($id));
-    }
-
-    public function findOrFail(int $id): ModificationData
-    {
-        return ModificationData::from(Modification::query()->findOrFail($id));
-    }
-
-    public function all(): Collection
-    {
-        return ModificationData::collect(Modification::query()->get(), Collection::class);
-    }
-
     public function firstByMsIdAndModIdWithEngines(int $msId, int $modId): ?ModificationData
     {
         $modification = Modification::query()

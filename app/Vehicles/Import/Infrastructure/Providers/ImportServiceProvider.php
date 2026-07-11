@@ -52,14 +52,11 @@ use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRow
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
-use App\Vehicles\Import\Domain\Contracts\Commands\FeatureCommandInterface;
-use App\Vehicles\Import\Domain\Contracts\Commands\FeatureValueCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Commands\ManufacturerCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\ModificationRepositoryInterface;
@@ -80,14 +77,11 @@ use App\Vehicles\Import\Domain\Contracts\Imports\External\VehicleMultiSheetImpor
 use App\Vehicles\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use App\Vehicles\Import\Infrastructure\Commands\EngineCommand;
 use App\Vehicles\Import\Infrastructure\Commands\EngineModificationCommand;
-use App\Vehicles\Import\Infrastructure\Commands\FeatureCommand;
-use App\Vehicles\Import\Infrastructure\Commands\FeatureValueCommand;
 use App\Vehicles\Import\Infrastructure\Commands\ManufacturerCommand;
 use App\Vehicles\Import\Infrastructure\Commands\ModificationCommand;
 use App\Vehicles\Import\Infrastructure\Commands\PartSpecificationCommand;
 use App\Vehicles\Import\Infrastructure\Commands\VehicleCommand;
 use App\Vehicles\Import\Infrastructure\Repositories\EngineRepository;
-use App\Vehicles\Import\Infrastructure\Repositories\FeatureRepository;
 use App\Vehicles\Import\Infrastructure\Repositories\FeatureValueRepository;
 use App\Vehicles\Import\Infrastructure\Repositories\ManufacturerRepository;
 use App\Vehicles\Import\Infrastructure\Repositories\ModificationRepository;
@@ -127,8 +121,6 @@ final class ImportServiceProvider extends ServiceProvider
         EngineCommandInterface::class => EngineCommand::class,
         EngineModificationCommandInterface::class => EngineModificationCommand::class,
         PartSpecificationCommandInterface::class => PartSpecificationCommand::class,
-        FeatureCommandInterface::class => FeatureCommand::class,
-        FeatureValueCommandInterface::class => FeatureValueCommand::class,
     ];
 
     private const array REPOSITORY_BINDINGS = [
@@ -137,7 +129,6 @@ final class ImportServiceProvider extends ServiceProvider
         ModificationRepositoryInterface::class => ModificationRepository::class,
         EngineRepositoryInterface::class => EngineRepository::class,
         PartSpecificationRepositoryInterface::class => PartSpecificationRepository::class,
-        FeatureRepositoryInterface::class => FeatureRepository::class,
         FeatureValueRepositoryInterface::class => FeatureValueRepository::class,
     ];
 

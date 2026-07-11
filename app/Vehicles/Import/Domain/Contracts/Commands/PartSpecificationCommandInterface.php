@@ -15,6 +15,4 @@ interface PartSpecificationCommandInterface
 
     /** Upsert по натуральному ключу: partable + template + feature_value_id. */
     public function upsert(PartSpecificationData $data): PartSpecificationData;
-
-    public function delete(PartSpecificationData $data): bool;
 }

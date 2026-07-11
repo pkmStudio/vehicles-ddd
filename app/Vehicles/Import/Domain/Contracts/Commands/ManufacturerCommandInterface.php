@@ -12,11 +12,6 @@ use App\Vehicles\Import\Domain\ModelData\ManufacturerData;
  */
 interface ManufacturerCommandInterface
 {
-    public function create(ManufacturerData $data): ManufacturerData;
-
-    /** Обновляет запись, найденную по $data->id. */
-    public function update(ManufacturerData $data): ManufacturerData;
-
     /**
      * Upsert по натуральному ключу mfa_id.
      */
@@ -27,6 +22,4 @@ interface ManufacturerCommandInterface
 
     /** Найти марку по mfa_id или создать с заданным именем. */
     public function firstOrCreateByMfaId(int $mfaId, string $name): ManufacturerData;
-
-    public function delete(ManufacturerData $data): bool;
 }

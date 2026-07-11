@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Infrastructure\Repositories;
 
-use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
-use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Import\Domain\ModelData\EngineData;
 use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
-use App\Vehicles\Import\Domain\ModelData\VehicleData;
 use App\Vehicles\Import\Infrastructure\Models\PartSpecification;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
@@ -21,26 +17,6 @@ use Illuminate\Support\Collection;
  */
 final readonly class PartSpecificationRepository implements PartSpecificationRepositoryInterface
 {
-    public function __construct(
-        private VehicleRepositoryInterface $vehicles,
-        private EngineRepositoryInterface $engines,
-    ) {}
-
-    public function find(int $id): ?PartSpecificationData
-    {
-        return PartSpecificationData::optional(PartSpecification::query()->find($id));
-    }
-
-    public function findOrFail(int $id): PartSpecificationData
-    {
-        return PartSpecificationData::from(PartSpecification::query()->findOrFail($id));
-    }
-
-    public function all(): Collection
-    {
-        return PartSpecificationData::collect(PartSpecification::query()->get(), Collection::class);
-    }
-
     public function forVehicleTemplateAndSide(int $vehicleId, DetailTemplateEnum $template, string $side): Collection
     {
         $specifications = PartSpecification::query()
@@ -72,13 +48,5 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
             ->first();
 
         return PartSpecificationData::optional($specification);
-    }
-
-    public function partable(PartSpecificationData $data): VehicleData|EngineData|null
-    {
-        return match (PartableTypeEnum::from($data->partableType)) {
-            PartableTypeEnum::VEHICLE => $this->vehicles->find($data->partableId),
-            PartableTypeEnum::ENGINE => $this->engines->find($data->partableId),
-        };
     }
 }
