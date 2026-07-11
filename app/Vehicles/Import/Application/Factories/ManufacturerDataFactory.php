@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Application\Factories;
 
 use App\Vehicles\Import\Domain\Contracts\Factories\ManufacturerDataFactoryInterface;
-use App\Vehicles\Import\Domain\ModelData\Manufacturer\ManufacturerData;
+use App\Vehicles\Import\Domain\ModelData\ManufacturerData;
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;

@@ -10,7 +10,7 @@ use App\Vehicles\Shared\Domain\Enums\Vehicle\DriveTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\GearTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
-use App\Vehicles\Import\Domain\ModelData\Modification\ModificationData;
+use App\Vehicles\Import\Domain\ModelData\ModificationData;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;

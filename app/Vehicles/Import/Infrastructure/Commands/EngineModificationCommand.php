@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Commands;
 
 use App\Vehicles\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
-use App\Vehicles\Import\Domain\ModelData\EngineModification\EngineModificationData;
+use App\Vehicles\Import\Domain\ModelData\EngineModificationData;
 use App\Vehicles\Import\Infrastructure\Models\Engine;
 use App\Vehicles\Import\Infrastructure\Models\Modification;
 

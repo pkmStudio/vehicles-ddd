@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Domain\Contracts\Repositories;
 
-use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
+use App\Vehicles\Import\Domain\ModelData\EngineData;
 use Illuminate\Support\Collection;
 
 interface EngineRepositoryInterface

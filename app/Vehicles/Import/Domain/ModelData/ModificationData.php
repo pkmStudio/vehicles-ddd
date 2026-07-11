@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Import\Domain\ModelData\Modification;
+namespace App\Vehicles\Import\Domain\ModelData;
 
-use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
 use App\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\BrakeSystemTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\DriveTypeEnum;

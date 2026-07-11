@@ -60,7 +60,7 @@ Presentation ──▶ Application ──▶ Domain
 | Папка | Что лежит | Толщина / правила |
 |---|---|---|
 | `Contracts/<Concern>/` | **Порты** (интерфейсы) для всех инъектируемых классов фичи | Плоско по концерну: `Commands/`, `Repositories/`, `Imports/`, `Exports/`, `Factories/`, `Notifications/`, `Services/<Entity>/`, `UseCases/`. Порт всегда в Domain (стрелка внутрь), реализация — в своём слое. |
-| `ModelData/<Entity>/` | **`<Entity>Data extends Spatie\LaravelData\Data`** | Работает в обе стороны: вход `Command` (запись) и выход `Repository` (чтение). Enum-поля — реального enum-типа (пакет кастует туда-обратно). Вложенные связи — только те, что реально читаются, и только когда Repository их eager-load'ит (не через `#[LoadRelation]` — риск бесконечного цикла на двусторонних связях). |
+| `ModelData/` | **`<Entity>Data extends Spatie\LaravelData\Data`** | Плоская папка. Работает в обе стороны: вход `Command` (запись) и выход `Repository` (чтение). Enum-поля — реального enum-типа (пакет кастует туда-обратно). Вложенные связи — только те, что реально читаются, и только когда Repository их eager-load'ит (не через `#[LoadRelation]` — риск бесконечного цикла на двусторонних связях). |
 | `DTOs/` | **Транспортные объекты сценариев** (вход/выход, payload, контекст, план потока) | `final readonly`. Не повторяют модель. Примеры: `ImportRunContext` (кто/какой прогон), `VehicleImportPlan`/`EngineImportPlan` (политика потока), `AssignEngineGroupResult`, `ExternalFileImportFileRequestDTO`. |
 | `Enums/` | Фиче-специфичные enum'ы потоков | Напр. схемы листов `InOut/Sheets/*`. Общий словарь значений — в `Shared`, не здесь. |
 | `Events/` | Доменные события фичи | Plain DTO-события (`final readonly`), **без поведения**. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`). Все события пока в одной папке `Domain/Events` (деление на доменные/интеграционные — открытый вопрос, `plan.md §12`). |
@@ -195,7 +195,7 @@ Template: уедь Template в Application — доменный enum смотр�
 - Сущности: `Vehicle`, `Engine`, `Modification`, `Manufacturer`, `EngineModification`,
   `PartSpecification`, `Feature`, `FeatureValue`.
 - Группировка по сущности — где на сущность несколько файлов (`Imports/<Entity>/`,
-  `ModelData/<Entity>/`, `Services/<Entity>/`, `Factories/<Entity>/`). Где файл один
+  `Services/<Entity>/`, `Factories/<Entity>/`). `ModelData/` — плоская папка. Где файл один
   (`Repositories/`, `Commands/`) — плоско.
 - Read = `…Repository`, Write = `…Command`, снимок = `…Data`, порт = `…Interface`.
 - **Service** — глагольная фраза + суффикс: `UpsertVehicleFromSheetService`. Единая точка входа —
@@ -239,7 +239,7 @@ enum-типа (`spatie/laravel-data` кастует туда-обратно са
 | Реакцию на доменное событие | `<Feature>/Application/Listeners/` (тонко, **без порта**) |
 | Новый запрос к БД | порт → `Domain/Contracts/Repositories/`, адаптер → `Infrastructure/Repositories/` (отдаёт `Data`) |
 | Новую запись в БД (только Import) | порт → `Domain/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход `Data`) |
-| Снимок строки / транспорт | `Domain/ModelData/<Entity>/` (`extends Data`) или `Domain/DTOs/` (транспорт сценария) |
+| Снимок строки / транспорт | `Domain/ModelData/` (`extends Data`) или `Domain/DTOs/` (транспорт сценария) |
 | Доменное событие | `Domain/Events/` (плоский `final readonly`, факт в прошедшем времени) |
 | Импорт из Excel | адаптер → `Import/Infrastructure/Imports/<Entity>/` + построчный Service; порт → `Contracts/Imports/` |
 | Экспорт в Excel | адаптер → `Export/Infrastructure/Exports/<Entity>/`; порт → `Contracts/Exports/`; сборка строк → `Export/Application/Services/Rows|Expanders/` |

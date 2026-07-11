@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Commands;
 
 use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
-use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
+use App\Vehicles\Import\Domain\ModelData\EngineData;
 use App\Vehicles\Import\Infrastructure\Models\Engine;
 use Illuminate\Support\Arr;
 

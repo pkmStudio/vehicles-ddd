@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Repositories;
 
 use App\Vehicles\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
-use App\Vehicles\Import\Domain\ModelData\Manufacturer\ManufacturerData;
+use App\Vehicles\Import\Domain\ModelData\ManufacturerData;
 use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
 use Illuminate\Support\Collection;
 

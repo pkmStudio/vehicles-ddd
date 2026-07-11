@@ -8,8 +8,8 @@ use App\Vehicles\Import\Application\Services\Engine\UpsertEngineSparkPlugSpecSer
 use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
-use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Import\Domain\ModelData\EngineData;
+use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Mockery;
 use Tests\TestCase;

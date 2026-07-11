@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Domain\Contracts\Commands;
 
-use App\Vehicles\Import\Domain\ModelData\Manufacturer\ManufacturerData;
+use App\Vehicles\Import\Domain\ModelData\ManufacturerData;
 
 /**
  * Запись Manufacturer (write). Принимает и отдаёт ManufacturerData — Eloquent-модель наружу

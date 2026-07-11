@@ -6,7 +6,7 @@ namespace App\Vehicles\Import\Infrastructure\Imports\Engine;
 
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\AssignEngineGroupServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineCrossImportInterface;
-use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
+use App\Vehicles\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Vehicles\Import\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Vehicles\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,13 +31,13 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
 {
     use CachesImportFailures;
 
-    public ImportRunContext $context;
+    public ImportRunContextDTO $context;
 
     public function __construct(
         private readonly AssignEngineGroupServiceInterface $service,
     ) {}
 
-    public function import(string $path, ImportRunContext $context, ?string $disk = null): void
+    public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
         $this->context = $context;
         $this->cacheKey = sprintf(

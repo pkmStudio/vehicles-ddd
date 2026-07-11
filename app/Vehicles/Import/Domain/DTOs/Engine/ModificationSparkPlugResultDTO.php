@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Import\Domain\DTOs;
+namespace App\Vehicles\Import\Domain\DTOs\Engine;
 
 /**
  * Исход импорта спецификации свечей для двигателей модификации — адаптер транслирует его в отчёт.
  */
-final readonly class ModificationSparkPlugResult
+final readonly class ModificationSparkPlugResultDTO
 {
     /**
      * @param  array<int, array{code: ?string, fuel: ?string}>  $skippedEngines  двигатели без потребности в свечах
@@ -19,16 +19,4 @@ final readonly class ModificationSparkPlugResult
         public ?string $notFoundReason = null,
     ) {}
 
-    public static function notFound(string $reason): self
-    {
-        return new self(found: false, notFoundReason: $reason);
-    }
-
-    /**
-     * @param  array<int, array{code: ?string, fuel: ?string}>  $skipped
-     */
-    public static function written(int $count, array $skipped): self
-    {
-        return new self(found: true, writtenCount: $count, skippedEngines: $skipped);
-    }
 }

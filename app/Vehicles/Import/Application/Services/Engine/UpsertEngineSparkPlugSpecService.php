@@ -7,7 +7,7 @@ namespace App\Vehicles\Import\Application\Services\Engine;
 use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
-use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 

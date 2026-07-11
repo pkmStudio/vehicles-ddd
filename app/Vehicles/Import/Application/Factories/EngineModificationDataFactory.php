@@ -6,7 +6,7 @@ namespace App\Vehicles\Import\Application\Factories;
 
 use App\Vehicles\Import\Domain\Contracts\Factories\EngineModificationDataFactoryInterface;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
-use App\Vehicles\Import\Domain\ModelData\EngineModification\EngineModificationData;
+use App\Vehicles\Import\Domain\ModelData\EngineModificationData;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;

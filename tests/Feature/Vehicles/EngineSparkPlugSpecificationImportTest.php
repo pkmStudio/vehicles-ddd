@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Vehicles;
 
 use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineSparkPlugSpecificationImportInterface;
-use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
+use App\Vehicles\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Vehicles\Import\Domain\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Import\Infrastructure\Models\Engine;
 use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 /**
- * Регрессионный тест на plan.md §6.1 (баг $this->useCase) и §6.3 (ImportRunContext вместо
+ * Регрессионный тест на plan.md §6.1 (баг $this->useCase) и §6.3 (ImportRunContextDTO вместо
  * Auth::id()). Гоняет реальный Excel::import (WithMultipleSheets-самоссылка на CSV).
  */
 final class EngineSparkPlugSpecificationImportTest extends TestCase
@@ -51,7 +51,7 @@ final class EngineSparkPlugSpecificationImportTest extends TestCase
         ]);
         $engine->modifications()->attach($modification->id, ['eng_id' => 500, 'mod_id' => 50, 'type' => 'PC']);
 
-        $context = new ImportRunContext(userId: 42, runId: 'test-run-spark-by-mod');
+        $context = new ImportRunContextDTO(userId: 42, runId: 'test-run-spark-by-mod');
         $path = base_path('tests/Fixtures/engine_spark_plugs_by_modification_sample.csv');
 
         app(EngineSparkPlugSpecificationImportInterface::class)->import($path, $context);

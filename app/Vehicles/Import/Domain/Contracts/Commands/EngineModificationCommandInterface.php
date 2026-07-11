@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Domain\Contracts\Commands;
 
-use App\Vehicles\Import\Domain\ModelData\EngineModification\EngineModificationData;
+use App\Vehicles\Import\Domain\ModelData\EngineModificationData;
 
 interface EngineModificationCommandInterface
 {

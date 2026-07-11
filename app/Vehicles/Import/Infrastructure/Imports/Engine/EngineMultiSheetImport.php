@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Engine;
 
 use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineMultiSheetImportInterface;
-use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
+use App\Vehicles\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Vehicles\Import\Domain\Enums\EngineImportSheet;
 use App\Vehicles\Import\Domain\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Import\Infrastructure\Imports\Engine\Sheets\EngineMainSheetImport;
@@ -19,9 +19,9 @@ use Maatwebsite\Excel\Facades\Excel;
 
 final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, ShouldQueue, WithChunkReading, WithEvents, WithMultipleSheets
 {
-    public ImportRunContext $context;
+    public ImportRunContextDTO $context;
 
-    public function import(string $path, ImportRunContext $context, ?string $disk = null): void
+    public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
         $this->context = $context;
         Excel::import($this, $path, $disk);

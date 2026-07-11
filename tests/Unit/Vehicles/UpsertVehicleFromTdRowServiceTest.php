@@ -9,8 +9,8 @@ use App\Vehicles\Import\Application\Services\Vehicle\UpsertVehicleFromTdRowServi
 use App\Vehicles\Import\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleTdRowDTO;
-use App\Vehicles\Import\Domain\ModelData\Manufacturer\ManufacturerData;
-use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Import\Domain\ModelData\ManufacturerData;
+use App\Vehicles\Import\Domain\ModelData\VehicleData;
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;

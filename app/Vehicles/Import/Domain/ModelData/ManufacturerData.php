@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Import\Domain\ModelData\Manufacturer;
+namespace App\Vehicles\Import\Domain\ModelData;
 
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Spatie\LaravelData\Attributes\MapName;

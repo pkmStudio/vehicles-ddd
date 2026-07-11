@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Domain\Contracts\Factories;
 
-use App\Vehicles\Import\Domain\ModelData\Manufacturer\ManufacturerData;
+use App\Vehicles\Import\Domain\ModelData\ManufacturerData;
 use Illuminate\Validation\ValidationException;
 
 interface ManufacturerDataFactoryInterface

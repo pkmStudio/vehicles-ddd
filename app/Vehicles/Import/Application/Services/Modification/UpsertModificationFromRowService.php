@@ -9,7 +9,7 @@ use App\Vehicles\Import\Domain\Contracts\Factories\ModificationDataFactoryInterf
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Modification\UpsertModificationFromRowServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\Modification\ModificationCommandRowDTO;
-use App\Vehicles\Import\Domain\ModelData\Modification\ModificationData;
+use App\Vehicles\Import\Domain\ModelData\ModificationData;
 use Illuminate\Validation\ValidationException;
 
 /**

@@ -7,7 +7,7 @@ namespace App\Vehicles\Import\Infrastructure\Imports\Engine;
 use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineSparkPlugSpecificationImportInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Template\TemplateDataBuilderInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
-use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
+use App\Vehicles\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Domain\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Import\Infrastructure\Traits\CachesImportFailures;
@@ -37,14 +37,14 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
 
     private const int SPEC_START_COLUMN = 2;
 
-    public ImportRunContext $context;
+    public ImportRunContextDTO $context;
 
     public function __construct(
         private readonly UpsertSparkPlugSpecByModificationServiceInterface $service,
         private readonly TemplateDataBuilderInterface $templateDataBuilder,
     ) {}
 
-    public function import(string $path, ImportRunContext $context, ?string $disk = null): void
+    public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
         $this->context = $context;
         $this->cacheKey = sprintf(

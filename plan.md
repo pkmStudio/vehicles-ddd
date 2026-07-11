@@ -18,7 +18,7 @@ ReadModel/WriteModel-копии**, а не делятся одной общей 
 
 > **Важное уточнение из §3:** после решения перенести Eloquent-модель в Infrastructure и завести
 > единую `Data` (см. §3), пункт "модели дублируются как ReadModel" ниже относится не к Eloquent-
-> модели, а к `Domain/ModelData/<Entity>Data`. Eloquent-класс переезжает в `Infrastructure/Models/`
+> модели, а к `Domain/ModelData/<Entity>Data` (плоская папка `ModelData/`). Eloquent-класс переезжает в `Infrastructure/Models/`
 > каждой фичи как деталь реализации Repository/Command — дублирование по фичам сохраняется, но
 > предмет дублирования другой. Дерево ниже показывает уже целевое (не текущее) расположение.
 
@@ -91,7 +91,7 @@ app/Vehicles/
 ├── Import/                                    # фича: приём CSV → каталог
 │   ├── Domain/
 │   │   ├── Contracts/{Repositories,Commands,Imports,Services,Factories,Notifications}/
-│   │   ├── ModelData/<Entity>/               # <Entity>Data (Spatie\LaravelData\Data) — вход Command И выход Repository, см. §3
+│   │   ├── ModelData/                        # <Entity>Data (Spatie\LaravelData\Data) — вход Command И выход Repository, см. §3
 │   │   ├── DTOs/                             # VehicleImportPlan, EngineImportPlan, AssignEngineGroupResult, ModificationSparkPlugResult
 │   │   ├── Enums/InOut/Sheets/               # VehicleImportSheet, EngineImportSheet
 │   │   └── Events/                           # *CommandImported, *ImportCompleted, EnginesAndModificationsReady
@@ -120,7 +120,7 @@ app/Vehicles/
 ├── Export/                                    # фича: каталог → Excel
 │   ├── Domain/
 │   │   ├── Contracts/{Repositories,Exports,Services}/
-│   │   ├── ModelData/<Entity>/               # <Entity>Data — выход Repository (Export никогда не пишет), см. §3
+│   │   ├── ModelData/                        # <Entity>Data — выход Repository (Export никогда не пишет), см. §3
 │   │   ├── DTOs/                             # VehicleExportPlan, EngineExportPlan
 │   │   └── Enums/InOut/Sheets/               # VehicleExportSheet, EngineExportSheet
 │   ├── Application/                          # только Service — см. §2 (без Support/)
@@ -519,7 +519,7 @@ if (! $event) {
 
 Найдено при написании Feature-теста на `VehicleCommandImport` (§8.1): вставка падала с
 `SQLSTATE[HY000]: table vehicles has no column named excel_table_id`. При этом поле активно
-используется — `Domain/ModelData/Vehicle/VehicleData` (`excelTableId`), обе фабрики/сервиса
+используется — `Domain/ModelData/VehicleData` (`excelTableId`), обе фабрики/сервиса
 апсерта ТС (`VehicleDataFactory`, `UpsertVehicleFromSheetService` — построчный импорт из
 "ручного" листа, где это ID строки Google-таблицы) и экспорт (`VehicleExportRow::getBaseData()`
 читает `$vehicle->excel_table_id` как первую колонку "ID Гугл таблицы"). Колонка есть на

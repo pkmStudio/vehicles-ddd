@@ -15,7 +15,7 @@ namespace App\Vehicles\Import\Domain\DTOs;
  * runId — не userId — основа cache-ключа отчёта об ошибках: так конкурентные прогоны
  * (в том числе повторные от одного и того же инициатора) не затирают друг друга.
  */
-final readonly class ImportRunContext
+final readonly class ImportRunContextDTO
 {
     public function __construct(
         public int $userId,

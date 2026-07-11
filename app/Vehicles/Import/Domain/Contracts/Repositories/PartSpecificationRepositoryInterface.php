@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Domain\Contracts\Repositories;
 
-use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
-use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
-use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Import\Domain\ModelData\EngineData;
+use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
+use App\Vehicles\Import\Domain\ModelData\VehicleData;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 

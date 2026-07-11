@@ -8,7 +8,7 @@ use App\Vehicles\Import\Domain\Contracts\Factories\ExternalFileImportFactoryInte
 use App\Vehicles\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Vehicles\Import\Domain\DTOs\ExternalImportFileRequestDTO;
-use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
+use App\Vehicles\Import\Domain\DTOs\ImportRunContextDTO;
 use Throwable;
 
 /**
@@ -41,7 +41,7 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
 
         try {
             $this->cache->rememberCleanup($request);
-            $context = new ImportRunContext(userId: $request->userId, runId: $request->runId);
+            $context = new ImportRunContextDTO(userId: $request->userId, runId: $request->runId);
             $importService = $this->importFactory->make($request->importType);
             $importService->import($request->path, $context, $request->disk);
         } catch (Throwable $e) {

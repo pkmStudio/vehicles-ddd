@@ -9,8 +9,8 @@ use App\Vehicles\Import\Application\Services\Modification\UpsertModificationFrom
 use App\Vehicles\Import\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\DTOs\Modification\ModificationCommandRowDTO;
-use App\Vehicles\Import\Domain\ModelData\Modification\ModificationData;
-use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Import\Domain\ModelData\ModificationData;
+use App\Vehicles\Import\Domain\ModelData\VehicleData;
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;

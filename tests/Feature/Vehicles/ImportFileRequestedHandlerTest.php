@@ -7,7 +7,7 @@ namespace Tests\Feature\Vehicles;
 use App\Vehicles\Import\Domain\Contracts\Imports\External\VehicleMultiSheetImportInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\External\CleanupExternalImportFileServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
-use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
+use App\Vehicles\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Vehicles\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -42,7 +42,7 @@ final class ImportFileRequestedHandlerTest extends TestCase
             ->once()
             ->with(
                 'VehicleMultiSheet/vehicles.xlsx',
-                Mockery::on(fn (ImportRunContext $context): bool => $context->userId === 42 && $context->runId === 'run-123'),
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-123'),
                 's3',
             );
 

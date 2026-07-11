@@ -8,8 +8,8 @@ use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterf
 use App\Vehicles\Import\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
-use App\Vehicles\Import\Domain\DTOs\ModificationSparkPlugResult;
-use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Import\Domain\DTOs\Engine\ModificationSparkPlugResultDTO;
+use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 
@@ -30,16 +30,19 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
     /**
      * @param  array<string, mixed>  $details
      */
-    public function upsertByModification(int $msId, int $modId, array $details): ModificationSparkPlugResult
+    public function upsertByModification(int $msId, int $modId, array $details): ModificationSparkPlugResultDTO
     {
         [$resolvedMsId, $reason] = $this->resolveMsId($msId);
         if ($resolvedMsId === null) {
-            return ModificationSparkPlugResult::notFound($reason);
+            return new ModificationSparkPlugResultDTO(found: false, notFoundReason: $reason);
         }
 
         $modification = $this->modifications->firstByMsIdAndModIdWithEngines($resolvedMsId, $modId);
         if (! $modification) {
-            return ModificationSparkPlugResult::notFound("Модификация (ms_id: {$resolvedMsId}, mod_id: {$modId}) не найдена.");
+            return new ModificationSparkPlugResultDTO(
+                found: false,
+                notFoundReason: "Модификация (ms_id: {$resolvedMsId}, mod_id: {$modId}) не найдена.",
+            );
         }
 
         $written = 0;
@@ -61,7 +64,7 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
             $written++;
         }
 
-        return ModificationSparkPlugResult::written($written, $skipped);
+        return new ModificationSparkPlugResultDTO(found: true, writtenCount: $written, skippedEngines: $skipped);
     }
 
     /**

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Repositories;
 
 use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
-use App\Vehicles\Import\Domain\ModelData\FeatureValue\FeatureValueData;
+use App\Vehicles\Import\Domain\ModelData\FeatureValueData;
 use App\Vehicles\Import\Infrastructure\Models\FeatureValue;
 use Illuminate\Support\Collection;
 

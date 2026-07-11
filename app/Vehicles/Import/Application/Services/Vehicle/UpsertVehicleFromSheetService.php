@@ -11,7 +11,7 @@ use App\Vehicles\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInte
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleSheetRowDTO;
-use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Import\Domain\ModelData\VehicleData;
 use Illuminate\Validation\ValidationException;
 
 /**

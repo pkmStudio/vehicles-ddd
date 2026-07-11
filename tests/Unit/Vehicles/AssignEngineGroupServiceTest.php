@@ -7,7 +7,7 @@ namespace Tests\Unit\Vehicles;
 use App\Vehicles\Import\Application\Services\Engine\AssignEngineGroupService;
 use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
+use App\Vehicles\Import\Domain\ModelData\EngineData;
 use Mockery;
 use Tests\TestCase;
 

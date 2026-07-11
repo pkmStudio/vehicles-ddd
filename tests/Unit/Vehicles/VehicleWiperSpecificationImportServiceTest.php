@@ -10,8 +10,8 @@ use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterf
 use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
-use App\Vehicles\Import\Domain\ModelData\FeatureValue\FeatureValueData;
+use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
+use App\Vehicles\Import\Domain\ModelData\FeatureValueData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Support\Collection;
 use Mockery;

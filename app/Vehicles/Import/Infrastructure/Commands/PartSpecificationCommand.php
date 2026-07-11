@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Commands;
 
 use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
-use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Import\Infrastructure\Models\PartSpecification;
 use Illuminate\Support\Arr;
 

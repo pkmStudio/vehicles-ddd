@@ -8,7 +8,7 @@ use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Factories\EngineDataFactoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
-use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
+use App\Vehicles\Import\Domain\ModelData\EngineData;
 use Illuminate\Validation\ValidationException;
 
 /**

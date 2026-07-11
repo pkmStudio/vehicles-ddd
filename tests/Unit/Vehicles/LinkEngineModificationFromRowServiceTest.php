@@ -8,7 +8,7 @@ use App\Vehicles\Import\Application\Factories\EngineModificationDataFactory;
 use App\Vehicles\Import\Application\Services\EngineModification\LinkEngineModificationFromRowService;
 use App\Vehicles\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Vehicles\Import\Domain\DTOs\EngineModification\EngineModificationCommandRowDTO;
-use App\Vehicles\Import\Domain\ModelData\EngineModification\EngineModificationData;
+use App\Vehicles\Import\Domain\ModelData\EngineModificationData;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;

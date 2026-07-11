@@ -8,7 +8,7 @@ use App\Vehicles\Import\Application\Factories\ManufacturerDataFactory;
 use App\Vehicles\Import\Application\Services\Manufacturer\UpsertManufacturerFromRowService;
 use App\Vehicles\Import\Domain\Contracts\Commands\ManufacturerCommandInterface;
 use App\Vehicles\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
-use App\Vehicles\Import\Domain\ModelData\Manufacturer\ManufacturerData;
+use App\Vehicles\Import\Domain\ModelData\ManufacturerData;
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Validation\ValidationException;
 use Mockery;

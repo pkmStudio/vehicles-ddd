@@ -9,7 +9,7 @@ use App\Vehicles\Import\Domain\Contracts\Factories\VehicleDataFactoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleTdRowDTO;
-use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Import\Domain\ModelData\VehicleData;
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
