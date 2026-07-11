@@ -194,7 +194,7 @@ Cache-ключи и TTL — **не строковые литералы в код
 
 | Папка | Что лежит | Правила |
 |---|---|---|
-| `Console/Commands/` | Artisan-команды фичи | Парсят аргументы → зовут UseCase/Service. Без бизнес-логики. Import: `TecDocImportCars`. Maintenance: `ChangeProviderManufacturersToTD`, `UpdateVehicleYears`, `DeduplicatePartSpecificationsCommand`, … |
+| `Console/Commands/` | Artisan-команды фичи | Парсят аргументы → зовут UseCase/Service. Без бизнес-логики. Import: `TecDocImportCars`. Maintenance: `UpdateVehicleYears`, `DeduplicatePartSpecificationsCommand`, … |
 | `Http/Controllers/` | Контроллеры | Тонкие: валидация → UseCase → ответ. (Общей Presentation-папки на весь домен нет — только внутри фичи.) |
 
 Регистрация команд — через `bootstrap/app.php` `->withCommands([...])`.

@@ -16,6 +16,17 @@ use Tests\TestCase;
 
 final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
 {
+    /**
+     * Проверяет happy-path: двигатель находится по eng_id, спецификация свечей упсертится
+     * с правильным partable_id/partable_type/template.
+     *
+     * Шаги:
+     * 1. Мокает EngineRepositoryInterface::firstByEngId — возвращает EngineData с id=42.
+     * 2. Мокает PartSpecificationCommandInterface::upsert — ожидает данные с
+     *    partableType=ENGINE, partableId=42, template=SPARK_PLUGS и переданными details.
+     * 3. Зовёт upsertByEngine(101, $details).
+     * 4. Проверяет, что вернулся именно ожидаемый результат Command.
+     */
     public function test_resolves_engine_and_upserts_spec(): void
     {
         $engine = new EngineData(engId: 101, id: 42);
@@ -46,6 +57,14 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
         $this->assertSame($expected, $service->upsertByEngine(101, $details));
     }
 
+    /**
+     * Проверяет, что при отсутствии двигателя с таким eng_id запись вообще не происходит.
+     *
+     * Шаги:
+     * 1. Мокает Repository::firstByEngId — возвращает null.
+     * 2. Мокает Command — ожидает, что upsert НЕ вызовется.
+     * 3. Зовёт upsertByEngine(999, ...) и проверяет, что результат null.
+     */
     public function test_returns_null_when_engine_not_found(): void
     {
         $engines = Mockery::mock(EngineRepositoryInterface::class);

@@ -20,6 +20,17 @@ use Tests\TestCase;
 
 final class UpsertVehicleFromTdRowServiceTest extends TestCase
 {
+    /**
+     * Проверяет happy-path: производитель находится по mfa_id из строки, ТС маппится с его
+     * id как manufacturerId и уходит в Command.
+     *
+     * Шаги:
+     * 1. Мокает ManufacturerRepositoryInterface::firstByMfaId — возвращает ManufacturerData(id=3).
+     * 2. Мокает Command::upsertByMsId — ожидает данные с manufacturerId=3 и остальными полями
+     *    строки (msId/name/type).
+     * 3. Зовёт upsertFromRow() с валидным VehicleTdRowDTO.
+     * 4. Проверяет, что вернулся именно ожидаемый результат Command.
+     */
     public function test_resolves_manufacturer_and_upserts_vehicle(): void
     {
         $manufacturer = new ManufacturerData(mfaId: 10, name: 'Skoda', provider: ProviderEnum::TD, id: 3);
@@ -54,6 +65,15 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
         $this->assertSame($expected, $service->upsertFromRow($this->validRow()));
     }
 
+    /**
+     * Проверяет, что при отсутствии производителя с таким mfa_id ТС не записывается —
+     * нет смысла заводить ТС без родителя-производителя.
+     *
+     * Шаги:
+     * 1. Мокает ManufacturerRepositoryInterface::firstByMfaId — возвращает null.
+     * 2. Мокает Command — ожидает, что upsertByMsId НЕ вызовется.
+     * 3. Зовёт upsertFromRow() и проверяет, что результат null.
+     */
     public function test_returns_null_when_manufacturer_not_found(): void
     {
         $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
@@ -67,6 +87,16 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
         $this->assertNull($service->upsertFromRow($this->validRow()));
     }
 
+    /**
+     * Проверяет бизнес-правило дефолта: если тип ТС — мотоцикл (MB) и тип кузова в строке не
+     * указан, фабрика подставляет CarcaseTypeEnum::MOTORCYCLE, а не оставляет null.
+     *
+     * Шаги:
+     * 1. Мокает ManufacturerRepositoryInterface — возвращает ManufacturerData.
+     * 2. Мокает Command::upsertByMsId — просто возвращает переданный ему VehicleData как есть.
+     * 3. Зовёт upsertFromRow() со строкой type='MB', typeCarcase=null.
+     * 4. Проверяет, что итоговый VehicleData имеет type=MB и typeCarcase=MOTORCYCLE.
+     */
     public function test_defaults_type_carcase_to_motorcycle_when_missing_for_mb_type(): void
     {
         /** [mfa_id, ms_id, name, generation, type_carcase, year_from, year_to, type] */

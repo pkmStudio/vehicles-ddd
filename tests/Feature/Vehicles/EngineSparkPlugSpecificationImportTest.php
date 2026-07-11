@@ -25,6 +25,20 @@ final class EngineSparkPlugSpecificationImportTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Проверяет внешний (Rabbit/HTTP-триггер) импорт спецификации свечей зажигания «по
+     * модификации» — строка файла привязана к модификации, а не к конкретному двигателю;
+     * спецификация пишется на все двигатели, связанные с этой модификацией.
+     *
+     * Шаги:
+     * 1. Фейкает EngineImportCompleted.
+     * 2. Создаёт производителя → ТС → модификацию → двигатель и привязывает двигатель к
+     *    модификации через pivot engine_modification.
+     * 3. Собирает ImportRunContextDTO (userId явный) и гоняет import() на
+     *    tests/Fixtures/engine_spark_plugs_by_modification_sample.csv.
+     * 4. Проверяет, что у двигателя появилась PartSpecification с ожидаемым деревом details.
+     * 5. Проверяет, что событие завершения продиспатчено с тем же userId.
+     */
     public function test_writes_spark_plug_spec_to_engines_of_modification(): void
     {
         Event::fake([EngineImportCompleted::class]);

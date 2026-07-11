@@ -23,6 +23,17 @@ final class ReportImportResultListenerTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Проверяет ветку «есть ошибки»: слушатель выгружает CSV-отчёт на диск и уведомляет
+     * инициатора статусом CompletedWithErrors с путём к отчёту.
+     *
+     * Шаги:
+     * 1. Подменяет диск 'exports' на фейковый и кладёт в cache одну построчную ошибку импорта.
+     * 2. Мокает FileNotificationServiceInterface — ожидает notifyImportCompleted() с
+     *    userId/runId/errorsCount и путём, начинающимся с 'exports/import-failures'.
+     * 3. Зовёт handle() с VehicleImportCompleted(userId: 42, cacheKey, runId: 'run-123').
+     * 4. Проверяет, что cache-запись с ошибками снята после обработки.
+     */
     public function test_exports_failures_and_notifies_user(): void
     {
         Storage::fake('exports');
@@ -52,6 +63,17 @@ final class ReportImportResultListenerTest extends TestCase
         $this->assertFalse(Cache::has($cacheKey));
     }
 
+    /**
+     * Проверяет ветку «ошибок нет»: слушатель не строит отчёт, уведомляет статусом Completed
+     * без пути к файлу.
+     *
+     * Шаги:
+     * 1. Не кладёт в cache никаких ошибок для данного cacheKey.
+     * 2. Мокает FileNotificationServiceInterface — ожидает notifyImportCompleted() со статусом
+     *    Completed, errorsCount=0 и path=null.
+     * 3. Зовёт handle() с VehicleImportCompleted(userId: 42, cacheKey, runId: 'run-456').
+     * 4. Проверяет, что cache-ключ (которого и так не было) остаётся отсутствующим.
+     */
     public function test_does_not_notify_when_no_failures(): void
     {
         $cacheKey = 'report_listener_test_no_failures';

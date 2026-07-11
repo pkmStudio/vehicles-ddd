@@ -74,6 +74,18 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         );
     }
 
+    /**
+     * Проверяет базовый сценарий создания: если для front и back нет ни точного совпадения,
+     * ни существующей записи стороны — создаётся по одной новой PartSpecification на сторону.
+     *
+     * Шаги:
+     * 1. Мокает Repository: firstByVehicleTemplateSideAndDetails и forVehicleTemplateAndSide
+     *    для front/back возвращают null/пустую коллекцию (совпадений и существующих нет).
+     * 2. Мокает Command::create — ожидает ровно 2 вызова (по одному на сторону), update не
+     *    ожидается вообще.
+     * 3. Зовёт upsertFromRow() со строкой с обеими сторонами (front+back в details).
+     * 4. Проверяет, что create() вызван именно для 'front' и 'back' (в этом порядке).
+     */
     public function test_creates_one_spec_per_side_when_none_exist(): void
     {
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
@@ -111,6 +123,16 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         $this->assertSame(['front', 'back'], $created);
     }
 
+    /**
+     * Проверяет сценарий точного совпадения: если для стороны уже есть PartSpecification с
+     * теми же details — сервис обновляет именно её (по id), а не создаёт дубликат.
+     *
+     * Шаги:
+     * 1. Мокает Repository::firstByVehicleTemplateSideAndDetails('front', ...) — возвращает
+     *    существующую спецификацию (id=5) с точно такими же details.
+     * 2. Мокает Command::update — ожидает вызов с этим же id=5, create не ожидается.
+     * 3. Зовёт upsertFromRow() со строкой только с front-стороной.
+     */
     public function test_updates_existing_side(): void
     {
         $existing = new PartSpecificationData(
@@ -141,6 +163,19 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    /**
+     * Проверяет промежуточный сценарий: точного совпадения details нет, но для стороны уже
+     * есть ровно одна существующая запись — сервис обновляет её (новыми details), а не
+     * создаёт вторую запись для той же стороны.
+     *
+     * Шаги:
+     * 1. Мокает Repository::firstByVehicleTemplateSideAndDetails — не находит точное
+     *    совпадение (null).
+     * 2. Мокает Repository::forVehicleTemplateAndSide('front') — возвращает коллекцию с
+     *    ровно одной существующей записью (id=5, другие details).
+     * 3. Мокает Command::update — ожидает вызов с этим же id=5, create не ожидается.
+     * 4. Зовёт upsertFromRow() со строкой с новыми front-details.
+     */
     public function test_updates_single_existing_side_when_exact_details_are_missing(): void
     {
         $existing = new PartSpecificationData(
@@ -172,6 +207,17 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    /**
+     * Проверяет, что featureValueName из строки резолвится в featureValueId через
+     * FeatureValueRepository и попадает в создаваемую PartSpecification.
+     *
+     * Шаги:
+     * 1. Мокает FeatureValueRepositoryInterface::firstByName('Левый руль') — возвращает
+     *    FeatureValueData(id=9).
+     * 2. Мокает Repository — совпадений/существующих записей нет (ветка создания).
+     * 3. Мокает Command::create — ожидает вызов с featureValueId=9.
+     * 4. Зовёт upsertFromRow() со строкой с featureValueName='Левый руль'.
+     */
     public function test_resolves_feature_value_by_name(): void
     {
         $fv = new FeatureValueData(featureId: 1, name: 'Левый руль', shortCode: 'L', id: 9);
@@ -195,6 +241,17 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    /**
+     * Проверяет грабли из ARCHITECTURE.md/EventAudit.md: несуществующее имя особенности не
+     * должно тихо создавать запись без featureValueId — сервис обязан явно упасть с понятным
+     * сообщением, а не молчать.
+     *
+     * Шаги:
+     * 1. Мокает FeatureValueRepositoryInterface::firstByName — возвращает null для
+     *    несуществующего имени.
+     * 2. Зовёт upsertFromRow() со строкой с featureValueName='Неизвестная особенность'.
+     * 3. Ожидает RuntimeException с точным текстом «Особенность не найдена...».
+     */
     public function test_throws_when_feature_value_name_not_found(): void
     {
         $featureValues = Mockery::mock(FeatureValueRepositoryInterface::class);
@@ -212,6 +269,20 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
             ->upsertFromRow($this->wiperRow($details, featureValueName: 'Неизвестная особенность'));
     }
 
+    /**
+     * Проверяет бизнес-правило разворачивания множественных адаптеров: если front-сторона
+     * содержит несколько значений adapter_type_front (['A1','A2']), для каждого создаётся
+     * своя отдельная PartSpecification — они не схлопываются в одну запись и не пытаются
+     * обновить существующую (fallback update здесь неприменим, т.к. вариантов несколько).
+     *
+     * Шаги:
+     * 1. Мокает Repository::firstByVehicleTemplateSideAndDetails — не находит совпадений ни
+     *    для варианта A1, ни для A2; forVehicleTemplateAndSide не ожидается вообще (сервис не
+     *    должен даже пытаться искать «единственную существующую» при множественных адаптерах).
+     * 2. Мокает Command::create — ожидает ровно 2 вызова, update не ожидается.
+     * 3. Зовёт upsertFromRow() со строкой, где adapter_type_front=['A1','A2'].
+     * 4. Проверяет, что созданы записи именно для A1 и для A2 по отдельности.
+     */
     public function test_creates_separate_specs_for_multiple_front_adapters_without_fallback_update(): void
     {
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);

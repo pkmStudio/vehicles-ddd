@@ -20,6 +20,18 @@ final class EngineCrossImportTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Проверяет реальный Excel-адаптер внешнего (Rabbit/HTTP-триггер) кросс-импорта: код
+     * двигателя из файла привязывается к group_id.
+     *
+     * Шаги:
+     * 1. Фейкает EngineCrossImportCompleted.
+     * 2. Создаёт двигатель с известным code_engine.
+     * 3. Собирает ImportRunContextDTO (userId явный — не Auth::id()) и гоняет import() на
+     *    tests/Fixtures/engine_groups_sample.csv.
+     * 4. Проверяет, что group_id у двигателя обновился на значение из файла.
+     * 5. Проверяет, что событие завершения продиспатчено с тем же userId — без гейта ">0".
+     */
     public function test_assigns_group_to_engine_by_code(): void
     {
         Event::fake([EngineCrossImportCompleted::class]);

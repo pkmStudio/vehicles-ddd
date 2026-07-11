@@ -20,6 +20,17 @@ final class VehicleImportTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Проверяет реальный Excel-адаптер (Command/Repository/БД, не моки) на фикстурном CSV.
+     *
+     * Шаги:
+     * 1. Фейкает VehicleCommandImported, чтобы не запустить реальный command-каскад
+     *    (StartModificationCommandImportListener).
+     * 2. Создаёт производителя, на которого сошлётся строка ТС.
+     * 3. Гоняет import() на tests/Fixtures/vehicles_sample.csv через реальный Command.
+     * 4. Проверяет, что в БД появилось ровно одно ТС с ожидаемыми полями.
+     * 5. Проверяет, что событие завершения импорта продиспатчено.
+     */
     public function test_imports_vehicles_from_csv_into_database(): void
     {
         Event::fake([VehicleCommandImported::class]);

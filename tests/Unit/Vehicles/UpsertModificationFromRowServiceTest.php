@@ -20,6 +20,17 @@ use Tests\TestCase;
 
 final class UpsertModificationFromRowServiceTest extends TestCase
 {
+    /**
+     * Проверяет happy-path: ТС находится по ms_id из строки, модификация маппится с
+     * унаследованным type/vehicleId от найденного ТС и уходит в Command.
+     *
+     * Шаги:
+     * 1. Мокает VehicleRepositoryInterface::firstByMsId — возвращает VehicleData(id=9, type=PC).
+     * 2. Мокает Command::upsertByModIdAndType — ожидает данные с modId/msId из строки и
+     *    type/vehicleId, унаследованными от найденного ТС.
+     * 3. Зовёт upsertFromRow() с валидным ModificationCommandRowDTO.
+     * 4. Проверяет, что вернулся именно ожидаемый результат Command.
+     */
     public function test_resolves_vehicle_and_upserts_modification(): void
     {
         $vehicle = new VehicleData(
@@ -49,6 +60,15 @@ final class UpsertModificationFromRowServiceTest extends TestCase
         $this->assertSame($expected, $service->upsertFromRow($this->validRow()));
     }
 
+    /**
+     * Проверяет, что при отсутствии ТС с таким ms_id модификация вообще не записывается —
+     * нет смысла заводить модификацию-сироту без родителя.
+     *
+     * Шаги:
+     * 1. Мокает VehicleRepositoryInterface::firstByMsId — возвращает null.
+     * 2. Мокает Command — ожидает, что upsertByModIdAndType НЕ вызовется.
+     * 3. Зовёт upsertFromRow() и проверяет, что результат null.
+     */
     public function test_returns_null_when_vehicle_not_found(): void
     {
         $vehicles = Mockery::mock(VehicleRepositoryInterface::class);

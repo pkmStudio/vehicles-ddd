@@ -17,6 +17,15 @@ final class EngineMainSheetImportTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Проверяет, что edit-лист двигателей обновляет только редактируемые поля существующего
+     * двигателя (частичный upsert по eng_id, не создание новой записи).
+     *
+     * Шаги:
+     * 1. Создаёт двигатель с исходными значениями (cylinder_count=6).
+     * 2. Прогоняет одну строку через collection() с новыми значениями по eng_id=500.
+     * 3. Проверяет, что БД отражает обновлённые поля (capacity/cylinder_count/valves).
+     */
     public function test_updates_editable_engine_fields(): void
     {
         $engine = Engine::query()->create(['eng_id' => 500, 'code_engine' => 'M54B30', 'cylinder_count' => 6]);

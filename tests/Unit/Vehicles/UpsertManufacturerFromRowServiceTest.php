@@ -16,6 +16,16 @@ use Tests\TestCase;
 
 final class UpsertManufacturerFromRowServiceTest extends TestCase
 {
+    /**
+     * Проверяет happy-path: строка маппится в ManufacturerData, provider всегда приводится к
+     * TD (TecDoc — единственный реальный источник консольного каскада), и уходит в
+     * Command::upsertByMfaId.
+     *
+     * Шаги:
+     * 1. Мокает Command::upsertByMfaId — ожидает данные с mfaId/name из строки и provider=TD.
+     * 2. Зовёт upsertFromRow() с валидным ManufacturerCommandRowDTO.
+     * 3. Проверяет, что вернулся именно ожидаемый результат Command.
+     */
     public function test_maps_row_and_upserts_with_td_provider(): void
     {
         $expected = new ManufacturerData(mfaId: 10, name: 'Skoda', provider: ProviderEnum::TD, id: 3);
@@ -31,6 +41,14 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
         $this->assertSame($expected, $service->upsertFromRow(new ManufacturerCommandRowDTO(mfaId: 10, name: 'Skoda')));
     }
 
+    /**
+     * Проверяет, что отсутствие обязательного name отклоняется валидацией до записи.
+     *
+     * Шаги:
+     * 1. Мокает Command — ожидает, что upsertByMfaId НЕ вызовется.
+     * 2. Зовёт upsertFromRow() со строкой, где name=null.
+     * 3. Ожидает ValidationException.
+     */
     public function test_missing_name_throws_validation_exception(): void
     {
         $command = Mockery::mock(ManufacturerCommandInterface::class);

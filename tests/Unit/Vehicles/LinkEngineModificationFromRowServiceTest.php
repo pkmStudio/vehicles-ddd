@@ -15,6 +15,15 @@ use Tests\TestCase;
 
 final class LinkEngineModificationFromRowServiceTest extends TestCase
 {
+    /**
+     * Проверяет happy-path: валидная строка маппится в EngineModificationData и уходит в
+     * Command::syncWithoutDetaching (pivot-запись engine_modification).
+     *
+     * Шаги:
+     * 1. Мокает EngineModificationCommandInterface::syncWithoutDetaching — ожидает вызов с
+     *    данными, где engId/modId/type совпадают со строкой.
+     * 2. Зовёт linkFromRow() с валидным EngineModificationCommandRowDTO.
+     */
     public function test_maps_row_and_links_pivot(): void
     {
         $command = Mockery::mock(EngineModificationCommandInterface::class);
@@ -28,6 +37,15 @@ final class LinkEngineModificationFromRowServiceTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    /**
+     * Проверяет, что невалидное значение type (не входит в допустимый набор) валится
+     * ValidationException'ом до записи, а не уходит в Command как есть.
+     *
+     * Шаги:
+     * 1. Мокает Command — ожидает, что syncWithoutDetaching НЕ вызовется.
+     * 2. Зовёт linkFromRow() со строкой, где type='НЕВЕРНО'.
+     * 3. Ожидает ValidationException.
+     */
     public function test_invalid_type_throws_validation_exception(): void
     {
         $command = Mockery::mock(EngineModificationCommandInterface::class);

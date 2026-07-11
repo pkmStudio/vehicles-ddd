@@ -36,6 +36,20 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
         return new ModificationData(modId: 50, type: VehicleTypeEnum::PC, vehicleId: 9, msId: 200, engines: new Collection($engines));
     }
 
+    /**
+     * Проверяет бизнес-правило: свечи зажигания актуальны только для бензиновых двигателей —
+     * из всех двигателей модификации спецификация пишется только на PETROL, дизельный
+     * двигатель пропускается и попадает в отчёт skippedEngines.
+     *
+     * Шаги:
+     * 1. Собирает модификацию с двумя двигателями: PETROL и DIESEL.
+     * 2. Мокает ModificationRepositoryInterface::firstByMsIdAndModIdWithEngines — возвращает
+     *    эту модификацию с уже eager-loaded двигателями.
+     * 3. Мокает PartSpecificationCommandInterface::upsert — ожидает вызов только для
+     *    PETROL-двигателя (partableId=1).
+     * 4. Зовёт upsertByModification(200, 50, $details).
+     * 5. Проверяет found=true, writtenCount=1 и что DIESEL-двигатель попал в skippedEngines.
+     */
     public function test_writes_spec_only_for_engines_that_need_spark_plugs(): void
     {
         $mod = $this->modification([
@@ -64,6 +78,16 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
         $this->assertSame([['code' => 'DIESEL-1', 'fuel' => EngineFuelTypeEnum::DIESEL->value]], $result->skippedEngines);
     }
 
+    /**
+     * Проверяет, что при отсутствии модификации по ms_id/mod_id запись не происходит и
+     * причина ненахождения явно указана в результате.
+     *
+     * Шаги:
+     * 1. Мокает ModificationRepositoryInterface — возвращает null.
+     * 2. Мокает Command — ожидает, что upsert НЕ вызовется.
+     * 3. Зовёт upsertByModification(200, 50, []).
+     * 4. Проверяет found=false и что notFoundReason заполнен.
+     */
     public function test_not_found_when_modification_missing(): void
     {
         $modifications = Mockery::mock(ModificationRepositoryInterface::class);
@@ -84,6 +108,19 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
         $this->assertNotNull($result->notFoundReason);
     }
 
+    /**
+     * Проверяет бизнес-правило синтетических отрицательных ms_id (генерируются при импорте
+     * ТС без собственного ms_id): для такого «дочернего» ТС модификация ищется по ms_id
+     * родителя, а не по самому отрицательному значению.
+     *
+     * Шаги:
+     * 1. Мокает VehicleRepositoryInterface: firstByMsId(-5) возвращает дочернее ТС,
+     *    parentMsId(-5) возвращает 200 (ms_id родителя).
+     * 2. Мокает ModificationRepositoryInterface::firstByMsIdAndModIdWithEngines — ожидает
+     *    вызов именно с (200, 50), не (-5, 50).
+     * 3. Зовёт upsertByModification(-5, 50, []).
+     * 4. Проверяет found=true и writtenCount=1.
+     */
     public function test_negative_ms_id_resolves_parent(): void
     {
         $child = new VehicleData(

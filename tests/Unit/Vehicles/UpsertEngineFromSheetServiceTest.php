@@ -19,6 +19,17 @@ use Tests\TestCase;
  */
 final class UpsertEngineFromSheetServiceTest extends TestCase
 {
+    /**
+     * Проверяет happy-path: валидная строка маппится в EngineData (включая приведение
+     * eng_fuel_type к enum) и уходит в Command::upsertByEngId.
+     *
+     * Шаги:
+     * 1. Мокает EngineCommandInterface::upsertByEngId — перехватывает переданный EngineData
+     *    и возвращает заранее известный результат.
+     * 2. Зовёт upsertFromRow() с валидным EngineSheetRowDTO.
+     * 3. Проверяет, что вернулся именно ожидаемый результат Command.
+     * 4. Проверяет перехваченные поля EngineData (engId/codeEngine/кВт/цилиндры/enum топлива).
+     */
     public function test_maps_row_and_upserts_via_command(): void
     {
         $captured = null;
@@ -59,6 +70,15 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
         $this->assertSame(EngineFuelTypeEnum::PETROL, $captured->engFuelType);
     }
 
+    /**
+     * Проверяет грабли из ARCHITECTURE.md: невалидное сырое значение enum-поля (топливо
+     * 'плазма') должно валиться на валидации, а не тихо стать null через tryFrom.
+     *
+     * Шаги:
+     * 1. Мокает Command — ожидает, что upsertByEngId НЕ вызовется.
+     * 2. Зовёт upsertFromRow() со строкой, где engFuelType='плазма'.
+     * 3. Ожидает ValidationException (валидация сырого значения через Rule::enum).
+     */
     public function test_invalid_enum_throws_validation_exception(): void
     {
         $command = Mockery::mock(EngineCommandInterface::class);
@@ -83,6 +103,15 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
         ));
     }
 
+    /**
+     * Проверяет, что отсутствие обязательного идентификатора (eng_id) отклоняется
+     * валидацией до вызова Command.
+     *
+     * Шаги:
+     * 1. Мокает Command — ожидает, что upsertByEngId НЕ вызовется.
+     * 2. Зовёт upsertFromRow() со строкой, где engId=null.
+     * 3. Ожидает ValidationException.
+     */
     public function test_missing_eng_id_throws_validation_exception(): void
     {
         $command = Mockery::mock(EngineCommandInterface::class);

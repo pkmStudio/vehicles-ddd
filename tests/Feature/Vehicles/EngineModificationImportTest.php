@@ -19,6 +19,15 @@ final class EngineModificationImportTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Проверяет реальный Excel-адаптер (Command/Repository/БД, не моки) на фикстурном CSV.
+     *
+     * Шаги:
+     * 1. Создаёт двигатель, производителя, ТС и модификацию, на которые сошлётся строка
+     *    связи (по eng_id/mod_id).
+     * 2. Гоняет import() на tests/Fixtures/engine_modification_sample.csv через реальный Command.
+     * 3. Проверяет, что в pivot-таблице engine_modification появилась ожидаемая связь.
+     */
     public function test_links_engine_to_modification_from_csv(): void
     {
         $engine = Engine::query()->create(['eng_id' => 500, 'code_engine' => 'M54B30']);

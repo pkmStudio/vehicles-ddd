@@ -24,6 +24,15 @@ final class ManufacturerImportTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Проверяет реальный Excel-адаптер (Command/Repository/БД, не моки) на фикстурном CSV.
+     *
+     * Шаги:
+     * 1. Фейкает ManufacturerCommandImported, чтобы не запустить реальный каскад слушателей.
+     * 2. Гоняет import() на tests/Fixtures/manufacturers_sample.csv через реальный Command.
+     * 3. Проверяет, что в БД ровно 2 производителя с ожидаемыми полями (provider приведён к TD).
+     * 4. Проверяет, что событие завершения импорта всё равно продиспатчено.
+     */
     public function test_imports_manufacturers_from_csv_into_database(): void
     {
         Event::fake([ManufacturerCommandImported::class]);

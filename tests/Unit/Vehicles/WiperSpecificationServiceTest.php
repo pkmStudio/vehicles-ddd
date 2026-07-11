@@ -17,6 +17,15 @@ final class WiperSpecificationServiceTest extends TestCase
         $this->service = new WiperSpecificationService;
     }
 
+    /**
+     * Проверяет detectSide(): по какому ключу верхнего уровня (front/back) определяется
+     * сторона деталей, и что при неоднозначности (обе стороны сразу или ни одной) — null.
+     *
+     * Шаги:
+     * 1. Проверяет, что ['front' => []] → 'front', ['back' => []] → 'back'.
+     * 2. Проверяет, что одновременное присутствие обеих сторон даёт null (неоднозначно).
+     * 3. Проверяет, что пустой массив тоже даёт null.
+     */
     public function test_detect_side(): void
     {
         $this->assertSame('front', $this->service->detectSide(['front' => []]));
@@ -25,6 +34,16 @@ final class WiperSpecificationServiceTest extends TestCase
         $this->assertNull($this->service->detectSide([]));
     }
 
+    /**
+     * Проверяет normalizeAdapters(): приведение сырых значений адаптера (строка/массив/null,
+     * с возможными пустыми/дублирующимися элементами) к чистому списку строк.
+     *
+     * Шаги:
+     * 1. Проверяет, что массив с пустой строкой и дублем схлопывается в уникальные значения.
+     * 2. Проверяет, что одиночная строка оборачивается в массив из одного элемента.
+     * 3. Проверяет, что null даёт пустой массив.
+     * 4. Проверяет, что массив из пустых/null-значений тоже даёт пустой массив.
+     */
     public function test_normalize_adapters(): void
     {
         $this->assertSame(['A', 'B'], $this->service->normalizeAdapters(['A', '', 'B', 'A']));
@@ -33,6 +52,15 @@ final class WiperSpecificationServiceTest extends TestCase
         $this->assertSame([], $this->service->normalizeAdapters(['', null]));
     }
 
+    /**
+     * Проверяет splitDetails(): details с обеими сторонами разбивается на отдельные записи
+     * по стороне, и каждая запись содержит только свой корневой ключ (front/back), не обе.
+     *
+     * Шаги:
+     * 1. Зовёт splitDetails() с details, где заполнены и front, и back.
+     * 2. Проверяет, что получилось ровно 2 части.
+     * 3. Проверяет side и единственный корневой ключ details для каждой части.
+     */
     public function test_split_details_separates_sides_and_keeps_single_root_key(): void
     {
         $parts = $this->service->splitDetails([
@@ -47,6 +75,16 @@ final class WiperSpecificationServiceTest extends TestCase
         $this->assertSame(['back'], array_keys($parts[1]['details']));
     }
 
+    /**
+     * Проверяет splitDetails(): если у стороны несколько адаптеров, каждый разворачивается в
+     * отдельную запись (декартово произведение по адаптеру), а не остаётся одной строкой со
+     * списком; прочие поля (count_wipers) при этом копируются в каждый вариант без изменений.
+     *
+     * Шаги:
+     * 1. Зовёт splitDetails() с front, где adapter_type_front=['A1','A2'].
+     * 2. Проверяет, что получилось ровно 2 части — по одной на адаптер.
+     * 3. Проверяет, что count_wipers сохранился в обеих частях.
+     */
     public function test_split_details_expands_multiple_adapters_into_separate_records(): void
     {
         $parts = $this->service->splitDetails([
@@ -60,6 +98,14 @@ final class WiperSpecificationServiceTest extends TestCase
         $this->assertSame(2, $parts[0]['details']['front']['count_wipers']);
     }
 
+    /**
+     * Проверяет splitDetails(): пустая сторона (front без данных) не создаёт пустую запись —
+     * в результате остаётся только реально заполненная сторона.
+     *
+     * Шаги:
+     * 1. Зовёт splitDetails() с front=[] и заполненным back.
+     * 2. Проверяет, что получилась ровно 1 часть — только 'back'.
+     */
     public function test_split_details_skips_empty_side(): void
     {
         $parts = $this->service->splitDetails(['front' => [], 'back' => ['adapter_type_rear' => ['B1']]]);
@@ -68,6 +114,16 @@ final class WiperSpecificationServiceTest extends TestCase
         $this->assertSame('back', $parts[0]['side']);
     }
 
+    /**
+     * Проверяет splitSpecification(): комбинацию разворачивания по сторонам И по нескольким
+     * адаптерам одновременно, плюс прикрепление part_specification_id к каждой части.
+     *
+     * Шаги:
+     * 1. Зовёт splitSpecification() с front (2 адаптера) и back (1 строка-адаптер, не массив).
+     * 2. Проверяет, что получилось 3 части (2 варианта front + 1 back).
+     * 3. Проверяет, что part_specification_id=123 проставлен во всех частях.
+     * 4. Проверяет side и содержимое details для каждой из трёх частей.
+     */
     public function test_split_specification_expands_sides_and_adapters(): void
     {
         $details = [
@@ -87,6 +143,16 @@ final class WiperSpecificationServiceTest extends TestCase
         $this->assertSame(['B1'], $parts[2]['details']['back']['adapter_type_rear']);
     }
 
+    /**
+     * Проверяет mergeForExport(): обратную операцию для экспорта — front/back-данные (уже
+     * разделённые на импорте) снова собираются в одно дерево details под соответствующими
+     * ключами, с корректной обработкой отсутствующей стороны.
+     *
+     * Шаги:
+     * 1. Проверяет, что непустые front и back дают дерево с обоими ключами.
+     * 2. Проверяет, что пустой back не создаёт ключ 'back' в результате.
+     * 3. Проверяет, что оба пустых входа дают пустой результат.
+     */
     public function test_merge_for_export(): void
     {
         $this->assertSame(

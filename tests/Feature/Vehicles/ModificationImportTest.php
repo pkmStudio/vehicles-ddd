@@ -20,6 +20,16 @@ final class ModificationImportTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Проверяет реальный Excel-адаптер (Command/Repository/БД, не моки) на фикстурном CSV.
+     *
+     * Шаги:
+     * 1. Фейкает ModificationCommandImported, чтобы не запустить реальный каскад слушателей.
+     * 2. Создаёт производителя и ТС, на которые сошлётся строка модификации (по ms_id).
+     * 3. Гоняет import() на tests/Fixtures/modifications_sample.csv через реальный Command.
+     * 4. Проверяет, что в БД появилась ровно одна модификация с ожидаемыми полями.
+     * 5. Проверяет, что событие завершения импорта продиспатчено.
+     */
     public function test_imports_modifications_from_csv_into_database(): void
     {
         Event::fake([ModificationCommandImported::class]);

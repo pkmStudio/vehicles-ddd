@@ -34,6 +34,17 @@ final class VehicleWipersSheetImportTest extends TestCase
         return new VehicleWiperSheetRowMapper(new ImportRowValueFormatter, $templateDataBuilder);
     }
 
+    /**
+     * Проверяет, что лист дворников — write-only на PartSpecification и никогда не трогает
+     * основные поля ТС (name/type/...), даже если файл содержит другие значения этих колонок.
+     *
+     * Шаги:
+     * 1. Создаёт производителя и ТС с исходным name='Octavia'.
+     * 2. Мокает VehicleWiperSpecificationImportServiceInterface — ожидает upsertFromRow() с
+     *    ожидаемым DTO (msId/templateSlug/featureValueName/name/text/details из строки).
+     * 3. Прогоняет одну строку с другим name ('Changed from wipers sheet') через collection().
+     * 4. Проверяет, что в БД у ТС осталось исходное имя, а изменённое — не появилось.
+     */
     public function test_wiper_sheet_does_not_update_vehicle_main_fields(): void
     {
         $manufacturer = Manufacturer::query()->create([
@@ -111,6 +122,17 @@ final class VehicleWipersSheetImportTest extends TestCase
         ]);
     }
 
+    /**
+     * Проверяет, что лист дворников не создаёт ТС «на лету» — если ms_id из строки не
+     * найден, строка проваливается по исключению из Application-сервиса (SkipsOnFailure), а
+     * не тихо заводит новую запись.
+     *
+     * Шаги:
+     * 1. Мокает VehicleWiperSpecificationImportServiceInterface так, чтобы upsertFromRow()
+     *    бросал RuntimeException «ТС не найдено».
+     * 2. Прогоняет одну строку (без предварительного создания ТС) через collection().
+     * 3. Проверяет, что в БД ТС так и не появилось (count === 0).
+     */
     public function test_wiper_sheet_does_not_create_missing_vehicle(): void
     {
         $details = ['front' => ['adapter_type_front' => ['A1']]];

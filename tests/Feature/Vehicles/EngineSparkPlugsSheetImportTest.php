@@ -20,6 +20,15 @@ final class EngineSparkPlugsSheetImportTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Проверяет лист «свечи зажигания по конкретному двигателю» (в отличие от
+     * EngineSparkPlugSpecificationImportTest — там строка привязана к модификации).
+     *
+     * Шаги:
+     * 1. Создаёт двигатель с известным eng_id.
+     * 2. Прогоняет одну строку через collection() с деревом свойств свечи (резьба/электрод).
+     * 3. Проверяет, что у двигателя появилась PartSpecification с ожидаемым деревом details.
+     */
     public function test_writes_spark_plug_spec_for_engine(): void
     {
         $engine = Engine::query()->create(['eng_id' => 500, 'code_engine' => 'M54B30']);

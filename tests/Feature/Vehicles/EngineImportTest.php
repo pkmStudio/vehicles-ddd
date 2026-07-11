@@ -18,6 +18,15 @@ final class EngineImportTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Проверяет реальный Excel-адаптер (Command/Repository/БД, не моки) на фикстурном CSV.
+     *
+     * Шаги:
+     * 1. Фейкает EngineCommandImported, чтобы не запустить реальный каскад слушателей.
+     * 2. Гоняет import() на tests/Fixtures/engines_sample.csv через реальный Command.
+     * 3. Проверяет, что в БД появился ровно один двигатель с ожидаемыми полями.
+     * 4. Проверяет, что событие завершения импорта продиспатчено.
+     */
     public function test_imports_engines_from_csv_into_database(): void
     {
         Event::fake([EngineCommandImported::class]);
