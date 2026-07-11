@@ -132,7 +132,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
     public function test_resolves_feature_value_by_name(): void
     {
-        $fv = new FeatureValueData(featureId: 1, name: 'Левый руль', id: 9);
+        $fv = new FeatureValueData(featureId: 1, name: 'Левый руль', shortCode: 'L', id: 9);
         $featureValues = Mockery::mock(FeatureValueRepositoryInterface::class);
         $featureValues->shouldReceive('firstByName')->once()->with('Левый руль')->andReturn($fv);
 

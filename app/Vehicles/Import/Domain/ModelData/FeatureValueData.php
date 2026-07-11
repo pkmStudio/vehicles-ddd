@@ -14,7 +14,7 @@ final class FeatureValueData extends Data
     public function __construct(
         public readonly int $featureId,
         public readonly string $name,
-        public readonly ?string $shortCode = null,
+        public readonly string $shortCode,
         public readonly ?int $id = null,
     ) {}
 }
