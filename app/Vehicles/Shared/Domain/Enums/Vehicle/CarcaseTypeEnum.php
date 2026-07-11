@@ -58,4 +58,8 @@ enum CarcaseTypeEnum: string
     // Специальная техника
     case TRACTOR = 'Tractor';
     case MUNICIPAL_VEHICLE = 'Municipal Vehicle';
+
+    // Мототехника — TecDoc не даёт "Тип кузова" для VehicleTypeEnum::MB, подставляется по
+    // правилу (см. VehicleDataFactory)
+    case MOTORCYCLE = 'Motorcycle';
 }

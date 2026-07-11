@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->integer('mfa_id')->comment('Внешний ID марки')->unique();
             $table->string('name')->comment('Название марки');
-            $table->string('provider')->default('TD')->comment('Источник: TD|OD');
+            $table->string('provider')->default('TD')->comment('ProviderEnum');
         });
     }
 

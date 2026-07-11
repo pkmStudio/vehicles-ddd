@@ -24,7 +24,7 @@ final readonly class EngineDataFactory implements EngineDataFactoryInterface
     {
         $valid = Validator::make($row, [
             'eng_id' => ['required', 'integer'],
-            'code_engine' => ['nullable', 'string'],
+            'code_engine' => ['nullable'],
             'eng_power_kw_start' => ['nullable', 'integer'],
             'eng_power_kw_upto' => ['nullable', 'integer'],
             'eng_power_ps_start' => ['nullable', 'integer'],
@@ -38,7 +38,7 @@ final readonly class EngineDataFactory implements EngineDataFactoryInterface
 
         return new EngineData(
             engId: (int) $valid['eng_id'],
-            codeEngine: $valid['code_engine'] ?? null,
+            codeEngine: isset($valid['code_engine']) ? (string) $valid['code_engine'] : null,
             engPowerKwStart: isset($valid['eng_power_kw_start']) ? (int) $valid['eng_power_kw_start'] : null,
             engPowerKwUpto: isset($valid['eng_power_kw_upto']) ? (int) $valid['eng_power_kw_upto'] : null,
             engPowerPsStart: isset($valid['eng_power_ps_start']) ? (int) $valid['eng_power_ps_start'] : null,

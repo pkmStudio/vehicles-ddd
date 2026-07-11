@@ -10,6 +10,8 @@ use App\Vehicles\Import\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\ModelData\Modification\ModificationData;
 use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Mockery;
@@ -29,6 +31,8 @@ final class UpsertModificationFromRowServiceTest extends TestCase
             name: 'Octavia',
             type: VehicleTypeEnum::PC,
             steeringType: SteeringTypeEnum::LEFT,
+            typeCarcase: CarcaseTypeEnum::HATCHBACK,
+            provider: ProviderEnum::TD,
             id: 9,
         );
         $expected = new ModificationData(modId: 50, type: VehicleTypeEnum::PC, vehicleId: 9, msId: 200);

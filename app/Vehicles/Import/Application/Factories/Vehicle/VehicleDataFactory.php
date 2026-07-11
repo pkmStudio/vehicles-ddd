@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Application\Factories\Vehicle;
 
 use App\Vehicles\Import\Domain\Contracts\Factories\VehicleDataFactoryInterface;
+use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
@@ -30,36 +31,38 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
             'mfa_id' => ['required', 'integer'],
             'manufacturer_id' => ['required', 'integer'],
             'parent_id' => ['nullable', 'integer'],
-            'name' => ['required', 'string'],
+            'name' => ['required'],
             'type' => ['required', Rule::enum(VehicleTypeEnum::class)],
-            'type_carcase' => ['nullable', Rule::enum(CarcaseTypeEnum::class)],
+            'type_carcase' => ['required', Rule::enum(CarcaseTypeEnum::class)],
             'steering_type' => ['nullable', Rule::enum(SteeringTypeEnum::class)],
-            'generation' => ['nullable', 'string'],
-            'generation_short' => ['nullable', 'string'],
-            'localized_name' => ['nullable', 'string'],
-            'excel_table_id' => ['nullable', 'string'],
-            'provider' => ['nullable', 'string'],
+            'generation' => ['nullable'],
+            'generation_short' => ['nullable'],
+            'localized_name' => ['nullable'],
+            'excel_table_id' => ['nullable'],
+            'provider' => ['required', Rule::enum(ProviderEnum::class)],
             'generation_year_from' => ['nullable', 'integer'],
             'generation_year_to' => ['nullable', 'integer'],
             'is_allow' => ['nullable', 'boolean'],
         ])->validate();
+
+        $type = VehicleTypeEnum::from($valid['type']);
 
         return new VehicleData(
             msId: (int) $valid['ms_id'],
             mfaId: (int) $valid['mfa_id'],
             manufacturerId: (int) $valid['manufacturer_id'],
             name: (string) $valid['name'],
-            type: VehicleTypeEnum::from($valid['type']),
+            type: $type,
             steeringType: isset($valid['steering_type']) ? SteeringTypeEnum::from($valid['steering_type']) : SteeringTypeEnum::LEFT,
-            generation: $valid['generation'] ?? null,
-            typeCarcase: isset($valid['type_carcase']) ? CarcaseTypeEnum::from($valid['type_carcase']) : null,
+            generation: isset($valid['generation']) ? (string) $valid['generation'] : null,
+            typeCarcase: CarcaseTypeEnum::from($valid['type_carcase']),
             generationYearFrom: isset($valid['generation_year_from']) ? (int) $valid['generation_year_from'] : null,
             generationYearTo: isset($valid['generation_year_to']) ? (int) $valid['generation_year_to'] : null,
-            provider: $valid['provider'] ?? 'TD',
+            provider: ProviderEnum::from($valid['provider']),
             parentId: isset($valid['parent_id']) ? (int) $valid['parent_id'] : null,
-            excelTableId: $valid['excel_table_id'] ?? null,
-            localizedName: $valid['localized_name'] ?? null,
-            generationShort: $valid['generation_short'] ?? null,
+            excelTableId: isset($valid['excel_table_id']) ? (string) $valid['excel_table_id'] : null,
+            localizedName: isset($valid['localized_name']) ? (string) $valid['localized_name'] : null,
+            generationShort: isset($valid['generation_short']) ? (string) $valid['generation_short'] : null,
             isAllow: (bool) ($valid['is_allow'] ?? false),
         );
     }

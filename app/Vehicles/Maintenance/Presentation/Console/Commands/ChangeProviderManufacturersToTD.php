@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Maintenance\Presentation\Console\Commands;
 
 use App\Vehicles\Maintenance\Infrastructure\Models\Manufacturer;
+use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Console\Command;
 
 class ChangeProviderManufacturersToTD extends Command
@@ -30,12 +31,12 @@ class ChangeProviderManufacturersToTD extends Command
     {
         $manufacturers = Manufacturer::query()
             ->where('mfa_id','>', 0)
-            ->where('provider', 'OD')
+            ->where('provider', ProviderEnum::OD)
             ->get();
         $this->info('Найдено записей: '.$manufacturers->count());
         $count = 0;
         foreach ($manufacturers as $manufacturer) {
-            $manufacturer->update(['provider' => 'TD']);
+            $manufacturer->update(['provider' => ProviderEnum::TD]);
             $count++;
         }
 

@@ -6,7 +6,9 @@ namespace App\Vehicles\Import\Application\Factories\Manufacturer;
 
 use App\Vehicles\Import\Domain\Contracts\Factories\ManufacturerDataFactoryInterface;
 use App\Vehicles\Import\Domain\ModelData\Manufacturer\ManufacturerData;
+use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -21,14 +23,14 @@ final readonly class ManufacturerDataFactory implements ManufacturerDataFactoryI
     {
         $valid = Validator::make($row, [
             'mfa_id' => ['required', 'integer'],
-            'name' => ['required', 'string'],
-            'provider' => ['required', 'string'],
+            'name' => ['required'],
+            'provider' => ['required', Rule::enum(ProviderEnum::class)],
         ])->validate();
 
         return new ManufacturerData(
             mfaId: (int) $valid['mfa_id'],
             name: (string) $valid['name'],
-            provider: (string) $valid['provider'],
+            provider: ProviderEnum::from($valid['provider']),
         );
     }
 }

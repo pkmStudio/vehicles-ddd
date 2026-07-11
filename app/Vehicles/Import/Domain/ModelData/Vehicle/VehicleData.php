@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Domain\ModelData\Vehicle;
 
+use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
@@ -21,11 +22,11 @@ final class VehicleData extends Data
         public readonly string $name,
         public readonly VehicleTypeEnum $type,
         public readonly SteeringTypeEnum $steeringType,
+        public readonly CarcaseTypeEnum $typeCarcase,
+        public readonly ProviderEnum $provider,
         public readonly ?string $generation = null,
-        public readonly ?CarcaseTypeEnum $typeCarcase = null,
         public readonly ?int $generationYearFrom = null,
         public readonly ?int $generationYearTo = null,
-        public readonly string $provider = 'TD',
         public readonly ?int $parentId = null,
         public readonly ?string $excelTableId = null,
         public readonly ?string $localizedName = null,

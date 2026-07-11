@@ -13,7 +13,9 @@ use App\Vehicles\Import\Domain\ModelData\Modification\ModificationData;
 use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
@@ -91,6 +93,8 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
             name: 'Child',
             type: VehicleTypeEnum::PC,
             steeringType: SteeringTypeEnum::LEFT,
+            typeCarcase: CarcaseTypeEnum::HATCHBACK,
+            provider: ProviderEnum::TD,
         );
 
         $vehicles = Mockery::mock(VehicleRepositoryInterface::class);

@@ -6,6 +6,7 @@ namespace App\Vehicles\Export\Domain\ModelData\Vehicle;
 
 use App\Vehicles\Export\Domain\ModelData\Manufacturer\ManufacturerData;
 use App\Vehicles\Export\Domain\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
@@ -34,7 +35,7 @@ final class VehicleData extends Data
         public readonly ?CarcaseTypeEnum $typeCarcase = null,
         public readonly ?int $generationYearFrom = null,
         public readonly ?int $generationYearTo = null,
-        public readonly string $provider = 'TD',
+        public readonly ProviderEnum $provider = ProviderEnum::TD,
         public readonly ?int $parentId = null,
         public readonly ?string $excelTableId = null,
         public readonly ?string $localizedName = null,

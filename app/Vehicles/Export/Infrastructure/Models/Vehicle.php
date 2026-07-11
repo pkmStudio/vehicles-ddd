@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Infrastructure\Models;
 
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
@@ -22,6 +23,7 @@ class Vehicle extends BaseModel
         'type' => VehicleTypeEnum::class,
         'type_carcase' => CarcaseTypeEnum::class,
         'steering_type' => SteeringTypeEnum::class,
+        'provider' => ProviderEnum::class,
         'details' => 'array',
     ];
 
