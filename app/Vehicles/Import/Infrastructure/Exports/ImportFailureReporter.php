@@ -18,16 +18,16 @@ final readonly class ImportFailureReporter implements ImportFailureReporterInter
         }
 
         $fileName = 'import-failures'.now()->format('Y-m-d-His').'.csv';
+        $disk = (string) config('vehicles-import.failures.disk', 'local');
+        $path = sprintf('exports/%s', $fileName);
 
-        // Диск 'exports' — общий с другими сервисами S3-бакет, папка для обмена файлами
-        // между сервисами (config/filesystems.php).
         ExcelFacade::store(
             app()->makeWith(FailuresExportInterface::class, ['failures' => $failures]),
-            $fileName,
-            'exports',
+            $path,
+            $disk,
             Excel::CSV,
         );
 
-        return "exports/{$fileName}";
+        return $path;
     }
 }

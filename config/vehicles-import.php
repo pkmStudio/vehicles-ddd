@@ -33,6 +33,8 @@ return [
     */
 
     'failures' => [
+        'disk' => env('IMPORT_FAILURES_REPORT_DISK', 'local'),
+
         'cache' => [
             'keys' => [
                 'vehicle_import_failures' => 'vehicle_import_failures_%s',
