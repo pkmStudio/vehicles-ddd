@@ -120,7 +120,7 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         /** @var EngineCrossImport $import */
         $import = $event->getConcernable();
 
-        EngineCrossImportCompleted::dispatch($import->context->userId, $import->cacheKey);
+        event(new EngineCrossImportCompleted($import->context->userId, $import->cacheKey));
     }
 
     public function startRow(): int

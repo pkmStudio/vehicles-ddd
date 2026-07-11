@@ -112,7 +112,7 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         /** @var EngineSparkPlugSpecificationImport $import */
         $import = $event->getConcernable();
 
-        EngineImportCompleted::dispatch($import->context->userId, $import->cacheKey);
+        event(new EngineImportCompleted($import->context->userId, $import->cacheKey));
     }
 
     public function startRow(): int

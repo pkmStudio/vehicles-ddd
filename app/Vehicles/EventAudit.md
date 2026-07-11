@@ -22,10 +22,10 @@
 | `app/Vehicles/Infrastructure/Imports/Vehicle/VehicleCommandImport.php:86` | 86 | `VehicleCommandImported` | Запускается после импорта ТС (`AfterImport`). |
 | `app/Vehicles/Infrastructure/Imports/Engine/EngineCommandImport.php:76` | 76 | `EngineCommandImported` | Запускается после импорта двигателей (`AfterImport`). |
 | `app/Vehicles/Infrastructure/Imports/Modification/ModificationCommandImport.php:86` | 86 | `ModificationCommandImported` | Запускается после импорта модификаций (`AfterImport`). |
-| `app/Vehicles/Infrastructure/Imports/Vehicle/VehicleMultiSheetImport.php:76` | 76 | `VehicleImportCompleted::dispatch($userId, $cacheKey)` | После импорта всех листов ТС. |
-| `app/Vehicles/Infrastructure/Imports/Engine/EngineMultiSheetImport.php:76` | 76 | `EngineImportCompleted::dispatch($userId, $cacheKey)` | После импорта всех листов двигателей. |
-| `app/Vehicles/Infrastructure/Imports/Engine/EngineSparkPlugSpecificationImport.php:117` | 117 | `EngineImportCompleted::dispatch($userId, $cacheKey)` | После импорта свечей по модификациям (тоже итоговый импорт). |
-| `app/Vehicles/Infrastructure/Imports/Engine/EngineCrossImport.php:125` | 125 | `EngineCrossImportCompleted::dispatch($userId, $cacheKey)` | После импорта кросс-строк группировки двигателей. |
+| `app/Vehicles/Infrastructure/Imports/Vehicle/VehicleMultiSheetImport.php:76` | 76 | `event(new VehicleImportCompleted($userId, $cacheKey))` | После импорта всех листов ТС. |
+| `app/Vehicles/Infrastructure/Imports/Engine/EngineMultiSheetImport.php:76` | 76 | `event(new EngineImportCompleted($userId, $cacheKey))` | После импорта всех листов двигателей. |
+| `app/Vehicles/Infrastructure/Imports/Engine/EngineSparkPlugSpecificationImport.php:117` | 117 | `event(new EngineImportCompleted($userId, $cacheKey))` | После импорта свечей по модификациям (тоже итоговый импорт). |
+| `app/Vehicles/Infrastructure/Imports/Engine/EngineCrossImport.php:125` | 125 | `event(new EngineCrossImportCompleted($userId, $cacheKey))` | После импорта кросс-строк группировки двигателей. |
 
 ## 3) Где сейчас обрабатываются в listeners (EventServiceProvider)
 

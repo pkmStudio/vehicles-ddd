@@ -56,7 +56,7 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
         /** @var EngineMultiSheetImport $import */
         $import = $event->getConcernable();
 
-        EngineImportCompleted::dispatch($import->context->userId, $import->cacheKey, $import->context->runId);
+        event(new EngineImportCompleted($import->context->userId, $import->cacheKey, $import->context->runId));
     }
 
     public function chunkSize(): int
