@@ -8,5 +8,5 @@ use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
 
 interface UpsertVehicleFromSheetServiceInterface
 {
-    public function execute(array $row): VehicleData;
+    public function upsertFromRow(array $row): VehicleData;
 }

@@ -64,7 +64,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
             'back' => ['adapter_type_rear' => ['B1']],
         ];
 
-        $this->service($specs, $command)->execute(77, DetailTemplateEnum::WIPER->value, $details);
+        $this->service($specs, $command)->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details);
 
         $this->assertSame(['front', 'back'], $created);
     }
@@ -94,7 +94,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         // только front
         $details = ['front' => ['adapter_type_front' => ['A1']]];
 
-        $this->service($specs, $command)->execute(77, DetailTemplateEnum::WIPER->value, $details);
+        $this->service($specs, $command)->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details);
 
         $this->addToAssertionCount(1);
     }
@@ -125,7 +125,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
         $details = ['front' => ['adapter_type_front' => ['A1']]];
 
-        $this->service($specs, $command)->execute(77, DetailTemplateEnum::WIPER->value, $details);
+        $this->service($specs, $command)->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details);
 
         $this->addToAssertionCount(1);
     }
@@ -148,7 +148,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         $details = ['front' => ['adapter_type_front' => ['A1']]];
 
         $this->service($specs, $command, $featureValues)
-            ->execute(77, DetailTemplateEnum::WIPER->value, $details, featureValueName: 'Левый руль');
+            ->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details, featureValueName: 'Левый руль');
 
         $this->addToAssertionCount(1);
     }
@@ -177,7 +177,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
         $details = ['front' => ['adapter_type_front' => ['A1', 'A2'], 'count_wipers' => 2]];
 
-        $this->service($specs, $command)->execute(77, DetailTemplateEnum::WIPER->value, $details);
+        $this->service($specs, $command)->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details);
 
         $this->assertSame([['A1'], ['A2']], $createdAdapters);
     }

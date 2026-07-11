@@ -34,7 +34,7 @@ final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, With
         foreach ($collection as $indexRow => $row) {
             DB::beginTransaction();
             try {
-                $this->upsertVehicle->execute($row->toArray());
+                $this->upsertVehicle->upsertFromRow($row->toArray());
                 DB::commit();
             } catch (\Throwable $e) {
                 DB::rollBack();

@@ -52,7 +52,7 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
             $row = $row->map(fn ($value) => is_string($value) ? trim($value) : $value);
             DB::beginTransaction();
             try {
-                $vehicle = $this->upsertVehicle->execute($row->toArray());
+                $vehicle = $this->upsertVehicle->upsertFromRow($row->toArray());
                 $this->writeWiperSpec($vehicle->id, $row->toArray());
                 DB::commit();
             } catch (\Throwable $e) {
@@ -84,7 +84,7 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
 
         $details = $this->templateDataBuilder->buildBySlug($row, self::SPEC_START_COLUMN, $templateName);
 
-        $this->upsertWiperSpec->execute(
+        $this->upsertWiperSpec->importForVehicle(
             vehicleId: $vehicleId,
             templateSlug: $templateName,
             details: $details,

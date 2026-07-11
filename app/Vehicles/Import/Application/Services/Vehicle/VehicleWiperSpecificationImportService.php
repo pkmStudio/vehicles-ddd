@@ -32,7 +32,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
     /**
      * @param  array<string, mixed>  $details  собранные значения спецификации (front/back)
      */
-    public function execute(
+    public function importForVehicle(
         int $vehicleId,
         string $templateSlug,
         array $details,

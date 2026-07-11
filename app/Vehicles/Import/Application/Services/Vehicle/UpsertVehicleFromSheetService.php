@@ -31,7 +31,7 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
     /**
      * @throws ValidationException
      */
-    public function execute(array $row): VehicleData
+    public function upsertFromRow(array $row): VehicleData
     {
         $minMfaId = min($this->manufacturers->minMfaId(), 0);
         $minMsId = min($this->vehicles->minMsId(), 0);
