@@ -59,9 +59,9 @@ Presentation ──▶ Application ──▶ Domain
 
 | Папка | Что лежит | Толщина / правила |
 |---|---|---|
-| `Contracts/<Concern>/` | **Порты** (интерфейсы) для всех инъектируемых классов фичи | Плоско по концерну: `Commands/`, `Repositories/`, `Imports/`, `Exports/`, `Factories/`, `Notifications/`, `Services/<Entity>/`, `UseCases/`. Порт всегда в Domain (стрелка внутрь), реализация — в своём слое. |
+| `Contracts/<Concern>/` | **Порты** (интерфейсы) для всех инъектируемых классов фичи | Плоско по концерну: `Commands/`, `Repositories/`, `Exports/`, `Factories/`, `Notifications/`, `Services/<Entity>/`, `UseCases/<Group>/`. `Imports/` — единственный концерн, который дробится **по триггеру**, не по сущности: `Imports/Command/` (запускает консольный TecDoc-каскад, сигнатура `import(string $path): void`, без контекста вызова) и `Imports/External/` (запускает импорт по внешнему RabbitMQ-запросу на конкретный файл; общий предок `Imports/External/FileImportInterface::import(string $path, ImportRunContextDTO $context, ?string $disk = null): void` — контекст и disk явные, `Excel` сам читает файл с указанного disk). Порт всегда в Domain (стрелка внутрь), реализация — в своём слое. |
 | `ModelData/` | **`<Entity>Data extends Spatie\LaravelData\Data`** | Плоская папка. Работает в обе стороны: вход `Command` (запись) и выход `Repository` (чтение). Enum-поля — реального enum-типа (пакет кастует туда-обратно). Вложенные связи — только те, что реально читаются, и только когда Repository их eager-load'ит (не через `#[LoadRelation]` — риск бесконечного цикла на двусторонних связях). |
-| `DTOs/` | **Транспортные объекты сценариев** (вход/выход, payload, контекст, план потока) | `final readonly`. Не повторяют модель. Примеры: `ImportRunContext` (кто/какой прогон), `VehicleImportPlan`/`EngineImportPlan` (политика потока), `AssignEngineGroupResult`, `ExternalFileImportFileRequestDTO`. |
+| `DTOs/` | **Транспортные объекты сценариев** (вход/выход, payload, контекст) | `final readonly`. Не повторяют модель. Плоско — сквозные DTO сценария (`ImportRunContextDTO`, `ExternalImportFileRequestDTO`, `ExternalImportFileCleanupDTO`, `ImportCompletionNotificationDTO`, `AssignEngineGroupResultDTO`); по сущности — `DTOs/<Entity>/` там, где на сущность несколько построчных DTO (`Engine/EngineSheetRowDTO`, `Vehicle/VehicleTdRowDTO`, `Manufacturer/ManufacturerCommandRowDTO`, …) — тот же принцип группировки, что у `Services/`/`Factories/`. **`ImportRunContextDTO`** (`userId` + `runId`) — явный контекст запуска для `Imports/External/*` (не для консольного TecDoc-каскада — у него нет внешнего инициатора вообще): `userId` заменяет неявный `Auth::id()` (источник вызова — HTTP/Rabbit — всегда знает, кто просит), `runId` — а не `userId` — основа cache-ключа отчёта об ошибках и идемпотентности, чтобы конкурентные прогоны одного инициатора не затирали друг друга. |
 | `Enums/` | Фиче-специфичные enum'ы потоков | Напр. схемы листов `InOut/Sheets/*`. Общий словарь значений — в `Shared`, не здесь. |
 | `Events/` | Доменные события фичи | Plain DTO-события (`final readonly`), **без поведения**. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`). Все события пока в одной папке `Domain/Events` (деление на доменные/интеграционные — открытый вопрос, `plan.md §12`). |
 
@@ -85,7 +85,7 @@ Template: уедь Template в Application — доменный enum смотр�
 |---|---|---|
 | `Services/<Entity>/` и `Services/<Group>/` | **Основной строительный блок.** Прикладные правила и координация портов | `Upsert*FromRowService`, `AssignEngineGroupService`, `ReportImportResultService`, `EngineModificationReadinessGate` (gate-логика), `Template/{TemplateDataBuilder,DetailsBuilder}`, `Engine/EngineEditableColumnsMapper` и т.п. Порт обязателен (`Contracts/Services/<Entity>/`). |
 | `UseCases/<Group>/` | **Точка входа сценария**, вызываемая внешним триггером | `execute(...)`. Оркестратор, который дёргают Presentation/Listener/consumer (напр. `External/StartExternalFileImportUseCase` — старт импорта по внешнему запросу). Тоже за портом (`Contracts/UseCases/`). Заводим, когда есть внешний триггер сценария; для внутренних правил хватает `Service`. |
-| `Factories/<Entity>/` | **Валидация + сборка `<Entity>Data` из сырой строки** | `make(array $row): <Entity>Data`. Enum-поля валидируем **сырыми значениями** через `Rule::enum(...)`, без `tryFrom` (см. «Грабли»). Приведение типов (напр. `(string)`) — до передачи в `strict_types` конструктор `Data`. За портом (`Contracts/Factories/`). |
+| `Factories/` (плоско) | **Два вида фабрик**: (1) валидация + сборка `<Entity>Data` из сырой строки; (2) выбор существующей реализации по enum/типу входящего запроса | (1) `make(array $row): <Entity>Data`. Enum-поля валидируем **сырыми значениями** через `Rule::enum(...)`, без `tryFrom` (см. «Грабли»). Приведение типов (напр. `(string)`) — до передачи в `strict_types` конструктор `Data`. (2) **Selector-фабрика**: `make(<TypeEnum> $type): <PortInterface>` — только `match` по enum на уже забинженные в контейнере зависимости, никакой валидации/сборки (`ExternalFileImportFactory::make(ExternalImportTypeEnum): FileImportInterface` — какой Excel-адаптер запускать по типу из RabbitMQ-сообщения). Оба вида — за портом в `Contracts/Factories/` (тоже плоско, без `<Entity>/`). |
 | `Listeners/` | Слушатели доменных событий | **ТОНКИЕ.** Делегируют в Service/UseCase. **Порт НЕ нужен** (см. ниже). |
 
 **Слушателям порт в Domain НЕ нужен** — в отличие от всего остального в Application. Порт есть
@@ -105,8 +105,18 @@ Template: уедь Template в Application — доменный enum смотр�
 - Реакции связны (порядок / общая транзакция) → **один** слушатель → один UseCase/Service-
   оркестратор. Не размазываем `A(); B(); C();` по слушателю.
 - Один слушатель на **одно** событие → имя по событию: `<Event>Listener`.
-- Слушатель **нескольких** событий через `subscribe()` → `…Subscriber`
-  (`EngineModificationReadinessSubscriber`), тоже в `Application/Listeners/`.
+- Слушатель **нескольких структурно разных** событий (разные обработчики на каждое) через
+  `subscribe()` → `…Subscriber` (`EngineModificationReadinessSubscriber`), тоже в
+  `Application/Listeners/`.
+- Несколько **родственных** событий (общая форма — базовый `abstract readonly` класс в
+  `Domain/Events`, напр. `AbstractImportCompleted` с `userId`/`cacheKey`/`runId`) с **одной и
+  той же** реакцией → **не** `Subscriber` и не N копий: один action-named `Listener` с одним
+  `handle()`, забинженный на каждое родственное событие своим вызовом `Event::listen(<Event>::
+  class, <Listener>::class)` в `<Feature>EventServiceProvider` (`ReportImportResultListener`,
+  `CleanupExternalImportFileListener` — оба висят на `VehicleImportCompleted` /
+  `EngineImportCompleted` / `EngineCrossImportCompleted`). Критерий выбора: `subscribe()` — когда
+  обработчик **разный** на каждое событие; повтор `Event::listen` — когда обработчик один и тот
+  же и событиям достаточно общего родителя-DTO.
 
 ---
 
@@ -121,7 +131,8 @@ Template: уедь Template в Application — доменный enum смотр�
 | `Commands/` | **Запись** (CQRS-lite) — **только Import** | `<Entity>Command` реализует `Contracts/Commands/<Entity>CommandInterface`. Принимают **`<Entity>Data`**. `save`/`upsert`/`delete`. `update`/`delete` принимают `Data` с обязательным `id` (identity вместо живого объекта). Из payload на запись исключают поля, которые не колонки (`Arr::except` для `engines`/`groupId` и т.п.). |
 | `Imports/<Entity>/` | Адаптеры импорта (`maatwebsite/excel`) — **только Import** | Механика чтения: `Excel::import`, чанки, `onFailure`. На каждую строку зовёт построчный **Service** (Application). Точка входа реализует порт `Contracts/Imports/<X>Interface`. Sub-sheet'ы — внутренние, создаём `app()->makeWith(...)`, не `new`. |
 | `Exports/<Entity>/` | Адаптеры экспорта — Export + `ImportFailureReporter`/`FailuresExport` в Import (отчёт об ошибках) | Источник — Repository; сборка строк — `Application/Services/Rows|Expanders`. Точка входа реализует порт `Contracts/Exports/<X>Interface`. |
-| `Notifications/` | Внешние уведомления | Напр. `RabbitMqFileNotificationService` → `FileNotificationServiceInterface`; внутри — напрямую `PkmStudio\RabbitTransport\RabbitMQPublisher` (Infra→Infra, отдельный порт-обёртка не нужен). |
+| `Notifications/` | Внешние уведомления (**исходящий** адаптер брокера) | Напр. `RabbitMqFileNotificationService` → `FileNotificationServiceInterface`; внутри — напрямую `PkmStudio\RabbitTransport\RabbitMQPublisher` (Infra→Infra, отдельный порт-обёртка не нужен). |
+| `Messaging/Handlers/` + `Messaging/Validators/` | Адаптер **входящих** сообщений брокера — симметрично `Notifications/` | `<Event>Handler::handle(array $data)`: валидирует payload через `Messaging/Validators/<Event>PayloadValidator` (Laravel `Validator`, допустимые значения enum-поля payload — из `<Enum>::cases()`, не литералом), собирает `DTO`, зовёт `UseCase`. Ошибка валидации → `Log::error` + `return` (сообщение просто дропается, не исключение — брокер не должен ретраить по бизнес-невалидности). |
 | `Providers/` | DI и события фичи | `<Feature>ServiceProvider` (биндинги `Interface::class => Impl::class`), `ImportEventServiceProvider` (карта событие→слушатель). |
 
 **Порт — в `Domain/Contracts/<Concern>/`, реализация — в Infrastructure.** Расположение
@@ -129,7 +140,40 @@ Template: уедь Template в Application — доменный enum смотр�
 
 **RabbitMQ** — вынесен в пакет `pkmstudio/rabbit-transport` (не свой модуль). Конфиг —
 `config/rabbit-transport.php` (exchange `application.events`, очередь `vehicles.inbox`, DLQ).
-Реальные inbound/outbound-обработчики пока почти пусты — заводим по мере интеграций.
+Inbound — `Messaging/Handlers/ImportFileRequestedHandler` → `StartExternalFileImportUseCase`;
+outbound — `Notifications/RabbitMqFileNotificationService` на завершение импорта.
+
+### Идемпотентность и отложенная очистка внешнего импорта — через cache, не БД
+
+Внешний запрос на импорт (`Imports/External/*`) не должен запускаться дважды на один `runId`
+(повтор сообщения брокера) и должен подчистить исходный файл — но только **после** того как
+импорт реально закончится, а до этого момента импорт мог уйти в отдельные queued-job'ы: живого
+объекта-владельца, который бы просто подождал и удалил файл в `finally`, не существует. Оба
+аспекта — через `ExternalImportCacheServiceInterface`, не через БД/состояние процесса:
+- `accept(request): bool` — атомарный `Cache::add` по `runId`; `false` = дубликат, `UseCase`
+  тихо выходит без повторного запуска импорта.
+- `forgetAccepted(runId)` — снять отметку принятого `runId` при ошибке импорта, чтобы повтор
+  сообщения из брокера мог попробовать снова (иначе один сбойный прогон навсегда блокирует этот
+  `runId`).
+- `rememberCleanup(request)` / `pullCleanup(runId)` — сохранить/забрать `disk`+`path` файла;
+  забирает и удаляет файл `CleanupExternalImportFileListener` на `AbstractImportCompleted` —
+  когда завершение уже наступило, вне зависимости от того, в каком job'е.
+
+Cache-ключи и TTL — **не строковые литералы в коде**, а шаблоны в `config/vehicles-import.php`
+(`external.cache.keys.{accepted,cleanup}`, принимают `runId` через `sprintf`); тот же принцип —
+для ключей блокировки отчёта об ошибках (`failures.cache.keys.*`).
+
+### Rendezvous двух параллельных веток импорта — Gate поверх cache
+
+Когда два независимых потока импорта (двигатели/модификации) должны сойтись перед следующим
+шагом, а порядок их завершения не гарантирован — состояние-«кто уже готов» хранит **cache**, а
+не сам `Listener`/`Subscriber` (оба остаются `final readonly` без своего состояния, см. «DI —
+вариант А»): `<X>ReadinessGate` инкапсулирует флаги-cache (`markXImported()` →
+`cache->forever(flag)` → если выставлены оба флага — `reset()` флагов + `dispatch` синтетического
+события готовности), `<X>ReadinessSubscriber` — тонкая транслирующая прослойка входных событий в
+вызовы `Gate` (`EngineModificationReadinessGate` + `EngineModificationReadinessSubscriber` →
+`EnginesAndModificationsReady`). Порт — только у `Gate` (`Contracts/Services/`); `Subscriber` —
+листенер, порт ему не нужен (см. §2).
 
 ### `partable_type` без `Relation::morphMap()`
 
@@ -165,9 +209,13 @@ Template: уедь Template в Application — доменный enum смотр�
 Все биндятся в `<Feature>ServiceProvider` картами `Interface::class => Impl::class`
 (`COMMAND_BINDINGS`, `SERVICE_BINDINGS`, `USE_CASE_BINDINGS`, …).
 
-**Единственное исключение — Listeners/Subscriber**: они точки входа (их зовёт диспетчер, сами
-ни от кого внутри не зависят), контракт = само событие. `Data`/`Model`/`DTO`/`Enum`/`Event` —
-это **значения**, их не интерфейсим.
+**Исключение — Listeners/Subscriber и Messaging/Handlers**: все они точки входа, которых зовёт
+внешний диспетчер (событийная шина / брокер-транспорт по имени класса из конфига пакета), а не
+код фичи через порт; сами ни от кого внутри не зависят. Контракт слушателя — само событие в
+`Domain/Events`; контракт `Handler` — форма сообщения, которую проверяет его `Validator`
+(`Messaging/Validators/`, тоже без порта — вспомогательный класс одного `Handler`, не
+подменяемая точка расширения). `Data`/`Model`/`DTO`/`Enum`/`Event` — это **значения**, их не
+интерфейсим.
 
 > Это осознанно строже, чем «порт только driven-адаптерам»: цена — много интерфейсов, выгода —
 > любой класс подменяем/мокаем единообразно, DI однороден.
@@ -195,8 +243,10 @@ Template: уедь Template в Application — доменный enum смотр�
 - Сущности: `Vehicle`, `Engine`, `Modification`, `Manufacturer`, `EngineModification`,
   `PartSpecification`, `Feature`, `FeatureValue`.
 - Группировка по сущности — где на сущность несколько файлов (`Imports/<Entity>/`,
-  `Services/<Entity>/`, `Factories/<Entity>/`). `ModelData/` — плоская папка. Где файл один
-  (`Repositories/`, `Commands/`) — плоско.
+  `Services/<Entity>/`, `DTOs/<Entity>/`). `ModelData/` и `Application/Factories/` — плоские
+  папки (по одному файлу-фабрике на сущность/сценарий, группировать нечего). Где файл один
+  (`Repositories/`, `Commands/`) — тоже плоско. Единственное исключение по **триггеру**, не по
+  сущности — `Domain/Contracts/Imports/{Command,External}/` (см. §1).
 - Read = `…Repository`, Write = `…Command`, снимок = `…Data`, порт = `…Interface`.
 - **Service** — глагольная фраза + суффикс: `UpsertVehicleFromSheetService`. Единая точка входа —
   публичный `execute()`.
@@ -235,13 +285,16 @@ enum-типа (`spatie/laravel-data` кастует туда-обратно са
 | Описание полей детали (field-template) | `Templates/Domain/Templates/<Entity>/Templates/` |
 | Новый сценарий с внешним триггером (старт импорта по запросу) | `<Feature>/Application/UseCases/<Group>/` + порт `Domain/Contracts/UseCases/` |
 | Новое прикладное правило/координацию | `<Feature>/Application/Services/<Entity>/` + порт `Domain/Contracts/Services/<Entity>/` |
-| Валидацию + сборку `<Entity>Data` | `<Feature>/Application/Factories/<Entity>/` (`make()`) + порт `Contracts/Factories/` |
+| Валидацию + сборку `<Entity>Data` | `<Feature>/Application/Factories/` (плоско, `make(array $row)`) + порт `Contracts/Factories/` |
+| Выбор реализации по enum/типу входящего запроса | `<Feature>/Application/Factories/` (selector-фабрика, `make(Enum): Interface`) + порт `Contracts/Factories/` |
 | Реакцию на доменное событие | `<Feature>/Application/Listeners/` (тонко, **без порта**) |
 | Новый запрос к БД | порт → `Domain/Contracts/Repositories/`, адаптер → `Infrastructure/Repositories/` (отдаёт `Data`) |
 | Новую запись в БД (только Import) | порт → `Domain/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход `Data`) |
 | Снимок строки / транспорт | `Domain/ModelData/` (`extends Data`) или `Domain/DTOs/` (транспорт сценария) |
 | Доменное событие | `Domain/Events/` (плоский `final readonly`, факт в прошедшем времени) |
-| Импорт из Excel | адаптер → `Import/Infrastructure/Imports/<Entity>/` + построчный Service; порт → `Contracts/Imports/` |
+| Импорт из Excel (консольный, без внешнего инициатора) | адаптер → `Import/Infrastructure/Imports/<Entity>/` + построчный Service; порт → `Contracts/Imports/Command/` |
+| Импорт из Excel по внешнему запросу (userId/runId/disk снаружи) | адаптер implements `Contracts/Imports/External/FileImportInterface`; DTO-контекст → `ImportRunContextDTO` |
+| Входящую команду от брокера (RabbitMQ) | `Import/Infrastructure/Messaging/Handlers/` (+ `Messaging/Validators/`) → зовёт `UseCase` |
 | Экспорт в Excel | адаптер → `Export/Infrastructure/Exports/<Entity>/`; порт → `Contracts/Exports/`; сборка строк → `Export/Application/Services/Rows|Expanders/` |
 | Внешнее уведомление/интеграцию | порт → `Domain/Contracts/Notifications/`, реализация → `Infrastructure/Notifications/` (внутри — пакет rabbit-transport) |
 | Разовый фикс каталога | `Maintenance/` (команда в `Presentation/Console/Commands/` + `Application/Services/`; Eloquent напрямую, без Repository) |
