@@ -946,15 +946,12 @@ event()` `vladimir-yuldashev/laravel-queue-rabbitmq`, "во избежание �
 16. Убрать `.phpunit.result.cache` из git (§9.3).
 17. Завести реальные `inbound`/`outbound`-обработчики в `rabbit-transport`, когда появится
     первая интеграция (см. примечание в §1 про Messaging).
-18. **Починить сравнение jsonb-деталей на SQLite** (найдено в п.9 при переезде Maintenance).
-    `whereRaw('details = CAST(? AS jsonb)', ...)` в `PartSpecificationDeduplicationService`,
-    `VehicleWiperPartSpecificationSplitService`, `PartSpecificationRepository` — на SQLite
-    `CAST(x AS jsonb)` не распознаёт тип, попадает под NUMERIC affinity и приводит
-    JSON-строку к `0`, сравнение никогда не совпадает. Нужно решить: (а) сравнивать через
-    SQLite-совместимую форму (`json(details) = json(?)`, доступно через JSON1) с веткой по
-    драйверу, (б) держать эти тесты только на Postgres (testcontainers/CI-сервис вместо
-    SQLite), либо (в) убедиться, что на реальном Postgres поведение и так корректно и
-    просто задокументировать ограничение SQLite-тестов. Без этого пункта wiper-matching
-    (Import и Maintenance) и весь `deduplicate-part-specifications` не покрыты реальными
-    тестами против БД в принципе — риск тихо не работал бы то же самое и в проде, если там
-    тоже что-то не так с типом колонки, но это не проверялось.
+18. ~~Починить сравнение jsonb-деталей на SQLite~~ — **решено**: тесты переведены с SQLite
+    `:memory:` на выделенную Postgres-БД `dan_vehicles_test` (тот же сервер `pgsql`, роль
+    `dan_vehicles`), см. `phpunit.xml` (`DB_CONNECTION=pgsql`, `DB_DATABASE=dan_vehicles_test`).
+    `whereRaw('details = CAST(? AS jsonb)', ...)` теперь и в тестах, и в проде выполняется на
+    одном движке БД, поэтому расхождение SQLite/Postgres по типу колонки больше не
+    воспроизводимо в принципе — вариант (в) из старой формулировки. Все 51 тест зелёные на
+    Postgres. Отдельного покрытия `PartSpecificationDeduplicationService`/
+    `VehicleWiperPartSpecificationSplitService` тестами по-прежнему нет — это не покрытие
+    jsonb-сравнения, а отсутствие тестов на эти сервисы вообще, отдельная задача при желании.
