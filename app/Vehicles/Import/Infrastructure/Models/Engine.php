@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Models;
 
 use App\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -17,6 +18,12 @@ class Engine extends BaseModel
     ];
 
     public $timestamps = false;
+
+    /** См. Vehicle::getMorphClass() — тот же повод. */
+    public function getMorphClass(): string
+    {
+        return PartableTypeEnum::ENGINE->value;
+    }
 
     // RELATIONS
     public function modifications(): BelongsToMany

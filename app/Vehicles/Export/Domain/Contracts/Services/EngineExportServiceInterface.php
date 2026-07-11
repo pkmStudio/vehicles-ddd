@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Domain\Contracts\Services;
 
 use App\Vehicles\Export\Domain\DTOs\EngineExportPlan;
-use App\Vehicles\Domain\Models\Engine;
+use App\Vehicles\Export\Domain\ModelData\Engine\EngineData;
 use Illuminate\Support\Collection;
 
 interface EngineExportServiceInterface
@@ -16,7 +16,7 @@ interface EngineExportServiceInterface
 
     public function getMainHeadings(): array;
 
-    public function mapMainRow(Engine $row): array;
+    public function mapMainRow(EngineData $row): array;
 
     public function getSparkPlugRows(): Collection;
 

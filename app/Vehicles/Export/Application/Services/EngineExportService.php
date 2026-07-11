@@ -9,10 +9,10 @@ use App\Vehicles\Export\Domain\Contracts\Services\EngineExportServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Details\ExportDetailsBuilderInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\EngineRepositoryInterface;
+use App\Vehicles\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Export\Domain\DTOs\EngineExportPlan;
+use App\Vehicles\Export\Domain\ModelData\Engine\EngineData;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Vehicles\Domain\Models\Engine;
 use Illuminate\Support\Collection;
 
 final readonly class EngineExportService implements EngineExportServiceInterface
@@ -47,7 +47,7 @@ final readonly class EngineExportService implements EngineExportServiceInterface
         return $this->engineRow->getBaseHeadings();
     }
 
-    public function mapMainRow(Engine $row): array
+    public function mapMainRow(EngineData $row): array
     {
         return $this->engineRow->getBaseData($row);
     }
@@ -67,7 +67,7 @@ final readonly class EngineExportService implements EngineExportServiceInterface
         $baseData = $this->engineRow->getBaseData($row->entity);
 
         if ($row->specification) {
-            $detailsData = $this->exportDetails->getDetailsData($row->specification, $this->templateConfig);
+            $detailsData = $this->exportDetails->getDetailsData($row->specification->details, $this->templateConfig);
         } else {
             $detailsData = array_fill(0, count($this->fieldHeadings), null);
         }

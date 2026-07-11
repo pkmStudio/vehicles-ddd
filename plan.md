@@ -1,5 +1,5 @@
 # plan.md — Анализ проекта `dan-vehicles` и план улучшений
-
+# claude --resume caf3253b-b8ea-4166-a289-d28e85f709ad
 > Документ написан по итогам чтения кода (не только существующих `*.md`). Часть выводов
 > пересекается с `ARCHITECTURE.md` / `Final-audit.md` / `RESEARCH.md` / `Applicability-dizajn.md` —
 > там, где пересекается, я ссылаюсь на них, а не дублирую. Здесь — то, что не было зафиксировано
@@ -23,6 +23,13 @@ ReadModel/WriteModel-копии**, а не делятся одной общей 
 > предмет дублирования другой. Дерево ниже показывает уже целевое (не текущее) расположение.
 
 ### Что реально сделано, а что осознанно отложено до §3
+
+> Обновление: раздел ниже описывает состояние **на момент завершения самого переезда по
+> папкам** (до §3/п.9 в §11). С тех пор §3 выполнен целиком (Import и Export) — временный
+> `VehiclesServiceProvider` и общие `Domain/Contracts/Infrastructure/Repositories`/
+> `Infrastructure/Repositories` из описания ниже **удалены**, `bootstrap/providers.php` сейчас
+> перечисляет 4 провайдера, а не 5. Раздел оставлен как есть — фиксирует историю решения,
+> актуальное состояние смотри в §3 и §11 (п.9).
 
 Переезд выполнен **без** дублирования `Domain/Models` и без `spatie/laravel-data` — эти две
 вещи содержательно связаны (Repository имеет смысл дублировать только вместе с моделью,
@@ -133,13 +140,15 @@ app/Vehicles/
     ├── Domain/Contracts/                       # по мере надобности
     ├── Application/Services/                   # PartSpecificationDeduplicationService,
     │                                           # VehicleWiperPartSpecificationSplitService, ...
+    ├── Infrastructure/Models/                  # своя копия: Vehicle, PartSpecification,
+    │                                           # Manufacturer, Modification (только то, что реально читает)
     └── Presentation/Console/Commands/
         ├── ChangeProviderManufacturersToTD.php
         ├── UpdateVehicleYears.php
         ├── UpdateModificationYears.php
         ├── DeduplicatePartSpecificationsCommand.php
         └── SplitVehicleWiperPartSpecificationsCommand.php
-        (GroupEnginesCommand — @deprecated, удаляем при переезде, не переносим)
+        (GroupEnginesCommand — @deprecated, удалена при реструктуризации по фичам)
 ```
 
 ### Messaging — внешний пакет вместо своего модуля
@@ -264,8 +273,11 @@ Service", остаётся "Listener → Service" — ровно как уже �
 
 ## 3. Repository/Command: единая `Data` вместо Eloquent в Domain (`spatie/laravel-data`)
 
-> Статус: ✅ выполнено для Import (детали и находки — в §11, пункт 9), ⏳ для Export ещё
-> предстоит отдельным заходом. Схема ниже — по-прежнему целевая для обеих фич.
+> Статус: ✅ выполнено для Import, Export и Maintenance (детали и находки — в §11, пункт 9).
+> Временный общий `VehiclesServiceProvider`/старые `Domain\Contracts\Infrastructure\
+> Repositories`/`Infrastructure\Repositories` удалены — у каждой фичи своя копия.
+> `app/Vehicles/Domain` удалена целиком без исключений — Maintenance тоже получил свою
+> копию моделей (`Maintenance/Infrastructure/Models`).
 
 Мотивация — не производительность и не мода на пакеты, а **контроль записи**: сегодня
 Eloquent-модель (с `->save()`/`->update()`/`->delete()`) свободно ходит через весь Application
@@ -765,16 +777,15 @@ event()` `vladimir-yuldashev/laravel-queue-rabbitmq`, "во избежание �
    отложено вместе с пунктом 9). 48/48 тестов зелёные после переезда.
 8. ✅ Перевести Application-слой Import/Export на единый `Service`, убрать `UseCases`/`Support`
    (§2) — подтверждено физически: `Support/`/`UseCases/`-папок в дереве нет ни у одной фичи.
-9. ✅ (Import) / ⏳ (Export) Внедрить `spatie/laravel-data` (§3). **Import сделан полностью**:
-   своя копия моделей в `Import/Infrastructure/Models`, Repository/Command работают через
-   `<Entity>Data` (Command — full move, был исключительно Import; Repository — своя копия,
-   Export пока читает старую), биндинги в `ImportServiceProvider` (COMMAND_BINDINGS +
-   REPOSITORY_BINDINGS). **Export осознанно отложен** отдельным заходом — его Application-слой
-   (`ExportDetailsBuilder`/`{Vehicle,Engine}ExportRow`/`{PartSpecificationRow,Wiper}Expander`)
-   сегодня работает через сырую Eloquent-магию (ленивые relations, `setAttribute`), перевод на
-   `Data` требует переписать эти классы, а не только Repository — риск/объём другого порядка,
-   чем у Import. До тех пор `VehiclesServiceProvider` (старый, над общими `Domain/Models`)
-   продолжает существовать и обслуживает только Export.
+9. ✅ Внедрить `spatie/laravel-data` (§3) — **готово и для Import, и для Export**. У каждой
+   фичи своя копия Eloquent-моделей (`Import/Infrastructure/Models`, `Export/Infrastructure/
+   Models`) и своя копия Repository, отдающая `<Entity>Data`; Command (запись) остаётся
+   исключительно у Import. Временный общий `VehiclesServiceProvider` вместе со старыми
+   `Domain/Contracts/Infrastructure/Repositories` и `Infrastructure/Repositories` удалён —
+   обещание из §1 ("исчезнет вместе с переездом на spatie/laravel-data") выполнено буквально.
+   Общая `Domain/Models` осталась (не переезжает никуда) — ей напрямую, в обход Repository/
+   Command, пользуется Maintenance ("разовые фиксы каталога", осознанно вне слоёв, см. дерево
+   в §1) — трогать её нельзя.
    Побочные находки/решения по ходу Import:
    - **`partable_type` — буквальное имя PHP-класса как дискриминатор полиморфной связи.**
      Раз Vehicle/Engine дублируются по фичам, писать туда `::class` копии модели конкретной
@@ -816,11 +827,111 @@ event()` `vladimir-yuldashev/laravel-queue-rabbitmq`, "во избежание �
      (иначе `AssignEngineGroupService` не мог бы прочитать текущее значение), `Command` обязан
      исключать `group_id` из `create`/`update`/`upsertByEngId`, иначе обычный upsert из листа
      импорта тихо затирал бы группу, назначенную отдельным путём (`setGroupId`).
+
+   Побочные находки/решения по ходу Export (в дополнение к Import, без повторов):
+   - **Export дублирует только 5 сущностей, а не все 8**, в отличие от Import: `Vehicle`,
+     `Manufacturer`, `Engine`, `PartSpecification`, `FeatureValue` — единственные, которые
+     Export реально читает. `Modification`/`EngineModification`/`Feature` сознательно не
+     скопированы — у Import они дублировались только потому, что Command (запись) физически
+     касается всех 8; у Export такого повода нет. Relation-методы на скопированных моделях,
+     ссылавшиеся на недублированные сущности (`Vehicle::modifications()`,
+     `Engine::modifications()`, `FeatureValue::feature()`), убраны — иначе это была бы мина:
+     `SomeClass::class` на несуществующий класс не падает сразу (это просто строка), падение
+     случилось бы только при первом реальном вызове relation.
+   - **`getMorphClass()` — более надёжная версия фикса `partable_type` из блока Import.**
+     Там, где связь `partSpecifications()` (`MorphMany`) реально используется (Export — весь
+     смысл существования, в отличие от Import, где она не вызывается нигде), точечных
+     `.where('partable_type', ...)` в Repository недостаточно — сама связь на модели тоже
+     резолвится через `get_class($this)` и молча возвращает 0 строк без глобального
+     `Relation::morphMap()`. Решение — override `getMorphClass()` на `Vehicle`/`Engine` в обеих
+     фичах (Import — про запас, Export — обязательно), возвращающий стабильную строку
+     `App\Vehicles\Domain\Models\{Vehicle,Engine}::class`. Проверено вручную (см. ниже) —
+     без этого override `forWiperSheet()`/`forSparkPlugSheet()` тихо отдавали бы пустые
+     `partSpecifications` для всех строк.
+   - **`ExportDetailsBuilder::getDetailsData(Model $model, ...)` → `getDetailsData(array
+     $details, ...)`.** Метод использовал только `$model->details` — сужение сигнатуры убрало
+     зависимость от Eloquent целиком и заодно убрало странность в `VehicleExportService::
+     mapWiperRow()`, где ради вызова создавалась синтетическая `new PartSpecification` только
+     чтобы обернуть массив.
+   - **`VehicleData`/`EngineData`/`PartSpecificationData` получили вложенные связи**
+     (`manufacturer`, `parent` — самоссылка на один уровень, `partSpecifications`,
+     `featureValue`) — ровно то, что реально читает код через `$vehicle->manufacturer->name`,
+     `$vehicle->parent?->msId`, `$spec->featureValue?->name`. Заполняются только когда
+     Repository явно их eager-loads (`forMainSheet`/`forWiperSheet`/`forSparkPlugSheet`) —
+     не автоматически: пакет поддерживает автозагрузку через `#[LoadRelation]`, но она явно не
+     годится для потенциально двусторонних связей (сам spatie предупреждает про
+     бесконечный цикл при `ArtistData` ↔ `SongData`).
+   - **Тестов на Export как не было, так и нет** (осознанное решение — рефактор без новых
+     тестов). Вместо автотестов правильность проверена вручную одноразовым сценарием
+     (создан и удалён, не часть репозитория): main-лист (marka+parent), wiper-лист (merge
+     front/back через реальный `WiperRowExpander`, включая `getMorphClass()` — данные
+     специально писались через **старую** модель, а читались через **новую**, чтобы
+     доказать совместимость), спецификация свечей зажигания двигателя. Все три сценария
+     дали ожидаемые данные без ошибок.
+
+   Финальный шаг п.9 — довели до конца и Maintenance, `Domain/Models` удалена насовсем:
+   - **Maintenance получил свою копию моделей** (`Maintenance/Infrastructure/Models`) — но
+     только 4 сущности, которые реально использует (`Vehicle`, `PartSpecification`,
+     `Manufacturer`, `Modification`), а не все 8 как Import. Relation-методы на
+     недублированные сущности (`Vehicle::modifications()`, `Modification::engines()`,
+     `PartSpecification::featureValue()`) убраны — та же мина с несуществующим классом,
+     что и у Export.
+   - **`app/Vehicles/Domain` удалена целиком** — общей копии моделей больше нет ни у одной
+     фичи, каждая фича независима до конца, без исключений.
+   - **`app/Vehicles/Presentation/Http/Controllers/Controller.php` удалён** — пустой
+     Laravel-скаффолдинг с самого начала проекта, ничем не используется (нет маршрутов, нет
+     `extends`). Presentation — только внутри своей фичи, общей папки для него нет и не
+     должно быть.
+   - **`PartableTypeEnum` (Shared) — стабильный дискриминатор `partable_type` вместо
+     алиасов на конкретный класс.** Пока `Domain/Models` существовала, дискриминатор был
+     "буквальный путь к общей модели" (`App\Vehicles\Domain\Models\Vehicle::class` через
+     `use ... as PartableVehicleType`). После удаления `Domain/Models` эта строка стала
+     ссылкой на несуществующий класс — по существу уже не "путь", а условное имя, которое
+     только выглядело как путь. Заменено на `PartableTypeEnum::VEHICLE = 'vehicle'` /
+     `::ENGINE = 'engine'` — короткое стабильное имя, не привязанное ни к чьему классу.
+     Переименование **без миграции данных** — подтверждено, что реальных строк со старым
+     значением в БД ещё нет. `DeduplicatePartSpecificationsCommand` заодно избавлена от
+     `class_exists($partableType)` (эта проверка стала бы бессмысленной без реального класса)
+     в пользу `PartableTypeEnum::tryFrom($partableType)`.
+   - **Побочно найден и исправлен баг** (не связан с переездом, существовал и раньше):
+     `PartSpecificationDeduplicationService::processGroup()` падал на
+     `(string) $group->template` — `template` кастуется в `DetailTemplateEnum`, а backed enum
+     не приводится к строке через `(string)`. Из-за этого `--dry-run`/применение команды
+     дедупликации всегда возвращали `errors=1`, маскируя реальный результат. Исправлено на
+     `$group->template->value`. Найдено ручным smoke-тестом (создан и удалён).
+   - **Побочно найдена, но НЕ исправлена находка отдельного масштаба**: тот же smoke-тест
+     показал, что `whereRaw('details = CAST(? AS jsonb)', ...)` (используется в
+     `PartSpecificationDeduplicationService`, `VehicleWiperPartSpecificationSplitService` и
+     Import-овском `PartSpecificationRepository::firstByVehicleTemplateSideAndDetails`/
+     `forVehicleTemplateAndSide`) **на SQLite (тестовое окружение) сравнение никогда не
+     совпадает**: SQLite не знает тип `jsonb`, "jsonb" не попадает ни под один паттерн
+     type affinity кроме NUMERIC, и `CAST('{"...json...}' AS jsonb)` в NUMERIC affinity
+     приводит нечисловую строку к `0` — сравнение с `0` не совпадает никогда. Проверено
+     напрямую (`SELECT CAST(? AS jsonb)` вернул `0`). Это объясняет, почему ни один тест в
+     проекте никогда не гонял реальный wiper-matching через настоящую БД — на SQLite это
+     гарантированно не сработало бы, и никто не написал такой тест. На реальном Postgres
+     (нативный `jsonb`) это, вероятно, работает иначе — не проверено. Заведено отдельным
+     пунктом ниже (18), чинить нужно отдельно и с оглядкой на тестовое окружение.
+   - **`partable(): MorphTo` убран** со всех трёх копий `PartSpecification` (Import/Export/
+     Maintenance) — раньше (при общей `Domain\Models`) он случайно работал (Eloquent без
+     `morphMap` просто инстанцировал класс по буквенной строке), а после перехода на
+     `PartableTypeEnum::VEHICLE = 'vehicle'` гарантированно упал бы ("Class 'vehicle' not
+     found"), не будучи при этом нигде вызван. Обсуждали регистрацию `Relation::morphMap()`
+     как замену — отклонено: `morphMap` глобальный и однозначный, а копий модели три,
+     пришлось бы выбрать одну "канонической" и тем самым тихо восстановить межфичевую
+     связанность (тот самый shared kernel) или держать мутабельное глобальное состояние,
+     которое пришлось бы вручную переключать на границах фич. Вместо этого — типобезопасный
+     резолвер прямо в Repository: `PartSpecificationRepository::partable(PartSpecificationData
+     $data): VehicleData|EngineData|null` (Import и Export — у каждой фичи свой, через уже
+     существующие `VehicleRepositoryInterface`/`EngineRepositoryInterface` этой же фичи,
+     `match` по `PartableTypeEnum`). У Maintenance — без замены: там нет ни `Repository`-слоя,
+     ни своей копии `Engine`, резолвить всё равно нечем и незачем. Проверено smoke-тестом
+     (создан и удалён): резолв Vehicle-владельца, Engine-владельца, null при отсутствии.
 10. Подключить `larastan`/`phpstan` + базовый CI (`.github/workflows`: `pint --test`, `phpstan`,
     `composer test`) (§8.2, §8.3).
 11. Вынести "толстые" Presentation-команды (`ChangeProviderManufacturersToTD`,
-    `UpdateVehicleYears`, `UpdateModificationYears`) в Application-слой с bulk-update; удалить
-    `GroupEnginesCommand` (§7.5).
+    `UpdateVehicleYears`, `UpdateModificationYears`) в Application-слой с bulk-update (§7.5).
+    `GroupEnginesCommand` (deprecated) уже удалён при реструктуризации по фичам (п.7).
 12. Добавить `timestamps()` в таблицы каталога, уникальный индекс
     `engine_modification(engine_id, modification_id)`, пройтись по FK-индексам (§7.4).
 13. Параметризовать пути к файлам импорта вместо хардкода в Listener'ах TecDoc-каскада (§7.2)
@@ -834,3 +945,15 @@ event()` `vladimir-yuldashev/laravel-queue-rabbitmq`, "во избежание �
 16. Убрать `.phpunit.result.cache` из git (§9.3).
 17. Завести реальные `inbound`/`outbound`-обработчики в `rabbit-transport`, когда появится
     первая интеграция (см. примечание в §1 про Messaging).
+18. **Починить сравнение jsonb-деталей на SQLite** (найдено в п.9 при переезде Maintenance).
+    `whereRaw('details = CAST(? AS jsonb)', ...)` в `PartSpecificationDeduplicationService`,
+    `VehicleWiperPartSpecificationSplitService`, `PartSpecificationRepository` — на SQLite
+    `CAST(x AS jsonb)` не распознаёт тип, попадает под NUMERIC affinity и приводит
+    JSON-строку к `0`, сравнение никогда не совпадает. Нужно решить: (а) сравнивать через
+    SQLite-совместимую форму (`json(details) = json(?)`, доступно через JSON1) с веткой по
+    драйверу, (б) держать эти тесты только на Postgres (testcontainers/CI-сервис вместо
+    SQLite), либо (в) убедиться, что на реальном Postgres поведение и так корректно и
+    просто задокументировать ограничение SQLite-тестов. Без этого пункта wiper-matching
+    (Import и Maintenance) и весь `deduplicate-part-specifications` не покрыты реальными
+    тестами против БД в принципе — риск тихо не работал бы то же самое и в проде, если там
+    тоже что-то не так с типом колонки, но это не проверялось.

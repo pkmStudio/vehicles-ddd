@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Maintenance\Presentation\Console\Commands;
 
-use App\Vehicles\Domain\Models\Manufacturer;
+use App\Vehicles\Maintenance\Infrastructure\Models\Manufacturer;
 use Illuminate\Console\Command;
 
 class ChangeProviderManufacturersToTD extends Command

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Vehicles\Maintenance\Application\Services;
 
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Vehicles\Domain\Models\PartSpecification;
-use App\Vehicles\Domain\Models\Vehicle;
+use App\Vehicles\Maintenance\Infrastructure\Models\PartSpecification;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -28,7 +28,7 @@ final readonly class PartSpecificationDeduplicationService
      */
     public function deduplicate(
         bool $dryRun = false,
-        ?string $partableType = Vehicle::class,
+        ?string $partableType = PartableTypeEnum::VEHICLE->value,
         ?int $partableId = null,
         ?DetailTemplateEnum $template = DetailTemplateEnum::WIPER,
     ): array {
@@ -54,7 +54,7 @@ final readonly class PartSpecificationDeduplicationService
                 Log::error('Deduplicate part specifications failed', [
                     'partable_type' => $group->partable_type ?? null,
                     'partable_id' => $group->partable_id ?? null,
-                    'template' => $group->template ?? null,
+                    'template' => $group->template?->value ?? null,
                     'error' => $e->getMessage(),
                 ]);
             }
@@ -110,7 +110,7 @@ final readonly class PartSpecificationDeduplicationService
         $specifications = PartSpecification::query()
             ->where('partable_type', $group->partable_type)
             ->where('partable_id', (int) $group->partable_id)
-            ->where('template', (string) $group->template)
+            ->where('template', $group->template->value)
             ->whereRaw('details = CAST(? AS jsonb)', [
                 json_encode($group->details, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             ])

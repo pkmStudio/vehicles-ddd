@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Infrastructure\Models;
 
-use App\Vehicles\Domain\Models\Vehicle as PartableVehicleType;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * Без generic partable(): MorphTo — раз Vehicle/Engine дублируются по фичам, у "владельца"
+ * нет единого класса, к которому можно было бы резолвиться (см. plan.md §11, п.9). Резолв
+ * владельца — через PartSpecificationRepository::partable() (типобезопасно, через Data своей
+ * же фичи).
+ */
 class PartSpecification extends BaseModel
 {
     protected $casts = [
@@ -22,15 +27,10 @@ class PartSpecification extends BaseModel
         return $this->belongsTo(FeatureValue::class, 'feature_value_id', 'id');
     }
 
-    public function partable(): MorphTo
-    {
-        return $this->morphTo();
-    }
-
     public function vehicle(): BelongsTo
     {
         return $this
             ->belongsTo(Vehicle::class, 'partable_id', 'id')
-            ->where('part_specifications.partable_type', PartableVehicleType::class);
+            ->where('part_specifications.partable_type', PartableTypeEnum::VEHICLE->value);
     }
 }

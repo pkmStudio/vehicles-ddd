@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Application\Services\Vehicle;
 
-use App\Vehicles\Domain\Models\Vehicle as PartableVehicleType;
 use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Vehicles\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Facades\Log;
@@ -62,7 +62,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
             }
 
             $data = new PartSpecificationData(
-                partableType: PartableVehicleType::class,
+                partableType: PartableTypeEnum::VEHICLE->value,
                 partableId: $vehicleId,
                 template: $template,
                 details: $partDetails,

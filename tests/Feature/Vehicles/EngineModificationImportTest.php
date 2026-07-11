@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature\Vehicles;
 
 use App\Vehicles\Import\Domain\Contracts\Imports\EngineModificationImportInterface;
-use App\Vehicles\Domain\Models\Engine;
-use App\Vehicles\Domain\Models\Manufacturer;
-use App\Vehicles\Domain\Models\Modification;
-use App\Vehicles\Domain\Models\Vehicle;
+use App\Vehicles\Import\Infrastructure\Models\Engine;
+use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
+use App\Vehicles\Import\Infrastructure\Models\Modification;
+use App\Vehicles\Import\Infrastructure\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

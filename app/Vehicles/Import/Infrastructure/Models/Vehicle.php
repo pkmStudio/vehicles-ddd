@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Infrastructure\Models;
 
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
@@ -21,6 +22,17 @@ class Vehicle extends BaseModel
     ];
 
     public $timestamps = false;
+
+    /**
+     * `partable_type` — стабильный дискриминатор полиморфной связи, общий для всех фич и
+     * Maintenance (см. plan.md §11, п.9). partSpecifications() ниже сейчас не вызывается в
+     * Import, но без этого override при первом реальном использовании тихо писал/фильтровал
+     * бы по чужой строке своей копии класса.
+     */
+    public function getMorphClass(): string
+    {
+        return PartableTypeEnum::VEHICLE->value;
+    }
 
     // RELATIONS
     public function modifications(): HasMany

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Application\Services\Details;
 
 use App\Vehicles\Export\Domain\Contracts\Services\Details\ExportDetailsBuilderInterface;
-use Illuminate\Database\Eloquent\Model;
 
 /**
  * Сборка экспортных данных/заголовков по шаблону.
@@ -54,19 +53,19 @@ final readonly class ExportDetailsBuilder implements ExportDetailsBuilderInterfa
     }
 
     /**
-     * Формирует массив данных для строки экспорта на основе спецификации и шаблона.
+     * Формирует массив данных для строки экспорта на основе details и шаблона.
      *
-     * @param  Model  $model  Модель, содержащая данные (PartSpecification, Nomenclature и др.)
+     * @param  array  $details  Заполненный шаблон (details спецификации)
      * @param  array  $template  Конфигурация шаблона полей
      * @return array Массив, где значения - данные
      *
      * @throws \Exception При ошибках обработки данных (пробрасывается из getFieldValue)
      */
-    public function getDetailsData(Model $model, array $template): array
+    public function getDetailsData(array $details, array $template): array
     {
         $rowCells = [];
         foreach ($template as $fieldKey => $fieldConfig) {
-            $this->getFieldValue($model, $rowCells, $fieldKey, $fieldConfig);
+            $this->getFieldValue($details, $rowCells, $fieldKey, $fieldConfig);
         }
 
         return $rowCells;
@@ -81,7 +80,7 @@ final readonly class ExportDetailsBuilder implements ExportDetailsBuilderInterfa
      * - Array поля (с преобразованием в строку с разделителем)
      * - Вложенные поля (children)
      *
-     * @param  Model  $model  Модель, содержащая данные (PartSpecification, Nomenclature и др.)
+     * @param  array  $details  Details спецификации
      * @param  array  &$rowCells  Массив для накопления результатов (передается по ссылке)
      * @param  string  $fieldKey  Ключ поля в шаблоне
      * @param  array  $fieldConfig  Конфигурация поля
@@ -94,11 +93,11 @@ final readonly class ExportDetailsBuilder implements ExportDetailsBuilderInterfa
      *  'multiple' => true
      * ];
      */
-    private function getFieldValue(Model $model, array &$rowCells, string $fieldKey, array $fieldConfig): void
+    private function getFieldValue(array $details, array &$rowCells, string $fieldKey, array $fieldConfig): void
     {
         if (isset($fieldConfig['children']) && is_array($fieldConfig['children'])) {
             foreach ($fieldConfig['children'] as $childKey => $childConfig) {
-                $this->getFieldValue($model, $rowCells, $fieldKey.'.'.$childKey, $childConfig);
+                $this->getFieldValue($details, $rowCells, $fieldKey.'.'.$childKey, $childConfig);
             }
 
             return;
@@ -107,11 +106,11 @@ final readonly class ExportDetailsBuilder implements ExportDetailsBuilderInterfa
         if ($fieldConfig['type'] === 'select' && isset($fieldConfig['variables'])) {
             // Для multiple select (массив значений)
             if (isset($fieldConfig['multiple']) && $fieldConfig['multiple'] === true) {
-                $varKeys = data_get($model->details, $fieldKey, []);
+                $varKeys = data_get($details, $fieldKey, []);
                 $value = $this->getVarValue($varKeys, $fieldConfig['variables']);
                 $rowCells[] = $value;
             } else {
-                $varKey = data_get($model->details, $fieldKey);
+                $varKey = data_get($details, $fieldKey);
                 $value = $this->getVarValue([$varKey], $fieldConfig['variables']);
                 $rowCells[] = $value;
             }
@@ -124,21 +123,21 @@ final readonly class ExportDetailsBuilder implements ExportDetailsBuilderInterfa
 
             // Для multiple select (массив значений)
             if (isset($fieldConfig['multiple']) && $fieldConfig['multiple'] === true) {
-                $varKeys = data_get($model->details, $fieldKey, []);
+                $varKeys = data_get($details, $fieldKey, []);
                 $value = $this->getVarValue($varKeys, $variables);
                 $rowCells[] = $value;
             } else {
-                $varKey = data_get($model->details, $fieldKey);
+                $varKey = data_get($details, $fieldKey);
                 $value = $this->getVarValue([$varKey], $variables);
                 $rowCells[] = $value;
             }
         } elseif ($fieldConfig['type'] === 'array') {
             // Преобразуем массив в строку с разделителем ;
-            $value = implode(';', data_get($model->details, $fieldKey, []));
+            $value = implode(';', data_get($details, $fieldKey, []));
             $rowCells[] = $value;
         } else {
             // Простые типы данных
-            $rowCells[] = data_get($model->details, $fieldKey);
+            $rowCells[] = data_get($details, $fieldKey);
         }
     }
 

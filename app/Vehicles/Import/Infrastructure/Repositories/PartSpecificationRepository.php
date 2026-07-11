@@ -4,23 +4,28 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Infrastructure\Repositories;
 
-use App\Vehicles\Domain\Models\Vehicle as PartableVehicleType;
+use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
+use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
 use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Import\Infrastructure\Models\PartSpecification;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 
 /**
- * `partable_type` хранит буквальное имя PHP-класса как дискриминатор полиморфной связи.
- * Vehicle/Engine дублируются по фичам (Import/Export/Maintenance держат свои копии моделей),
- * поэтому здесь используется общий App\Vehicles\Domain\Models\Vehicle::class как стабильное
- * значение колонки — то же самое, что уже хранится в БД и что пишет/читает Maintenance.
- * Использовать *::class копии моделей конкретной фичи для этой колонки нельзя: разные фичи
- * получили бы разные строки для одной и той же сущности.
+ * `partable_type` хранит стабильный дискриминатор полиморфной связи (см. PartableTypeEnum) —
+ * общий для всех фич и Maintenance, не зависит от того, чья копия модели сейчас используется.
  */
 final readonly class PartSpecificationRepository implements PartSpecificationRepositoryInterface
 {
+    public function __construct(
+        private VehicleRepositoryInterface $vehicles,
+        private EngineRepositoryInterface $engines,
+    ) {}
+
     public function find(int $id): ?PartSpecificationData
     {
         return PartSpecificationData::optional(PartSpecification::query()->find($id));
@@ -39,7 +44,7 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
     public function forVehicleTemplateAndSide(int $vehicleId, DetailTemplateEnum $template, string $side): Collection
     {
         $specifications = PartSpecification::query()
-            ->where('partable_type', PartableVehicleType::class)
+            ->where('partable_type', PartableTypeEnum::VEHICLE->value)
             ->where('partable_id', $vehicleId)
             ->where('template', $template->value)
             ->whereRaw('jsonb_exists(details, ?)', [$side])
@@ -56,7 +61,7 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
         array $details,
     ): ?PartSpecificationData {
         $specification = PartSpecification::query()
-            ->where('partable_type', PartableVehicleType::class)
+            ->where('partable_type', PartableTypeEnum::VEHICLE->value)
             ->where('partable_id', $vehicleId)
             ->where('template', $template->value)
             ->whereRaw('jsonb_exists(details, ?)', [$side])
@@ -67,5 +72,13 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
             ->first();
 
         return PartSpecificationData::optional($specification);
+    }
+
+    public function partable(PartSpecificationData $data): VehicleData|EngineData|null
+    {
+        return match (PartableTypeEnum::from($data->partableType)) {
+            PartableTypeEnum::VEHICLE => $this->vehicles->find($data->partableId),
+            PartableTypeEnum::ENGINE => $this->engines->find($data->partableId),
+        };
     }
 }

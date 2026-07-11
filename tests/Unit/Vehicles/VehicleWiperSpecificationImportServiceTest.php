@@ -12,6 +12,7 @@ use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositor
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Import\Domain\ModelData\FeatureValue\FeatureValueData;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;
@@ -71,7 +72,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
     public function test_updates_existing_side(): void
     {
         $existing = new PartSpecificationData(
-            partableType: 'App\Vehicles\Domain\Models\Vehicle',
+            partableType: PartableTypeEnum::VEHICLE->value,
             partableId: 77,
             template: DetailTemplateEnum::WIPER,
             details: ['front' => ['adapter_type_front' => ['A1']]],
@@ -101,7 +102,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
     public function test_updates_single_existing_side_when_exact_details_are_missing(): void
     {
         $existing = new PartSpecificationData(
-            partableType: 'App\Vehicles\Domain\Models\Vehicle',
+            partableType: PartableTypeEnum::VEHICLE->value,
             partableId: 77,
             template: DetailTemplateEnum::WIPER,
             details: ['front' => ['adapter_type_front' => ['OLD']]],

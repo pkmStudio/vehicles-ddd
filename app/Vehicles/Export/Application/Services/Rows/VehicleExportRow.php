@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Application\Services\Rows;
 
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
-use App\Vehicles\Domain\Models\Vehicle;
+use App\Vehicles\Export\Domain\ModelData\Vehicle\VehicleData;
 
 final readonly class VehicleExportRow implements VehicleExportRowInterface
 {
@@ -37,27 +37,27 @@ final readonly class VehicleExportRow implements VehicleExportRowInterface
     /**
      * Возвращает базовые данные автомобиля
      *
-     * @param  Vehicle  $vehicle  Модель автомобиля
+     * @param  VehicleData  $vehicle  Данные автомобиля (manufacturer/parent — если eager-loaded)
      */
-    public function getBaseData(Vehicle $vehicle): array
+    public function getBaseData(VehicleData $vehicle): array
     {
         return [
-            $vehicle->excel_table_id,
-            $vehicle->mfa_id,
-            $vehicle->ms_id,
-            $vehicle->manufacturer->name ?? null,
+            $vehicle->excelTableId,
+            $vehicle->mfaId,
+            $vehicle->msId,
+            $vehicle->manufacturer?->name,
             $vehicle->name,
-            $vehicle->localized_name,
-            $vehicle->generation_short,
+            $vehicle->localizedName,
+            $vehicle->generationShort,
             $vehicle->generation,
-            $vehicle->generation_year_from,
-            $vehicle->generation_year_to,
-            $vehicle->type_carcase,
+            $vehicle->generationYearFrom,
+            $vehicle->generationYearTo,
+            $vehicle->typeCarcase,
             $vehicle->type,
             $vehicle->provider,
-            $vehicle->parent?->ms_id,
-            $vehicle->steering_type,
-            $vehicle->is_allow ? 'Да' : 'Нет',
+            $vehicle->parent?->msId,
+            $vehicle->steeringType,
+            $vehicle->isAllow ? 'Да' : 'Нет',
         ];
     }
 }

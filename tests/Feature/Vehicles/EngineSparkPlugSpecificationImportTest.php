@@ -7,11 +7,12 @@ namespace Tests\Feature\Vehicles;
 use App\Vehicles\Import\Domain\Contracts\Imports\EngineSparkPlugSpecificationImportInterface;
 use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
 use App\Vehicles\Import\Domain\Events\Engine\EngineImportCompleted;
-use App\Vehicles\Domain\Models\Engine;
-use App\Vehicles\Domain\Models\Manufacturer;
-use App\Vehicles\Domain\Models\Modification;
-use App\Vehicles\Domain\Models\PartSpecification;
-use App\Vehicles\Domain\Models\Vehicle;
+use App\Vehicles\Import\Infrastructure\Models\Engine;
+use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
+use App\Vehicles\Import\Infrastructure\Models\Modification;
+use App\Vehicles\Import\Infrastructure\Models\PartSpecification;
+use App\Vehicles\Import\Infrastructure\Models\Vehicle;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -55,7 +56,7 @@ final class EngineSparkPlugSpecificationImportTest extends TestCase
 
         app(EngineSparkPlugSpecificationImportInterface::class)->import($path, $context);
 
-        $spec = PartSpecification::query()->where('partable_id', $engine->id)->where('partable_type', Engine::class)->first();
+        $spec = PartSpecification::query()->where('partable_id', $engine->id)->where('partable_type', PartableTypeEnum::ENGINE->value)->first();
 
         $this->assertNotNull($spec);
         $this->assertSame([

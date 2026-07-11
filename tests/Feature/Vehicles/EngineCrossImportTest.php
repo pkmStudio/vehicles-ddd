@@ -7,7 +7,7 @@ namespace Tests\Feature\Vehicles;
 use App\Vehicles\Import\Domain\Contracts\Imports\EngineCrossImportInterface;
 use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
 use App\Vehicles\Import\Domain\Events\Engine\EngineCrossImportCompleted;
-use App\Vehicles\Domain\Models\Engine;
+use App\Vehicles\Import\Infrastructure\Models\Engine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;

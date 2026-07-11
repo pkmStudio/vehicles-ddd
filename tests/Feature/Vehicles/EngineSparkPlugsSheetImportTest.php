@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles;
 
-use App\Vehicles\Domain\Models\Engine;
-use App\Vehicles\Domain\Models\PartSpecification;
+use App\Vehicles\Import\Infrastructure\Models\Engine;
+use App\Vehicles\Import\Infrastructure\Models\PartSpecification;
 use App\Vehicles\Import\Infrastructure\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
@@ -36,7 +37,7 @@ final class EngineSparkPlugsSheetImportTest extends TestCase
 
         $import->collection($rows);
 
-        $spec = PartSpecification::query()->where('partable_id', $engine->id)->where('partable_type', Engine::class)->first();
+        $spec = PartSpecification::query()->where('partable_id', $engine->id)->where('partable_type', PartableTypeEnum::ENGINE->value)->first();
 
         $this->assertNotNull($spec);
         $this->assertSame([

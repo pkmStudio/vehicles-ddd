@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Domain\Contracts\Repositories;
 
+use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
 use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 
@@ -31,4 +33,11 @@ interface PartSpecificationRepositoryInterface
      * Точная спецификация ТС по шаблону, стороне и JSON details.
      */
     public function firstByVehicleTemplateSideAndDetails(int $vehicleId, DetailTemplateEnum $template, string $side, array $details): ?PartSpecificationData;
+
+    /**
+     * Владелец спецификации (Vehicle или Engine — по $data->partableType), в своей же фиче.
+     * Замена убранной Eloquent-связи `partable(): MorphTo`, которая физически не может быть
+     * корректной при дублировании моделей по фичам (см. plan.md §11, п.9).
+     */
+    public function partable(PartSpecificationData $data): VehicleData|EngineData|null;
 }

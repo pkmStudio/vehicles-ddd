@@ -6,8 +6,8 @@ namespace App\Vehicles\Maintenance\Application\Services;
 
 use App\Vehicles\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Vehicles\Domain\Models\PartSpecification;
-use App\Vehicles\Domain\Models\Vehicle;
+use App\Vehicles\Maintenance\Infrastructure\Models\PartSpecification;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -34,7 +34,7 @@ final readonly class VehicleWiperPartSpecificationSplitService
         $summary = $this->emptySummary();
 
         PartSpecification::query()
-            ->where('partable_type', Vehicle::class)
+            ->where('partable_type', PartableTypeEnum::VEHICLE->value)
             ->where('template', DetailTemplateEnum::WIPER->value)
             ->where(function ($query): void {
                 $query
@@ -119,7 +119,7 @@ final readonly class VehicleWiperPartSpecificationSplitService
     private function resolveTarget(PartSpecification $source, array $details, bool $dryRun, array &$summary): ?int
     {
         $existing = PartSpecification::query()
-            ->where('partable_type', Vehicle::class)
+            ->where('partable_type', PartableTypeEnum::VEHICLE->value)
             ->where('partable_id', (int) $source->partable_id)
             ->where('template', DetailTemplateEnum::WIPER->value)
             ->whereKeyNot((int) $source->id)
@@ -139,7 +139,7 @@ final readonly class VehicleWiperPartSpecificationSplitService
         }
 
         $created = PartSpecification::query()->create([
-            'partable_type' => Vehicle::class,
+            'partable_type' => PartableTypeEnum::VEHICLE->value,
             'partable_id' => (int) $source->partable_id,
             'feature_value_id' => $source->feature_value_id,
             'template' => DetailTemplateEnum::WIPER,

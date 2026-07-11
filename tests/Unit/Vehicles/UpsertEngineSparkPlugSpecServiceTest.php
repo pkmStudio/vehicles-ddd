@@ -10,7 +10,7 @@ use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
 use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
-use App\Vehicles\Domain\Models\Engine;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Mockery;
 use Tests\TestCase;
 
@@ -21,7 +21,7 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
         $engine = new EngineData(engId: 101, id: 42);
         $details = ['gap' => '0.9'];
         $expected = new PartSpecificationData(
-            partableType: Engine::class,
+            partableType: PartableTypeEnum::ENGINE->value,
             partableId: 42,
             template: DetailTemplateEnum::SPARK_PLUGS,
             details: $details,
@@ -34,7 +34,7 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
         $partSpecs->shouldReceive('upsert')
             ->once()
             ->with(Mockery::on(function (PartSpecificationData $data) {
-                return $data->partableType === Engine::class
+                return $data->partableType === PartableTypeEnum::ENGINE->value
                     && $data->partableId === 42
                     && $data->template === DetailTemplateEnum::SPARK_PLUGS
                     && $data->details === ['gap' => '0.9'];

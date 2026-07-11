@@ -10,12 +10,11 @@ use App\Vehicles\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Details\ExportDetailsBuilderInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
-use App\Vehicles\Domain\Contracts\Infrastructure\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Export\Domain\DTOs\VehicleExportPlan;
+use App\Vehicles\Export\Domain\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
-use App\Vehicles\Domain\Models\PartSpecification;
-use App\Vehicles\Domain\Models\Vehicle;
 use Illuminate\Support\Collection;
 
 final readonly class VehicleExportService implements VehicleExportServiceInterface
@@ -53,7 +52,7 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
         return $this->vehicleRow->getBaseHeadings();
     }
 
-    public function mapMainRow(Vehicle $row): array
+    public function mapMainRow(VehicleData $row): array
     {
         return $this->vehicleRow->getBaseData($row);
     }
@@ -89,8 +88,8 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
             );
         }
 
-        $frontData = $frontSpec ? $this->wiper->sideData((array) $frontSpec->details, WiperSideEnum::FRONT->value) : [];
-        $backData = $backSpec ? $this->wiper->sideData((array) $backSpec->details, WiperSideEnum::BACK->value) : [];
+        $frontData = $frontSpec ? $this->wiper->sideData($frontSpec->details, WiperSideEnum::FRONT->value) : [];
+        $backData = $backSpec ? $this->wiper->sideData($backSpec->details, WiperSideEnum::BACK->value) : [];
 
         $specData = [
             $frontSpec?->featureValue?->name ?? $backSpec?->featureValue?->name,
@@ -99,9 +98,10 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
             $frontSpec?->text ?? $backSpec?->text,
         ];
 
-        $merged = new PartSpecification;
-        $merged->setAttribute('details', $this->wiper->mergeForExport($frontData, $backData));
-        $detailsData = $this->exportDetails->getDetailsData($merged, $this->templateConfig);
+        $detailsData = $this->exportDetails->getDetailsData(
+            $this->wiper->mergeForExport($frontData, $backData),
+            $this->templateConfig,
+        );
 
         return array_merge($baseData, $specData, $detailsData);
     }

@@ -6,7 +6,7 @@ namespace Tests\Feature\Vehicles;
 
 use App\Vehicles\Import\Domain\Contracts\Imports\ManufacturerCommandImportInterface;
 use App\Vehicles\Import\Domain\Events\Manufacturer\ManufacturerCommandImported;
-use App\Vehicles\Domain\Models\Manufacturer;
+use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;

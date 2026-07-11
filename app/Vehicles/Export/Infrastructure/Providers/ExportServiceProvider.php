@@ -20,21 +20,30 @@ use App\Vehicles\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
 use App\Vehicles\Export\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
 use App\Vehicles\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
+use App\Vehicles\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Vehicles\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Export\Infrastructure\Exports\Engine\EngineMultiSheetExport;
 use App\Vehicles\Export\Infrastructure\Exports\Vehicle\VehicleMultiSheetExport;
+use App\Vehicles\Export\Infrastructure\Repositories\EngineRepository;
+use App\Vehicles\Export\Infrastructure\Repositories\VehicleRepository;
 use Illuminate\Support\ServiceProvider;
 
 /**
  * Биндинги фичи Export (интерфейс → реализация).
- * Repository-биндинги (read) пока остаются в корневом VehiclesServiceProvider поверх общих
- * Domain\Models — Import уже переехал на свою копию модели + Data (plan.md §3), у Export этот
- * переезд ещё впереди отдельным заходом.
+ * Repository (read) — своя копия поверх Export\Infrastructure\Models, работает через
+ * <Entity>Data (spatie/laravel-data, plan.md §3), как и Import. Общий VehiclesServiceProvider
+ * с этого момента больше никем не используется.
  */
 final class ExportServiceProvider extends ServiceProvider
 {
     private const array EXPORT_BINDINGS = [
         EngineMultiSheetExportInterface::class => EngineMultiSheetExport::class,
         VehicleMultiSheetExportInterface::class => VehicleMultiSheetExport::class,
+    ];
+
+    private const array REPOSITORY_BINDINGS = [
+        VehicleRepositoryInterface::class => VehicleRepository::class,
+        EngineRepositoryInterface::class => EngineRepository::class,
     ];
 
     private const array SERVICE_BINDINGS = [
@@ -50,6 +59,10 @@ final class ExportServiceProvider extends ServiceProvider
     public function register(): void
     {
         foreach (self::EXPORT_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
+        }
+
+        foreach (self::REPOSITORY_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
 

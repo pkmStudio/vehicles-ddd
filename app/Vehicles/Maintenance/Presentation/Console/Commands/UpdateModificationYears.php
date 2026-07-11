@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Maintenance\Presentation\Console\Commands;
 
-use App\Vehicles\Domain\Models\Modification;
+use App\Vehicles\Maintenance\Infrastructure\Models\Modification;
 use Illuminate\Console\Command;
 
 class UpdateModificationYears extends Command

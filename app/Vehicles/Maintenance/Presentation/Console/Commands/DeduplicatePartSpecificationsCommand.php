@@ -6,7 +6,7 @@ namespace App\Vehicles\Maintenance\Presentation\Console\Commands;
 
 use App\Vehicles\Maintenance\Application\Services\PartSpecificationDeduplicationService;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Vehicles\Domain\Models\Vehicle;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Console\Command;
 
 /**
@@ -15,7 +15,7 @@ use Illuminate\Console\Command;
 final class DeduplicatePartSpecificationsCommand extends Command
 {
     protected $signature = 'vehicles:deduplicate-part-specifications
-                            {--partable-type=App\\Vehicles\\Domain\\Models\\Vehicle : Полный класс partable-модели}
+                            {--partable-type=vehicle : Значение PartableTypeEnum}
                             {--partable-id= : ID partable-модели}
                             {--template=wiper : Значение DetailTemplateEnum}
                             {--dry-run : Только показать план изменений без удаления}';
@@ -32,9 +32,9 @@ final class DeduplicatePartSpecificationsCommand extends Command
      */
     public function handle(PartSpecificationDeduplicationService $service): int
     {
-        $partableType = (string) ($this->option('partable-type') ?: Vehicle::class);
-        if (! class_exists($partableType)) {
-            $this->error("partable-type не найден: {$partableType}");
+        $partableType = (string) ($this->option('partable-type') ?: PartableTypeEnum::VEHICLE->value);
+        if (PartableTypeEnum::tryFrom($partableType) === null) {
+            $this->error("partable-type должен быть одним из известных PartableTypeEnum: {$partableType}");
 
             return self::FAILURE;
         }

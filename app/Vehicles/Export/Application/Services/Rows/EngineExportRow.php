@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Application\Services\Rows;
 
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
-use App\Vehicles\Domain\Models\Engine;
+use App\Vehicles\Export\Domain\ModelData\Engine\EngineData;
 
 final readonly class EngineExportRow implements EngineExportRowInterface
 {
@@ -24,18 +24,18 @@ final readonly class EngineExportRow implements EngineExportRowInterface
         ];
     }
 
-    public function getBaseData(Engine $engine): array
+    public function getBaseData(EngineData $engine): array
     {
         return [
-            $engine->eng_id,
-            $engine->code_engine,
-            $engine->engine_capacity,
-            $engine->eng_fuel_type,
-            $engine->eng_power_ps_start,
-            $engine->eng_power_ps_upto,
-            $engine->cylinder_count,
-            $engine->cylinder_diameter,
-            $engine->eng_number_of_valves,
+            $engine->engId,
+            $engine->codeEngine,
+            $engine->engineCapacity,
+            $engine->engFuelType,
+            $engine->engPowerPsStart,
+            $engine->engPowerPsUpto,
+            $engine->cylinderCount,
+            $engine->cylinderDiameter,
+            $engine->engNumberOfValves,
         ];
     }
 }

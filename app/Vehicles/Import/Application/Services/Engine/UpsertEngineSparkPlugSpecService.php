@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Application\Services\Engine;
 
-use App\Vehicles\Domain\Models\Engine as PartableEngineType;
 use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
 use App\Vehicles\Import\Domain\ModelData\PartSpecification\PartSpecificationData;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 
 /**
@@ -35,7 +35,7 @@ final readonly class UpsertEngineSparkPlugSpecService implements UpsertEngineSpa
         }
 
         return $this->partSpecs->upsert(new PartSpecificationData(
-            partableType: PartableEngineType::class,
+            partableType: PartableTypeEnum::ENGINE->value,
             partableId: (int) $engine->id,
             template: DetailTemplateEnum::SPARK_PLUGS,
             details: $details,
