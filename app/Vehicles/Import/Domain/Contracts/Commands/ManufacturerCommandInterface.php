@@ -16,10 +16,4 @@ interface ManufacturerCommandInterface
      * Upsert по натуральному ключу mfa_id.
      */
     public function upsertByMfaId(ManufacturerData $data): ManufacturerData;
-
-    /** Найти марку по имени или создать с заданным mfa_id. */
-    public function firstOrCreateByName(string $name, int $mfaId): ManufacturerData;
-
-    /** Найти марку по mfa_id или создать с заданным именем. */
-    public function firstOrCreateByMfaId(int $mfaId, string $name): ManufacturerData;
 }

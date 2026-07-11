@@ -21,23 +21,4 @@ final readonly class ManufacturerCommand implements ManufacturerCommandInterface
         );
     }
 
-    public function firstOrCreateByName(string $name, int $mfaId): ManufacturerData
-    {
-        return ManufacturerData::from(
-            Manufacturer::query()->firstOrCreate(
-                ['name' => $name],
-                ['mfa_id' => $mfaId],
-            ),
-        );
-    }
-
-    public function firstOrCreateByMfaId(int $mfaId, string $name): ManufacturerData
-    {
-        return ManufacturerData::from(
-            Manufacturer::query()->firstOrCreate(
-                ['mfa_id' => $mfaId],
-                ['name' => $name],
-            ),
-        );
-    }
 }

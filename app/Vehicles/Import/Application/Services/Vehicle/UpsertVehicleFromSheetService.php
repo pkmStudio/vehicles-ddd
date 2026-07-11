@@ -6,12 +6,14 @@ namespace App\Vehicles\Import\Application\Services\Vehicle;
 
 use App\Vehicles\Import\Domain\Contracts\Commands\ManufacturerCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Commands\VehicleCommandInterface;
+use App\Vehicles\Import\Domain\Contracts\Factories\ManufacturerDataFactoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Factories\VehicleDataFactoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleSheetRowDTO;
 use App\Vehicles\Import\Domain\ModelData\VehicleData;
+use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -24,6 +26,7 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
     public function __construct(
         private VehicleCommandInterface $command,
         private VehicleDataFactoryInterface $factory,
+        private ManufacturerDataFactoryInterface $manufacturerFactory,
         private VehicleRepositoryInterface $vehicles,
         private ManufacturerRepositoryInterface $manufacturers,
         private ManufacturerCommandInterface $manufacturerCommand,
@@ -72,8 +75,20 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
     private function resolveManufacturer(int &$minMfaId, VehicleSheetRowDTO $row): array
     {
         $manufacturer = $row->mfaId === null
-            ? $this->manufacturerCommand->firstOrCreateByName($row->manufacturerName, --$minMfaId)
-            : $this->manufacturerCommand->firstOrCreateByMfaId($row->mfaId, $row->manufacturerName);
+            ? $this->manufacturers->firstByName((string) $row->manufacturerName)
+            : $this->manufacturers->firstByMfaId($row->mfaId);
+
+        if (! $manufacturer) {
+            $mfaId = $row->mfaId ?? --$minMfaId;
+
+            $manufacturerData = $this->manufacturerFactory->make([
+                'mfa_id' => $mfaId,
+                'name' => $row->manufacturerName,
+                'provider' => ProviderEnum::OD->value,
+            ]);
+
+            $manufacturer = $this->manufacturerCommand->upsertByMfaId($manufacturerData);
+        }
 
         return [$manufacturer->mfaId, $manufacturer->id];
     }
