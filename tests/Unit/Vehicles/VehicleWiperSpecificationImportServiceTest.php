@@ -153,6 +153,23 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    public function test_throws_when_feature_value_name_not_found(): void
+    {
+        $featureValues = Mockery::mock(FeatureValueRepositoryInterface::class);
+        $featureValues->shouldReceive('firstByName')->once()->with('Неизвестная особенность')->andReturnNull();
+
+        $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
+        $command = Mockery::mock(PartSpecificationCommandInterface::class);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Особенность "Неизвестная особенность" не найдена. Сначала импортируйте особенности.');
+
+        $details = ['front' => ['adapter_type_front' => ['A1']]];
+
+        $this->service($specs, $command, $featureValues)
+            ->importForVehicle(77, DetailTemplateEnum::WIPER->value, $details, featureValueName: 'Неизвестная особенность');
+    }
+
     public function test_creates_separate_specs_for_multiple_front_adapters_without_fallback_update(): void
     {
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);

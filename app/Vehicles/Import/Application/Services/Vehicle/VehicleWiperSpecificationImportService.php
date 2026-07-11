@@ -12,6 +12,7 @@ use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Vehicles\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use RuntimeException;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -31,6 +32,9 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
 
     /**
      * @param  array<string, mixed>  $details  собранные значения спецификации (front/back)
+     * @param  ?string  $featureValueName  название особенности; если указано, но не найдено, выбрасывается исключение
+     *
+     * @throws \RuntimeException при указании featureValueName, которого нет в справочнике особенностей
      */
     public function importForVehicle(
         int $vehicleId,
@@ -41,9 +45,15 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
         ?string $text = null,
     ): void {
         $template = DetailTemplateEnum::from($templateSlug);
-        $featureValueId = ! empty($featureValueName)
-            ? $this->featureValues->firstByName($featureValueName)?->id
-            : null;
+        $featureValueId = null;
+        if (! empty($featureValueName)) {
+            $featureValue = $this->featureValues->firstByName($featureValueName);
+            if ($featureValue === null) {
+                throw new RuntimeException("Особенность \"{$featureValueName}\" не найдена. Сначала импортируйте особенности.");
+            }
+
+            $featureValueId = $featureValue->id;
+        }
         $parts = $this->wiper->splitDetails($details);
         $sideCounts = array_count_values(array_column($parts, 'side'));
 
