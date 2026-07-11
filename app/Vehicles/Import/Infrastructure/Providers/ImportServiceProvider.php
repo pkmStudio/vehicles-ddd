@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Infrastructure\Providers;
 
-use App\Vehicles\Import\Application\Factories\Engine\EngineDataFactory;
-use App\Vehicles\Import\Application\Factories\External\ExternalFileImportFactory;
-use App\Vehicles\Import\Application\Factories\EngineModification\EngineModificationDataFactory;
-use App\Vehicles\Import\Application\Factories\Manufacturer\ManufacturerDataFactory;
-use App\Vehicles\Import\Application\Factories\Modification\ModificationDataFactory;
-use App\Vehicles\Import\Application\Factories\Vehicle\VehicleDataFactory;
+use App\Vehicles\Import\Application\Factories\EngineDataFactory;
+use App\Vehicles\Import\Application\Factories\ExternalFileImportFactory;
+use App\Vehicles\Import\Application\Factories\EngineModificationDataFactory;
+use App\Vehicles\Import\Application\Factories\ManufacturerDataFactory;
+use App\Vehicles\Import\Application\Factories\ModificationDataFactory;
+use App\Vehicles\Import\Application\Factories\VehicleDataFactory;
 use App\Vehicles\Import\Application\Services\External\CleanupExternalImportFileService;
 use App\Vehicles\Import\Application\Services\External\ExternalImportCacheService;
 use App\Vehicles\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Vehicles\Import\Application\Services\Engine\AssignEngineGroupService;
-use App\Vehicles\Import\Application\Services\Engine\EngineEditableColumnsMapper;
-use App\Vehicles\Import\Application\Services\Engine\UpdateEngineEditableFieldsService;
 use App\Vehicles\Import\Application\Services\Engine\UpsertEngineFromSheetService;
 use App\Vehicles\Import\Application\Services\Engine\UpsertEngineSparkPlugSpecService;
 use App\Vehicles\Import\Application\Services\Engine\UpsertSparkPlugSpecByModificationService;
@@ -40,10 +38,8 @@ use App\Vehicles\Import\Domain\Contracts\Services\External\ExternalImportCacheSe
 use App\Vehicles\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\EngineModificationReadinessGateInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Template\DetailsBuilderInterface;
-use App\Vehicles\Import\Domain\Contracts\Services\Engine\EngineEditableColumnsMapperInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Template\TemplateDataBuilderInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\AssignEngineGroupServiceInterface;
-use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpdateEngineEditableFieldsServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
@@ -71,16 +67,16 @@ use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositor
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Exports\FailuresExportInterface;
 use App\Vehicles\Import\Domain\Contracts\Exports\ImportFailureReporterInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\EngineCommandImportInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\EngineCrossImportInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\EngineModificationImportInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\EngineMultiSheetImportInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\EnginesCodeImportInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\EngineSparkPlugSpecificationImportInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\ManufacturerCommandImportInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\ModificationCommandImportInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\VehicleCommandImportInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\VehicleMultiSheetImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\EngineCommandImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineCrossImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\EngineModificationImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineMultiSheetImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\EnginesCodeImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineSparkPlugSpecificationImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\ManufacturerCommandImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\ModificationCommandImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\VehicleCommandImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\External\VehicleMultiSheetImportInterface;
 use App\Vehicles\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use App\Vehicles\Import\Infrastructure\Commands\EngineCommand;
 use App\Vehicles\Import\Infrastructure\Commands\EngineModificationCommand;
@@ -179,14 +175,12 @@ final class ImportServiceProvider extends ServiceProvider
         ExternalImportCacheServiceInterface::class => ExternalImportCacheService::class,
         TemplateDataBuilderInterface::class => TemplateDataBuilder::class,
         DetailsBuilderInterface::class => DetailsBuilder::class,
-        EngineEditableColumnsMapperInterface::class => EngineEditableColumnsMapper::class,
         EngineModificationReadinessGateInterface::class => EngineModificationReadinessGate::class,
         ReportImportResultServiceInterface::class => ReportImportResultService::class,
         UpsertEngineFromSheetServiceInterface::class => UpsertEngineFromSheetService::class,
         UpsertEngineSparkPlugSpecServiceInterface::class => UpsertEngineSparkPlugSpecService::class,
         UpsertSparkPlugSpecByModificationServiceInterface::class => UpsertSparkPlugSpecByModificationService::class,
         AssignEngineGroupServiceInterface::class => AssignEngineGroupService::class,
-        UpdateEngineEditableFieldsServiceInterface::class => UpdateEngineEditableFieldsService::class,
         UpsertManufacturerFromRowServiceInterface::class => UpsertManufacturerFromRowService::class,
         UpsertModificationFromRowServiceInterface::class => UpsertModificationFromRowService::class,
         UpsertVehicleFromSheetServiceInterface::class => UpsertVehicleFromSheetService::class,

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Engine;
 
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\EngineCommandImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\EngineCommandImportInterface;
 use App\Vehicles\Import\Domain\Events\Engine\EngineCommandImported;
+use App\Vehicles\Import\Infrastructure\Imports\Engine\Mappers\EngineSheetRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use InvalidArgumentException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -29,6 +31,7 @@ final class EngineCommandImport implements EngineCommandImportInterface, ShouldQ
 {
     public function __construct(
         private readonly UpsertEngineFromSheetServiceInterface $service,
+        private readonly EngineSheetRowMapper $rowMapper,
     ) {}
 
     public function import(string $path): void
@@ -44,10 +47,15 @@ final class EngineCommandImport implements EngineCommandImportInterface, ShouldQ
     public function collection(Collection $collection): void
     {
         foreach ($collection as $index => $row) {
+            $rowValues = $row->toArray();
             try {
-                $this->service->upsertFromRow($row->toArray());
+                $engineRow = $this->rowMapper->map($rowValues);
+
+                $this->service->upsertFromRow($engineRow);
             } catch (ValidationException $e) {
-                $this->onFailure(new Failure($index + $this->startRow(), 'Двигатель', Arr::flatten($e->errors()), $row->toArray()));
+                $this->onFailure(new Failure($index + $this->startRow(), 'Двигатель', Arr::flatten($e->errors()), $rowValues));
+            } catch (InvalidArgumentException $e) {
+                $this->onFailure(new Failure($index + $this->startRow(), 'Двигатель', [$e->getMessage()], $rowValues));
             }
         }
     }

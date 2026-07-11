@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Vehicle\Sheets;
 
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
+use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleSheetRowMapper;
 use App\Vehicles\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -18,12 +19,13 @@ final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, With
     use CachesImportFailures;
 
     public function __construct(
-        string $runId,
         string $cacheKey,
+        string $lockKey,
         private readonly UpsertVehicleFromSheetServiceInterface $upsertVehicle,
+        private readonly VehicleSheetRowMapper $rowMapper,
     ) {
         $this->cacheKey = $cacheKey;
-        $this->lockKey = "vehicle_import_failures_lock_{$runId}";
+        $this->lockKey = $lockKey;
     }
 
     /**
@@ -32,9 +34,12 @@ final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, With
     public function collection(Collection $collection): void
     {
         foreach ($collection as $indexRow => $row) {
+            $rowValues = $row->toArray();
             DB::beginTransaction();
             try {
-                $this->upsertVehicle->upsertFromRow($row->toArray());
+                $vehicleRow = $this->rowMapper->map($rowValues);
+
+                $this->upsertVehicle->upsertFromRow($vehicleRow);
                 DB::commit();
             } catch (\Throwable $e) {
                 DB::rollBack();
@@ -44,7 +49,7 @@ final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, With
                         row: $indexRow + $this->startRow(),
                         attribute: 'Основная информация',
                         errors: [$e->getMessage()],
-                        values: $row->toArray(),
+                        values: $rowValues,
                     )
                 );
             }

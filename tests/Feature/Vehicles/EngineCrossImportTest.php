@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles;
 
-use App\Vehicles\Import\Domain\Contracts\Imports\EngineCrossImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineCrossImportInterface;
 use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
 use App\Vehicles\Import\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Vehicles\Import\Infrastructure\Models\Engine;

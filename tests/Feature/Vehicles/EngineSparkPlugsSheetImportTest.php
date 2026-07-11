@@ -26,8 +26,8 @@ final class EngineSparkPlugsSheetImportTest extends TestCase
 
         /** @var EngineSparkPlugsSheetImport $import */
         $import = app()->makeWith(EngineSparkPlugsSheetImport::class, [
-            'runId' => 'test-run-spark-plugs-sheet',
             'cacheKey' => 'engine_spark_plugs_sheet_test',
+            'lockKey' => 'engine_spark_plugs_sheet_test_lock',
         ]);
 
         // index 0 = eng_id, 1-8 = не относящиеся к тесту колонки, 9+ = thread.size/pitch/length, electrode.gap, wrench_jaw_width

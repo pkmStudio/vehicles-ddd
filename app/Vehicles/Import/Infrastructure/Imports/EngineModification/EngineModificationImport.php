@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\EngineModification;
 
 use App\Vehicles\Import\Domain\Contracts\Services\EngineModification\LinkEngineModificationFromRowServiceInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\EngineModificationImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\EngineModificationImportInterface;
+use App\Vehicles\Import\Infrastructure\Imports\EngineModification\Mappers\EngineModificationCommandRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use InvalidArgumentException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -26,6 +28,7 @@ final class EngineModificationImport implements EngineModificationImportInterfac
 {
     public function __construct(
         private readonly LinkEngineModificationFromRowServiceInterface $service,
+        private readonly EngineModificationCommandRowMapper $rowMapper,
     ) {}
 
     public function import(string $path): void
@@ -41,10 +44,15 @@ final class EngineModificationImport implements EngineModificationImportInterfac
     public function collection(Collection $collection): void
     {
         foreach ($collection as $index => $row) {
+            $rowValues = $row->toArray();
             try {
-                $this->service->linkFromRow($row->toArray());
+                $engineModificationRow = $this->rowMapper->map($rowValues);
+
+                $this->service->linkFromRow($engineModificationRow);
             } catch (ValidationException $e) {
-                $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', Arr::flatten($e->errors()), $row->toArray()));
+                $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', Arr::flatten($e->errors()), $rowValues));
+            } catch (InvalidArgumentException $e) {
+                $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', [$e->getMessage()], $rowValues));
             }
         }
     }

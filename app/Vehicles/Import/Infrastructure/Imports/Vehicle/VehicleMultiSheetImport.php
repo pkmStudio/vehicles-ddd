@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Infrastructure\Imports\Vehicle;
 
+use App\Vehicles\Import\Domain\Contracts\Imports\External\VehicleMultiSheetImportInterface;
 use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
-use App\Vehicles\Import\Domain\Enums\InOut\Sheets\VehicleImportSheet;
-use App\Vehicles\Import\Domain\Contracts\Imports\VehicleMultiSheetImportInterface;
+use App\Vehicles\Import\Domain\Enums\VehicleImportSheet;
 use App\Vehicles\Import\Domain\Events\Vehicle\VehicleImportCompleted;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Sheets\VehicleMainSheetImport;
 use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
@@ -21,25 +21,25 @@ final class VehicleMultiSheetImport implements ShouldQueue, VehicleMultiSheetImp
 {
     public ImportRunContext $context;
 
-    private string $cacheKey;
-
     public function import(string $path, ImportRunContext $context, ?string $disk = null): void
     {
         $this->context = $context;
-        $this->cacheKey = "vehicle_import_failures_{$context->runId}";
         Excel::import($this, $path, $disk);
     }
 
     public function sheets(): array
     {
+        $cacheKey = $this->cacheKey();
+        $lockKey = $this->lockKey();
+
         return [
             VehicleImportSheet::Main->value => app()->makeWith(
                 VehicleMainSheetImport::class,
-                ['runId' => $this->context->runId, 'cacheKey' => $this->cacheKey],
+                ['cacheKey' => $cacheKey, 'lockKey' => $lockKey],
             ),
             VehicleImportSheet::Wipers->value => app()->makeWith(
                 VehicleWipersSheetImport::class,
-                ['runId' => $this->context->runId, 'cacheKey' => $this->cacheKey],
+                ['cacheKey' => $cacheKey, 'lockKey' => $lockKey],
             ),
         ];
     }
@@ -56,11 +56,27 @@ final class VehicleMultiSheetImport implements ShouldQueue, VehicleMultiSheetImp
         /** @var VehicleMultiSheetImport $import */
         $import = $event->getConcernable();
 
-        event(new VehicleImportCompleted($import->context->userId, $import->cacheKey, $import->context->runId));
+        event(new VehicleImportCompleted($import->context->userId, $import->cacheKey(), $import->context->runId));
     }
 
     public function chunkSize(): int
     {
         return 500;
+    }
+
+    private function cacheKey(): string
+    {
+        return sprintf(
+            (string) config('vehicles-import.failures.cache.keys.vehicle_import_failures'),
+            $this->context->runId,
+        );
+    }
+
+    private function lockKey(): string
+    {
+        return sprintf(
+            (string) config('vehicles-import.failures.cache.keys.vehicle_import_failures_lock'),
+            $this->context->runId,
+        );
     }
 }

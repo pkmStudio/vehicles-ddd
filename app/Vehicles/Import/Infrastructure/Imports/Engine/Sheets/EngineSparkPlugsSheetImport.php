@@ -29,13 +29,13 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
     private const int SPEC_START_COLUMN = 9;
 
     public function __construct(
-        string $runId,
         string $cacheKey,
+        string $lockKey,
         private readonly UpsertEngineSparkPlugSpecServiceInterface $service,
         private readonly TemplateDataBuilderInterface $templateDataBuilder,
     ) {
         $this->cacheKey = $cacheKey;
-        $this->lockKey = "engine_import_failures_lock_{$runId}";
+        $this->lockKey = $lockKey;
     }
 
     /**

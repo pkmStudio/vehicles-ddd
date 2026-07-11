@@ -43,16 +43,6 @@ final readonly class EngineCommand implements EngineCommandInterface
         );
     }
 
-    public function updateEditableByEngId(int $engId, array $attributes): EngineData
-    {
-        return EngineData::from(
-            Engine::query()->updateOrCreate(
-                ['eng_id' => $engId],
-                $attributes,
-            ),
-        );
-    }
-
     public function setGroupId(EngineData $engine, int $groupId): void
     {
         Engine::query()->whereKey($engine->id)->update(['group_id' => $groupId]);

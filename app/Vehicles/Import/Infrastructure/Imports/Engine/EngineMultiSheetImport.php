@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Infrastructure\Imports\Engine;
 
+use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineMultiSheetImportInterface;
 use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
-use App\Vehicles\Import\Domain\Enums\InOut\Sheets\EngineImportSheet;
-use App\Vehicles\Import\Domain\Contracts\Imports\EngineMultiSheetImportInterface;
+use App\Vehicles\Import\Domain\Enums\EngineImportSheet;
 use App\Vehicles\Import\Domain\Events\Engine\EngineImportCompleted;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Vehicles\Import\Infrastructure\Imports\Engine\Sheets\EngineMainSheetImport;
 use App\Vehicles\Import\Infrastructure\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
@@ -21,25 +21,25 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
 {
     public ImportRunContext $context;
 
-    private string $cacheKey;
-
     public function import(string $path, ImportRunContext $context, ?string $disk = null): void
     {
         $this->context = $context;
-        $this->cacheKey = "engine_import_failures_{$context->runId}";
         Excel::import($this, $path, $disk);
     }
 
     public function sheets(): array
     {
+        $cacheKey = $this->cacheKey();
+        $lockKey = $this->lockKey();
+
         return [
             EngineImportSheet::Main->value => app()->makeWith(
                 EngineMainSheetImport::class,
-                ['runId' => $this->context->runId, 'cacheKey' => $this->cacheKey],
+                ['cacheKey' => $cacheKey, 'lockKey' => $lockKey],
             ),
             EngineImportSheet::SparkPlugs->value => app()->makeWith(
                 EngineSparkPlugsSheetImport::class,
-                ['runId' => $this->context->runId, 'cacheKey' => $this->cacheKey],
+                ['cacheKey' => $cacheKey, 'lockKey' => $lockKey],
             ),
         ];
     }
@@ -56,11 +56,27 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
         /** @var EngineMultiSheetImport $import */
         $import = $event->getConcernable();
 
-        event(new EngineImportCompleted($import->context->userId, $import->cacheKey, $import->context->runId));
+        event(new EngineImportCompleted($import->context->userId, $import->cacheKey(), $import->context->runId));
     }
 
     public function chunkSize(): int
     {
         return 100;
+    }
+
+    private function cacheKey(): string
+    {
+        return sprintf(
+            (string) config('vehicles-import.failures.cache.keys.engine_import_failures'),
+            $this->context->runId,
+        );
+    }
+
+    private function lockKey(): string
+    {
+        return sprintf(
+            (string) config('vehicles-import.failures.cache.keys.engine_import_failures_lock'),
+            $this->context->runId,
+        );
     }
 }

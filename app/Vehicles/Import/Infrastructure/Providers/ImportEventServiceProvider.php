@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Providers;
 
 use App\Vehicles\Import\Application\Listeners\EngineModificationReadinessSubscriber;
+use App\Vehicles\Import\Application\Listeners\CleanupExternalImportFileListener;
 use App\Vehicles\Import\Application\Listeners\ReportImportResultListener;
-use App\Vehicles\Import\Application\Listeners\StartEngineImportListener;
-use App\Vehicles\Import\Application\Listeners\StartEngineModificationImportListener;
-use App\Vehicles\Import\Application\Listeners\StartModificationCommandImportListener;
-use App\Vehicles\Import\Application\Listeners\StartVehicleImportListener;
+use App\Vehicles\Import\Application\Listeners\Command\StartEngineCommandImportListener;
+use App\Vehicles\Import\Application\Listeners\Command\StartEngineModificationCommandImportListener;
+use App\Vehicles\Import\Application\Listeners\Command\StartModificationCommandImportListener;
+use App\Vehicles\Import\Application\Listeners\Command\StartVehicleCommandImportListener;
 use App\Vehicles\Import\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Vehicles\Import\Domain\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Import\Domain\Events\EnginesAndModificationsReady;
@@ -29,8 +30,8 @@ class ImportEventServiceProvider extends ServiceProvider
         /**
          * Цепочка импортных команд.
          */
-        Event::listen(ManufacturerCommandImported::class, StartVehicleImportListener::class);
-        Event::listen(ManufacturerCommandImported::class, StartEngineImportListener::class);
+        Event::listen(ManufacturerCommandImported::class, StartVehicleCommandImportListener::class);
+        Event::listen(ManufacturerCommandImported::class, StartEngineCommandImportListener::class);
 
         Event::listen(VehicleCommandImported::class, StartModificationCommandImportListener::class);
 
@@ -43,7 +44,7 @@ class ImportEventServiceProvider extends ServiceProvider
         /**
          * Двигатели и модификации готовы — импорт связей engine_modification.
          */
-        Event::listen(EnginesAndModificationsReady::class, StartEngineModificationImportListener::class);
+        Event::listen(EnginesAndModificationsReady::class, StartEngineModificationCommandImportListener::class);
 
         /**
          * Выгрузка ошибок после завершения импортов.
@@ -51,5 +52,9 @@ class ImportEventServiceProvider extends ServiceProvider
         Event::listen(VehicleImportCompleted::class, ReportImportResultListener::class);
         Event::listen(EngineImportCompleted::class, ReportImportResultListener::class);
         Event::listen(EngineCrossImportCompleted::class, ReportImportResultListener::class);
+
+        Event::listen(VehicleImportCompleted::class, CleanupExternalImportFileListener::class);
+        Event::listen(EngineImportCompleted::class, CleanupExternalImportFileListener::class);
+        Event::listen(EngineCrossImportCompleted::class, CleanupExternalImportFileListener::class);
     }
 }

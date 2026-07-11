@@ -16,9 +16,6 @@ interface EngineCommandInterface
     /** Upsert по натуральному ключу eng_id. */
     public function upsertByEngId(EngineData $data): EngineData;
 
-    /** Частичное обновление редактируемых колонок по eng_id (создаёт, если нет). */
-    public function updateEditableByEngId(int $engId, array $attributes): EngineData;
-
     /** Проставить группу двигателю (по $engine->id). */
     public function setGroupId(EngineData $engine, int $groupId): void;
 

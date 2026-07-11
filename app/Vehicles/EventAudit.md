@@ -31,10 +31,10 @@
 
 | Класс | Строка | На каком событии | Что делает |
 |---|---:|---|---|
-| `app/Vehicles/Infrastructure/Providers/EventServiceProvider.php:32` | 32 | `ManufacturerCommandImported` | Инициализирует `StartVehicleImportListener` и `StartEngineImportListener`. |
+| `app/Vehicles/Infrastructure/Providers/EventServiceProvider.php:32` | 32 | `ManufacturerCommandImported` | Инициализирует `StartVehicleCommandImportListener` и `StartEngineCommandImportListener`. |
 | `app/Vehicles/Infrastructure/Providers/EventServiceProvider.php:35` | 35 | `VehicleCommandImported` | Инициализирует `StartModificationCommandImportListener`. |
 | `app/Vehicles/Infrastructure/Providers/EventServiceProvider.php:41` | 41 | `EngineCommandImported`, `ModificationCommandImported` (через `subscribe`) | `EngineModificationReadinessSubscriber` собирает обе фазы и выставляет готовность. |
-| `app/Vehicles/Infrastructure/Providers/EventServiceProvider.php:46` | 46 | `EnginesAndModificationsReady` | Инициализирует `StartEngineModificationImportListener`. |
+| `app/Vehicles/Infrastructure/Providers/EventServiceProvider.php:46` | 46 | `EnginesAndModificationsReady` | Инициализирует `StartEngineModificationCommandImportListener`. |
 | `app/Vehicles/Infrastructure/Providers/EventServiceProvider.php:51` | 51 | `VehicleImportCompleted` | Инициализирует `ReportImportResultListener`. |
 | `app/Vehicles/Infrastructure/Providers/EventServiceProvider.php:52` | 52 | `EngineImportCompleted` | Инициализирует `ReportImportResultListener`. |
 | `app/Vehicles/Infrastructure/Providers/EventServiceProvider.php:53` | 53 | `EngineCrossImportCompleted` | Инициализирует `ReportImportResultListener`. |

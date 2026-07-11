@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Vehicle;
 
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\VehicleCommandImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\VehicleCommandImportInterface;
 use App\Vehicles\Import\Domain\Events\Vehicle\VehicleCommandImported;
+use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleTdRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use InvalidArgumentException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -29,6 +31,7 @@ final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToColle
 {
     public function __construct(
         private readonly UpsertVehicleFromTdRowServiceInterface $service,
+        private readonly VehicleTdRowMapper $rowMapper,
     ) {}
 
     public function import(string $path): void
@@ -45,14 +48,18 @@ final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToColle
     {
         foreach ($collection as $index => $row) {
             $line = $index + $this->startRow();
+            $rowValues = $row->toArray();
             try {
-                $vehicle = $this->service->upsertFromRow($row->toArray());
+                $vehicleRow = $this->rowMapper->map($rowValues);
+                $vehicle = $this->service->upsertFromRow($vehicleRow);
 
                 if (! $vehicle) {
-                    $this->fail($line, "Производитель mfa_id={$row[0]} не найден", $row->toArray());
+                    $this->fail($line, "Производитель mfa_id={$vehicleRow->mfaId} не найден", $rowValues);
                 }
             } catch (ValidationException $e) {
-                $this->fail($line, Arr::flatten($e->errors()), $row->toArray());
+                $this->fail($line, Arr::flatten($e->errors()), $rowValues);
+            } catch (InvalidArgumentException $e) {
+                $this->fail($line, $e->getMessage(), $rowValues);
             }
         }
     }

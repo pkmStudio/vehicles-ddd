@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Import\Application\Factories\EngineModification\EngineModificationDataFactory;
+use App\Vehicles\Import\Application\Factories\EngineModificationDataFactory;
 use App\Vehicles\Import\Application\Services\EngineModification\LinkEngineModificationFromRowService;
 use App\Vehicles\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
+use App\Vehicles\Import\Domain\DTOs\EngineModification\EngineModificationCommandRowDTO;
 use App\Vehicles\Import\Domain\ModelData\EngineModification\EngineModificationData;
 use Illuminate\Validation\ValidationException;
 use Mockery;
@@ -22,7 +23,7 @@ final class LinkEngineModificationFromRowServiceTest extends TestCase
             ->with(Mockery::on(fn (EngineModificationData $d) => $d->engId === 1 && $d->modId === 2 && $d->type === 'PC'));
 
         $service = new LinkEngineModificationFromRowService($command, new EngineModificationDataFactory);
-        $service->linkFromRow([1, 2, 'PC']);
+        $service->linkFromRow(new EngineModificationCommandRowDTO(engId: 1, modId: 2, type: 'PC'));
 
         $this->addToAssertionCount(1);
     }
@@ -35,7 +36,7 @@ final class LinkEngineModificationFromRowServiceTest extends TestCase
         $service = new LinkEngineModificationFromRowService($command, new EngineModificationDataFactory);
 
         $this->expectException(ValidationException::class);
-        $service->linkFromRow([1, 2, 'НЕВЕРНО']);
+        $service->linkFromRow(new EngineModificationCommandRowDTO(engId: 1, modId: 2, type: 'НЕВЕРНО'));
     }
 
     protected function tearDown(): void

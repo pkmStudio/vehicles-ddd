@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Infrastructure\Imports\Engine\Sheets;
 
-use App\Vehicles\Import\Domain\Contracts\Services\Engine\EngineEditableColumnsMapperInterface;
-use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpdateEngineEditableFieldsServiceInterface;
+use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
+use App\Vehicles\Import\Infrastructure\Imports\Engine\Mappers\EngineMainSheetRowMapper;
 use App\Vehicles\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -15,31 +15,32 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Validators\Failure;
 
 /**
- * Excel-адаптер edit-листа двигателей (механика): сопоставляет колонки Excel редактируемым
- * полям и на каждую строку зовёт сценарий частичного обновления.
+ * Excel-адаптер основного листа двигателей (механика): сопоставляет колонки Excel
+ * с EngineSheetRowDTO и на каждую строку зовёт обычный сценарий upsert двигателя.
  */
 final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithStartRow
 {
     use CachesImportFailures;
 
     public function __construct(
-        string $runId,
         string $cacheKey,
-        private readonly UpdateEngineEditableFieldsServiceInterface $service,
-        private readonly EngineEditableColumnsMapperInterface $editableColumnsMapper,
+        string $lockKey,
+        private readonly UpsertEngineFromSheetServiceInterface $service,
+        private readonly EngineMainSheetRowMapper $rowMapper,
     ) {
         $this->cacheKey = $cacheKey;
-        $this->lockKey = "engine_import_failures_lock_{$runId}";
+        $this->lockKey = $lockKey;
     }
 
     public function collection(Collection $collection): void
     {
         foreach ($collection as $indexRow => $row) {
+            $rowValues = $row->toArray();
             DB::beginTransaction();
             try {
-                $attributes = $this->editableColumnsMapper->extractEditableAttributes($row->toArray());
+                $engineRow = $this->rowMapper->map($rowValues);
 
-                $this->service->updateEditableFields((int) $row[0], $attributes);
+                $this->service->upsertFromRow($engineRow);
                 DB::commit();
             } catch (\Throwable $e) {
                 DB::rollBack();
@@ -49,7 +50,7 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
                         row: $indexRow + $this->startRow(),
                         attribute: 'Двигатели',
                         errors: [$e->getMessage()],
-                        values: $row->toArray(),
+                        values: $rowValues,
                     )
                 );
             }

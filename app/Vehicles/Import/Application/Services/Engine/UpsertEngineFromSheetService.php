@@ -7,6 +7,7 @@ namespace App\Vehicles\Import\Application\Services\Engine;
 use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Factories\EngineDataFactoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
+use App\Vehicles\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
 use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
 use Illuminate\Validation\ValidationException;
 
@@ -23,24 +24,22 @@ final readonly class UpsertEngineFromSheetService implements UpsertEngineFromShe
     ) {}
 
     /**
-     * @param  array<int, mixed>  $row
-     *
      * @throws ValidationException
      */
-    public function upsertFromRow(array $row): EngineData
+    public function upsertFromRow(EngineSheetRowDTO $row): EngineData
     {
         $data = $this->factory->make([
-            'eng_id' => $row[0] ?? null,
-            'code_engine' => $row[1] ?? null,
-            'eng_power_kw_start' => $row[2] ?? null,
-            'eng_power_kw_upto' => $row[3] ?? null,
-            'eng_power_ps_start' => $row[4] ?? null,
-            'eng_power_ps_upto' => $row[5] ?? null,
-            'engine_capacity' => $row[6] ?? null,
-            'cylinder_diameter' => $row[7] ?? null,
-            'cylinder_count' => $row[8] ?? null,
-            'eng_number_of_valves' => $row[9] ?? null,
-            'eng_fuel_type' => ($row[10] ?? null) ?: null,
+            'eng_id' => $row->engId,
+            'code_engine' => $row->codeEngine,
+            'eng_power_kw_start' => $row->engPowerKwStart,
+            'eng_power_kw_upto' => $row->engPowerKwUpto,
+            'eng_power_ps_start' => $row->engPowerPsStart,
+            'eng_power_ps_upto' => $row->engPowerPsUpto,
+            'engine_capacity' => $row->engineCapacity,
+            'cylinder_diameter' => $row->cylinderDiameter,
+            'cylinder_count' => $row->cylinderCount,
+            'eng_number_of_valves' => $row->engNumberOfValves,
+            'eng_fuel_type' => $row->engFuelType,
         ]);
 
         return $this->command->upsertByEngId($data);

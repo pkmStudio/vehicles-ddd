@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Presentation\Console\Commands;
 
 use App\Vehicles\Import\Domain\Contracts\Services\EngineModificationReadinessGateInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\ManufacturerCommandImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\ManufacturerCommandImportInterface;
 use Illuminate\Console\Command;
 
 class TecDocImportCars extends Command

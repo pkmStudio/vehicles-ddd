@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Infrastructure\Imports\Engine;
 
-use App\Vehicles\Import\Domain\Contracts\Imports\EngineSparkPlugSpecificationImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineSparkPlugSpecificationImportInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Template\TemplateDataBuilderInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
@@ -44,12 +44,18 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         private readonly TemplateDataBuilderInterface $templateDataBuilder,
     ) {}
 
-    public function import(string $path, ImportRunContext $context): void
+    public function import(string $path, ImportRunContext $context, ?string $disk = null): void
     {
         $this->context = $context;
-        $this->cacheKey = "engine_import_failures_{$context->runId}";
-        $this->lockKey = "engine_import_failures_lock_{$context->runId}";
-        Excel::import($this, $path);
+        $this->cacheKey = sprintf(
+            (string) config('vehicles-import.failures.cache.keys.engine_import_failures'),
+            $context->runId,
+        );
+        $this->lockKey = sprintf(
+            (string) config('vehicles-import.failures.cache.keys.engine_import_failures_lock'),
+            $context->runId,
+        );
+        Excel::import($this, $path, $disk);
     }
 
     public function collection(Collection $collection): void
@@ -112,7 +118,7 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         /** @var EngineSparkPlugSpecificationImport $import */
         $import = $event->getConcernable();
 
-        event(new EngineImportCompleted($import->context->userId, $import->cacheKey));
+        event(new EngineImportCompleted($import->context->userId, $import->cacheKey, $import->context->runId));
     }
 
     public function startRow(): int

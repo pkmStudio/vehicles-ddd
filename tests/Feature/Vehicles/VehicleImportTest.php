@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles;
 
-use App\Vehicles\Import\Domain\Contracts\Imports\VehicleCommandImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\VehicleCommandImportInterface;
 use App\Vehicles\Import\Domain\Events\Vehicle\VehicleCommandImported;
 use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
 use App\Vehicles\Import\Infrastructure\Models\Vehicle;
@@ -14,7 +14,7 @@ use Tests\TestCase;
 
 /**
  * Регрессионный тест на plan.md §6.1 для VehicleCommandImport. VehicleCommandImported
- * фейкается точечно, чтобы не запустить реальный каскад (StartModificationCommandImportListener).
+ * фейкается точечно, чтобы не запустить реальный command-каскад (StartModificationCommandImportListener).
  */
 final class VehicleImportTest extends TestCase
 {

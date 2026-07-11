@@ -10,6 +10,7 @@ use App\Vehicles\Import\Domain\Contracts\Factories\VehicleDataFactoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
+use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleSheetRowDTO;
 use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
 use Illuminate\Validation\ValidationException;
 
@@ -31,33 +32,33 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
     /**
      * @throws ValidationException
      */
-    public function upsertFromRow(array $row): VehicleData
+    public function upsertFromRow(VehicleSheetRowDTO $row): VehicleData
     {
         $minMfaId = min($this->manufacturers->minMfaId(), 0);
         $minMsId = min($this->vehicles->minMsId(), 0);
 
-        $parentId = isset($row[13])
-            ? $this->vehicles->firstByMsId((int) $row[13])?->id
+        $parentId = $row->parentMsId !== null
+            ? $this->vehicles->firstByMsId($row->parentMsId)?->id
             : null;
 
         [$mfaId, $manufacturerId] = $this->resolveManufacturer($minMfaId, $row);
-        $msId = $row[2] ?? --$minMsId;
+        $msId = $row->msId ?? --$minMsId;
 
         $data = $this->factory->make([
             'ms_id' => $msId,
             'mfa_id' => $mfaId,
-            'name' => $row[4] ?? null,
-            'type' => $row[11] ?? null,
-            'type_carcase' => ($row[10] ?? null) ?: null,
-            'steering_type' => ($row[14] ?? null) ?: null,
-            'generation' => $row[7] ?? null,
-            'generation_short' => $row[6] ?? null,
-            'localized_name' => $row[5] ?? null,
-            'excel_table_id' => $row[0] ?? null,
-            'provider' => $row[12] ?? null,
-            'generation_year_from' => $row[8] ?? null,
-            'generation_year_to' => $row[9] ?? null,
-            'is_allow' => ($row[15] ?? null) === 'Да',
+            'name' => $row->name,
+            'type' => $row->type,
+            'type_carcase' => $row->typeCarcase,
+            'steering_type' => $row->steeringType,
+            'generation' => $row->generation,
+            'generation_short' => $row->generationShort,
+            'localized_name' => $row->localizedName,
+            'excel_table_id' => $row->excelTableId,
+            'provider' => $row->provider,
+            'generation_year_from' => $row->generationYearFrom,
+            'generation_year_to' => $row->generationYearTo,
+            'is_allow' => $row->isAllow,
             'manufacturer_id' => $manufacturerId,
             'parent_id' => $parentId,
         ]);
@@ -68,11 +69,11 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
     /**
      * @return array{0: int, 1: int} [mfa_id, manufacturer_id]
      */
-    private function resolveManufacturer(int &$minMfaId, array $row): array
+    private function resolveManufacturer(int &$minMfaId, VehicleSheetRowDTO $row): array
     {
-        $manufacturer = empty($row[1])
-            ? $this->manufacturerCommand->firstOrCreateByName($row[3], --$minMfaId)
-            : $this->manufacturerCommand->firstOrCreateByMfaId((int) $row[1], $row[3]);
+        $manufacturer = $row->mfaId === null
+            ? $this->manufacturerCommand->firstOrCreateByName($row->manufacturerName, --$minMfaId)
+            : $this->manufacturerCommand->firstOrCreateByMfaId($row->mfaId, $row->manufacturerName);
 
         return [$manufacturer->mfaId, $manufacturer->id];
     }

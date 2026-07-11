@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Import\Application\Factories\Manufacturer\ManufacturerDataFactory;
+use App\Vehicles\Import\Application\Factories\ManufacturerDataFactory;
 use App\Vehicles\Import\Application\Services\Manufacturer\UpsertManufacturerFromRowService;
 use App\Vehicles\Import\Domain\Contracts\Commands\ManufacturerCommandInterface;
+use App\Vehicles\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
 use App\Vehicles\Import\Domain\ModelData\Manufacturer\ManufacturerData;
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Validation\ValidationException;
@@ -27,7 +28,7 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
 
         $service = new UpsertManufacturerFromRowService($command, new ManufacturerDataFactory);
 
-        $this->assertSame($expected, $service->upsertFromRow([10, 'Skoda']));
+        $this->assertSame($expected, $service->upsertFromRow(new ManufacturerCommandRowDTO(mfaId: 10, name: 'Skoda')));
     }
 
     public function test_missing_name_throws_validation_exception(): void
@@ -38,7 +39,7 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
         $service = new UpsertManufacturerFromRowService($command, new ManufacturerDataFactory);
 
         $this->expectException(ValidationException::class);
-        $service->upsertFromRow([10]);
+        $service->upsertFromRow(new ManufacturerCommandRowDTO(mfaId: 10, name: null));
     }
 
     protected function tearDown(): void

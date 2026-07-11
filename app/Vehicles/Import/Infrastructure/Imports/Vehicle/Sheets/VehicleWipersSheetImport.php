@@ -7,6 +7,7 @@ namespace App\Vehicles\Import\Infrastructure\Imports\Vehicle\Sheets;
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Template\TemplateDataBuilderInterface;
+use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleSheetRowMapper;
 use App\Vehicles\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
@@ -28,14 +29,15 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
     private const int SPEC_START_COLUMN = 20;
 
     public function __construct(
-        string $runId,
         string $cacheKey,
+        string $lockKey,
         private readonly UpsertVehicleFromSheetServiceInterface $upsertVehicle,
         private readonly VehicleWiperSpecificationImportServiceInterface $upsertWiperSpec,
         private readonly TemplateDataBuilderInterface $templateDataBuilder,
+        private readonly VehicleSheetRowMapper $rowMapper,
     ) {
         $this->cacheKey = $cacheKey;
-        $this->lockKey = "vehicle_import_failures_lock_{$runId}";
+        $this->lockKey = $lockKey;
     }
 
     /**
@@ -50,10 +52,13 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
             }
 
             $row = $row->map(fn ($value) => is_string($value) ? trim($value) : $value);
+            $rowValues = $row->toArray();
             DB::beginTransaction();
             try {
-                $vehicle = $this->upsertVehicle->upsertFromRow($row->toArray());
-                $this->writeWiperSpec($vehicle->id, $row->toArray());
+                $vehicleRow = $this->rowMapper->map($rowValues);
+                $vehicle = $this->upsertVehicle->upsertFromRow($vehicleRow);
+
+                $this->writeWiperSpec($vehicle->id, $rowValues);
                 DB::commit();
             } catch (\Throwable $e) {
                 DB::rollBack();
@@ -63,7 +68,7 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
                         row: $indexRow + $this->startRow(),
                         attribute: 'Дворники',
                         errors: [$e->getMessage()],
-                        values: $row->toArray(),
+                        values: $rowValues,
                     ),
                 );
             }

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Import\Application\Factories\Modification\ModificationDataFactory;
+use App\Vehicles\Import\Application\Factories\ModificationDataFactory;
 use App\Vehicles\Import\Application\Services\Modification\UpsertModificationFromRowService;
 use App\Vehicles\Import\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Import\Domain\DTOs\Modification\ModificationCommandRowDTO;
 use App\Vehicles\Import\Domain\ModelData\Modification\ModificationData;
 use App\Vehicles\Import\Domain\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
@@ -19,9 +20,6 @@ use Tests\TestCase;
 
 final class UpsertModificationFromRowServiceTest extends TestCase
 {
-    /** [ms_id, mod_id, year_from, year_to, descr, ps, kw, eng, gear, drive, brake, cyl, cap, type] */
-    private const VALID_ROW = [200, 50, null, null, null, null, null, null, null, null, null, null, null, 'PC'];
-
     public function test_resolves_vehicle_and_upserts_modification(): void
     {
         $vehicle = new VehicleData(
@@ -48,7 +46,7 @@ final class UpsertModificationFromRowServiceTest extends TestCase
 
         $service = new UpsertModificationFromRowService($command, new ModificationDataFactory, $vehicles);
 
-        $this->assertSame($expected, $service->upsertFromRow(self::VALID_ROW));
+        $this->assertSame($expected, $service->upsertFromRow($this->validRow()));
     }
 
     public function test_returns_null_when_vehicle_not_found(): void
@@ -61,7 +59,27 @@ final class UpsertModificationFromRowServiceTest extends TestCase
 
         $service = new UpsertModificationFromRowService($command, new ModificationDataFactory, $vehicles);
 
-        $this->assertNull($service->upsertFromRow(self::VALID_ROW));
+        $this->assertNull($service->upsertFromRow($this->validRow()));
+    }
+
+    private function validRow(): ModificationCommandRowDTO
+    {
+        return new ModificationCommandRowDTO(
+            msId: 200,
+            modId: 50,
+            yearFrom: null,
+            yearTo: null,
+            description: null,
+            powerPs: null,
+            powerKw: null,
+            engineType: null,
+            gearType: null,
+            driveType: null,
+            brakeSystemType: null,
+            numberOfCylinders: null,
+            capacityLt: null,
+            type: 'PC',
+        );
     }
 
     protected function tearDown(): void

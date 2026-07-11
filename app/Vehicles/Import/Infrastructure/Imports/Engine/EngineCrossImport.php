@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Engine;
 
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\AssignEngineGroupServiceInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\EngineCrossImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineCrossImportInterface;
 use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
 use App\Vehicles\Import\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Vehicles\Import\Infrastructure\Traits\CachesImportFailures;
@@ -37,12 +37,18 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         private readonly AssignEngineGroupServiceInterface $service,
     ) {}
 
-    public function import(string $path, ImportRunContext $context): void
+    public function import(string $path, ImportRunContext $context, ?string $disk = null): void
     {
         $this->context = $context;
-        $this->cacheKey = "engine_import_failures_{$context->runId}";
-        $this->lockKey = "engine_import_failures_lock_{$context->runId}";
-        Excel::import($this, $path);
+        $this->cacheKey = sprintf(
+            (string) config('vehicles-import.failures.cache.keys.engine_import_failures'),
+            $context->runId,
+        );
+        $this->lockKey = sprintf(
+            (string) config('vehicles-import.failures.cache.keys.engine_import_failures_lock'),
+            $context->runId,
+        );
+        Excel::import($this, $path, $disk);
     }
 
     /**
@@ -120,7 +126,7 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         /** @var EngineCrossImport $import */
         $import = $event->getConcernable();
 
-        event(new EngineCrossImportCompleted($import->context->userId, $import->cacheKey));
+        event(new EngineCrossImportCompleted($import->context->userId, $import->cacheKey, $import->context->runId));
     }
 
     public function startRow(): int

@@ -10,10 +10,6 @@ use Maatwebsite\Excel\Validators\Failure;
 
 /**
  * Трейт для сохранения ошибок импорта в кэш с блокировкой.
- *
- * Использующий класс обязан объявить свойства:
- *   - string $cacheKey
- *   - string $lockKey
  */
 trait CachesImportFailures
 {

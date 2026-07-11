@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Import\Application\Factories\Engine\EngineDataFactory;
+use App\Vehicles\Import\Application\Factories\EngineDataFactory;
 use App\Vehicles\Import\Application\Services\Engine\UpsertEngineFromSheetService;
 use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Vehicles\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
 use App\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Vehicles\Import\Domain\ModelData\Engine\EngineData;
 use Illuminate\Validation\ValidationException;
@@ -36,7 +37,19 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
         $service = new UpsertEngineFromSheetService($command, new EngineDataFactory);
 
         // [eng_id, code_engine, kw_start, kw_upto, ps_start, ps_upto, capacity, cyl_diam, cyl_count, valves, fuel]
-        $result = $service->upsertFromRow([101, 'M54B30', 170, null, 231, null, '2979', 3.0, 6, 24, 'бензин']);
+        $result = $service->upsertFromRow(new EngineSheetRowDTO(
+            engId: 101,
+            codeEngine: 'M54B30',
+            engPowerKwStart: 170,
+            engPowerKwUpto: null,
+            engPowerPsStart: 231,
+            engPowerPsUpto: null,
+            engineCapacity: '2979',
+            cylinderDiameter: 3.0,
+            cylinderCount: 6,
+            engNumberOfValves: 24,
+            engFuelType: 'бензин',
+        ));
 
         $this->assertSame($expected, $result);
         $this->assertSame(101, $captured->engId);
@@ -55,7 +68,19 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
 
         $this->expectException(ValidationException::class);
         // несуществующий вид топлива — фабрика валидирует сырое значение через Rule::enum
-        $service->upsertFromRow([101, 'M54B30', null, null, null, null, null, null, null, null, 'плазма']);
+        $service->upsertFromRow(new EngineSheetRowDTO(
+            engId: 101,
+            codeEngine: 'M54B30',
+            engPowerKwStart: null,
+            engPowerKwUpto: null,
+            engPowerPsStart: null,
+            engPowerPsUpto: null,
+            engineCapacity: null,
+            cylinderDiameter: null,
+            cylinderCount: null,
+            engNumberOfValves: null,
+            engFuelType: 'плазма',
+        ));
     }
 
     public function test_missing_eng_id_throws_validation_exception(): void
@@ -66,7 +91,19 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
         $service = new UpsertEngineFromSheetService($command, new EngineDataFactory);
 
         $this->expectException(ValidationException::class);
-        $service->upsertFromRow([null, 'M54B30']);
+        $service->upsertFromRow(new EngineSheetRowDTO(
+            engId: null,
+            codeEngine: 'M54B30',
+            engPowerKwStart: null,
+            engPowerKwUpto: null,
+            engPowerPsStart: null,
+            engPowerPsUpto: null,
+            engineCapacity: null,
+            cylinderDiameter: null,
+            cylinderCount: null,
+            engNumberOfValves: null,
+            engFuelType: null,
+        ));
     }
 
     protected function tearDown(): void

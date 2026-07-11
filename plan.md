@@ -992,3 +992,19 @@ event()` `vladimir-yuldashev/laravel-queue-rabbitmq`, "во избежание �
   (см. `Applicability-dizajn.md`).
 - **Прод-миграции ещё не запускались** (только тестовая БД `dan_vehicles_test` на Postgres,
   §18). Правки самих файлов миграций поэтому безопасны (см. §6.4).
+- **Инфраструктурные импорты, где ещё остался raw row, отложены.** Entity-импорты уже
+  приведены к единому виду: Excel row -> infrastructure mapper -> domain RowDTO ->
+  Application service -> обычный Command upsert. Отдельного аналога старого
+  `EngineEditableFieldsRowMapper -> updateEditableByEngId(array $attributes)` больше нет:
+  `EngineMainSheetImport` теперь мапит строку в `EngineSheetRowDTO` и идёт через
+  `UpsertEngineFromSheetService -> EngineCommand::upsertByEngId(EngineData)`. Что осталось
+  как следующий возможный шаг:
+  - `EngineCrossImport` всё ещё сам парсит `array $row` (`group_id` + список кодов из ячейки)
+    и может получить отдельный `EngineCrossRowMapper`/DTO, но это другой use-case
+    (`assignGroup`), не partial update двигателя.
+  - Spark plug и wiper imports передают `row->toArray()` в `TemplateDataBuilder`, потому что
+    собирают динамические `details` по шаблону. Если чистить дальше, лучше заводить отдельные
+    spec/wiper row-mapper'ы, которые возвращают уже `details + ids`, а не протаскивать всю
+    строку Excel в сервис.
+  - `EnginesCodeImport` помечен `@deprecated` и только возвращает коллекцию; трогать отдельно
+    при удалении deprecated-импортов.

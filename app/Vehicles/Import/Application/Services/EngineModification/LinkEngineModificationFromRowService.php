@@ -7,6 +7,7 @@ namespace App\Vehicles\Import\Application\Services\EngineModification;
 use App\Vehicles\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Factories\EngineModificationDataFactoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\EngineModification\LinkEngineModificationFromRowServiceInterface;
+use App\Vehicles\Import\Domain\DTOs\EngineModification\EngineModificationCommandRowDTO;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -20,16 +21,14 @@ final readonly class LinkEngineModificationFromRowService implements LinkEngineM
     ) {}
 
     /**
-     * @param  array<int, mixed>  $row
-     *
      * @throws ValidationException
      */
-    public function linkFromRow(array $row): void
+    public function linkFromRow(EngineModificationCommandRowDTO $row): void
     {
         $data = $this->factory->make([
-            'eng_id' => $row[0] ?? null,
-            'mod_id' => $row[1] ?? null,
-            'type' => $row[2] ?? null,
+            'eng_id' => $row->engId,
+            'mod_id' => $row->modId,
+            'type' => $row->type,
         ]);
 
         $this->command->syncWithoutDetaching($data);

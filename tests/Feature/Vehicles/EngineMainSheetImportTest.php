@@ -23,8 +23,8 @@ final class EngineMainSheetImportTest extends TestCase
 
         /** @var EngineMainSheetImport $import */
         $import = app()->makeWith(EngineMainSheetImport::class, [
-            'runId' => 'test-run-main-sheet',
             'cacheKey' => 'engine_main_sheet_test',
+            'lockKey' => 'engine_main_sheet_test_lock',
         ]);
 
         // [eng_id, _, engine_capacity, _, ps_start, ps_upto, cylinder_count, cylinder_diameter, valves]

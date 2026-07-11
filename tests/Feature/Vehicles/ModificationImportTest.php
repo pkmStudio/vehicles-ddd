@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles;
 
-use App\Vehicles\Import\Domain\Contracts\Imports\ModificationCommandImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\ModificationCommandImportInterface;
 use App\Vehicles\Import\Domain\Events\Modification\ModificationCommandImported;
 use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
 use App\Vehicles\Import\Infrastructure\Models\Modification;

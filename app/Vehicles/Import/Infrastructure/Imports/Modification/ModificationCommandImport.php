@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Modification;
 
 use App\Vehicles\Import\Domain\Contracts\Services\Modification\UpsertModificationFromRowServiceInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\ModificationCommandImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\ModificationCommandImportInterface;
 use App\Vehicles\Import\Domain\Events\Modification\ModificationCommandImported;
+use App\Vehicles\Import\Infrastructure\Imports\Modification\Mappers\ModificationCommandRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use InvalidArgumentException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -29,6 +31,7 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
 {
     public function __construct(
         private readonly UpsertModificationFromRowServiceInterface $service,
+        private readonly ModificationCommandRowMapper $rowMapper,
     ) {}
 
     public function import(string $path): void
@@ -45,14 +48,18 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
     {
         foreach ($collection as $index => $row) {
             $line = $index + $this->startRow();
+            $rowValues = $row->toArray();
             try {
-                $modification = $this->service->upsertFromRow($row->toArray());
+                $modificationRow = $this->rowMapper->map($rowValues);
+                $modification = $this->service->upsertFromRow($modificationRow);
 
                 if (! $modification) {
-                    $this->fail($line, "ТС ms_id={$row[0]} не найдено", $row->toArray());
+                    $this->fail($line, "ТС ms_id={$modificationRow->msId} не найдено", $rowValues);
                 }
             } catch (ValidationException $e) {
-                $this->fail($line, Arr::flatten($e->errors()), $row->toArray());
+                $this->fail($line, Arr::flatten($e->errors()), $rowValues);
+            } catch (InvalidArgumentException $e) {
+                $this->fail($line, $e->getMessage(), $rowValues);
             }
         }
     }

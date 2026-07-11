@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Manufacturer;
 
 use App\Vehicles\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromRowServiceInterface;
-use App\Vehicles\Import\Domain\Contracts\Imports\ManufacturerCommandImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Imports\Command\ManufacturerCommandImportInterface;
 use App\Vehicles\Import\Domain\Events\Manufacturer\ManufacturerCommandImported;
+use App\Vehicles\Import\Infrastructure\Imports\Manufacturer\Mappers\ManufacturerCommandRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use InvalidArgumentException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -29,6 +31,7 @@ final class ManufacturerCommandImport implements ManufacturerCommandImportInterf
 {
     public function __construct(
         private readonly UpsertManufacturerFromRowServiceInterface $service,
+        private readonly ManufacturerCommandRowMapper $rowMapper,
     ) {}
 
     public function import(string $path): void
@@ -44,14 +47,24 @@ final class ManufacturerCommandImport implements ManufacturerCommandImportInterf
     public function collection(Collection $collection): void
     {
         foreach ($collection as $index => $row) {
+            $rowValues = $row->toArray();
             try {
-                $this->service->upsertFromRow($row->toArray());
+                $manufacturerRow = $this->rowMapper->map($rowValues);
+
+                $this->service->upsertFromRow($manufacturerRow);
             } catch (ValidationException $e) {
                 $this->onFailure(new Failure(
                     $index + $this->startRow(),
                     'Производитель',
                     Arr::flatten($e->errors()),
-                    $row->toArray(),
+                    $rowValues,
+                ));
+            } catch (InvalidArgumentException $e) {
+                $this->onFailure(new Failure(
+                    $index + $this->startRow(),
+                    'Производитель',
+                    [$e->getMessage()],
+                    $rowValues,
                 ));
             }
         }
