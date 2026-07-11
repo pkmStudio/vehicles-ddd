@@ -44,7 +44,7 @@ final readonly class ExportFileRequestedHandler
 
         $data = $validator->validated();
 
-        $outputDisk = (string) config('vehicles-export.output.disk', 's3');
+        $outputDisk = (string) config('vehicles-export.output.disk', 'local');
 
         $this->useCase->execute(new ExportFileRequestDTO(
             userId: (int) $data['user_id'],

@@ -28,18 +28,21 @@ return [
     | Output
     |--------------------------------------------------------------------------
     |
-    | Диск, на который пишутся сгенерированные файлы каталога. 's3' — тот же
-    | общий диск, что Import использует для входных файлов (filesystems.
-    | files_disk); в этом окружении у него driver=local (см. config/
-    | filesystems.php), реальных креды не нужны. Отдельный диск 'exports'
-    | (настоящий S3) тоже объявлен в config/filesystems.php — переключить на
-    | него можно через VEHICLES_EXPORT_OUTPUT_DISK, когда в окружении будет
-    | установлен league/flysystem-aws-s3-v3 и заданы AWS_* креды.
+    | Диск и подпапка, куда пишутся сгенерированные файлы каталога — та же пара,
+    | что Import использует под отчёт об ошибках
+    | (Import\Infrastructure\Reporting\ImportFailureReporter: disk 'local',
+    | путь 'exports/%s'), физически storage/app/private/exports/. 'local' —
+    | не публичный disk (не отдаётся напрямую по URL), в этом окружении
+    | реальных креды не нужны. Отдельный диск 'exports' (настоящий S3) тоже
+    | объявлен в config/filesystems.php — переключить можно через
+    | VEHICLES_EXPORT_OUTPUT_DISK, когда появятся league/flysystem-aws-s3-v3
+    | и AWS_*-креды.
     |
     */
 
     'output' => [
-        'disk' => env('VEHICLES_EXPORT_OUTPUT_DISK', 's3'),
+        'disk' => env('VEHICLES_EXPORT_OUTPUT_DISK', 'local'),
+        'directory' => 'exports',
 
         /*
         | Safety-net: удаление файлов старше этого возраста запланированной
