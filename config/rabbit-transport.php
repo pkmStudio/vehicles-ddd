@@ -35,6 +35,8 @@ declare(strict_types=1);
 |
 */
 
+use App\Vehicles\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
+
 return [
 
     /*
@@ -108,21 +110,28 @@ return [
     | Пример (объявляется приложением):
     |   'AUDIT_RECORDED' => [\App\Services\Audit\AuditInboxService::class, 'upsert'],
     */
-    'inbound' => [],
-
-    /*
-    | Опциональная валидация data входящих событий. Имя события → массив
-    | правил Laravel-валидатора. Пустой массив (или отсутствие ключа события) —
-    | валидация пропускается. При провале сообщение логируется (только ключи
-    | невалидных полей, без значений) и удаляется как структурно невалидное.
-    |
-    | Пример (объявляется приложением):
-    |   'AUDIT_RECORDED' => [
-    |       'audit_id' => 'required|string',
-    |       'event' => 'required|string',
-    |   ],
-    */
-    'inbound_rules' => [],
+    'inbound' => [
+        'VEHICLES_IMPORT_FILE_REQUESTED' => [
+            ImportFileRequestedHandler::class,
+            'handle',
+        ],
+        'ENGINES_IMPORT_FILE_REQUESTED' => [
+            ImportFileRequestedHandler::class,
+            'handle',
+        ],
+        'MODIFICATIONS_IMPORT_FILE_REQUESTED' => [
+            ImportFileRequestedHandler::class,
+            'handle',
+        ],
+        'ENGINE_GROUPS_IMPORT_FILE_REQUESTED' => [
+            ImportFileRequestedHandler::class,
+            'handle',
+        ],
+        'SPARK_PLUGS_IMPORT_FILE_REQUESTED' => [
+            ImportFileRequestedHandler::class,
+            'handle',
+        ],
+    ],
 
     /*
     | Исходящие события (T1.3): логическое имя → routing key по умолчанию.
@@ -155,13 +164,18 @@ return [
         'queue' => env('RABBIT_TRANSPORT_QUEUE', 'vehicles.inbox'),
 
         /*
-        | TODO: добавить routing-маски событий, которые слушает dan-vehicles,
-        | когда появятся реальные inbound-интеграции (сейчас 'inbound' пуст —
-        | см. plan.md §1). Плейсхолдер ниже сохраняет поведение старого
-        | RabbitMqSetupCommand (самопривязка очереди, не реальная маска).
+        | Входящие запросы на импорт файлов из CRM.
+        | Формат routing key: {source-service}.{entity}.{action}.
+        | Каждый routing key соответствует уникальному name в inbound выше,
+        | но все они обрабатываются одним handler-ом. Конкретный импортный
+        | адаптер выбирается по data.import_type.
         */
         'bindings' => [
-            'vehicles.inbox',
+            'crm.vehicles.import',
+            'crm.engines.import',
+            'crm.modifications.import',
+            'crm.engine-groups.import',
+            'crm.spark-plugs.import',
         ],
 
         'dead_letter' => [
