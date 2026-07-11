@@ -137,12 +137,15 @@ return [
     | Исходящие события (T1.3): логическое имя → routing key по умолчанию.
     | Per-message routing key может переопределяться отправителем.
     |
+    | IMPORT_COMPLETED — статус импорта: completed / completed_with_errors / failed.
+    | Содержит run_id, user_id, errors_count и, если есть, путь к отчёту.
     | FILE_EXPORTED — файл (отчёт об ошибках импорта) сформирован и сохранён
     | в общем хранилище; сервис с Filament слушает это событие, чтобы
     | уведомить получателя. Публикуется из RabbitMqFileNotificationService.
     */
     'outbound' => [
         'FILE_EXPORTED' => 'vehicles.file.exported',
+        'IMPORT_COMPLETED' => 'vehicles.import.completed',
     ],
 
     /*

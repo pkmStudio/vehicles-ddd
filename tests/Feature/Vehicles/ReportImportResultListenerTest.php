@@ -6,10 +6,13 @@ namespace Tests\Feature\Vehicles;
 
 use App\Vehicles\Import\Application\Listeners\ReportImportResultListener;
 use App\Vehicles\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
+use App\Vehicles\Import\Domain\DTOs\ImportCompletionNotificationDTO;
 use App\Vehicles\Import\Domain\Events\Vehicle\VehicleImportCompleted;
+use App\Vehicles\Import\Domain\Enums\ImportCompletionStatusEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use Tests\TestCase;
 
 /**
@@ -30,12 +33,21 @@ final class ReportImportResultListenerTest extends TestCase
         ]);
 
         $notifier = $this->mock(FileNotificationServiceInterface::class);
-        $notifier->shouldReceive('send')
+        $notifier->shouldReceive('notifyImportCompleted')
             ->once()
-            ->with(42, \Mockery::on(fn (string $path) => str_starts_with($path, 'exports/import-failures')));
+            ->with(
+                Mockery::on(
+                    fn (ImportCompletionNotificationDTO $payload) => $payload->userId === 42
+                        && $payload->status === ImportCompletionStatusEnum::CompletedWithErrors
+                        && $payload->runId === 'run-123'
+                        && $payload->errorsCount === 1
+                        && is_string($payload->path)
+                        && str_starts_with($payload->path, 'exports/import-failures'),
+                ),
+            );
 
         $listener = app(ReportImportResultListener::class);
-        $listener->handle(new VehicleImportCompleted(42, $cacheKey));
+        $listener->handle(new VehicleImportCompleted(42, $cacheKey, 'run-123'));
 
         $this->assertFalse(Cache::has($cacheKey));
     }
@@ -45,10 +57,20 @@ final class ReportImportResultListenerTest extends TestCase
         $cacheKey = 'report_listener_test_no_failures';
 
         $notifier = $this->mock(FileNotificationServiceInterface::class);
-        $notifier->shouldNotReceive('send');
+        $notifier->shouldReceive('notifyImportCompleted')
+            ->once()
+            ->with(
+                Mockery::on(
+                    fn (ImportCompletionNotificationDTO $payload) => $payload->userId === 42
+                        && $payload->status === ImportCompletionStatusEnum::Completed
+                        && $payload->runId === 'run-456'
+                        && $payload->errorsCount === 0
+                        && $payload->path === null,
+                ),
+            );
 
         $listener = app(ReportImportResultListener::class);
-        $listener->handle(new VehicleImportCompleted(42, $cacheKey));
+        $listener->handle(new VehicleImportCompleted(42, $cacheKey, 'run-456'));
 
         $this->assertFalse(Cache::has($cacheKey));
     }

@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Domain\Contracts\Notifications;
 
+use App\Vehicles\Import\Domain\DTOs\ImportCompletionNotificationDTO;
+
 interface FileNotificationServiceInterface
 {
-    public function send(int $userId, string $csvPath, int $filesCount = 1): void;
+    /**
+     * Отправляет статус завершения импорта внешним сервисам.
+     */
+    public function notifyImportCompleted(ImportCompletionNotificationDTO $payload): void;
 }

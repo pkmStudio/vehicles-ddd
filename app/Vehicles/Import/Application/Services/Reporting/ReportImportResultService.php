@@ -7,13 +7,15 @@ namespace App\Vehicles\Import\Application\Services\Reporting;
 use App\Vehicles\Import\Domain\Contracts\Services\Reporting\ReportImportResultServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
 use App\Vehicles\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
+use App\Vehicles\Import\Domain\Enums\ImportCompletionStatusEnum;
+use App\Vehicles\Import\Domain\DTOs\ImportCompletionNotificationDTO;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Завершение импорта: если были ошибки — выгружаем отчёт и шлём инициатору файл,
- * иначе фиксируем успех. Кэш ошибок очищается в любом случае.
+ * Завершение импорта: если были ошибки — формируем отчёт и отправляем статус в
+ * внешний сервис, иначе фиксируем успешное завершение. Кэш ошибок очищается в любом случае.
  */
 final readonly class ReportImportResultService implements ReportImportResultServiceInterface
 {
@@ -22,20 +24,44 @@ final readonly class ReportImportResultService implements ReportImportResultServ
         private FileNotificationServiceInterface $notifier,
     ) {}
 
-    public function report(int $userId, string $cacheKey): void
+    public function report(int $userId, string $cacheKey, ?string $runId = null): void
     {
-        try {
-            $path = $this->reporter->store(Cache::get($cacheKey, []));
+        $failures = Cache::get($cacheKey, []);
+        $errorsCount = is_array($failures) ? count($failures) : 0;
 
-            if ($path !== null) {
-                $this->notifier->send($userId, $path);
+        try {
+            $path = $this->reporter->store($failures);
+
+            if ($errorsCount > 0) {
+                $this->notifier->notifyImportCompleted(
+                    new ImportCompletionNotificationDTO(
+                        userId: $userId,
+                        status: ImportCompletionStatusEnum::CompletedWithErrors,
+                        runId: $runId,
+                        errorsCount: $errorsCount,
+                        path: is_string($path) ? $path : null,
+                    ),
+                );
             } else {
-                // TODO: опубликовать IMPORT_SUCCEEDED в RabbitMQ сервису с Filament (config/rabbit-transport.php outbound).
-                Log::info('Import completed without failures', ['user_id' => $userId]);
+                $this->notifier->notifyImportCompleted(
+                    new ImportCompletionNotificationDTO(
+                        userId: $userId,
+                        status: ImportCompletionStatusEnum::Completed,
+                        runId: $runId,
+                    ),
+                );
             }
         } catch (Throwable $e) {
-            Log::error('Import error export failed', ['exception' => $e]);
-            // TODO: опубликовать IMPORT_FAILED в RabbitMQ сервису с Filament.
+            Log::error('Import reporting failed', ['exception' => $e]);
+
+            $this->notifier->notifyImportCompleted(
+                new ImportCompletionNotificationDTO(
+                    userId: $userId,
+                    status: ImportCompletionStatusEnum::Failed,
+                    runId: $runId,
+                    errorsCount: $errorsCount,
+                ),
+            );
         } finally {
             Cache::forget($cacheKey);
         }
