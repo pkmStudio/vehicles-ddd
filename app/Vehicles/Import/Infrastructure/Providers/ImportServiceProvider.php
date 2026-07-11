@@ -65,8 +65,8 @@ use App\Vehicles\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInte
 use App\Vehicles\Import\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Import\Domain\Contracts\Exports\FailuresExportInterface;
-use App\Vehicles\Import\Domain\Contracts\Exports\ImportFailureReporterInterface;
+use App\Vehicles\Import\Domain\Contracts\Reporting\FailuresExportInterface;
+use App\Vehicles\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
 use App\Vehicles\Import\Domain\Contracts\Imports\Command\EngineCommandImportInterface;
 use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineCrossImportInterface;
 use App\Vehicles\Import\Domain\Contracts\Imports\Command\EngineModificationImportInterface;
@@ -93,8 +93,8 @@ use App\Vehicles\Import\Infrastructure\Repositories\ManufacturerRepository;
 use App\Vehicles\Import\Infrastructure\Repositories\ModificationRepository;
 use App\Vehicles\Import\Infrastructure\Repositories\PartSpecificationRepository;
 use App\Vehicles\Import\Infrastructure\Repositories\VehicleRepository;
-use App\Vehicles\Import\Infrastructure\Exports\FailuresExport;
-use App\Vehicles\Import\Infrastructure\Exports\ImportFailureReporter;
+use App\Vehicles\Import\Infrastructure\Reporting\FailuresExport;
+use App\Vehicles\Import\Infrastructure\Reporting\ImportFailureReporter;
 use App\Vehicles\Import\Infrastructure\Imports\Engine\EngineCommandImport;
 use App\Vehicles\Import\Infrastructure\Imports\Engine\EngineCrossImport;
 use App\Vehicles\Import\Infrastructure\Imports\Engine\EngineMultiSheetImport;
@@ -194,7 +194,7 @@ final class ImportServiceProvider extends ServiceProvider
         // Уведомление о готовом файле уходит в RabbitMQ (сервису с Filament).
         $this->app->bind(FileNotificationServiceInterface::class, RabbitMqFileNotificationService::class);
 
-        // Выгрузка отчёта об ошибках импорта (Excel → S3).
+        // Выгрузка отчёта об ошибках импорта (Excel → disk).
         $this->app->bind(ImportFailureReporterInterface::class, ImportFailureReporter::class);
 
         foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {

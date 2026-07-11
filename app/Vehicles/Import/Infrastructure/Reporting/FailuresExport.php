@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Import\Infrastructure\Exports;
+namespace App\Vehicles\Import\Infrastructure\Reporting;
 
-use App\Vehicles\Import\Domain\Contracts\Exports\FailuresExportInterface;
+use App\Vehicles\Import\Domain\Contracts\Reporting\FailuresExportInterface;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;

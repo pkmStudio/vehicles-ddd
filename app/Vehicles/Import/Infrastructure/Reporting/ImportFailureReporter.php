@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Import\Infrastructure\Exports;
+namespace App\Vehicles\Import\Infrastructure\Reporting;
 
-use App\Vehicles\Import\Domain\Contracts\Exports\ImportFailureReporterInterface;
-use App\Vehicles\Import\Domain\Contracts\Exports\FailuresExportInterface;
+use App\Vehicles\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
+use App\Vehicles\Import\Domain\Contracts\Reporting\FailuresExportInterface;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 

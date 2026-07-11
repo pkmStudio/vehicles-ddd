@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Application\Services\Reporting;
 
 use App\Vehicles\Import\Domain\Contracts\Services\Reporting\ReportImportResultServiceInterface;
-use App\Vehicles\Import\Domain\Contracts\Exports\ImportFailureReporterInterface;
+use App\Vehicles\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
 use App\Vehicles\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
