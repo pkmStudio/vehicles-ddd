@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Export\Domain\Contracts\Services\Rows;
 
-use App\Vehicles\Export\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Export\Domain\ModelData\VehicleData;
 
 interface VehicleExportRowInterface
 {

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Export\Domain\Contracts\Services;
 
-use App\Vehicles\Export\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Export\Domain\DTOs\WiperExportRowDTO;
+use App\Vehicles\Export\Domain\ModelData\VehicleData;
 use Illuminate\Support\Collection;
 
 interface VehicleExportServiceInterface
@@ -19,5 +20,5 @@ interface VehicleExportServiceInterface
 
     public function getWiperHeadings(): array;
 
-    public function mapWiperRow(object $row): array;
+    public function mapWiperRow(WiperExportRowDTO $row): array;
 }

@@ -10,7 +10,8 @@ use App\Vehicles\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Details\ExportDetailsBuilderInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
 use App\Vehicles\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Export\Domain\ModelData\Engine\EngineData;
+use App\Vehicles\Export\Domain\DTOs\PartSpecificationExportRowDTO;
+use App\Vehicles\Export\Domain\ModelData\EngineData;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 
@@ -56,7 +57,7 @@ final readonly class EngineExportService implements EngineExportServiceInterface
         return array_merge($this->engineRow->getBaseHeadings(), $this->fieldHeadings);
     }
 
-    public function mapSparkPlugRow(object $row): array
+    public function mapSparkPlugRow(PartSpecificationExportRowDTO $row): array
     {
         $baseData = $this->engineRow->getBaseData($row->entity);
 

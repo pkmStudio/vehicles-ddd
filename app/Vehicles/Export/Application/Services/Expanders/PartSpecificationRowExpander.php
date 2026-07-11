@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Application\Services\Expanders;
 
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
+use App\Vehicles\Export\Domain\DTOs\PartSpecificationExportRowDTO;
+use App\Vehicles\Export\Domain\ModelData\EngineData;
 use Illuminate\Support\Collection;
 
 /**
@@ -15,8 +17,8 @@ use Illuminate\Support\Collection;
 final readonly class PartSpecificationRowExpander implements PartSpecificationRowExpanderInterface
 {
     /**
-     * @param  Collection<int, object>  $entities  модели с загруженной связью partSpecifications
-     * @return Collection<int, object{entity: object, specification: object|null}>
+     * @param  Collection<int, EngineData>  $entities  модели с загруженной связью partSpecifications
+     * @return Collection<int, PartSpecificationExportRowDTO>
      */
     public function expand(Collection $entities): Collection
     {
@@ -24,13 +26,13 @@ final readonly class PartSpecificationRowExpander implements PartSpecificationRo
 
         foreach ($entities as $entity) {
             if ($entity->partSpecifications->isEmpty()) {
-                $rows->push((object) ['entity' => $entity, 'specification' => null]);
+                $rows->push(new PartSpecificationExportRowDTO(entity: $entity, specification: null));
 
                 continue;
             }
 
             foreach ($entity->partSpecifications as $specification) {
-                $rows->push((object) ['entity' => $entity, 'specification' => $specification]);
+                $rows->push(new PartSpecificationExportRowDTO(entity: $entity, specification: $specification));
             }
         }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Infrastructure\Repositories;
 
 use App\Vehicles\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Export\Domain\ModelData\Engine\EngineData;
+use App\Vehicles\Export\Domain\ModelData\EngineData;
 use App\Vehicles\Export\Infrastructure\Models\Engine;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;

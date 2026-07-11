@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Export\Domain\ModelData\Engine;
+namespace App\Vehicles\Export\Domain\ModelData;
 
-use App\Vehicles\Export\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Attributes\MapName;

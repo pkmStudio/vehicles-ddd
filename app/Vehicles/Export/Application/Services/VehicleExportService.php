@@ -11,7 +11,8 @@ use App\Vehicles\Export\Domain\Contracts\Services\Details\ExportDetailsBuilderIn
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
 use App\Vehicles\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Export\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Export\Domain\DTOs\WiperExportRowDTO;
+use App\Vehicles\Export\Domain\ModelData\VehicleData;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
 use Illuminate\Support\Collection;
@@ -66,7 +67,7 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
         return array_merge($this->vehicleRow->getBaseHeadings(), $specHeadings, $this->fieldHeadings);
     }
 
-    public function mapWiperRow(object $row): array
+    public function mapWiperRow(WiperExportRowDTO $row): array
     {
         $baseData = $this->vehicleRow->getBaseData($row->vehicle);
         $frontSpec = $row->frontSpec;

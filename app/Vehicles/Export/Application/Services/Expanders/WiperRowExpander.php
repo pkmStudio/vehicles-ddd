@@ -6,6 +6,9 @@ namespace App\Vehicles\Export\Application\Services\Expanders;
 
 use App\Vehicles\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
+use App\Vehicles\Export\Domain\DTOs\WiperExportRowDTO;
+use App\Vehicles\Export\Domain\ModelData\PartSpecificationData;
+use App\Vehicles\Export\Domain\ModelData\VehicleData;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
 use Illuminate\Support\Collection;
 
@@ -22,8 +25,8 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
     ) {}
 
     /**
-     * @param  Collection<int, object>  $vehicles  ТС с загруженной связью partSpecifications (только wiper)
-     * @return Collection<int, object{vehicle: object, frontSpec: object|null, backSpec: object|null}>
+     * @param  Collection<int, VehicleData>  $vehicles  ТС с загруженной связью partSpecifications (только wiper)
+     * @return Collection<int, WiperExportRowDTO>
      */
     public function expand(Collection $vehicles): Collection
     {
@@ -68,16 +71,16 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
         return $rows;
     }
 
-    private function row(object $vehicle, ?object $frontSpec, ?object $backSpec): object
+    private function row(VehicleData $vehicle, ?PartSpecificationData $frontSpec, ?PartSpecificationData $backSpec): WiperExportRowDTO
     {
-        return (object) ['vehicle' => $vehicle, 'frontSpec' => $frontSpec, 'backSpec' => $backSpec];
+        return new WiperExportRowDTO(vehicle: $vehicle, frontSpec: $frontSpec, backSpec: $backSpec);
     }
 
     /**
      * Односторонние записи: есть данные нужной стороны и нет противоположной.
      *
-     * @param  Collection<int, object>  $specifications
-     * @return Collection<int, object>
+     * @param  Collection<int, PartSpecificationData>  $specifications
+     * @return Collection<int, PartSpecificationData>
      */
     private function singleSide(Collection $specifications, string $side): Collection
     {
@@ -96,8 +99,8 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
     /**
      * Legacy-записи с обеими сторонами в одной спецификации.
      *
-     * @param  Collection<int, object>  $specifications
-     * @return Collection<int, object>
+     * @param  Collection<int, PartSpecificationData>  $specifications
+     * @return Collection<int, PartSpecificationData>
      */
     private function bothSides(Collection $specifications): Collection
     {

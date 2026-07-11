@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Infrastructure\Exports\Vehicle;
 
 use App\Vehicles\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
+use App\Vehicles\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Vehicles\Export\Infrastructure\Exports\Vehicle\Sheets\VehicleMainSheetExport;
 use App\Vehicles\Export\Infrastructure\Exports\Vehicle\Sheets\VehicleWipersSheetExport;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Maatwebsite\Excel\Facades\Excel;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Maatwebsite\Excel\Excel;
+use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
 final readonly class VehicleMultiSheetExport implements VehicleMultiSheetExportInterface, WithMultipleSheets
 {
@@ -17,9 +18,14 @@ final readonly class VehicleMultiSheetExport implements VehicleMultiSheetExportI
         private bool $isAllow = false,
     ) {}
 
-    public function download(string $fileName): BinaryFileResponse
+    public function export(ExportRunContextDTO $context, ?string $disk = null): string
     {
-        return Excel::download($this, $fileName);
+        $disk ??= (string) config('vehicles-export.output.disk', 's3');
+        $path = sprintf('vehicle-catalog-%s.xlsx', $context->runId);
+
+        ExcelFacade::store($this, $path, $disk, Excel::XLSX);
+
+        return $path;
     }
 
     public function sheets(): array

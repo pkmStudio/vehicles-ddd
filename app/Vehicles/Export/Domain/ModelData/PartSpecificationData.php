@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Export\Domain\ModelData\PartSpecification;
+namespace App\Vehicles\Export\Domain\ModelData;
 
-use App\Vehicles\Export\Domain\ModelData\FeatureValue\FeatureValueData;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;

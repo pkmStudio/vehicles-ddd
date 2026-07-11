@@ -35,6 +35,7 @@ declare(strict_types=1);
 |
 */
 
+use App\Vehicles\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
 use App\Vehicles\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
 
 return [
@@ -131,6 +132,21 @@ return [
             ImportFileRequestedHandler::class,
             'handle',
         ],
+
+        /*
+        | Входящие запросы на экспорт каталога. Один Handler на оба типа —
+        | конкретный Excel-адаптер выбирается по data.export_type
+        | (см. Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler
+        | и Export\Application\Factories\ExportFileFactory).
+        */
+        'VEHICLES_EXPORT_FILE_REQUESTED' => [
+            ExportFileRequestedHandler::class,
+            'handle',
+        ],
+        'ENGINES_EXPORT_FILE_REQUESTED' => [
+            ExportFileRequestedHandler::class,
+            'handle',
+        ],
     ],
 
     /*
@@ -139,9 +155,10 @@ return [
     |
     | IMPORT_COMPLETED — статус импорта: completed / completed_with_errors / failed.
     | Содержит run_id, user_id, errors_count и, если есть, путь к отчёту.
-    | FILE_EXPORTED — файл (отчёт об ошибках импорта) сформирован и сохранён
-    | в общем хранилище; сервис с Filament слушает это событие, чтобы
-    | уведомить получателя. Публикуется из RabbitMqFileNotificationService.
+    | FILE_EXPORTED — файл сформирован и сохранён в общем хранилище (disk из
+    | vehicles-export.output.disk), путь передан в payload; сервис с Filament
+    | слушает это событие, чтобы уведомить получателя о готовности каталога.
+    | Публикуется из Export\Infrastructure\Notifications\RabbitMqExportNotificationService.
     */
     'outbound' => [
         'FILE_EXPORTED' => 'vehicles.file.exported',
@@ -167,11 +184,12 @@ return [
         'queue' => env('RABBIT_TRANSPORT_QUEUE', 'vehicles.inbox'),
 
         /*
-        | Входящие запросы на импорт файлов из CRM.
+        | Входящие запросы на импорт/экспорт из CRM.
         | Формат routing key: {source-service}.{entity}.{action}.
         | Каждый routing key соответствует уникальному name в inbound выше,
-        | но все они обрабатываются одним handler-ом. Конкретный импортный
-        | адаптер выбирается по data.import_type.
+        | но группа routing key на одно действие (import/export) обрабатывается
+        | одним handler-ом. Конкретный адаптер выбирается по data.import_type
+        | (импорт) или data.export_type (экспорт).
         */
         'bindings' => [
             'crm.vehicles.import',
@@ -179,6 +197,8 @@ return [
             'crm.modifications.import',
             'crm.engine-groups.import',
             'crm.spark-plugs.import',
+            'crm.vehicles.export',
+            'crm.engines.export',
         ],
 
         'dead_letter' => [

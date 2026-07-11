@@ -2,20 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Export\Domain\ModelData\Manufacturer;
+namespace App\Vehicles\Export\Domain\ModelData;
 
-use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
 #[MapName(SnakeCaseMapper::class)]
-final class ManufacturerData extends Data
+final class FeatureValueData extends Data
 {
     public function __construct(
-        public readonly int $mfaId,
+        public readonly int $featureId,
         public readonly string $name,
-        public readonly ProviderEnum $provider,
+        public readonly ?string $shortCode = null,
         public readonly ?int $id = null,
     ) {}
 }

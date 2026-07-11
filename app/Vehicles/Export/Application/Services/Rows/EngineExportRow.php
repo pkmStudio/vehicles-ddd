@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Application\Services\Rows;
 
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
-use App\Vehicles\Export\Domain\ModelData\Engine\EngineData;
+use App\Vehicles\Export\Domain\ModelData\EngineData;
 
 final readonly class EngineExportRow implements EngineExportRowInterface
 {
@@ -30,7 +30,7 @@ final readonly class EngineExportRow implements EngineExportRowInterface
             $engine->engId,
             $engine->codeEngine,
             $engine->engineCapacity,
-            $engine->engFuelType,
+            $engine->engFuelType?->value,
             $engine->engPowerPsStart,
             $engine->engPowerPsUpto,
             $engine->cylinderCount,

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Application\Services\Rows;
 
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
-use App\Vehicles\Export\Domain\ModelData\Vehicle\VehicleData;
+use App\Vehicles\Export\Domain\ModelData\VehicleData;
 
 final readonly class VehicleExportRow implements VehicleExportRowInterface
 {
@@ -52,11 +52,11 @@ final readonly class VehicleExportRow implements VehicleExportRowInterface
             $vehicle->generation,
             $vehicle->generationYearFrom,
             $vehicle->generationYearTo,
-            $vehicle->typeCarcase,
-            $vehicle->type,
-            $vehicle->provider,
+            $vehicle->typeCarcase?->value,
+            $vehicle->type->value,
+            $vehicle->provider->value,
             $vehicle->parent?->msId,
-            $vehicle->steeringType,
+            $vehicle->steeringType->value,
             $vehicle->isAllow ? 'Да' : 'Нет',
         ];
     }

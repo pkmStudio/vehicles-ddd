@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Export\Domain\ModelData\Vehicle;
+namespace App\Vehicles\Export\Domain\ModelData;
 
-use App\Vehicles\Export\Domain\ModelData\Manufacturer\ManufacturerData;
-use App\Vehicles\Export\Domain\ModelData\PartSpecification\PartSpecificationData;
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;

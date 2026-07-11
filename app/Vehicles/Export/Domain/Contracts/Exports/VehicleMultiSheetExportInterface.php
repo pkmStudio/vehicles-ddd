@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Export\Domain\Contracts\Exports;
 
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-
-interface VehicleMultiSheetExportInterface
+/**
+ * Экспортирует оба листа: Main + Wipers.
+ */
+interface VehicleMultiSheetExportInterface extends FileExportInterface
 {
-    /**
-     * Сформировать файл выгрузки на скачивание. Транспорт (Excel) — в реализации.
-     */
-    public function download(string $fileName): BinaryFileResponse;
 }
