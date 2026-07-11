@@ -20,17 +20,17 @@ return new class extends Migration
             $table->string('localized_name')->nullable();
             $table->string('excel_table_id')->nullable()->comment('ID таблицы Excel');
 
-            $table->string('generation')->nullable();
-            $table->string('generation_short')->nullable();
-            $table->integer('generation_year_from')->nullable()->comment('Год от');
-            $table->integer('generation_year_to')->nullable()->comment('Год до');
+            $table->string('generation')->nullable()->comment('Описание поколения из TecDoc');
+            $table->string('generation_short')->nullable()->comment('Наше описание поколения');
+            $table->year('generation_year_from')->nullable()->comment('Год поколения от');
+            $table->year('generation_year_to')->nullable()->comment('Год поколения до');
 
             $table->string('type')->comment('VehicleTypeEnum');
             $table->string('type_carcase')->comment('CarcaseTypeEnum');
             $table->string('provider')->default('OD')->comment('Источник: TD|OD');
 
             $table->string('steering_type')->default('Левый руль')->comment('SteeringTypeEnum');
-            $table->boolean('is_allow')->default(false)->comment('Разрешено');
+            $table->boolean('is_allow')->default(false)->comment('Разрешено для работы');
         });
     }
 

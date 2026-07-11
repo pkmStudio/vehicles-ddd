@@ -10,10 +10,13 @@ return new class extends Migration
     {
         Schema::create('engine_modification', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('engine_id')->constrained('engines');
             $table->foreignId('modification_id')->constrained('modifications');
+
             $table->integer('eng_id')->comment('Внешний ID двигателя');
             $table->integer('mod_id')->comment('Внешний ID модификации');
+
             $table->string('type')->comment('VehicleTypeEnum');
         });
     }

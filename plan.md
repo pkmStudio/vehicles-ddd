@@ -777,15 +777,16 @@ event()` `vladimir-yuldashev/laravel-queue-rabbitmq`, "во избежание �
    отложено вместе с пунктом 9). 48/48 тестов зелёные после переезда.
 8. ✅ Перевести Application-слой Import/Export на единый `Service`, убрать `UseCases`/`Support`
    (§2) — подтверждено физически: `Support/`/`UseCases/`-папок в дереве нет ни у одной фичи.
-9. ✅ Внедрить `spatie/laravel-data` (§3) — **готово и для Import, и для Export**. У каждой
-   фичи своя копия Eloquent-моделей (`Import/Infrastructure/Models`, `Export/Infrastructure/
-   Models`) и своя копия Repository, отдающая `<Entity>Data`; Command (запись) остаётся
-   исключительно у Import. Временный общий `VehiclesServiceProvider` вместе со старыми
-   `Domain/Contracts/Infrastructure/Repositories` и `Infrastructure/Repositories` удалён —
-   обещание из §1 ("исчезнет вместе с переездом на spatie/laravel-data") выполнено буквально.
-   Общая `Domain/Models` осталась (не переезжает никуда) — ей напрямую, в обход Repository/
-   Command, пользуется Maintenance ("разовые фиксы каталога", осознанно вне слоёв, см. дерево
-   в §1) — трогать её нельзя.
+9. ✅ Внедрить `spatie/laravel-data` (§3) — **готово для Import, Export и Maintenance**.
+   У каждой фичи своя копия Eloquent-моделей (`Import/Infrastructure/Models`,
+   `Export/Infrastructure/Models`, `Maintenance/Infrastructure/Models`) и своя копия
+   Repository (кроме Maintenance — там раньше и не было слоя Repository, работает напрямую
+   через Eloquent, как и было задумано для "разовых фиксов каталога"), отдающая
+   `<Entity>Data`; Command (запись) остаётся исключительно у Import. Временный общий
+   `VehiclesServiceProvider` вместе со старыми `Domain/Contracts/Infrastructure/Repositories`
+   и `Infrastructure/Repositories` удалён — обещание из §1 ("исчезнет вместе с переездом на
+   spatie/laravel-data") выполнено буквально. `app/Vehicles/Domain` удалена целиком без
+   исключений — общей копии моделей больше нет ни у одной фичи.
    Побочные находки/решения по ходу Import:
    - **`partable_type` — буквальное имя PHP-класса как дискриминатор полиморфной связи.**
      Раз Vehicle/Engine дублируются по фичам, писать туда `::class` копии модели конкретной

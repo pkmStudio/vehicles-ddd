@@ -19,7 +19,8 @@ final readonly class ImportFailureReporter implements ImportFailureReporterInter
 
         $fileName = 'import-failures'.now()->format('Y-m-d-His').'.csv';
 
-        // TODO: диск 'exports' должен указывать на общее S3-хранилище (config/filesystems.php).
+        // Диск 'exports' — общий с другими сервисами S3-бакет, папка для обмена файлами
+        // между сервисами (config/filesystems.php).
         ExcelFacade::store(
             app()->makeWith(FailuresExportInterface::class, ['failures' => $failures]),
             $fileName,

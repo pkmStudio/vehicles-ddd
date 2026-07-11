@@ -60,6 +60,23 @@ return [
             'report' => false,
         ],
 
+        // Общий с другими сервисами бакет (см. AWS_*), отдельная папка — обмен файлами между
+        // сервисами (в отличие от, например, папки под медиа). Используется ImportFailureReporter
+        // для отчётов об ошибках импорта; путь сюда же передаётся дальше через RabbitMQ.
+        'exports' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AWS_BUCKET'),
+            'root' => env('AWS_EXPORTS_ROOT', 'exports'),
+            'url' => env('AWS_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

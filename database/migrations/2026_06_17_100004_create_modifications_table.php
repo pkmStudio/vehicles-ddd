@@ -11,21 +11,22 @@ return new class extends Migration
         Schema::create('modifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vehicle_id')->constrained('vehicles');
+
             $table->integer('ms_id')->comment('Внешний ID модели');
             $table->integer('mod_id')->comment('Внешний ID модификации');
+
             $table->year('year_from')->nullable();
             $table->year('year_to')->nullable();
             $table->string('description')->nullable();
-            $table->string('brake_system_type')->nullable()->comment('BrakeSystemTypeEnum');
             $table->string('type')->comment('VehicleTypeEnum');
-            $table->jsonb('details')->nullable();
+
+            $table->string('brake_system_type')->nullable()->comment('BrakeSystemTypeEnum');
             $table->smallInteger('power_ps')->nullable()->comment('Мощность (л.с.)');
             $table->smallInteger('power_kw')->nullable()->comment('Мощность (kw)');
             $table->string('engine_type')->nullable()->comment('EngineTypeEnum');
             $table->string('gear_type')->nullable()->comment('GearTypeEnum');
             $table->string('drive_type')->nullable()->comment('DriveTypeEnum');
             $table->string('localized_name')->nullable()->comment('Локализованное название');
-            $table->string('excel_table_id')->nullable()->comment('ID таблицы Excel');
             $table->smallInteger('number_of_cylinders')->nullable()->comment('Количество цилиндров');
             $table->float('capacity_lt')->nullable()->comment('Объем двигателя (л.)');
         });
