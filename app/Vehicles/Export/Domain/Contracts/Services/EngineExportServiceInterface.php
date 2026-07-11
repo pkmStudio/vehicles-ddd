@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Export\Domain\Contracts\Services;
 
-use App\Vehicles\Export\Domain\DTOs\EngineExportPlan;
 use App\Vehicles\Export\Domain\ModelData\Engine\EngineData;
 use Illuminate\Support\Collection;
 
 interface EngineExportServiceInterface
 {
-    public function buildExportPlan(bool $withSparkPlugs = true): EngineExportPlan;
-
     public function getMainRows(): Collection;
 
     public function getMainHeadings(): array;

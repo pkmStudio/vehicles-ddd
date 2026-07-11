@@ -4,15 +4,9 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Domain\Contracts\Imports;
 
-use App\Vehicles\Import\Domain\DTOs\ImportRunContext;
-use App\Vehicles\Import\Domain\DTOs\VehicleImportPlan;
-
-interface VehicleMultiSheetImportInterface
+/**
+ * Импортирует оба листа: Main + Wipers.
+ */
+interface VehicleMultiSheetImportInterface extends FileImportInterface
 {
-    /**
-     * Запустить импорт из файла $path. Транспорт (Excel) — в реализации.
-     * $context — явный инициатор прогона (userId обязателен, runId — всегда), вместо
-     * неявного Auth::id().
-     */
-    public function import(string $path, ImportRunContext $context, ?VehicleImportPlan $plan = null): void;
 }

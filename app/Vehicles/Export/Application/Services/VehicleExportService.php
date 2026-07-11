@@ -11,7 +11,6 @@ use App\Vehicles\Export\Domain\Contracts\Services\Details\ExportDetailsBuilderIn
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
 use App\Vehicles\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Export\Domain\DTOs\VehicleExportPlan;
 use App\Vehicles\Export\Domain\ModelData\Vehicle\VehicleData;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
@@ -33,13 +32,6 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
     ) {
         $this->templateConfig = $templates->resolve(DetailTemplateEnum::WIPER)->getArrayTemplate();
         $this->fieldHeadings = $this->exportDetails->extractHeadingsFromTemplate($this->templateConfig);
-    }
-
-    public function buildExportPlan(bool $isAllow = false, bool $withWipers = true): VehicleExportPlan
-    {
-        return $withWipers
-            ? VehicleExportPlan::all($isAllow)
-            : VehicleExportPlan::mainOnly($isAllow);
     }
 
     public function getMainRows(bool $isAllow): Collection

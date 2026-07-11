@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Providers;
 
 use App\Vehicles\Import\Application\Factories\Engine\EngineDataFactory;
+use App\Vehicles\Import\Application\Factories\External\ExternalFileImportFactory;
 use App\Vehicles\Import\Application\Factories\EngineModification\EngineModificationDataFactory;
 use App\Vehicles\Import\Application\Factories\Manufacturer\ManufacturerDataFactory;
 use App\Vehicles\Import\Application\Factories\Modification\ModificationDataFactory;
 use App\Vehicles\Import\Application\Factories\Vehicle\VehicleDataFactory;
-use App\Vehicles\Import\Application\Services\EngineImportService;
+use App\Vehicles\Import\Application\Services\External\CleanupExternalImportFileService;
+use App\Vehicles\Import\Application\Services\External\ExternalImportCacheService;
+use App\Vehicles\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Vehicles\Import\Application\Services\Engine\AssignEngineGroupService;
 use App\Vehicles\Import\Application\Services\Engine\EngineEditableColumnsMapper;
 use App\Vehicles\Import\Application\Services\Engine\UpdateEngineEditableFieldsService;
@@ -26,15 +29,16 @@ use App\Vehicles\Import\Application\Services\Template\TemplateDataBuilder;
 use App\Vehicles\Import\Application\Services\Vehicle\UpsertVehicleFromSheetService;
 use App\Vehicles\Import\Application\Services\Vehicle\UpsertVehicleFromTdRowService;
 use App\Vehicles\Import\Application\Services\Vehicle\VehicleWiperSpecificationImportService;
-use App\Vehicles\Import\Application\Services\VehicleImportService;
 use App\Vehicles\Import\Domain\Contracts\Factories\EngineDataFactoryInterface;
+use App\Vehicles\Import\Domain\Contracts\Factories\ExternalFileImportFactoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Factories\EngineModificationDataFactoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Factories\ManufacturerDataFactoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Factories\ModificationDataFactoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Factories\VehicleDataFactoryInterface;
-use App\Vehicles\Import\Domain\Contracts\Services\EngineImportServiceInterface;
+use App\Vehicles\Import\Domain\Contracts\Services\External\CleanupExternalImportFileServiceInterface;
+use App\Vehicles\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
+use App\Vehicles\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\EngineModificationReadinessGateInterface;
-use App\Vehicles\Import\Domain\Contracts\Services\VehicleImportServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Template\DetailsBuilderInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\EngineEditableColumnsMapperInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Template\TemplateDataBuilderInterface;
@@ -116,6 +120,10 @@ use Illuminate\Support\ServiceProvider;
  */
 final class ImportServiceProvider extends ServiceProvider
 {
+    private const array USE_CASE_BINDINGS = [
+        StartExternalFileImportUseCaseInterface::class => StartExternalFileImportUseCase::class,
+    ];
+
     private const array COMMAND_BINDINGS = [
         ManufacturerCommandInterface::class => ManufacturerCommand::class,
         VehicleCommandInterface::class => VehicleCommand::class,
@@ -159,6 +167,7 @@ final class ImportServiceProvider extends ServiceProvider
 
     private const array FACTORY_BINDINGS = [
         EngineDataFactoryInterface::class => EngineDataFactory::class,
+        ExternalFileImportFactoryInterface::class => ExternalFileImportFactory::class,
         VehicleDataFactoryInterface::class => VehicleDataFactory::class,
         ModificationDataFactoryInterface::class => ModificationDataFactory::class,
         ManufacturerDataFactoryInterface::class => ManufacturerDataFactory::class,
@@ -166,11 +175,11 @@ final class ImportServiceProvider extends ServiceProvider
     ];
 
     private const array SERVICE_BINDINGS = [
+        CleanupExternalImportFileServiceInterface::class => CleanupExternalImportFileService::class,
+        ExternalImportCacheServiceInterface::class => ExternalImportCacheService::class,
         TemplateDataBuilderInterface::class => TemplateDataBuilder::class,
         DetailsBuilderInterface::class => DetailsBuilder::class,
         EngineEditableColumnsMapperInterface::class => EngineEditableColumnsMapper::class,
-        EngineImportServiceInterface::class => EngineImportService::class,
-        VehicleImportServiceInterface::class => VehicleImportService::class,
         EngineModificationReadinessGateInterface::class => EngineModificationReadinessGate::class,
         ReportImportResultServiceInterface::class => ReportImportResultService::class,
         UpsertEngineFromSheetServiceInterface::class => UpsertEngineFromSheetService::class,
@@ -193,6 +202,10 @@ final class ImportServiceProvider extends ServiceProvider
 
         // Выгрузка отчёта об ошибках импорта (Excel → S3).
         $this->app->bind(ImportFailureReporterInterface::class, ImportFailureReporter::class);
+
+        foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
+        }
 
         foreach (self::COMMAND_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);

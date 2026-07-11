@@ -10,7 +10,6 @@ use App\Vehicles\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Details\ExportDetailsBuilderInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
 use App\Vehicles\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Export\Domain\DTOs\EngineExportPlan;
 use App\Vehicles\Export\Domain\ModelData\Engine\EngineData;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
@@ -30,11 +29,6 @@ final readonly class EngineExportService implements EngineExportServiceInterface
     ) {
         $this->templateConfig = $templates->resolve(DetailTemplateEnum::SPARK_PLUGS)->getArrayTemplate();
         $this->fieldHeadings = $this->exportDetails->extractHeadingsFromTemplate($this->templateConfig);
-    }
-
-    public function buildExportPlan(bool $withSparkPlugs = true): EngineExportPlan
-    {
-        return $withSparkPlugs ? EngineExportPlan::all() : EngineExportPlan::mainOnly();
     }
 
     public function getMainRows(): Collection
