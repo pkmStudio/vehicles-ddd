@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Vehicles\Domain\Models\Feature;
-use App\Vehicles\Domain\Models\FeatureValue;
-use App\Vehicles\Domain\Models\Vehicle;
+use App\Vehicles\Import\Infrastructure\Models\Feature;
+use App\Vehicles\Import\Infrastructure\Models\FeatureValue;
+use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Database\Seeder;
 
 class FeatureSeeder extends Seeder
@@ -15,9 +15,9 @@ class FeatureSeeder extends Seeder
     public function run(): void
     {
         $features = [
-            ['entity_type' => Vehicle::class, 'name' => 'Количество дверей сзади'],
-            ['entity_type' => Vehicle::class, 'name' => 'Наличие колеса сзади'],
-            ['entity_type' => Vehicle::class, 'name' => 'Страна сборки'],
+            ['entity_type' => PartableTypeEnum::VEHICLE->value, 'name' => 'Количество дверей сзади'],
+            ['entity_type' => PartableTypeEnum::VEHICLE->value, 'name' => 'Наличие колеса сзади'],
+            ['entity_type' => PartableTypeEnum::VEHICLE->value, 'name' => 'Страна сборки'],
         ];
 
         $featureValues = [
