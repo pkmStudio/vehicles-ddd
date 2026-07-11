@@ -11,7 +11,7 @@ interface EngineMultiSheetImportInterface
 {
     /**
      * Запустить импорт из файла $path. Транспорт (Excel) — в реализации.
-     * $context — явный инициатор прогона (userId опционален, runId — всегда), вместо
+     * $context — явный инициатор прогона (userId обязателен, runId — всегда), вместо
      * неявного Auth::id().
      */
     public function import(string $path, ImportRunContext $context, ?EngineImportPlan $plan = null): void;

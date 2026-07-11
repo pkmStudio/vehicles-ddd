@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Завершение импорта: если были ошибки — выгружаем отчёт и шлём пользователю файл,
+ * Завершение импорта: если были ошибки — выгружаем отчёт и шлём инициатору файл,
  * иначе фиксируем успех. Кэш ошибок очищается в любом случае.
  */
 final readonly class ReportImportResultService implements ReportImportResultServiceInterface

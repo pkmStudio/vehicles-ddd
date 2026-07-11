@@ -12,7 +12,7 @@ use PkmStudio\RabbitTransport\RabbitMQPublisher;
  * Уведомление о готовом файле через RabbitMQ.
  *
  * Файл уже сформирован и лежит в общем хранилище (S3). Здесь только публикуем
- * сообщение в RabbitMQ — сервис с Filament примет его и уведомит пользователя.
+ * сообщение в RabbitMQ — сервис с Filament примет его и уведомит получателя.
  * Publisher — конкретный класс вендора (pkmstudio/rabbit-transport), а не порт:
  * это Infrastructure→Infrastructure, свой RabbitMQPublisherInterface не нужен
  * (см. plan.md §1).

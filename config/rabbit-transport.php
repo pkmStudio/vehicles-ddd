@@ -130,7 +130,7 @@ return [
     |
     | FILE_EXPORTED — файл (отчёт об ошибках импорта) сформирован и сохранён
     | в общем хранилище; сервис с Filament слушает это событие, чтобы
-    | уведомить пользователя. Публикуется из RabbitMqFileNotificationService.
+    | уведомить получателя. Публикуется из RabbitMqFileNotificationService.
     */
     'outbound' => [
         'FILE_EXPORTED' => 'vehicles.file.exported',
