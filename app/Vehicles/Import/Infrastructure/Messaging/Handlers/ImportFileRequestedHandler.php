@@ -39,15 +39,13 @@ final readonly class ImportFileRequestedHandler
 
         $data = $validator->validated();
 
-        $disk = isset($data['disk']) && $data['disk'] !== ''
-            ? (string) $data['disk']
-            : (string) config('filesystems.import_files_disk', 'imports');
+        $filesDisk = (string) config('filesystems.files_disk', 's3');
 
         $this->useCase->execute(new ExternalImportFileRequestDTO(
             userId: (int) $data['user_id'],
             runId: (string) $data['run_id'],
             importType: ExternalImportTypeEnum::from((string) $data['import_type']),
-            disk: $disk,
+            disk: $filesDisk,
             path: (string) $data['path'],
         ));
     }

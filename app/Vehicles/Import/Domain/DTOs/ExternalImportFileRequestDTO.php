@@ -15,7 +15,7 @@ final readonly class ExternalImportFileRequestDTO
      * @param  int  $userId  внешний идентификатор инициатора импорта; нужен для отчёта об ошибках
      * @param  string  $runId  уникальный идентификатор прогона; используется для идемпотентности, cache-ключей и cleanup
      * @param  ExternalImportTypeEnum  $importType  тип импортного адаптера, который нужно запустить
-     * @param  string  $disk  Laravel Storage disk, где лежит файл импорта
+     * @param  string  $disk  внутренний Laravel Storage disk из конфига, где лежит файл импорта
      * @param  string  $path  относительный путь к файлу внутри disk
      */
     public function __construct(

@@ -29,7 +29,6 @@ final readonly class ImportFileRequestedPayloadValidator
             'user_id' => ['required', 'integer', 'min:1'],
             'run_id' => ['required', 'string', 'max:128'],
             'import_type' => ['required', 'string', Rule::in($this->importTypes())],
-            'disk' => ['nullable', 'string', 'max:64'],
             'path' => ['required', 'string', 'max:2048', 'not_regex:/\.\./', 'not_regex:/^\//'],
         ]);
     }
