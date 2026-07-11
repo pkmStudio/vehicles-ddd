@@ -26,6 +26,10 @@ use Throwable;
 /**
  * Excel-адаптер привязки двигателей к группам (механика): парсит коды из ячейки и на каждый код
  * зовёт сценарий назначения группы, транслируя его исход в отчёт об ошибках.
+ *
+ * @deprecated Фича группировки двигателей по кросс-кодам ещё на большой бизнес-доработке —
+ *   правила группировки не финальны. Рабочий код, живой Rabbit-триггер, не удалять — просто не
+ *   удивляться, если логика назначения группы поменяется целиком.
  */
 final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue, SkipsEmptyRows, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithMultipleSheets, WithStartRow
 {

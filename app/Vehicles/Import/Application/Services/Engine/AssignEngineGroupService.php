@@ -12,6 +12,9 @@ use App\Vehicles\Import\Domain\DTOs\Engine\AssignEngineGroupResultDTO;
 /**
  * Use-case: назначить двигателю (по коду) группу. Возвращает исход для отчёта:
  * найден ли двигатель и не переназначаем ли мы его из другой непустой группы.
+ *
+ * @deprecated Фича группировки двигателей по кросс-кодам ещё на большой бизнес-доработке —
+ *   правила назначения группы не финальны (см. EngineCrossImport, который сюда обращается).
  */
 final readonly class AssignEngineGroupService implements AssignEngineGroupServiceInterface
 {

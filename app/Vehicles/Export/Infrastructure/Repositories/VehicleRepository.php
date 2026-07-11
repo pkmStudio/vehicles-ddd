@@ -12,21 +12,6 @@ use Illuminate\Support\Collection;
 
 final readonly class VehicleRepository implements VehicleRepositoryInterface
 {
-    public function find(int $id): ?VehicleData
-    {
-        return VehicleData::optional(Vehicle::query()->find($id));
-    }
-
-    public function findOrFail(int $id): VehicleData
-    {
-        return VehicleData::from(Vehicle::query()->findOrFail($id));
-    }
-
-    public function all(): Collection
-    {
-        return VehicleData::collect(Vehicle::query()->get(), Collection::class);
-    }
-
     public function forMainSheet(bool $onlyAllowed): Collection
     {
         $vehicles = Vehicle::query()

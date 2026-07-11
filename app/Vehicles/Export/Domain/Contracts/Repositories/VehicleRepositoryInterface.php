@@ -9,13 +9,6 @@ use Illuminate\Support\Collection;
 
 interface VehicleRepositoryInterface
 {
-    public function find(int $id): ?VehicleData;
-
-    public function findOrFail(int $id): VehicleData;
-
-    /** @return Collection<int, VehicleData> */
-    public function all(): Collection;
-
     /**
      * Для основного листа экспорта (с маркой и родителем).
      *

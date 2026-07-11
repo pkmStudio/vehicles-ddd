@@ -10,7 +10,9 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Facades\Excel;
 
 /**
- * @deprecated
+ * @deprecated Фича группировки двигателей по кросс-кодам ещё на большой бизнес-доработке.
+ *   Этот класс уже сейчас нигде не резолвится ни из одной точки входа (только биндинг в
+ *   ImportServiceProvider) — оставлен как заготовка, не удалять до решения по фиче в целом.
  */
 final class EnginesCodeImport implements EnginesCodeImportInterface, ToCollection
 {

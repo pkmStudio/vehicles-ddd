@@ -12,16 +12,6 @@ use Illuminate\Support\Collection;
 
 final readonly class EngineRepository implements EngineRepositoryInterface
 {
-    public function find(int $id): ?EngineData
-    {
-        return EngineData::optional(Engine::query()->find($id));
-    }
-
-    public function findOrFail(int $id): EngineData
-    {
-        return EngineData::from(Engine::query()->findOrFail($id));
-    }
-
     public function all(): Collection
     {
         return EngineData::collect(Engine::query()->get(), Collection::class);

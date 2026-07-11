@@ -9,10 +9,6 @@ use Illuminate\Support\Collection;
 
 interface EngineRepositoryInterface
 {
-    public function find(int $id): ?EngineData;
-
-    public function findOrFail(int $id): EngineData;
-
     /** @return Collection<int, EngineData> */
     public function all(): Collection;
 
