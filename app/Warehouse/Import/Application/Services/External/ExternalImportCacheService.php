@@ -33,12 +33,17 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
 
     /**
      * Запоминает disk+path исходного файла, чтобы удалить его после завершения импорта.
+     *
+     * Хранит как plain-массив, не объект DTO: Redis-кэш (`Illuminate\Cache\RedisStore`) в этом
+     * проекте не переживает round-trip кастомных классов через сериализацию (объект на выходе
+     * оказывается `__PHP_Incomplete_Class` — проверено вручную), тогда как массивы сериализуются
+     * и восстанавливаются корректно (тот же cache используется для failures-массивов и работает).
      */
     public function rememberCleanup(ExternalImportFileRequestDTO $request): void
     {
         Cache::put(
             key: $this->cleanupKey($request->runId),
-            value: new ExternalImportFileCleanupDTO(disk: $request->disk, path: $request->path),
+            value: ['disk' => $request->disk, 'path' => $request->path],
             ttl: $this->ttlSeconds(),
         );
     }
@@ -52,7 +57,11 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
         $cleanup = Cache::get($key);
         Cache::forget($key);
 
-        return $cleanup instanceof ExternalImportFileCleanupDTO ? $cleanup : null;
+        if (! is_array($cleanup) || ! isset($cleanup['disk'], $cleanup['path'])) {
+            return null;
+        }
+
+        return new ExternalImportFileCleanupDTO(disk: $cleanup['disk'], path: $cleanup['path']);
     }
 
     private function acceptedKey(string $runId): string
