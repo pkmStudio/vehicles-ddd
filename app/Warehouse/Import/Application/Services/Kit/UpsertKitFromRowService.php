@@ -23,6 +23,9 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
 {
     private const int GUARANTEE_MONTHS = 12;
 
+    /**
+     * Получает чтение номенклатуры, расчёт свойств набора и команду записи Kit.
+     */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
         private KitPropertiesServiceInterface $kitProperties,
@@ -82,7 +85,11 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
 
         $nomenclatureIds = array_map(fn (NomenclatureForKitData $n): int => $n->id, $ordered);
 
-        return $this->command->upsert($data, $id, $nomenclatureIds);
+        return $this->command->upsert(
+            data: $data,
+            kitId: $id,
+            nomenclatureIds: $nomenclatureIds,
+        );
     }
 
     /**
@@ -128,8 +135,19 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
         return $ordered;
     }
 
+    /**
+     * Переводит Import-снимок номенклатуры в DTO фичи KitProperties.
+     */
     private function toKitPropertiesNomenclature(NomenclatureForKitData $nomenclature): KitPropertiesNomenclatureData
     {
+        $type = $nomenclature->type === null
+            ? null
+            : new KitPropertiesTypeData(
+                name: $nomenclature->type->name,
+                char: $nomenclature->type->char,
+                id: $nomenclature->type->id,
+            );
+
         return new KitPropertiesNomenclatureData(
             typeId: $nomenclature->typeId,
             partNumber: $nomenclature->partNumber,
@@ -139,11 +157,7 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
             material: $nomenclature->material,
             details: $nomenclature->details,
             id: $nomenclature->id,
-            type: $nomenclature->type === null ? null : new KitPropertiesTypeData(
-                name: $nomenclature->type->name,
-                char: $nomenclature->type->char,
-                id: $nomenclature->type->id,
-            ),
+            type: $type,
         );
     }
 }

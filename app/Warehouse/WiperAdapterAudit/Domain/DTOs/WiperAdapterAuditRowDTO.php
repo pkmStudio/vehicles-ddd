@@ -15,7 +15,7 @@ final readonly class WiperAdapterAuditRowDTO
     public function __construct(
         public int $kitId,
         public string $kit,
-        public string $matchedAdapters,
+        public string $mismatchedAdapters,
         public string $place,
     ) {}
 }

@@ -41,14 +41,16 @@ final class PackagingServiceTest extends TestCase
         return new PackagingService(
             repository: $repository,
             templateResolver: $templateResolver,
-            brakePads: new BrakePadsPackagingStrategy($command),
-            wiper: new WiperPackagingStrategy,
-            cabinFilter: new CabinFilterPackagingStrategy($command),
-            oilFilter: new OilFilterPackagingStrategy($command),
-            generic: new GenericPackagingStrategy($command),
-            sparkPlugs: new SparkPlugsPackagingStrategy,
-            wiperAdapter: new WiperAdapterPackagingStrategy,
-            airFilter: new AirFilterPackagingStrategy($command),
+            strategies: [
+                new BrakePadsPackagingStrategy($command),
+                new WiperPackagingStrategy,
+                new CabinFilterPackagingStrategy($command),
+                new OilFilterPackagingStrategy($command),
+                new SparkPlugsPackagingStrategy,
+                new WiperAdapterPackagingStrategy,
+                new AirFilterPackagingStrategy($command),
+                new GenericPackagingStrategy($command),
+            ],
         );
     }
 

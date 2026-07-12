@@ -8,7 +8,7 @@ use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
 
 /**
  * Порт записи упаковочного размера Warehouse — только создание сгенерированной коробки, когда
- * ни одна из существующих не подошла (см. `AbstractPackagingStrategy::calculatePak()`).
+ * ни одна из существующих не подошла (см. `AbstractPackagingStrategy::calculatePackDimension()`).
  */
 interface PackDimensionCommandInterface
 {

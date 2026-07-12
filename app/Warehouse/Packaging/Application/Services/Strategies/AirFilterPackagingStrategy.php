@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Packaging\Application\Services\Strategies;
 
+use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Warehouse\Packaging\Domain\Contracts\Services\Strategies\PackagingStrategyInterface;
+use App\Warehouse\Packaging\Domain\DTOs\PackagingBoxRequirementDTO;
 use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
 use App\Warehouse\Packaging\Domain\ModelData\TypeData;
@@ -14,7 +17,7 @@ use Illuminate\Support\Collection;
  * габаритам без запаса на зазор; для всех остальных — стандартный расчёт с увеличенным (15мм,
  * не 5мм) зазором, т.к. воздушные фильтры этой категории обычно крупнее заявленных габаритов.
  */
-final readonly class AirFilterPackagingStrategy extends AbstractPackagingStrategy
+final readonly class AirFilterPackagingStrategy extends AbstractPackagingStrategy implements PackagingStrategyInterface
 {
     private const array PREDEFINED_PART_NUMBERS = [
         'LA-1019', 'LA-1925', 'LA-1446', 'LA-827', 'LA-1354',
@@ -22,6 +25,16 @@ final readonly class AirFilterPackagingStrategy extends AbstractPackagingStrateg
     ];
 
     /**
+     * Проверяет, что стратегия применима к detail-шаблону воздушных фильтров.
+     */
+    public function supports(?NomenclatureDetailTemplateEnum $template): bool
+    {
+        return $template === NomenclatureDetailTemplateEnum::AIR_FILTER;
+    }
+
+    /**
+     * Этот метод возвращает упаковку для набора воздушных фильтров.
+     *
      * @param  array<int, NomenclatureData>  $nomenclatures
      * @param  Collection<int, PackDimensionData>  $packDimensions
      */
@@ -57,9 +70,20 @@ final readonly class AirFilterPackagingStrategy extends AbstractPackagingStrateg
                     box: [$box->length, $box->width, $box->height],
                 ));
 
-            return $suitableBox ?? $this->calculatePak($type, 'воздушных фильтров', $dto, $packDimensions);
+            return $suitableBox ?? $this->calculatePackDimension(
+                type: $type,
+                name: 'воздушных фильтров',
+                dto: $dto,
+                packDimensions: $packDimensions,
+            );
         }
 
-        return $this->calculatePak($type, 'воздушных фильтров', $dto, $packDimensions, oversizeLimit: 15);
+        return $this->calculatePackDimension(
+            type: $type,
+            name: 'воздушных фильтров',
+            dto: $dto,
+            packDimensions: $packDimensions,
+            oversizeLimit: 15,
+        );
     }
 }

@@ -20,10 +20,16 @@ use UnexpectedValueException;
  */
 final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyInterface
 {
+    /**
+     * Получает resolver detail-шаблона типа номенклатуры.
+     */
     public function __construct(
         private TypeTemplateResolverInterface $templateResolver,
     ) {}
 
+    /**
+     * Проверяет, что набор состоит из щёток и адаптеров.
+     */
     public function supports(Collection $nomenclatures): bool
     {
         $templates = $this->distinctTemplates($nomenclatures);
@@ -33,6 +39,9 @@ final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyI
             && in_array(NomenclatureDetailTemplateEnum::WIPER_ADAPTER, $templates, true);
     }
 
+    /**
+     * Возвращает тип щётки как итоговый тип набора щётка+адаптер.
+     */
     public function resolveType(Collection $nomenclatures): TypeData
     {
         /** @var NomenclatureData|null $wiper */
@@ -47,6 +56,9 @@ final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyI
         return $wiper->type;
     }
 
+    /**
+     * Возвращает основные номенклатуры, исключая адаптеры из расчёта упаковки/количества.
+     */
     public function primaryNomenclatures(Collection $nomenclatures): Collection
     {
         return $nomenclatures
@@ -54,6 +66,9 @@ final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyI
             ->values();
     }
 
+    /**
+     * Резолвит detail-шаблон конкретной номенклатуры.
+     */
     private function template(NomenclatureData $nomenclature): ?NomenclatureDetailTemplateEnum
     {
         return $nomenclature->type === null ? null : $this->templateResolver->resolve($nomenclature->type);

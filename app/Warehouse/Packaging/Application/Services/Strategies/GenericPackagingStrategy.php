@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Packaging\Application\Services\Strategies;
 
+use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Warehouse\Packaging\Domain\Contracts\Services\Strategies\PackagingStrategyInterface;
+use App\Warehouse\Packaging\Domain\DTOs\PackagingBoxRequirementDTO;
 use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
 use App\Warehouse\Packaging\Domain\ModelData\TypeData;
@@ -15,7 +18,7 @@ use Illuminate\Support\Collection;
  * одной номенклатуры нет заполненных `details.metrics` — использует условные размеры небольшой
  * коробки (DEFAULT_*), чтобы Kit можно было создать без падения; иначе — реальные максимумы.
  */
-final readonly class GenericPackagingStrategy extends AbstractPackagingStrategy
+final readonly class GenericPackagingStrategy extends AbstractPackagingStrategy implements PackagingStrategyInterface
 {
     private const int DEFAULT_WEIGHT = 5;
 
@@ -26,6 +29,16 @@ final readonly class GenericPackagingStrategy extends AbstractPackagingStrategy
     private const float DEFAULT_LENGTH = 150;
 
     /**
+     * Fallback-стратегия применима к любому шаблону, который не обработали специализированные.
+     */
+    public function supports(?NomenclatureDetailTemplateEnum $template): bool
+    {
+        return true;
+    }
+
+    /**
+     * Этот метод возвращает упаковку по габаритам или дефолтным размерам.
+     *
      * @param  array<int, NomenclatureData>  $nomenclatures
      * @param  Collection<int, PackDimensionData>  $packDimensions
      */
@@ -40,7 +53,12 @@ final readonly class GenericPackagingStrategy extends AbstractPackagingStrategy
             length: $metrics['length'] ?? self::DEFAULT_LENGTH,
         );
 
-        return $this->calculatePak($type, $type->name, $dto, $packDimensions);
+        return $this->calculatePackDimension(
+            type: $type,
+            name: $type->name,
+            dto: $dto,
+            packDimensions: $packDimensions,
+        );
     }
 
     /**

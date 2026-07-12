@@ -16,11 +16,17 @@ use UnexpectedValueException;
  */
 final readonly class SingleTypeStrategy implements KitCompositionStrategyInterface
 {
+    /**
+     * Проверяет, что все номенклатуры набора имеют один typeId.
+     */
     public function supports(Collection $nomenclatures): bool
     {
         return $nomenclatures->pluck('typeId')->unique()->count() === 1;
     }
 
+    /**
+     * Возвращает type первой номенклатуры как итоговый тип однотипного набора.
+     */
     public function resolveType(Collection $nomenclatures): TypeData
     {
         /** @var NomenclatureData $first */
@@ -35,6 +41,9 @@ final readonly class SingleTypeStrategy implements KitCompositionStrategyInterfa
         return $first->type;
     }
 
+    /**
+     * Возвращает все номенклатуры, потому что однотипный набор не содержит вспомогательных типов.
+     */
     public function primaryNomenclatures(Collection $nomenclatures): Collection
     {
         return $nomenclatures;

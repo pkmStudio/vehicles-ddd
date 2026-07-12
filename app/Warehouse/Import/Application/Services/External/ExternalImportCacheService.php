@@ -20,7 +20,11 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
      */
     public function accept(string $runId): bool
     {
-        return Cache::add($this->acceptedKey($runId), true, $this->ttlSeconds());
+        return Cache::add(
+            key: $this->acceptedKey($runId),
+            value: true,
+            ttl: $this->ttlSeconds(),
+        );
     }
 
     /**
@@ -61,21 +65,46 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
             return null;
         }
 
-        return new ExternalImportFileCleanupDTO(disk: $cleanup['disk'], path: $cleanup['path']);
+        return new ExternalImportFileCleanupDTO(
+            disk: $cleanup['disk'],
+            path: $cleanup['path'],
+        );
     }
 
+    /**
+     * Собирает cache-ключ идемпотентности внешнего импорта.
+     */
     private function acceptedKey(string $runId): string
     {
-        return sprintf((string) config('warehouse.import.external.cache.keys.accepted'), $runId);
+        return sprintf(
+            (string) config(
+                key: 'warehouse.import.external.cache.keys.accepted',
+            ),
+            $runId,
+        );
     }
 
+    /**
+     * Собирает cache-ключ отложенной очистки исходного файла.
+     */
     private function cleanupKey(string $runId): string
     {
-        return sprintf((string) config('warehouse.import.external.cache.keys.cleanup'), $runId);
+        return sprintf(
+            (string) config(
+                key: 'warehouse.import.external.cache.keys.cleanup',
+            ),
+            $runId,
+        );
     }
 
+    /**
+     * Возвращает TTL технических cache-записей внешнего импорта.
+     */
     private function ttlSeconds(): int
     {
-        return (int) config('warehouse.import.external.cache.ttl_seconds', 86400);
+        return (int) config(
+            key: 'warehouse.import.external.cache.ttl_seconds',
+            default: 86400,
+        );
     }
 }

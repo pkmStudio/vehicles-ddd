@@ -1,11 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Создаёт таблицу связей Warehouse-номенклатуры с внешними системами.
+ */
 return new class extends Migration
 {
+    /**
+     * Создаёт таблицу `nomenclature_integrations`.
+     */
     public function up(): void
     {
         Schema::create('nomenclature_integrations', function (Blueprint $table) {
@@ -21,13 +29,14 @@ return new class extends Migration
 
             $table->unique(['provider', 'external_id']);
             $table->unique(['provider', 'nomenclature_id']);
-            $table->index(['provider', 'sync_status']);
-            $table->index(['provider', 'external_code']);
 
             $table->timestamps();
         });
     }
 
+    /**
+     * Удаляет таблицу `nomenclature_integrations`.
+     */
     public function down(): void
     {
         Schema::dropIfExists('nomenclature_integrations');

@@ -10,9 +10,9 @@ use App\Warehouse\KitProperties\Application\Services\Strategies\SingleTypeStrate
 use App\Warehouse\KitProperties\Application\Services\Strategies\WiperWithAdapterStrategy;
 use App\Warehouse\KitProperties\Application\Services\TypeTemplateResolver;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitComplectationServiceInterface;
+use App\Warehouse\KitProperties\Domain\Contracts\Services\KitCompositionStrategyInterface;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
-use App\Warehouse\Packaging\Domain\Contracts\Services\PackagingServiceInterface;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,29 +24,38 @@ use Illuminate\Support\ServiceProvider;
  */
 final class KitPropertiesServiceProvider extends ServiceProvider
 {
+    private const array COMPOSITION_STRATEGY_CLASSES = [
+        WiperWithAdapterStrategy::class,
+        SingleTypeStrategy::class,
+    ];
+
     private const array SERVICE_BINDINGS = [
         TypeTemplateResolverInterface::class => TypeTemplateResolver::class,
         KitComplectationServiceInterface::class => KitComplectationService::class,
     ];
 
+    /**
+     * Биндит сервисы KitProperties и передаёт упорядоченный список стратегий через контейнер.
+     */
     public function register(): void
     {
+        $this->app
+            ->when(concrete: KitPropertiesService::class)
+            ->needs(abstract: '$strategies')
+            ->give(implementation: function (Application $app): array {
+                return array_map(
+                    fn (string $strategy): KitCompositionStrategyInterface => $app->make($strategy),
+                    self::COMPOSITION_STRATEGY_CLASSES,
+                );
+            });
+
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
             $this->app->bind(abstract: $interface, concrete: $implementation);
         }
 
         $this->app->bind(
             abstract: KitPropertiesServiceInterface::class,
-            concrete: function (Application $app): KitPropertiesService {
-                return new KitPropertiesService(
-                    packaging: $app->make(PackagingServiceInterface::class),
-                    complectationService: $app->make(KitComplectationServiceInterface::class),
-                    strategies: [
-                        $app->make(WiperWithAdapterStrategy::class),
-                        $app->make(SingleTypeStrategy::class), // fallback, всегда регистрируем последней
-                    ],
-                );
-            },
+            concrete: KitPropertiesService::class,
         );
     }
 }

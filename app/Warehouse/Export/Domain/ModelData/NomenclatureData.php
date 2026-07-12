@@ -28,7 +28,7 @@ final class NomenclatureData extends Data
         public readonly string $country,
         public readonly string $partNumber,
         public readonly string $color,
-        public readonly string $weight,
+        public readonly int $weight,
         public readonly array $material,
         public readonly array $vehicleType,
         public readonly int $quantityPak,

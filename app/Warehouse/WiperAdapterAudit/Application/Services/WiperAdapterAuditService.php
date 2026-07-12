@@ -63,20 +63,20 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
                 continue;
             }
 
-            $result = $this->findIntersect(
+            $result = $this->findAdapterQuantityMismatches(
                 nomenclatureAdapters: $nomenclatureAdapters,
                 kitAdapters: $kitAdapters,
                 kit: $kit,
             );
 
-            if ($result['matchedAdapters'] === []) {
+            if ($result['mismatchedAdapters'] === []) {
                 continue;
             }
 
             $rows[] = new WiperAdapterAuditRowDTO(
                 kitId: (int) $kit->id,
                 kit: $this->kitPartNumbers($kit),
-                matchedAdapters: implode(';', $result['matchedAdapters']),
+                mismatchedAdapters: implode(';', $result['mismatchedAdapters']),
                 place: implode(", \n", $result['messages']),
             );
         }
@@ -135,12 +135,12 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
      *
      * @param  array<string, int>  $nomenclatureAdapters
      * @param  array<string, int>  $kitAdapters
-     * @return array{matchedAdapters: list<string>, messages: list<string>}
+     * @return array{mismatchedAdapters: list<string>, messages: list<string>}
      */
-    private function findIntersect(array $nomenclatureAdapters, array $kitAdapters, KitData $kit): array
+    private function findAdapterQuantityMismatches(array $nomenclatureAdapters, array $kitAdapters, KitData $kit): array
     {
         $messages = [];
-        $matchedAdapters = [];
+        $mismatchedAdapters = [];
 
         foreach ($kitAdapters as $adapter => $count) {
             $nomenclatureCount = $nomenclatureAdapters[$adapter] ?? 0;
@@ -148,16 +148,16 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
             $absoluteDifference = abs($difference);
 
             if ($difference < 0) {
-                $matchedAdapters[] = $adapter;
+                $mismatchedAdapters[] = $adapter;
                 $messages[] = "Тут {$absoluteDifference} лишний адаптер: {$adapter}";
             } elseif ($difference > 0) {
-                $matchedAdapters[] = $adapter;
+                $mismatchedAdapters[] = $adapter;
                 $messages[] = "Тут не хватает {$absoluteDifference} адаптера: {$adapter}";
             }
         }
 
         return [
-            'matchedAdapters' => $matchedAdapters,
+            'mismatchedAdapters' => $mismatchedAdapters,
             'messages' => $messages,
         ];
     }

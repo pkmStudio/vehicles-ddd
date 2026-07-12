@@ -11,7 +11,7 @@ use App\Warehouse\Import\Domain\ModelData\Kit\NomenclatureForKitData;
 use App\Warehouse\Import\Domain\ModelData\KitData;
 use App\Warehouse\Import\Domain\ModelData\TypeData;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
-use App\Warehouse\KitProperties\Domain\DTOs\KitPropertiesData;
+use App\Warehouse\KitProperties\Domain\DTOs\KitPropertiesDTO;
 use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData as KitPropertiesNomenclatureData;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -28,7 +28,7 @@ final class UpsertKitFromRowServiceTest extends TestCase
             partNumber: $partNumber,
             quantityInPak: 1,
             quantityPak: 1,
-            weight: '100',
+            weight: 100,
             material: [],
             details: [],
             type: new TypeData(name: 'Ремень клиновой', id: 9),
@@ -46,7 +46,7 @@ final class UpsertKitFromRowServiceTest extends TestCase
             ->with(['A-1', 'A-2'])
             ->andReturn(new Collection(['A-1' => $n1, 'A-2' => $n2]));
 
-        $properties = new KitPropertiesData(
+        $properties = new KitPropertiesDTO(
             typeId: 9,
             packDimensionId: 5,
             weight: 200.4,
@@ -131,7 +131,7 @@ final class UpsertKitFromRowServiceTest extends TestCase
         $repository = Mockery::mock(NomenclatureRepositoryInterface::class);
         $repository->shouldReceive('findByPartNumbers')->once()->andReturn(new Collection(['A-1' => $n1]));
 
-        $properties = new KitPropertiesData(
+        $properties = new KitPropertiesDTO(
             typeId: 9,
             packDimensionId: null,
             weight: 100.0,

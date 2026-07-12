@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Packaging\Application\Services\Strategies;
 
+use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Warehouse\Packaging\Domain\Contracts\Services\Strategies\PackagingStrategyInterface;
+use App\Warehouse\Packaging\Domain\DTOs\PackagingBoxRequirementDTO;
 use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
 use App\Warehouse\Packaging\Domain\ModelData\TypeData;
@@ -13,11 +16,21 @@ use Illuminate\Support\Collection;
  * Подбирает упаковку для салонных фильтров. Один артикул (`LAC-513C`) исторически всегда уходит в
  * первую доступную коробку без проверки габаритов — унаследованное из dan-center бизнес-исключение.
  */
-final readonly class CabinFilterPackagingStrategy extends AbstractPackagingStrategy
+final readonly class CabinFilterPackagingStrategy extends AbstractPackagingStrategy implements PackagingStrategyInterface
 {
     private const string EXACT_PART_NUMBER = 'LAC-513C';
 
     /**
+     * Проверяет, что стратегия применима к detail-шаблону салонных фильтров.
+     */
+    public function supports(?NomenclatureDetailTemplateEnum $template): bool
+    {
+        return $template === NomenclatureDetailTemplateEnum::CABIN_FILTER;
+    }
+
+    /**
+     * Этот метод возвращает упаковку для набора салонных фильтров.
+     *
      * @param  array<int, NomenclatureData>  $nomenclatures
      * @param  Collection<int, PackDimensionData>  $packDimensions
      */
@@ -43,6 +56,11 @@ final readonly class CabinFilterPackagingStrategy extends AbstractPackagingStrat
             length: $maxLength,
         );
 
-        return $this->calculatePak($type, 'салонных фильтров', $dto, $packDimensions);
+        return $this->calculatePackDimension(
+            type: $type,
+            name: 'салонных фильтров',
+            dto: $dto,
+            packDimensions: $packDimensions,
+        );
     }
 }

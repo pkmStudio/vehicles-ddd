@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Warehouse\KitProperties\Domain\Contracts\Services;
 
-use App\Warehouse\KitProperties\Domain\DTOs\KitPropertiesData;
+use App\Warehouse\KitProperties\Domain\DTOs\KitPropertiesDTO;
 use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData;
 
 /**
@@ -20,5 +20,5 @@ interface KitPropertiesServiceInterface
      * @throws \UnexpectedValueException если комбинация типов не поддерживается ни одной стратегией
      * @throws \InvalidArgumentException если список номенклатур пуст
      */
-    public function build(array $nomenclatures): KitPropertiesData;
+    public function build(array $nomenclatures): KitPropertiesDTO;
 }

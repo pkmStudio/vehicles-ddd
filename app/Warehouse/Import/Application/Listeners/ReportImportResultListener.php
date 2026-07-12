@@ -24,6 +24,9 @@ use RuntimeException;
  */
 final readonly class ReportImportResultListener
 {
+    /**
+     * Получает reporter ошибок импорта и notifier завершения.
+     */
     public function __construct(
         private ImportFailureReporterInterface $reporter,
         private ImportNotificationServiceInterface $notifier,
@@ -51,12 +54,18 @@ final readonly class ReportImportResultListener
             userId: $event->userId,
             runId: $event->runId,
             failuresReportPath: $reportPath,
-            failuresReportDisk: $reportPath === null ? null : (string) config('warehouse.import.failures.disk', 'local'),
+            failuresReportDisk: $reportPath === null ? null : (string) config(
+                key: 'warehouse.import.failures.disk',
+                default: 'local',
+            ),
         );
 
         $this->notifier->notifyImportCompleted($notification);
     }
 
+    /**
+     * Определяет тип импорта по конкретному событию завершения.
+     */
     private function importTypeFor(AbstractImportCompleted $event): ImportTypeEnum
     {
         return match (true) {

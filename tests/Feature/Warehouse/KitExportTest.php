@@ -47,7 +47,7 @@ final class KitExportTest extends TestCase
             'name' => 'Denso',
             'number_sert' => 'RU-123',
             'date_start' => '2026-01-01 00:00:00',
-            'date_begin' => '2026-01-02 00:00:00',
+            'date_end' => '2026-01-02 00:00:00',
         ]);
         $pack = PackDimension::query()->create([
             'name' => 'Box S',
@@ -66,7 +66,7 @@ final class KitExportTest extends TestCase
             'country' => 'Japan',
             'part_number' => 'SP-1',
             'color' => 'Silver',
-            'weight' => '45',
+            'weight' => 45,
             'material' => [],
             'vehicle_type' => [],
             'quantity_pak' => 1,
@@ -80,7 +80,7 @@ final class KitExportTest extends TestCase
             'country' => 'Japan',
             'part_number' => 'SP-2',
             'color' => 'Silver',
-            'weight' => '45',
+            'weight' => 45,
             'material' => [],
             'vehicle_type' => [],
             'quantity_pak' => 1,
@@ -138,7 +138,7 @@ final class KitExportTest extends TestCase
             'name' => 'Denso',
             'number_sert' => 'RU-123',
             'date_start' => '2026-01-01 00:00:00',
-            'date_begin' => '2026-01-02 00:00:00',
+            'date_end' => '2026-01-02 00:00:00',
         ]);
         $pack = PackDimension::query()->create([
             'name' => 'Box S',
@@ -156,7 +156,7 @@ final class KitExportTest extends TestCase
             'country' => 'Japan',
             'part_number' => 'AD-1',
             'color' => 'Black',
-            'weight' => '45',
+            'weight' => 45,
             'material' => [],
             'vehicle_type' => [],
             'quantity_pak' => 1,
@@ -170,7 +170,7 @@ final class KitExportTest extends TestCase
             'country' => 'Japan',
             'part_number' => 'SP-1',
             'color' => 'Silver',
-            'weight' => '45',
+            'weight' => 45,
             'material' => [],
             'vehicle_type' => [],
             'quantity_pak' => 1,

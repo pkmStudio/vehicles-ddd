@@ -15,6 +15,9 @@ use InvalidArgumentException;
  */
 final readonly class UpsertPackDimensionFromRowService implements UpsertPackDimensionFromRowServiceInterface
 {
+    /**
+     * Получает команду записи упаковочного размера.
+     */
     public function __construct(
         private PackDimensionCommandInterface $command,
     ) {}

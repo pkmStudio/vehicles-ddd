@@ -70,6 +70,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
                     && $data->typeId === 5
                     && $data->brandId === 7
                     && $data->partNumber === 'VB-ART-001'
+                    && $data->weight === 150
                     && $data->quantityPak === 2
                     && $data->quantityInPak === 3
                     && $data->material === ['NICKEL']
@@ -166,6 +167,29 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
         $service->upsertFromRow($this->validRow(), $this->types(), $this->brands());
     }
 
+    public function test_throws_when_weight_is_not_positive_integer(): void
+    {
+        $templateResolver = Mockery::mock(TypeTemplateResolverInterface::class);
+        $templateResolver->shouldReceive('resolve')->once()->andReturn(NomenclatureDetailTemplateEnum::V_BELT);
+
+        $detailsFactory = Mockery::mock(NomenclatureDetailsDataFactoryInterface::class);
+        $detailsFactory->shouldReceive('buildFromRow')->once()->andReturn(new GenericDetailsData);
+
+        $command = Mockery::mock(NomenclatureCommandInterface::class);
+        $command->shouldNotReceive('upsertByPartNumber');
+        $command->shouldNotReceive('updateById');
+
+        $service = new UpsertNomenclatureFromRowService($command, $templateResolver, $detailsFactory);
+
+        $row = $this->validRow();
+        $row[7] = '0';
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Вес должен быть положительным целым числом в граммах');
+
+        $service->upsertFromRow($row, $this->types(), $this->brands());
+    }
+
     private function dummyNomenclatureData(): NomenclatureData
     {
         return new NomenclatureData(
@@ -175,7 +199,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
             country: 'RU',
             partNumber: 'VB-ART-001',
             color: 'Black',
-            weight: '150',
+            weight: 150,
             material: ['NICKEL'],
             vehicleType: ['CAR'],
             quantityPak: 2,

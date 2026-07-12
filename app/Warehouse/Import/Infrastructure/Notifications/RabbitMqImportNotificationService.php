@@ -14,6 +14,9 @@ use PkmStudio\RabbitTransport\RabbitMQPublisher;
  */
 final readonly class RabbitMqImportNotificationService implements ImportNotificationServiceInterface
 {
+    /**
+     * Получает publisher пакета rabbit-transport.
+     */
     public function __construct(
         private RabbitMQPublisher $publisher,
     ) {}

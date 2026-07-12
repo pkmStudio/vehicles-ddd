@@ -42,8 +42,8 @@ final class KitPropertiesServiceTest extends TestCase
     public function test_builds_properties_for_single_type_kit(): void
     {
         $type = new TypeData(name: 'Колодки', id: 1);
-        $n1 = new NomenclatureData(typeId: 1, partNumber: 'BP-1', quantityInPak: 2, quantityPak: 1, weight: '100', material: ['NICKEL'], details: [], type: $type);
-        $n2 = new NomenclatureData(typeId: 1, partNumber: 'BP-2', quantityInPak: 3, quantityPak: 2, weight: '150', material: [], details: [], type: $type);
+        $n1 = new NomenclatureData(typeId: 1, partNumber: 'BP-1', quantityInPak: 2, quantityPak: 1, weight: 100, material: ['NICKEL'], details: [], type: $type);
+        $n2 = new NomenclatureData(typeId: 1, partNumber: 'BP-2', quantityInPak: 3, quantityPak: 2, weight: 150, material: [], details: [], type: $type);
 
         $box = new PackagingPackDimensionData(name: 'Box', weight: 50, width: 10, height: 10, length: 10, price: 5, typeId: 1, id: 99);
 
@@ -80,8 +80,8 @@ final class KitPropertiesServiceTest extends TestCase
         $wiperType = new TypeData(name: 'Щетки стеклоочистителя', id: 3);
         $adapterType = new TypeData(name: 'Адаптер стеклоочистителя', id: 7);
 
-        $wiper = new NomenclatureData(typeId: 3, partNumber: 'WB-1', quantityInPak: 1, quantityPak: 1, weight: '100', material: [], details: [], type: $wiperType);
-        $adapter = new NomenclatureData(typeId: 7, partNumber: 'AW-1', quantityInPak: 5, quantityPak: 5, weight: '20', material: [], details: [], type: $adapterType);
+        $wiper = new NomenclatureData(typeId: 3, partNumber: 'WB-1', quantityInPak: 1, quantityPak: 1, weight: 100, material: [], details: [], type: $wiperType);
+        $adapter = new NomenclatureData(typeId: 7, partNumber: 'AW-1', quantityInPak: 5, quantityPak: 5, weight: 20, material: [], details: [], type: $adapterType);
 
         $resolver = Mockery::mock(TypeTemplateResolverInterface::class);
         $resolver->shouldReceive('resolve')->with($wiperType)->andReturn(NomenclatureDetailTemplateEnum::WIPER);
@@ -116,7 +116,7 @@ final class KitPropertiesServiceTest extends TestCase
     public function test_treats_unresolvable_pack_dimension_as_null(): void
     {
         $type = new TypeData(name: 'Фильтр масляный', id: 4);
-        $n = new NomenclatureData(typeId: 4, partNumber: 'OF-1', quantityInPak: 1, quantityPak: 1, weight: '100', material: [], details: [], type: $type);
+        $n = new NomenclatureData(typeId: 4, partNumber: 'OF-1', quantityInPak: 1, quantityPak: 1, weight: 100, material: [], details: [], type: $type);
 
         $packaging = Mockery::mock(PackagingServiceInterface::class);
         $packaging->shouldReceive('selectOrCreate')->once()->andThrow(new PackDimensionNotResolvableException('no fit'));
@@ -147,8 +147,8 @@ final class KitPropertiesServiceTest extends TestCase
     {
         $type1 = new TypeData(name: 'Колодки', id: 1);
         $type2 = new TypeData(name: 'Свечи зажигания', id: 2);
-        $n1 = new NomenclatureData(typeId: 1, partNumber: 'A', quantityInPak: 1, quantityPak: 1, weight: '1', material: [], details: [], type: $type1);
-        $n2 = new NomenclatureData(typeId: 2, partNumber: 'B', quantityInPak: 1, quantityPak: 1, weight: '1', material: [], details: [], type: $type2);
+        $n1 = new NomenclatureData(typeId: 1, partNumber: 'A', quantityInPak: 1, quantityPak: 1, weight: 1, material: [], details: [], type: $type1);
+        $n2 = new NomenclatureData(typeId: 2, partNumber: 'B', quantityInPak: 1, quantityPak: 1, weight: 1, material: [], details: [], type: $type2);
 
         $resolver = Mockery::mock(TypeTemplateResolverInterface::class);
         $resolver->shouldReceive('resolve')->andReturn(NomenclatureDetailTemplateEnum::BRAKE_PADS, NomenclatureDetailTemplateEnum::SPARK_PLUGS);

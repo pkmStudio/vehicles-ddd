@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Warehouse\KitProperties\Domain\Contracts\Services;
 
+use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Warehouse\KitProperties\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
 
@@ -18,14 +19,14 @@ interface KitCompositionStrategyInterface
     /**
      * Подходит ли эта стратегия для данного набора номенклатур?
      *
-     * @param  Collection<int, \App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData>  $nomenclatures
+     * @param  Collection<int, NomenclatureData>  $nomenclatures
      */
     public function supports(Collection $nomenclatures): bool;
 
     /**
      * Возвращает итоговый тип набора.
      *
-     * @param  Collection<int, \App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData>  $nomenclatures
+     * @param  Collection<int, NomenclatureData>  $nomenclatures
      */
     public function resolveType(Collection $nomenclatures): TypeData;
 
@@ -33,8 +34,8 @@ interface KitCompositionStrategyInterface
      * Основные номенклатуры — те, что участвуют в расчёте упаковки, количества и комплектации.
      * Вспомогательные (адаптеры и т.п.) исключаются.
      *
-     * @param  Collection<int, \App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData>  $nomenclatures
-     * @return Collection<int, \App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData>
+     * @param  Collection<int, NomenclatureData>  $nomenclatures
+     * @return Collection<int, NomenclatureData>
      */
     public function primaryNomenclatures(Collection $nomenclatures): Collection;
 }

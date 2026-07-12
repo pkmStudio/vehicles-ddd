@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Warehouse\Packaging\Application\Services\Strategies;
 
 use App\Warehouse\Packaging\Domain\Contracts\Commands\PackDimensionCommandInterface;
+use App\Warehouse\Packaging\Domain\DTOs\PackagingBoxRequirementDTO;
 use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
 use App\Warehouse\Packaging\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
@@ -17,6 +18,9 @@ use Illuminate\Support\Collection;
  */
 abstract readonly class AbstractPackagingStrategy
 {
+    /**
+     * Получает команду создания новой упаковки.
+     */
     public function __construct(
         protected PackDimensionCommandInterface $command,
     ) {}
@@ -62,7 +66,7 @@ abstract readonly class AbstractPackagingStrategy
      *
      * @param  Collection<int, PackDimensionData>  $packDimensions
      */
-    protected function calculatePak(
+    protected function calculatePackDimension(
         TypeData $type,
         string $name,
         PackagingBoxRequirementDTO $dto,
@@ -100,7 +104,7 @@ abstract readonly class AbstractPackagingStrategy
             $dto->height,
         );
 
-        return $this->command->create(new PackDimensionData(
+        $packDimension = new PackDimensionData(
             name: $generatedName,
             weight: $dto->weight,
             width: (int) ceil($dto->width + $oversizeLimit),
@@ -109,6 +113,8 @@ abstract readonly class AbstractPackagingStrategy
             price: 5,
             typeId: $type->id ?? throw new \InvalidArgumentException('TypeData::$id обязателен для создания упаковки'),
             generated: true,
-        ));
+        );
+
+        return $this->command->create($packDimension);
     }
 }

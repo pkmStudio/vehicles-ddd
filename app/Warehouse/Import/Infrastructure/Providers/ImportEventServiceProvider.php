@@ -19,14 +19,35 @@ use Illuminate\Support\ServiceProvider;
  */
 final class ImportEventServiceProvider extends ServiceProvider
 {
+    /**
+     * Регистрирует одинаковые listeners на все родственные события завершения импорта.
+     */
     public function boot(): void
     {
-        Event::listen(NomenclatureImportCompleted::class, [ReportImportResultListener::class, 'handle']);
-        Event::listen(PackDimensionImportCompleted::class, [ReportImportResultListener::class, 'handle']);
-        Event::listen(KitImportCompleted::class, [ReportImportResultListener::class, 'handle']);
+        Event::listen(
+            events: NomenclatureImportCompleted::class,
+            listener: [ReportImportResultListener::class, 'handle'],
+        );
+        Event::listen(
+            events: PackDimensionImportCompleted::class,
+            listener: [ReportImportResultListener::class, 'handle'],
+        );
+        Event::listen(
+            events: KitImportCompleted::class,
+            listener: [ReportImportResultListener::class, 'handle'],
+        );
 
-        Event::listen(NomenclatureImportCompleted::class, [CleanupExternalImportFileListener::class, 'handle']);
-        Event::listen(PackDimensionImportCompleted::class, [CleanupExternalImportFileListener::class, 'handle']);
-        Event::listen(KitImportCompleted::class, [CleanupExternalImportFileListener::class, 'handle']);
+        Event::listen(
+            events: NomenclatureImportCompleted::class,
+            listener: [CleanupExternalImportFileListener::class, 'handle'],
+        );
+        Event::listen(
+            events: PackDimensionImportCompleted::class,
+            listener: [CleanupExternalImportFileListener::class, 'handle'],
+        );
+        Event::listen(
+            events: KitImportCompleted::class,
+            listener: [CleanupExternalImportFileListener::class, 'handle'],
+        );
     }
 }

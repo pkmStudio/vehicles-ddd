@@ -14,6 +14,9 @@ use Illuminate\Validation\Rule;
  */
 final readonly class ImportFileRequestedPayloadValidator
 {
+    /**
+     * Получает Laravel validator factory.
+     */
     public function __construct(
         private ValidatorFactory $validator,
     ) {}

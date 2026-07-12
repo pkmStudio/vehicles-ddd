@@ -33,7 +33,9 @@ final readonly class CleanupBrakePadsPackDimensionsService
         $type = Type::query()->where('char', 'BP')->first();
 
         if ($type === null) {
-            return ['candidates' => new Collection, 'deleted' => 0, 'skipped' => 0];
+            $candidates = new Collection;
+
+            return ['candidates' => $candidates, 'deleted' => 0, 'skipped' => 0];
         }
 
         $candidates = PackDimension::query()

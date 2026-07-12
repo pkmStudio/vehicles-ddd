@@ -4,40 +4,30 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Packaging\Application\Services;
 
-use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
-use App\Warehouse\Packaging\Application\Services\Strategies\AirFilterPackagingStrategy;
-use App\Warehouse\Packaging\Application\Services\Strategies\BrakePadsPackagingStrategy;
-use App\Warehouse\Packaging\Application\Services\Strategies\CabinFilterPackagingStrategy;
-use App\Warehouse\Packaging\Application\Services\Strategies\GenericPackagingStrategy;
-use App\Warehouse\Packaging\Application\Services\Strategies\OilFilterPackagingStrategy;
-use App\Warehouse\Packaging\Application\Services\Strategies\SparkPlugsPackagingStrategy;
-use App\Warehouse\Packaging\Application\Services\Strategies\WiperAdapterPackagingStrategy;
-use App\Warehouse\Packaging\Application\Services\Strategies\WiperPackagingStrategy;
 use App\Warehouse\Packaging\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
 use App\Warehouse\Packaging\Domain\Contracts\Services\PackagingServiceInterface;
+use App\Warehouse\Packaging\Domain\Contracts\Services\Strategies\PackagingStrategyInterface;
 use App\Warehouse\Packaging\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
 use App\Warehouse\Packaging\Domain\ModelData\TypeData;
+use RuntimeException;
 
 /**
- * Selector: по detail-шаблону типа выбирает конкретную стратегию подбора упаковки (одна стратегия
- * на шаблон, симметрично `Templates\NomenclatureDetailsDataFactory`). Стратегии — простые классы
- * без собственного порта, конструируются по умолчанию.
+ * Selector: по detail-шаблону типа выбирает стратегию подбора упаковки из зарегистрированных
+ * портов стратегий.
  */
 final readonly class PackagingService implements PackagingServiceInterface
 {
+    /**
+     * Получает чтение упаковок, resolver шаблона и упорядоченный список стратегий.
+     *
+     * @param  array<int, PackagingStrategyInterface>  $strategies
+     */
     public function __construct(
         private PackDimensionRepositoryInterface $repository,
         private TypeTemplateResolverInterface $templateResolver,
-        private BrakePadsPackagingStrategy $brakePads,
-        private WiperPackagingStrategy $wiper,
-        private CabinFilterPackagingStrategy $cabinFilter,
-        private OilFilterPackagingStrategy $oilFilter,
-        private GenericPackagingStrategy $generic,
-        private SparkPlugsPackagingStrategy $sparkPlugs,
-        private WiperAdapterPackagingStrategy $wiperAdapter,
-        private AirFilterPackagingStrategy $airFilter,
+        private array $strategies,
     ) {}
 
     /**
@@ -51,17 +41,14 @@ final readonly class PackagingService implements PackagingServiceInterface
         $template = $this->templateResolver->resolve($type);
         $packDimensions = $this->repository->byType($type);
 
-        $strategy = match ($template) {
-            NomenclatureDetailTemplateEnum::BRAKE_PADS => $this->brakePads,
-            NomenclatureDetailTemplateEnum::WIPER => $this->wiper,
-            NomenclatureDetailTemplateEnum::CABIN_FILTER => $this->cabinFilter,
-            NomenclatureDetailTemplateEnum::OIL_FILTER => $this->oilFilter,
-            NomenclatureDetailTemplateEnum::SPARK_PLUGS => $this->sparkPlugs,
-            NomenclatureDetailTemplateEnum::WIPER_ADAPTER => $this->wiperAdapter,
-            NomenclatureDetailTemplateEnum::AIR_FILTER => $this->airFilter,
-            default => $this->generic,
-        };
+        foreach ($this->strategies as $strategy) {
+            if (! $strategy->supports($template)) {
+                continue;
+            }
 
-        return $strategy->calculate($type, $nomenclatures, $packDimensions);
+            return $strategy->calculate($type, $nomenclatures, $packDimensions);
+        }
+
+        throw new RuntimeException('Не зарегистрирована стратегия подбора Warehouse-упаковки');
     }
 }

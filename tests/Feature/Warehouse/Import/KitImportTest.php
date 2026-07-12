@@ -56,7 +56,7 @@ final class KitImportTest extends TestCase
             'country' => 'RU',
             'part_number' => $partNumber,
             'color' => 'Black',
-            'weight' => '100',
+            'weight' => 100,
             'material' => [],
             'vehicle_type' => [],
             'quantity_pak' => 1,
@@ -78,7 +78,7 @@ final class KitImportTest extends TestCase
             'name' => 'BrandX',
             'number_sert' => 'CERT-1',
             'date_start' => now(),
-            'date_begin' => now(),
+            'date_end' => now(),
         ]);
 
         $n1 = $this->createNomenclature($type->id, $brand->id, 'VB-1');
@@ -112,7 +112,7 @@ final class KitImportTest extends TestCase
             'name' => 'BrandX',
             'number_sert' => 'CERT-1',
             'date_start' => now(),
-            'date_begin' => now(),
+            'date_end' => now(),
         ]);
         $this->createNomenclature($type->id, $brand->id, 'VB-1');
 

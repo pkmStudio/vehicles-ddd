@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Packaging\Application\Services\Strategies;
 
+use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Warehouse\Packaging\Domain\Contracts\Services\Strategies\PackagingStrategyInterface;
 use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
 use App\Warehouse\Packaging\Domain\ModelData\TypeData;
@@ -14,11 +16,21 @@ use Illuminate\Support\Collection;
  * самая большая из существующих коробок, иначе — самая маленькая. Не создаёт новых коробок,
  * поэтому не наследует `AbstractPackagingStrategy`.
  */
-final readonly class SparkPlugsPackagingStrategy
+final readonly class SparkPlugsPackagingStrategy implements PackagingStrategyInterface
 {
     private const int MAX_COUNT_PLUGS_FOR_SMALL_BOX = 6;
 
     /**
+     * Проверяет, что стратегия применима к detail-шаблону свечей зажигания.
+     */
+    public function supports(?NomenclatureDetailTemplateEnum $template): bool
+    {
+        return $template === NomenclatureDetailTemplateEnum::SPARK_PLUGS;
+    }
+
+    /**
+     * Этот метод выбирает существующую коробку для свечей по количеству номенклатур.
+     *
      * @param  array<int, NomenclatureData>  $nomenclatures
      * @param  Collection<int, PackDimensionData>  $packDimensions
      */

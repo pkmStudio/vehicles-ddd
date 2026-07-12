@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Packaging\Application\Services\Strategies;
 
+use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Warehouse\Packaging\Domain\Contracts\Services\Strategies\PackagingStrategyInterface;
 use App\Warehouse\Packaging\Domain\Exceptions\PackDimensionNotResolvableException;
 use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
@@ -15,9 +17,19 @@ use Illuminate\Support\Collection;
  * Единственная стратегия, которая НЕ создаёт новую коробку при отсутствии подходящей — бросает
  * `PackDimensionNotResolvableException` (вызывающий, `KitProperties`, ловит именно этот тип).
  */
-final readonly class OilFilterPackagingStrategy extends AbstractPackagingStrategy
+final readonly class OilFilterPackagingStrategy extends AbstractPackagingStrategy implements PackagingStrategyInterface
 {
     /**
+     * Проверяет, что стратегия применима к detail-шаблону масляных фильтров.
+     */
+    public function supports(?NomenclatureDetailTemplateEnum $template): bool
+    {
+        return $template === NomenclatureDetailTemplateEnum::OIL_FILTER;
+    }
+
+    /**
+     * Этот метод возвращает подходящую существующую упаковку масляного фильтра.
+     *
      * @param  array<int, NomenclatureData>  $nomenclatures
      * @param  Collection<int, PackDimensionData>  $packDimensions
      *

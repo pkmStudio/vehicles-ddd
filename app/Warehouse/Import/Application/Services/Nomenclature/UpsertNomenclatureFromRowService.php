@@ -57,6 +57,9 @@ final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclat
      */
     private const int DETAILS_START_INDEX = 12;
 
+    /**
+     * Получает команду записи, resolver шаблона и фабрику сборки details.
+     */
     public function __construct(
         private NomenclatureCommandInterface $command,
         private TypeTemplateResolverInterface $templateResolver,
@@ -108,6 +111,11 @@ final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclat
 
         $detailsIndex = self::DETAILS_START_INDEX;
         $details = $this->detailsFactory->buildFromRow($template, $row, $detailsIndex)->toArray();
+        $weight = $this->parsePositiveInteger(
+            value: $row[7] ?? null,
+            columnName: 'Вес',
+            columnLetter: 'H',
+        );
 
         $data = new NomenclatureData(
             typeId: $type->id,
@@ -116,7 +124,7 @@ final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclat
             country: (string) ($row[4] ?? ''),
             partNumber: trim((string) ($row[5] ?? '')),
             color: (string) ($row[6] ?? ''),
-            weight: (string) ($row[7] ?? '1'),
+            weight: $weight,
             material: $this->labelsToKeys((string) ($row[8] ?? ''), self::MATERIAL_KEYS_BY_LABEL),
             vehicleType: $this->labelsToKeys((string) ($row[9] ?? ''), self::VEHICLE_TYPE_KEYS_BY_LABEL),
             quantityPak: isset($row[10]) ? (int) $row[10] : 1,
@@ -128,6 +136,31 @@ final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclat
         return $id !== null
             ? $this->command->updateById($data)
             : $this->command->upsertByPartNumber($data);
+    }
+
+    /**
+     * Возвращает положительное целое значение из Excel-ячейки.
+     */
+    private function parsePositiveInteger(mixed $value, string $columnName, string $columnLetter): int
+    {
+        $normalized = is_string($value) ? trim($value) : $value;
+        $parsed = null;
+
+        if (is_int($normalized)) {
+            $parsed = $normalized;
+        } elseif (is_float($normalized) && floor($normalized) === $normalized) {
+            $parsed = (int) $normalized;
+        } elseif (is_string($normalized) && preg_match('/^\d+$/', $normalized) === 1) {
+            $parsed = (int) $normalized;
+        }
+
+        if ($parsed === null || $parsed <= 0) {
+            throw new InvalidArgumentException(
+                "{$columnName} должен быть положительным целым числом в граммах. Проверьте столбец {$columnLetter}.",
+            );
+        }
+
+        return $parsed;
     }
 
     /**

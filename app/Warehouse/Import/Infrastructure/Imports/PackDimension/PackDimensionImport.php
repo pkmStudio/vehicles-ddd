@@ -34,6 +34,9 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
 
     private ?string $runId = null;
 
+    /**
+     * Получает построчный сервис импорта упаковочных размеров.
+     */
     public function __construct(
         private readonly UpsertPackDimensionFromRowServiceInterface $service,
     ) {}
@@ -51,7 +54,11 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
         $this->cacheKey = sprintf((string) config('warehouse.import.failures.cache.keys.pack_dimension_import_failures'), $context->runId);
         $this->lockKey = sprintf((string) config('warehouse.import.failures.cache.keys.pack_dimension_import_failures_lock'), $context->runId);
 
-        Excel::import($this, $path, $disk);
+        Excel::import(
+            import: $this,
+            filePath: $path,
+            disk: $disk,
+        );
     }
 
     /**
@@ -65,21 +72,29 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
             try {
                 $this->service->upsertFromRow($rowValues);
             } catch (InvalidArgumentException $e) {
-                $this->onFailure(new Failure(
+                $failure = new Failure(
                     row: $indexRow + $this->startRow(),
                     attribute: 'pack_dimension',
                     errors: [$e->getMessage()],
                     values: $rowValues,
-                ));
+                );
+
+                $this->onFailure($failure);
             }
         }
     }
 
+    /**
+     * Возвращает номер первой строки с данными, пропуская заголовок.
+     */
     public function startRow(): int
     {
         return 2;
     }
 
+    /**
+     * Возвращает размер чанка чтения упаковочных размеров.
+     */
     public function chunkSize(): int
     {
         return 500;

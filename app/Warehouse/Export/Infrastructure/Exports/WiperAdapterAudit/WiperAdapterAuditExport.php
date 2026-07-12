@@ -79,7 +79,7 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
         return [
             $row->kitId,
             $row->kit,
-            $row->matchedAdapters,
+            $row->mismatchedAdapters,
             $row->place,
         ];
     }
@@ -94,7 +94,7 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
         return [
             'ID Набора',
             'Набор',
-            'Совпадающие адаптеры',
+            'Несовпадающие адаптеры',
             'Где лежит',
         ];
     }

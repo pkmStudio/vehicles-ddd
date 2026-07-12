@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Packaging\Application\Services\Strategies;
 
+use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Warehouse\Packaging\Domain\Contracts\Services\Strategies\PackagingStrategyInterface;
 use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
 use App\Warehouse\Packaging\Domain\ModelData\TypeData;
@@ -12,10 +14,18 @@ use Illuminate\Support\Collection;
 /**
  * Подбирает упаковку для щёток стеклоочистителя по длине щётки — единственная стратегия, которая
  * никогда не создаёт новую коробку (только выбирает из существующих), поэтому не наследует
- * `AbstractPackagingStrategy` (её `calculatePak()`/`Command` здесь не нужны).
+ * `AbstractPackagingStrategy` (её `calculatePackDimension()`/`Command` здесь не нужны).
  */
-final readonly class WiperPackagingStrategy
+final readonly class WiperPackagingStrategy implements PackagingStrategyInterface
 {
+    /**
+     * Проверяет, что стратегия применима к detail-шаблону щёток стеклоочистителя.
+     */
+    public function supports(?NomenclatureDetailTemplateEnum $template): bool
+    {
+        return $template === NomenclatureDetailTemplateEnum::WIPER;
+    }
+
     /**
      * Этот метод возвращает коробку, длины которой хватает на самую длинную щётку в комплекте.
      *

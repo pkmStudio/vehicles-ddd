@@ -45,7 +45,7 @@ final class NomenclatureImportTest extends TestCase
             'name' => 'BrandX',
             'number_sert' => 'CERT-1',
             'date_start' => now(),
-            'date_begin' => now(),
+            'date_end' => now(),
         ]);
 
         $path = base_path('tests/Fixtures/warehouse_nomenclature_sample.csv');

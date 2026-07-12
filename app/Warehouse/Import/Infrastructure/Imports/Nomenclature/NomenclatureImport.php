@@ -37,6 +37,9 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
 
     private ?string $runId = null;
 
+    /**
+     * Получает построчный сервис импорта и справочники типов/брендов.
+     */
     public function __construct(
         private readonly UpsertNomenclatureFromRowServiceInterface $service,
         private readonly TypeRepositoryInterface $types,
@@ -56,7 +59,11 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
         $this->cacheKey = sprintf((string) config('warehouse.import.failures.cache.keys.nomenclature_import_failures'), $context->runId);
         $this->lockKey = sprintf((string) config('warehouse.import.failures.cache.keys.nomenclature_import_failures_lock'), $context->runId);
 
-        Excel::import($this, $path, $disk);
+        Excel::import(
+            import: $this,
+            filePath: $path,
+            disk: $disk,
+        );
     }
 
     /**
@@ -77,21 +84,29 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
             try {
                 $this->service->upsertFromRow($rowValues, $types, $brands);
             } catch (InvalidArgumentException|RuntimeException $e) {
-                $this->onFailure(new Failure(
+                $failure = new Failure(
                     row: $indexRow + $this->startRow(),
                     attribute: "артикул {$partNumber}",
                     errors: [$e->getMessage()],
                     values: $rowValues,
-                ));
+                );
+
+                $this->onFailure($failure);
             }
         }
     }
 
+    /**
+     * Возвращает номер первой строки с данными, пропуская заголовок.
+     */
     public function startRow(): int
     {
         return 2;
     }
 
+    /**
+     * Возвращает размер чанка чтения номенклатуры.
+     */
     public function chunkSize(): int
     {
         return 1000;

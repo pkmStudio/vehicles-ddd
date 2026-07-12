@@ -1,11 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Создаёт справочник упаковочных размеров Warehouse.
+ */
 return new class extends Migration
 {
+    /**
+     * Создаёт таблицу `pack_dimensions`.
+     */
     public function up(): void
     {
         Schema::create('pack_dimensions', function (Blueprint $table) {
@@ -20,12 +28,13 @@ return new class extends Migration
 
             $table->foreignId('type_id')->constrained('types')->comment('Тип номенклатуры, для которой рассчитана эта упаковка');
 
-            $table->index('type_id');
-
             $table->timestamps();
         });
     }
 
+    /**
+     * Удаляет таблицу `pack_dimensions`.
+     */
     public function down(): void
     {
         Schema::dropIfExists('pack_dimensions');

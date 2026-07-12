@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Packaging\Domain\Contracts\Services;
 
+use App\Warehouse\Packaging\Domain\Exceptions\PackDimensionNotResolvableException;
 use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
 use App\Warehouse\Packaging\Domain\ModelData\TypeData;
@@ -18,7 +19,7 @@ interface PackagingServiceInterface
      *
      * @param  array<int, NomenclatureData>  $nomenclatures
      *
-     * @throws \App\Warehouse\Packaging\Domain\Exceptions\PackDimensionNotResolvableException
+     * @throws PackDimensionNotResolvableException
      */
     public function selectOrCreate(TypeData $type, array $nomenclatures): PackDimensionData;
 }

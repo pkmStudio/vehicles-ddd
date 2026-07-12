@@ -21,6 +21,9 @@ final readonly class FailuresExport implements FailuresExportInterface, FromColl
         private array $failures,
     ) {}
 
+    /**
+     * Возвращает строки отчёта об ошибках импорта.
+     */
     public function collection(): Collection
     {
         return collect($this->failures)->map(fn (array $failure): array => [

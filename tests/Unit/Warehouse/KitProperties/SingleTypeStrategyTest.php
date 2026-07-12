@@ -20,7 +20,7 @@ final class SingleTypeStrategyTest extends TestCase
             partNumber: "PN-{$typeId}",
             quantityInPak: 1,
             quantityPak: 1,
-            weight: '10',
+            weight: 10,
             material: [],
             details: [],
             type: $type,

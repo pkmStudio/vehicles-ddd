@@ -27,7 +27,7 @@ final class RecalculateBrakePadsKitsServiceTest extends TestCase
             'name' => 'Bosch',
             'number_sert' => 'CERT-1',
             'date_start' => now(),
-            'date_begin' => now(),
+            'date_end' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -42,7 +42,7 @@ final class RecalculateBrakePadsKitsServiceTest extends TestCase
             'country' => 'RU',
             'part_number' => $partNumber,
             'color' => 'black',
-            'weight' => '100',
+            'weight' => 100,
             'material' => [],
             'vehicle_type' => [],
             'quantity_pak' => 1,

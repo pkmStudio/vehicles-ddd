@@ -16,6 +16,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class KitData extends Data
 {
+    /**
+     * Хранит поля набора, которые пишет Import Command.
+     */
     public function __construct(
         public readonly string $complectation,
         public readonly int $guarantee,

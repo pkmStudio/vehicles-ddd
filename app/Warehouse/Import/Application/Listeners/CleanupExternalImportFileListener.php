@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Storage;
  */
 final readonly class CleanupExternalImportFileListener
 {
+    /**
+     * Получает cache-сервис с отложенным заданием очистки.
+     */
     public function __construct(
         private ExternalImportCacheServiceInterface $cache,
     ) {}

@@ -49,7 +49,7 @@ final class NomenclatureByTypeExportTest extends TestCase
             'name' => 'Denso',
             'number_sert' => 'RU-123',
             'date_start' => '2026-01-01 00:00:00',
-            'date_begin' => '2026-01-02 00:00:00',
+            'date_end' => '2026-01-02 00:00:00',
             'char' => 'D',
         ]);
 
@@ -60,7 +60,7 @@ final class NomenclatureByTypeExportTest extends TestCase
             'country' => 'Japan',
             'part_number' => 'IK20TT',
             'color' => 'Silver',
-            'weight' => '45',
+            'weight' => 45,
             'material' => ['IRIDIUM', 'Платина'],
             'vehicle_type' => ['CAR'],
             'quantity_pak' => 1,
@@ -81,7 +81,7 @@ final class NomenclatureByTypeExportTest extends TestCase
             'country' => 'China',
             'part_number' => 'W-1',
             'color' => 'Black',
-            'weight' => '100',
+            'weight' => 100,
             'material' => ['RUBBER'],
             'vehicle_type' => ['CAR'],
             'quantity_pak' => 1,

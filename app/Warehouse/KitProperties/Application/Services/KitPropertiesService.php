@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Warehouse\KitProperties\Application\Services;
 
-use App\Warehouse\KitProperties\Domain\Contracts\Services\KitCompositionStrategyInterface;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitComplectationServiceInterface;
+use App\Warehouse\KitProperties\Domain\Contracts\Services\KitCompositionStrategyInterface;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
-use App\Warehouse\KitProperties\Domain\DTOs\KitPropertiesData;
+use App\Warehouse\KitProperties\Domain\DTOs\KitPropertiesDTO;
 use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Warehouse\KitProperties\Domain\ModelData\TypeData;
 use App\Warehouse\Packaging\Domain\Contracts\Services\PackagingServiceInterface;
@@ -48,7 +48,7 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
      *
      * @param  array<int, NomenclatureData>  $nomenclatures
      */
-    public function build(array $nomenclatures): KitPropertiesData
+    public function build(array $nomenclatures): KitPropertiesDTO
     {
         if ($nomenclatures === []) {
             throw new InvalidArgumentException('Список номенклатур не может быть пустым');
@@ -66,7 +66,7 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
         $complectation = $this->resolveComplectation($primary, max($quantityInPackage, $quantityPackage), $type);
         $importHash = self::compositionHash($collection->pluck('partNumber')->all());
 
-        return new KitPropertiesData(
+        return new KitPropertiesDTO(
             typeId: $type->id ?? throw new UnexpectedValueException('TypeData::$id обязателен для расчёта свойств набора'),
             packDimensionId: $packDimension?->id,
             weight: $weight,
@@ -102,11 +102,15 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
     {
         try {
             return $this->packaging->selectOrCreate(
-                $this->toPackagingType($type),
-                $primary->map(fn (NomenclatureData $n): PackagingNomenclatureData => $this->toPackagingNomenclature($n))->all(),
+                type: $this->toPackagingType($type),
+                nomenclatures: $primary
+                    ->map(fn (NomenclatureData $n): PackagingNomenclatureData => $this->toPackagingNomenclature($n))
+                    ->all(),
             );
         } catch (PackDimensionNotResolvableException $e) {
-            Log::warning("Не удалось рассчитать упаковку для типа {$type->name}: {$e->getMessage()}");
+            Log::warning(
+                message: "Не удалось рассчитать упаковку для типа {$type->name}: {$e->getMessage()}",
+            );
 
             return null;
         }
@@ -126,7 +130,7 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
      */
     private function resolveWeight(Collection $nomenclatures, ?PackagingPackDimensionData $packDimension): float
     {
-        $itemsWeight = $nomenclatures->sum(fn (NomenclatureData $n): float => (float) $n->weight);
+        $itemsWeight = $nomenclatures->sum(fn (NomenclatureData $n): int => $n->weight);
 
         return $itemsWeight + ($packDimension?->weight ?? 0);
     }
@@ -171,11 +175,21 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
         return md5(implode('|', $partNumbers));
     }
 
+    /**
+     * Переводит TypeData фичи KitProperties в TypeData фичи Packaging.
+     */
     private function toPackagingType(TypeData $type): PackagingTypeData
     {
-        return new PackagingTypeData(name: $type->name, char: $type->char, id: $type->id);
+        return new PackagingTypeData(
+            name: $type->name,
+            char: $type->char,
+            id: $type->id,
+        );
     }
 
+    /**
+     * Переводит NomenclatureData фичи KitProperties в NomenclatureData фичи Packaging.
+     */
     private function toPackagingNomenclature(NomenclatureData $nomenclature): PackagingNomenclatureData
     {
         return new PackagingNomenclatureData(

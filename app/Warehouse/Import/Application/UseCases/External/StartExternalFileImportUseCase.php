@@ -18,6 +18,9 @@ use Throwable;
  */
 final readonly class StartExternalFileImportUseCase implements StartExternalFileImportUseCaseInterface
 {
+    /**
+     * Получает сервис идемпотентности и фабрику Excel-адаптеров импорта.
+     */
     public function __construct(
         private ExternalImportCacheServiceInterface $cache,
         private ImportFileFactoryInterface $importFactory,
@@ -48,7 +51,11 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
 
             $this->importFactory
                 ->make($request->importType)
-                ->import($request->path, $context, $request->disk);
+                ->import(
+                    path: $request->path,
+                    context: $context,
+                    disk: $request->disk,
+                );
         } catch (Throwable $e) {
             $this->cache->forgetAccepted($request->runId);
 

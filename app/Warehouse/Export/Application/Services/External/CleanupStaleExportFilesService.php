@@ -18,6 +18,7 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
     private const array FILE_PATTERNS = [
         'warehouse-nomenclature-*.xlsx',
         'warehouse-kits-*.xlsx',
+        'warehouse-wiper-adapter-audit-*.xlsx',
     ];
 
     /**

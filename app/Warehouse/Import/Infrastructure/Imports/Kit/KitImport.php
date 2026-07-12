@@ -34,6 +34,9 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
 
     private ?string $runId = null;
 
+    /**
+     * Получает построчный сервис импорта наборов.
+     */
     public function __construct(
         private readonly UpsertKitFromRowServiceInterface $service,
     ) {}
@@ -51,7 +54,11 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
         $this->cacheKey = sprintf((string) config('warehouse.import.failures.cache.keys.kit_import_failures'), $context->runId);
         $this->lockKey = sprintf((string) config('warehouse.import.failures.cache.keys.kit_import_failures_lock'), $context->runId);
 
-        Excel::import($this, $path, $disk);
+        Excel::import(
+            import: $this,
+            filePath: $path,
+            disk: $disk,
+        );
     }
 
     /**
@@ -65,21 +72,29 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
             try {
                 $this->service->upsertFromRow($rowValues);
             } catch (InvalidArgumentException $e) {
-                $this->onFailure(new Failure(
+                $failure = new Failure(
                     row: $indexRow + $this->startRow(),
                     attribute: 'kit',
                     errors: [$e->getMessage()],
                     values: $rowValues,
-                ));
+                );
+
+                $this->onFailure($failure);
             }
         }
     }
 
+    /**
+     * Возвращает номер первой строки с данными, пропуская заголовок.
+     */
     public function startRow(): int
     {
         return 2;
     }
 
+    /**
+     * Возвращает размер чанка чтения наборов.
+     */
     public function chunkSize(): int
     {
         return 100;

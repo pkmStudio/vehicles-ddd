@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Packaging\Application\Services\Strategies;
 
+use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Warehouse\Packaging\Domain\Contracts\Services\Strategies\PackagingStrategyInterface;
+use App\Warehouse\Packaging\Domain\DTOs\PackagingBoxRequirementDTO;
 use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
 use App\Warehouse\Packaging\Domain\ModelData\TypeData;
@@ -16,8 +19,16 @@ use Illuminate\Support\Facades\Log;
  * унаследовано из dan-center), иначе — стандартный габаритный расчёт, где ширина умножается на
  * `quantity_in_pak` (колодки кладутся в упаковке в ряд по ширине).
  */
-final readonly class BrakePadsPackagingStrategy extends AbstractPackagingStrategy
+final readonly class BrakePadsPackagingStrategy extends AbstractPackagingStrategy implements PackagingStrategyInterface
 {
+    /**
+     * Проверяет, что стратегия применима к detail-шаблону тормозных колодок.
+     */
+    public function supports(?NomenclatureDetailTemplateEnum $template): bool
+    {
+        return $template === NomenclatureDetailTemplateEnum::BRAKE_PADS;
+    }
+
     /**
      * Этот метод возвращает упаковку для набора колодок.
      *
@@ -25,7 +36,7 @@ final readonly class BrakePadsPackagingStrategy extends AbstractPackagingStrateg
      * 1) Попробовать найти точное совпадение коробки по артикулу (только для одиночной номенклатуры).
      * 2) Если не найдено — посчитать максимальные габариты по `details.metrics`, умножив суммарную
      *    ширину на количество колодок в упаковке.
-     * 3) Подобрать/создать коробку через `calculatePak()`.
+     * 3) Подобрать/создать коробку через `calculatePackDimension()`.
      *
      * @param  array<int, NomenclatureData>  $nomenclatures
      * @param  Collection<int, PackDimensionData>  $packDimensions
@@ -56,7 +67,12 @@ final readonly class BrakePadsPackagingStrategy extends AbstractPackagingStrateg
             length: $maxLength,
         );
 
-        return $this->calculatePak($type, 'колодок', $dto, $packDimensions);
+        return $this->calculatePackDimension(
+            type: $type,
+            name: 'колодок',
+            dto: $dto,
+            packDimensions: $packDimensions,
+        );
     }
 
     /**

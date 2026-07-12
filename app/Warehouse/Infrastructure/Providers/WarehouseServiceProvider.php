@@ -12,6 +12,9 @@ use Illuminate\Support\ServiceProvider;
  */
 final class WarehouseServiceProvider extends ServiceProvider
 {
+    /**
+     * Подключает миграции Warehouse из доменной инфраструктуры.
+     */
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
