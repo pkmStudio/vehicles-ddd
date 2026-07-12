@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Catalog\Infrastructure\Models;
 
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 
 /**
  * Представляет Eloquent-модель таблицы спецификаций деталей внутри фичи Catalog.
@@ -13,6 +13,7 @@ use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 class PartSpecification extends AbstractModel
 {
     protected $casts = [
+        'partable_type' => PartableTypeEnum::class,
         'template' => DetailTemplateEnum::class,
         'details' => 'array',
     ];

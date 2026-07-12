@@ -14,5 +14,6 @@ enum CatalogMutationRejectReasonEnum: string
     case ManufacturerNotFound = 'manufacturer_not_found';
     case ParentVehicleNotFound = 'parent_vehicle_not_found';
     case VehicleNotFound = 'vehicle_not_found';
+    case OwnerNotFound = 'owner_not_found';
     case DeleteBlocked = 'delete_blocked';
 }
