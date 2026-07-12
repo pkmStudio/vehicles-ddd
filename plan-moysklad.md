@@ -211,11 +211,24 @@ config/warehouse/moysklad.php                        # nomenclature_sync.* (enab
 
 ## План работ (когда решим приступать)
 
-1. Создать репозиторий `packages/moysklad-client` (`pkmstudio/moysklad-client`) по образцу
-   `packages/rabbit-transport`: `composer.json`, `config/moysklad-client.php`, `src/*` (перенос
-   файлов из таблицы выше 1:1, только переименование неймспейса `App\MoySklad` →
-   `PkmStudio\MoySkladClient`), тесты (Pest + testbench) хотя бы на `MoySkladHttpClient`
-   (retry/circuit breaker/rate-limit — самое ценное для регрессионных тестов) и на каждый Endpoint.
+1. ✅ **Сделано (2026-07-12).** Репозиторий `packages/moysklad-client` (`pkmstudio/moysklad-client`)
+   создан по образцу `packages/rabbit-transport`: `composer.json`, `config/moysklad-client.php`,
+   `src/*` (перенос файлов из таблицы выше 1:1, неймспейс `App\MoySklad` → `PkmStudio\
+   MoySkladClient`), 43 теста (Pest + testbench, без реального Redis/МойСклад — `Http::fake()` +
+   фейковый `Redis::throttle()` builder), все зелёные. Отличия от dan-center, зафиксированные при
+   переносе:
+   - `CustomerOrderEndpoint::findStateByName()` принимает `string $stateName` вместо enum
+     `OrderState` — статусы заказа настраиваются per-account в МойСклад, это не универсальный enum
+     (см. «Что НЕ переезжает» выше).
+   - `MoySkladNotifierInterface` — в пакете, но без реализации; дефолтный биндинг —
+     `NullMoySkladNotifier` (no-op). Потребитель переопределяет своей реализацией (Telegram/...).
+   - `config('moysklad.organization_id'/'store_id')` — дефолты убраны (в dan-center были реальные
+     UUID чужого аккаунта), каждое приложение задаёт свои через `.env`.
+   - `MoySkladJobMiddleware` перенесён как есть, включая то, что он глотает любой `\Throwable`
+     кроме `MoySkladApiDisabledException` — задокументировано в README и в самом классе как
+     открытый вопрос (см. «Открытые вопросы», п.1), не исправлено.
+   - Репозиторий пока только локальный (`git init` в `packages/moysklad-client`), без GitHub —
+     публикация репозитория и подключение к dan-vehicles (VCS/`repositories`+`require`) — п.2 ниже.
 2. Подключить пакет к dan-vehicles (`repositories` + `require`, `bootstrap/providers.php`).
 3. Создать `app/Warehouse/MoySklad/*` — Infrastructure Models (свои копии `Nomenclature`/
    `NomenclatureIntegration`), `NomenclatureProductMapper`/`NomenclatureSyncService`/
