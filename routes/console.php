@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Safety-net очистка файлов экспорта старше retention-порога (см. config/vehicles/export.php).
 Schedule::command('vehicles:export-cleanup-stale-files')->daily();
+
+// Safety-net очистка файлов Warehouse-экспорта старше retention-порога.
+Schedule::command('warehouse:export-cleanup-stale-files')->daily();
