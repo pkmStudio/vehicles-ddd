@@ -6,8 +6,14 @@ namespace App\Vehicles\Catalog\Domain\Contracts\Repositories;
 
 use App\Vehicles\Catalog\Domain\ModelData\EngineData;
 
+/**
+ * Описывает порт чтения двигателей из каталога.
+ */
 interface EngineRepositoryInterface
 {
+    /**
+     * Возвращает первый Data-снимок двигателей по внешнему идентификатору.
+     */
     public function firstByEngId(int $engId): ?EngineData;
 
     /**

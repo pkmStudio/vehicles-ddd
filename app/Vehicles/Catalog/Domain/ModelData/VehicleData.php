@@ -12,9 +12,15 @@ use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
+/**
+ * Хранит типизированный снимок записи автомобилей для Repository и Command.
+ */
 #[MapName(SnakeCaseMapper::class)]
 final class VehicleData extends Data
 {
+    /**
+     * Инициализирует immutable-снимок данных автомобилей.
+     */
     public function __construct(
         public readonly int $msId,
         public readonly int $mfaId,

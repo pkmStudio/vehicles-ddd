@@ -8,6 +8,9 @@ use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationStatusEnum;
 
+/**
+ * Передает параметры сценария или результат мутации каталога.
+ */
 final readonly class CatalogMutationResultDTO
 {
     /**

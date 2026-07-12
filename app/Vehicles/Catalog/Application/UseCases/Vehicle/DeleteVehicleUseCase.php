@@ -17,8 +17,14 @@ use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Vehicles\Catalog\Domain\Events\VehicleDeleted;
 use Throwable;
 
+/**
+ * Оркестрирует сценарий мутации автомобилей из внешнего сообщения.
+ */
 final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterface
 {
+    /**
+     * Инициализирует зависимости класса через контейнер.
+     */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
         private VehicleCommandInterface $command,
@@ -26,6 +32,15 @@ final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterfa
         private CatalogMutationResultServiceInterface $results,
     ) {}
 
+    /**
+     * Выполняет сценарий мутации автомобилей.
+     *
+     * Шаги:
+     * 1) Зафиксировать operationId для идемпотентности.
+     * 2) Проверить бизнес-ограничения операции.
+     * 3) Выполнить запись через Command и отправить доменное событие.
+     * 4) Опубликовать унифицированный результат мутации.
+     */
     public function execute(DeleteVehicleRequestDTO $request): ?CatalogMutationResultDTO
     {
         if (! $this->cache->accept($request->operationId)) {
@@ -35,25 +50,66 @@ final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterfa
         try {
             $vehicle = $this->vehicles->firstByMsId($request->msId);
             if ($vehicle === null) {
-                return $this->results->rejected($request->userId, $request->operationId, CatalogEntityEnum::Vehicle, CatalogMutationOperationEnum::Delete, $request->msId, CatalogMutationRejectReasonEnum::NotFound);
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Vehicle,
+                    operation: CatalogMutationOperationEnum::Delete,
+                    externalId: $request->msId,
+                    reason: CatalogMutationRejectReasonEnum::NotFound,
+                );
             }
 
             $blockers = $this->vehicles->deletionBlockersByMsId($request->msId);
             if ($blockers === null) {
-                return $this->results->rejected($request->userId, $request->operationId, CatalogEntityEnum::Vehicle, CatalogMutationOperationEnum::Delete, $request->msId, CatalogMutationRejectReasonEnum::NotFound);
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Vehicle,
+                    operation: CatalogMutationOperationEnum::Delete,
+                    externalId: $request->msId,
+                    reason: CatalogMutationRejectReasonEnum::NotFound,
+                );
             }
 
             if ($blockers->hasBlockers()) {
-                return $this->results->rejected($request->userId, $request->operationId, CatalogEntityEnum::Vehicle, CatalogMutationOperationEnum::Delete, $request->msId, CatalogMutationRejectReasonEnum::DeleteBlocked, $blockers->toArray(), $vehicle->id);
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Vehicle,
+                    operation: CatalogMutationOperationEnum::Delete,
+                    externalId: $request->msId,
+                    reason: CatalogMutationRejectReasonEnum::DeleteBlocked,
+                    errors: $blockers->toArray(),
+                    recordId: $vehicle->id,
+                );
             }
 
             $this->command->deleteByMsId($request->msId);
-            event(new VehicleDeleted($request->userId, $request->operationId, $request->msId, (int) $vehicle->id));
+            event(new VehicleDeleted(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                msId: $request->msId,
+                vehicleId: (int) $vehicle->id,
+            ));
 
-            return $this->results->completed($request->userId, $request->operationId, CatalogEntityEnum::Vehicle, CatalogMutationOperationEnum::Delete, $request->msId, $vehicle->id);
+            return $this->results->completed(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                entity: CatalogEntityEnum::Vehicle,
+                operation: CatalogMutationOperationEnum::Delete,
+                externalId: $request->msId,
+                recordId: $vehicle->id,
+            );
         } catch (Throwable $e) {
             $this->cache->forgetAccepted($request->operationId);
-            $this->results->failed($request->userId, $request->operationId, CatalogEntityEnum::Vehicle, CatalogMutationOperationEnum::Delete, $request->msId);
+            $this->results->failed(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                entity: CatalogEntityEnum::Vehicle,
+                operation: CatalogMutationOperationEnum::Delete,
+                externalId: $request->msId,
+            );
 
             throw $e;
         }

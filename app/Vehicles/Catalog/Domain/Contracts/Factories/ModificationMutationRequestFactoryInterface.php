@@ -6,6 +6,9 @@ namespace App\Vehicles\Catalog\Domain\Contracts\Factories;
 
 use App\Vehicles\Catalog\Domain\DTOs\Modification\ModificationMutationRequestDTO;
 
+/**
+ * Описывает порт сборки DTO запроса мутации модификаций.
+ */
 interface ModificationMutationRequestFactoryInterface
 {
     /**

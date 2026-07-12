@@ -6,6 +6,9 @@ namespace App\Vehicles\Catalog\Infrastructure\Models;
 
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 
+/**
+ * Представляет Eloquent-модель связи двигателя и модификации внутри фичи Catalog.
+ */
 class EngineModification extends AbstractModel
 {
     protected $table = 'engine_modification';

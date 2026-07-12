@@ -13,8 +13,14 @@ use Illuminate\Contracts\Validation\Factory as ValidatorFactory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
+/**
+ * Собирает Laravel-валидатор payload мутации автомобилей.
+ */
 final readonly class VehicleMutationPayloadValidator
 {
+    /**
+     * Инициализирует зависимости класса через контейнер.
+     */
     public function __construct(
         private ValidatorFactory $validator,
     ) {}
@@ -54,7 +60,10 @@ final readonly class VehicleMutationPayloadValidator
             ];
         }
 
-        return $this->validator->make($data, $rules);
+        return $this->validator->make(
+            data: $data,
+            rules: $rules,
+        );
     }
 
     /**

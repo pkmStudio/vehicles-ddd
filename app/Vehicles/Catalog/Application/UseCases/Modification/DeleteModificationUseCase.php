@@ -14,11 +14,17 @@ use App\Vehicles\Catalog\Domain\DTOs\Modification\DeleteModificationRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Vehicles\Catalog\Domain\Events\Modification\ModificationDeleted;
+use App\Vehicles\Catalog\Domain\Events\ModificationDeleted;
 use Throwable;
 
+/**
+ * Оркестрирует сценарий мутации модификаций из внешнего сообщения.
+ */
 final readonly class DeleteModificationUseCase implements DeleteModificationUseCaseInterface
 {
+    /**
+     * Инициализирует зависимости класса через контейнер.
+     */
     public function __construct(
         private ModificationRepositoryInterface $modifications,
         private ModificationCommandInterface $command,
@@ -26,6 +32,15 @@ final readonly class DeleteModificationUseCase implements DeleteModificationUseC
         private CatalogMutationResultServiceInterface $results,
     ) {}
 
+    /**
+     * Выполняет сценарий мутации модификаций.
+     *
+     * Шаги:
+     * 1) Зафиксировать operationId для идемпотентности.
+     * 2) Проверить бизнес-ограничения операции.
+     * 3) Выполнить запись через Command и отправить доменное событие.
+     * 4) Опубликовать унифицированный результат мутации.
+     */
     public function execute(DeleteModificationRequestDTO $request): ?CatalogMutationResultDTO
     {
         if (! $this->cache->accept($request->operationId)) {
@@ -33,27 +48,78 @@ final readonly class DeleteModificationUseCase implements DeleteModificationUseC
         }
 
         try {
-            $modification = $this->modifications->firstByModIdAndType($request->modId, $request->type->value);
+            $modification = $this->modifications->firstByModIdAndType(
+                modId: $request->modId,
+                type: $request->type->value,
+            );
             if ($modification === null) {
-                return $this->results->rejected($request->userId, $request->operationId, CatalogEntityEnum::Modification, CatalogMutationOperationEnum::Delete, $request->modId, CatalogMutationRejectReasonEnum::NotFound);
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Modification,
+                    operation: CatalogMutationOperationEnum::Delete,
+                    externalId: $request->modId,
+                    reason: CatalogMutationRejectReasonEnum::NotFound,
+                );
             }
 
-            $engineModificationCount = $this->modifications->engineModificationCountByModIdAndType($request->modId, $request->type->value);
+            $engineModificationCount = $this->modifications->engineModificationCountByModIdAndType(
+                modId: $request->modId,
+                type: $request->type->value,
+            );
             if ($engineModificationCount === null) {
-                return $this->results->rejected($request->userId, $request->operationId, CatalogEntityEnum::Modification, CatalogMutationOperationEnum::Delete, $request->modId, CatalogMutationRejectReasonEnum::NotFound);
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Modification,
+                    operation: CatalogMutationOperationEnum::Delete,
+                    externalId: $request->modId,
+                    reason: CatalogMutationRejectReasonEnum::NotFound,
+                );
             }
 
             if ($engineModificationCount > 0) {
-                return $this->results->rejected($request->userId, $request->operationId, CatalogEntityEnum::Modification, CatalogMutationOperationEnum::Delete, $request->modId, CatalogMutationRejectReasonEnum::DeleteBlocked, ['engine_modifications_count' => $engineModificationCount], $modification->id);
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Modification,
+                    operation: CatalogMutationOperationEnum::Delete,
+                    externalId: $request->modId,
+                    reason: CatalogMutationRejectReasonEnum::DeleteBlocked,
+                    errors: ['engine_modifications_count' => $engineModificationCount],
+                    recordId: $modification->id,
+                );
             }
 
-            $this->command->deleteByModIdAndType($request->modId, $request->type->value);
-            event(new ModificationDeleted($request->userId, $request->operationId, $request->modId, $request->type, (int) $modification->id));
+            $this->command->deleteByModIdAndType(
+                modId: $request->modId,
+                type: $request->type->value,
+            );
+            event(new ModificationDeleted(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                modId: $request->modId,
+                type: $request->type,
+                modificationId: (int) $modification->id,
+            ));
 
-            return $this->results->completed($request->userId, $request->operationId, CatalogEntityEnum::Modification, CatalogMutationOperationEnum::Delete, $request->modId, $modification->id);
+            return $this->results->completed(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                entity: CatalogEntityEnum::Modification,
+                operation: CatalogMutationOperationEnum::Delete,
+                externalId: $request->modId,
+                recordId: $modification->id,
+            );
         } catch (Throwable $e) {
             $this->cache->forgetAccepted($request->operationId);
-            $this->results->failed($request->userId, $request->operationId, CatalogEntityEnum::Modification, CatalogMutationOperationEnum::Delete, $request->modId);
+            $this->results->failed(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                entity: CatalogEntityEnum::Modification,
+                operation: CatalogMutationOperationEnum::Delete,
+                externalId: $request->modId,
+            );
 
             throw $e;
         }

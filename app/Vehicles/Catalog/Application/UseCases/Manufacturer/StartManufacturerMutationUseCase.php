@@ -15,14 +15,28 @@ use App\Vehicles\Catalog\Domain\DTOs\Manufacturer\ManufacturerMutationRequestDTO
 use App\Vehicles\Catalog\Domain\DTOs\Manufacturer\UpdateManufacturerRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 
+/**
+ * Оркестрирует сценарий мутации производителей из внешнего сообщения.
+ */
 final readonly class StartManufacturerMutationUseCase implements StartManufacturerMutationUseCaseInterface
 {
+    /**
+     * Инициализирует зависимости класса через контейнер.
+     */
     public function __construct(
         private CreateManufacturerUseCaseInterface $createManufacturer,
         private UpdateManufacturerUseCaseInterface $updateManufacturer,
         private DeleteManufacturerUseCaseInterface $deleteManufacturer,
     ) {}
 
+    /**
+     * Запускает сценарий мутации производителей по типу операции.
+     *
+     * Шаги:
+     * 1) Определить операцию из DTO входящего сообщения.
+     * 2) Преобразовать общий request в DTO конкретной операции.
+     * 3) Делегировать выполнение профильному use case.
+     */
     public function execute(ManufacturerMutationRequestDTO $request): ?CatalogMutationResultDTO
     {
         return match ($request->operation) {
@@ -32,6 +46,13 @@ final readonly class StartManufacturerMutationUseCase implements StartManufactur
         };
     }
 
+    /**
+     * Создает запись производителей.
+     *
+     * Шаги:
+     * 1) Выполнить запись внутри транзакции.
+     * 2) Вернуть актуальный Data-снимок созданной записи.
+     */
     private function create(ManufacturerMutationRequestDTO $request): ?CatalogMutationResultDTO
     {
         $createRequest = $this->createRequest($request);
@@ -39,6 +60,14 @@ final readonly class StartManufacturerMutationUseCase implements StartManufactur
         return $this->createManufacturer->execute($createRequest);
     }
 
+    /**
+     * Обновляет запись производителей.
+     *
+     * Шаги:
+     * 1) Найти существующую запись внутри транзакции.
+     * 2) Применить новые значения и сохранить модель.
+     * 3) Вернуть актуальный Data-снимок записи.
+     */
     private function update(ManufacturerMutationRequestDTO $request): ?CatalogMutationResultDTO
     {
         $updateRequest = $this->updateRequest($request);
@@ -46,6 +75,13 @@ final readonly class StartManufacturerMutationUseCase implements StartManufactur
         return $this->updateManufacturer->execute($updateRequest);
     }
 
+    /**
+     * Удаляет запись производителей по внешнему идентификатору.
+     *
+     * Шаги:
+     * 1) Найти целевую запись по идентификатору.
+     * 2) Удалить запись внутри транзакции без каскада.
+     */
     private function delete(ManufacturerMutationRequestDTO $request): ?CatalogMutationResultDTO
     {
         $deleteRequest = $this->deleteRequest($request);
@@ -53,16 +89,29 @@ final readonly class StartManufacturerMutationUseCase implements StartManufactur
         return $this->deleteManufacturer->execute($deleteRequest);
     }
 
+    /**
+     * Собирает DTO конкретной операции производителей из общего DTO или payload.
+     */
     private function createRequest(ManufacturerMutationRequestDTO $request): CreateManufacturerRequestDTO
     {
         return $request->request;
     }
 
+    /**
+     * Собирает DTO конкретной операции производителей из общего DTO или payload.
+     */
     private function updateRequest(ManufacturerMutationRequestDTO $request): UpdateManufacturerRequestDTO
     {
         return $request->request;
     }
 
+    /**
+     * Удаляет запись производителей по внешнему идентификатору.
+     *
+     * Шаги:
+     * 1) Найти целевую запись по идентификатору.
+     * 2) Удалить запись внутри транзакции без каскада.
+     */
     private function deleteRequest(ManufacturerMutationRequestDTO $request): DeleteManufacturerRequestDTO
     {
         return $request->request;

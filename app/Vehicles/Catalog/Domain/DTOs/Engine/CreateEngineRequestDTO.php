@@ -6,8 +6,14 @@ namespace App\Vehicles\Catalog\Domain\DTOs\Engine;
 
 use App\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 
+/**
+ * Передает параметры сценария или результат мутации двигателей.
+ */
 final readonly class CreateEngineRequestDTO
 {
+    /**
+     * Инициализирует immutable-снимок данных двигателей.
+     */
     public function __construct(
         public int $userId,
         public string $operationId,

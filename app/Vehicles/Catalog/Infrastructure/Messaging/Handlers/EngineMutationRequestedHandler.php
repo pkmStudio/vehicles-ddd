@@ -9,8 +9,14 @@ use App\Vehicles\Catalog\Domain\Contracts\UseCases\Engine\StartEngineMutationUse
 use App\Vehicles\Catalog\Infrastructure\Messaging\Validators\EngineMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Принимает RabbitMQ-сообщение мутации двигателей и запускает сценарий.
+ */
 final readonly class EngineMutationRequestedHandler
 {
+    /**
+     * Инициализирует зависимости класса через контейнер.
+     */
     public function __construct(
         private StartEngineMutationUseCaseInterface $useCase,
         private EngineMutationRequestFactoryInterface $factory,

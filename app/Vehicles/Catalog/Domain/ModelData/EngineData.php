@@ -9,9 +9,15 @@ use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
+/**
+ * Хранит типизированный снимок записи двигателей для Repository и Command.
+ */
 #[MapName(SnakeCaseMapper::class)]
 final class EngineData extends Data
 {
+    /**
+     * Инициализирует immutable-снимок данных двигателей.
+     */
     public function __construct(
         public readonly int $engId,
         public readonly ?string $codeEngine = null,

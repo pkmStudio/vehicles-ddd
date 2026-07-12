@@ -15,12 +15,18 @@ use App\Vehicles\Catalog\Domain\DTOs\Modification\UpdateModificationRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Vehicles\Catalog\Domain\Events\Modification\ModificationUpdated;
+use App\Vehicles\Catalog\Domain\Events\ModificationUpdated;
 use App\Vehicles\Catalog\Domain\ModelData\ModificationData;
 use Throwable;
 
+/**
+ * Оркестрирует сценарий мутации модификаций из внешнего сообщения.
+ */
 final readonly class UpdateModificationUseCase implements UpdateModificationUseCaseInterface
 {
+    /**
+     * Инициализирует зависимости класса через контейнер.
+     */
     public function __construct(
         private ModificationRepositoryInterface $modifications,
         private VehicleRepositoryInterface $vehicles,
@@ -29,6 +35,15 @@ final readonly class UpdateModificationUseCase implements UpdateModificationUseC
         private CatalogMutationResultServiceInterface $results,
     ) {}
 
+    /**
+     * Выполняет сценарий мутации модификаций.
+     *
+     * Шаги:
+     * 1) Зафиксировать operationId для идемпотентности.
+     * 2) Проверить бизнес-ограничения операции.
+     * 3) Выполнить запись через Command и отправить доменное событие.
+     * 4) Опубликовать унифицированный результат мутации.
+     */
     public function execute(UpdateModificationRequestDTO $request): ?CatalogMutationResultDTO
     {
         if (! $this->cache->accept($request->operationId)) {
@@ -36,17 +51,34 @@ final readonly class UpdateModificationUseCase implements UpdateModificationUseC
         }
 
         try {
-            $existing = $this->modifications->firstByModIdAndType($request->modId, $request->type->value);
+            $existing = $this->modifications->firstByModIdAndType(
+                modId: $request->modId,
+                type: $request->type->value,
+            );
             if ($existing === null) {
-                return $this->results->rejected($request->userId, $request->operationId, CatalogEntityEnum::Modification, CatalogMutationOperationEnum::Update, $request->modId, CatalogMutationRejectReasonEnum::NotFound);
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Modification,
+                    operation: CatalogMutationOperationEnum::Update,
+                    externalId: $request->modId,
+                    reason: CatalogMutationRejectReasonEnum::NotFound,
+                );
             }
 
             $vehicleId = $this->vehicles->vehicleIdByMsId($request->msId);
             if ($vehicleId === null) {
-                return $this->results->rejected($request->userId, $request->operationId, CatalogEntityEnum::Modification, CatalogMutationOperationEnum::Update, $request->modId, CatalogMutationRejectReasonEnum::VehicleNotFound);
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Modification,
+                    operation: CatalogMutationOperationEnum::Update,
+                    externalId: $request->modId,
+                    reason: CatalogMutationRejectReasonEnum::VehicleNotFound,
+                );
             }
 
-            $modification = $this->command->update(new ModificationData(
+            $modificationData = new ModificationData(
                 modId: $request->modId,
                 type: $request->type,
                 vehicleId: $vehicleId,
@@ -63,14 +95,33 @@ final readonly class UpdateModificationUseCase implements UpdateModificationUseC
                 numberOfCylinders: $request->numberOfCylinders,
                 capacityLt: $request->capacityLt,
                 id: $existing->id,
+            );
+
+            $modification = $this->command->update($modificationData);
+
+            event(new ModificationUpdated(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                modification: $modification,
             ));
 
-            event(new ModificationUpdated($request->userId, $request->operationId, $modification));
-
-            return $this->results->completed($request->userId, $request->operationId, CatalogEntityEnum::Modification, CatalogMutationOperationEnum::Update, $modification->modId, $modification->id);
+            return $this->results->completed(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                entity: CatalogEntityEnum::Modification,
+                operation: CatalogMutationOperationEnum::Update,
+                externalId: $modification->modId,
+                recordId: $modification->id,
+            );
         } catch (Throwable $e) {
             $this->cache->forgetAccepted($request->operationId);
-            $this->results->failed($request->userId, $request->operationId, CatalogEntityEnum::Modification, CatalogMutationOperationEnum::Update, $request->modId);
+            $this->results->failed(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                entity: CatalogEntityEnum::Modification,
+                operation: CatalogMutationOperationEnum::Update,
+                externalId: $request->modId,
+            );
 
             throw $e;
         }

@@ -15,8 +15,19 @@ use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 
+/**
+ * Собирает DTO запроса мутации автомобилей из валидированного payload.
+ */
 final readonly class VehicleMutationRequestFactory implements VehicleMutationRequestFactoryInterface
 {
+    /**
+     * Собирает DTO мутации автомобилей из payload.
+     *
+     * Шаги:
+     * 1) Прочитать тип операции из payload.
+     * 2) Собрать конкретный DTO запроса операции.
+     * 3) Вернуть общий DTO мутации с операцией и request.
+     */
     public function make(array $payload): VehicleMutationRequestDTO
     {
         $operation = VehicleMutationOperationEnum::from((string) $payload['operation']);

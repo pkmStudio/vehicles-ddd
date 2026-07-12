@@ -6,8 +6,14 @@ namespace App\Vehicles\Catalog\Domain\Events;
 
 use App\Vehicles\Catalog\Domain\ModelData\VehicleData;
 
+/**
+ * Фиксирует доменный факт изменения автомобилей.
+ */
 final readonly class VehicleUpdated
 {
+    /**
+     * Инициализирует immutable-снимок данных автомобилей.
+     */
     public function __construct(
         public int $userId,
         public string $operationId,

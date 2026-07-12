@@ -10,8 +10,18 @@ use App\Vehicles\Catalog\Infrastructure\Models\Engine;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Выполняет запись двигателей через Eloquent-модель фичи Catalog.
+ */
 final readonly class EngineCommand implements EngineCommandInterface
 {
+    /**
+     * Создает запись двигателей.
+     *
+     * Шаги:
+     * 1) Выполнить запись внутри транзакции.
+     * 2) Вернуть актуальный Data-снимок созданной записи.
+     */
     public function create(EngineData $data): EngineData
     {
         return DB::transaction(
@@ -21,6 +31,14 @@ final readonly class EngineCommand implements EngineCommandInterface
         );
     }
 
+    /**
+     * Обновляет запись двигателей.
+     *
+     * Шаги:
+     * 1) Найти существующую запись внутри транзакции.
+     * 2) Применить новые значения и сохранить модель.
+     * 3) Вернуть актуальный Data-снимок записи.
+     */
     public function update(EngineData $data): EngineData
     {
         return DB::transaction(function () use ($data): EngineData {
@@ -32,6 +50,13 @@ final readonly class EngineCommand implements EngineCommandInterface
         });
     }
 
+    /**
+     * Удаляет запись двигателей по внешнему идентификатору.
+     *
+     * Шаги:
+     * 1) Найти целевую запись по идентификатору.
+     * 2) Удалить запись внутри транзакции без каскада.
+     */
     public function deleteByEngId(int $engId): void
     {
         DB::transaction(function () use ($engId): void {

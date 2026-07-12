@@ -18,8 +18,14 @@ use App\Vehicles\Catalog\Domain\Events\VehicleUpdated;
 use App\Vehicles\Catalog\Domain\ModelData\VehicleData;
 use Throwable;
 
+/**
+ * Оркестрирует сценарий мутации автомобилей из внешнего сообщения.
+ */
 final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterface
 {
+    /**
+     * Инициализирует зависимости класса через контейнер.
+     */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
         private VehicleCommandInterface $command,
@@ -27,6 +33,15 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
         private CatalogMutationResultServiceInterface $results,
     ) {}
 
+    /**
+     * Выполняет сценарий мутации автомобилей.
+     *
+     * Шаги:
+     * 1) Зафиксировать operationId для идемпотентности.
+     * 2) Проверить бизнес-ограничения операции.
+     * 3) Выполнить запись через Command и отправить доменное событие.
+     * 4) Опубликовать унифицированный результат мутации.
+     */
     public function execute(UpdateVehicleRequestDTO $request): ?CatalogMutationResultDTO
     {
         if (! $this->cache->accept($request->operationId)) {
@@ -36,23 +51,44 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
         try {
             $existing = $this->vehicles->firstByMsId($request->msId);
             if ($existing === null) {
-                return $this->results->rejected($request->userId, $request->operationId, CatalogEntityEnum::Vehicle, CatalogMutationOperationEnum::Update, $request->msId, CatalogMutationRejectReasonEnum::NotFound);
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Vehicle,
+                    operation: CatalogMutationOperationEnum::Update,
+                    externalId: $request->msId,
+                    reason: CatalogMutationRejectReasonEnum::NotFound,
+                );
             }
 
             $manufacturerId = $this->vehicles->manufacturerIdByMfaId($request->mfaId);
             if ($manufacturerId === null) {
-                return $this->results->rejected($request->userId, $request->operationId, CatalogEntityEnum::Vehicle, CatalogMutationOperationEnum::Update, $request->msId, CatalogMutationRejectReasonEnum::ManufacturerNotFound);
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Vehicle,
+                    operation: CatalogMutationOperationEnum::Update,
+                    externalId: $request->msId,
+                    reason: CatalogMutationRejectReasonEnum::ManufacturerNotFound,
+                );
             }
 
             $parentId = null;
             if ($request->parentMsId !== null) {
                 $parentId = $this->vehicles->vehicleIdByMsId($request->parentMsId);
                 if ($parentId === null) {
-                    return $this->results->rejected($request->userId, $request->operationId, CatalogEntityEnum::Vehicle, CatalogMutationOperationEnum::Update, $request->msId, CatalogMutationRejectReasonEnum::ParentVehicleNotFound);
+                    return $this->results->rejected(
+                        userId: $request->userId,
+                        operationId: $request->operationId,
+                        entity: CatalogEntityEnum::Vehicle,
+                        operation: CatalogMutationOperationEnum::Update,
+                        externalId: $request->msId,
+                        reason: CatalogMutationRejectReasonEnum::ParentVehicleNotFound,
+                    );
                 }
             }
 
-            $vehicle = $this->command->update(new VehicleData(
+            $vehicleData = new VehicleData(
                 msId: $request->msId,
                 mfaId: $request->mfaId,
                 manufacturerId: $manufacturerId,
@@ -70,14 +106,33 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
                 generationShort: $request->generationShort,
                 isAllow: $request->isAllow,
                 id: $existing->id,
+            );
+
+            $vehicle = $this->command->update($vehicleData);
+
+            event(new VehicleUpdated(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                vehicle: $vehicle,
             ));
 
-            event(new VehicleUpdated($request->userId, $request->operationId, $vehicle));
-
-            return $this->results->completed($request->userId, $request->operationId, CatalogEntityEnum::Vehicle, CatalogMutationOperationEnum::Update, $vehicle->msId, $vehicle->id);
+            return $this->results->completed(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                entity: CatalogEntityEnum::Vehicle,
+                operation: CatalogMutationOperationEnum::Update,
+                externalId: $vehicle->msId,
+                recordId: $vehicle->id,
+            );
         } catch (Throwable $e) {
             $this->cache->forgetAccepted($request->operationId);
-            $this->results->failed($request->userId, $request->operationId, CatalogEntityEnum::Vehicle, CatalogMutationOperationEnum::Update, $request->msId);
+            $this->results->failed(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                entity: CatalogEntityEnum::Vehicle,
+                operation: CatalogMutationOperationEnum::Update,
+                externalId: $request->msId,
+            );
 
             throw $e;
         }

@@ -11,13 +11,27 @@ use App\Vehicles\Catalog\Infrastructure\Models\EngineModification;
 use App\Vehicles\Catalog\Infrastructure\Models\PartSpecification;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 
+/**
+ * Читает двигателей через Eloquent-модель фичи Catalog.
+ */
 final readonly class EngineRepository implements EngineRepositoryInterface
 {
+    /**
+     * Возвращает первый Data-снимок двигателей по внешнему идентификатору.
+     */
     public function firstByEngId(int $engId): ?EngineData
     {
         return EngineData::optional(Engine::query()->where('eng_id', $engId)->first());
     }
 
+    /**
+     * Собирает зависимости, блокирующие удаление двигателей.
+     *
+     * Шаги:
+     * 1) Найти целевую запись по внешнему идентификатору.
+     * 2) Посчитать связанные записи, которые нельзя удалить каскадом.
+     * 3) Вернуть DTO или массив блокировок удаления.
+     */
     public function deletionBlockersByEngId(int $engId): ?array
     {
         $engine = Engine::query()->where('eng_id', $engId)->first();

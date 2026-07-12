@@ -12,8 +12,19 @@ use App\Vehicles\Catalog\Domain\DTOs\Engine\UpdateEngineRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 
+/**
+ * Собирает DTO запроса мутации двигателей из валидированного payload.
+ */
 final readonly class EngineMutationRequestFactory implements EngineMutationRequestFactoryInterface
 {
+    /**
+     * Собирает DTO мутации двигателей из payload.
+     *
+     * Шаги:
+     * 1) Прочитать тип операции из payload.
+     * 2) Собрать конкретный DTO запроса операции.
+     * 3) Вернуть общий DTO мутации с операцией и request.
+     */
     public function make(array $payload): EngineMutationRequestDTO
     {
         $operation = CatalogMutationOperationEnum::from((string) $payload['operation']);
@@ -28,6 +39,9 @@ final readonly class EngineMutationRequestFactory implements EngineMutationReque
         );
     }
 
+    /**
+     * Собирает DTO конкретной операции двигателей из общего DTO или payload.
+     */
     private function createRequest(array $payload): CreateEngineRequestDTO
     {
         $engine = $payload['engine'];
@@ -50,6 +64,9 @@ final readonly class EngineMutationRequestFactory implements EngineMutationReque
         );
     }
 
+    /**
+     * Собирает DTO конкретной операции двигателей из общего DTO или payload.
+     */
     private function updateRequest(array $payload): UpdateEngineRequestDTO
     {
         $engine = $payload['engine'];
@@ -72,6 +89,13 @@ final readonly class EngineMutationRequestFactory implements EngineMutationReque
         );
     }
 
+    /**
+     * Удаляет запись двигателей по внешнему идентификатору.
+     *
+     * Шаги:
+     * 1) Найти целевую запись по идентификатору.
+     * 2) Удалить запись внутри транзакции без каскада.
+     */
     private function deleteRequest(array $payload): DeleteEngineRequestDTO
     {
         return new DeleteEngineRequestDTO(

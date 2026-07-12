@@ -13,13 +13,22 @@ use App\Vehicles\Catalog\Infrastructure\Models\PartSpecification;
 use App\Vehicles\Catalog\Infrastructure\Models\Vehicle;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 
+/**
+ * Читает автомобилей через Eloquent-модель фичи Catalog.
+ */
 final readonly class VehicleRepository implements VehicleRepositoryInterface
 {
+    /**
+     * Возвращает первый Data-снимок автомобилей по внешнему идентификатору.
+     */
     public function firstByMsId(int $msId): ?VehicleData
     {
         return VehicleData::optional(Vehicle::query()->where('ms_id', $msId)->first());
     }
 
+    /**
+     * Возвращает внутренний id записи по внешнему идентификатору.
+     */
     public function vehicleIdByMsId(int $msId): ?int
     {
         $id = Vehicle::query()->where('ms_id', $msId)->value('id');
@@ -27,6 +36,9 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
         return $id === null ? null : (int) $id;
     }
 
+    /**
+     * Возвращает внутренний id записи по внешнему идентификатору.
+     */
     public function manufacturerIdByMfaId(int $mfaId): ?int
     {
         $id = Manufacturer::query()->where('mfa_id', $mfaId)->value('id');
@@ -34,6 +46,14 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
         return $id === null ? null : (int) $id;
     }
 
+    /**
+     * Собирает зависимости, блокирующие удаление автомобилей.
+     *
+     * Шаги:
+     * 1) Найти целевую запись по внешнему идентификатору.
+     * 2) Посчитать связанные записи, которые нельзя удалить каскадом.
+     * 3) Вернуть DTO или массив блокировок удаления.
+     */
     public function deletionBlockersByMsId(int $msId): ?VehicleDeletionBlockersDTO
     {
         $vehicleId = $this->vehicleIdByMsId($msId);

@@ -4,14 +4,23 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Catalog\Domain\DTOs\Vehicle;
 
+/**
+ * Передает параметры сценария или результат мутации автомобилей.
+ */
 final readonly class VehicleDeletionBlockersDTO
 {
+    /**
+     * Инициализирует immutable-снимок данных автомобилей.
+     */
     public function __construct(
         public int $childrenCount,
         public int $modificationsCount,
         public int $partSpecificationsCount,
     ) {}
 
+    /**
+     * Проверяет, есть ли зависимости, блокирующие удаление.
+     */
     public function hasBlockers(): bool
     {
         return $this->childrenCount > 0

@@ -12,12 +12,26 @@ use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationStatusEnum;
 
+/**
+ * Собирает и публикует унифицированные результаты мутаций каталога.
+ */
 final readonly class CatalogMutationResultService implements CatalogMutationResultServiceInterface
 {
+    /**
+     * Инициализирует зависимости класса через контейнер.
+     */
     public function __construct(
         private CatalogMutationNotificationServiceInterface $notifier,
     ) {}
 
+    /**
+     * Собирает результат мутации со статусом completed.
+     *
+     * Шаги:
+     * 1) Создать DTO результата мутации.
+     * 2) Передать DTO в notification-порт.
+     * 3) Вернуть опубликованный DTO вызывающему коду.
+     */
     public function completed(
         int $userId,
         string $operationId,
@@ -26,7 +40,7 @@ final readonly class CatalogMutationResultService implements CatalogMutationResu
         int $externalId,
         ?int $recordId = null,
     ): CatalogMutationResultDTO {
-        return $this->notify(new CatalogMutationResultDTO(
+        $result = new CatalogMutationResultDTO(
             userId: $userId,
             operationId: $operationId,
             entity: $entity,
@@ -34,9 +48,19 @@ final readonly class CatalogMutationResultService implements CatalogMutationResu
             status: CatalogMutationStatusEnum::Completed,
             externalId: $externalId,
             recordId: $recordId,
-        ));
+        );
+
+        return $this->notify($result);
     }
 
+    /**
+     * Собирает результат мутации со статусом rejected.
+     *
+     * Шаги:
+     * 1) Создать DTO результата мутации.
+     * 2) Передать DTO в notification-порт.
+     * 3) Вернуть опубликованный DTO вызывающему коду.
+     */
     public function rejected(
         int $userId,
         string $operationId,
@@ -47,7 +71,7 @@ final readonly class CatalogMutationResultService implements CatalogMutationResu
         array $errors = [],
         ?int $recordId = null,
     ): CatalogMutationResultDTO {
-        return $this->notify(new CatalogMutationResultDTO(
+        $result = new CatalogMutationResultDTO(
             userId: $userId,
             operationId: $operationId,
             entity: $entity,
@@ -57,9 +81,19 @@ final readonly class CatalogMutationResultService implements CatalogMutationResu
             recordId: $recordId,
             reason: $reason->value,
             errors: $errors,
-        ));
+        );
+
+        return $this->notify($result);
     }
 
+    /**
+     * Собирает результат мутации со статусом failed.
+     *
+     * Шаги:
+     * 1) Создать DTO результата мутации.
+     * 2) Передать DTO в notification-порт.
+     * 3) Вернуть опубликованный DTO вызывающему коду.
+     */
     public function failed(
         int $userId,
         string $operationId,
@@ -67,16 +101,25 @@ final readonly class CatalogMutationResultService implements CatalogMutationResu
         CatalogMutationOperationEnum $operation,
         int $externalId,
     ): CatalogMutationResultDTO {
-        return $this->notify(new CatalogMutationResultDTO(
+        $result = new CatalogMutationResultDTO(
             userId: $userId,
             operationId: $operationId,
             entity: $entity,
             operation: $operation,
             status: CatalogMutationStatusEnum::Failed,
             externalId: $externalId,
-        ));
+        );
+
+        return $this->notify($result);
     }
 
+    /**
+     * Публикует результат мутации каталога наружу.
+     *
+     * Шаги:
+     * 1) Собрать транспортное RabbitMQ-сообщение.
+     * 2) Передать сообщение publisher-адаптеру.
+     */
     private function notify(CatalogMutationResultDTO $result): CatalogMutationResultDTO
     {
         $this->notifier->notify($result);

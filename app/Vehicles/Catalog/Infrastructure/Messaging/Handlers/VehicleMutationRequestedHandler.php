@@ -9,8 +9,14 @@ use App\Vehicles\Catalog\Domain\Contracts\UseCases\Vehicle\StartVehicleMutationU
 use App\Vehicles\Catalog\Infrastructure\Messaging\Validators\VehicleMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Принимает RabbitMQ-сообщение мутации автомобилей и запускает сценарий.
+ */
 final readonly class VehicleMutationRequestedHandler
 {
+    /**
+     * Инициализирует зависимости класса через контейнер.
+     */
     public function __construct(
         private StartVehicleMutationUseCaseInterface $useCase,
         private VehicleMutationRequestFactoryInterface $factory,

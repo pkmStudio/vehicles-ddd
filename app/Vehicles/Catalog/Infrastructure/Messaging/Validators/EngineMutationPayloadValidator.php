@@ -10,8 +10,14 @@ use Illuminate\Contracts\Validation\Factory as ValidatorFactory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
+/**
+ * Собирает Laravel-валидатор payload мутации двигателей.
+ */
 final readonly class EngineMutationPayloadValidator
 {
+    /**
+     * Инициализирует зависимости класса через контейнер.
+     */
     public function __construct(private ValidatorFactory $validator) {}
 
     /**
@@ -45,14 +51,23 @@ final readonly class EngineMutationPayloadValidator
             ];
         }
 
-        return $this->validator->make($data, $rules);
+        return $this->validator->make(
+            data: $data,
+            rules: $rules,
+        );
     }
 
+    /**
+     * Возвращает список строковых значений поддерживаемых операций.
+     */
     private function operations(): array
     {
         return array_map(fn (CatalogMutationOperationEnum $operation): string => $operation->value, CatalogMutationOperationEnum::cases());
     }
 
+    /**
+     * Возвращает строковые значения enum cases для правил валидации.
+     */
     private function enumValues(array $cases): array
     {
         return array_map(fn (object $case): string => $case->value, $cases);

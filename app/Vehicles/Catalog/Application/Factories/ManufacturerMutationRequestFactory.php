@@ -12,8 +12,19 @@ use App\Vehicles\Catalog\Domain\DTOs\Manufacturer\UpdateManufacturerRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 
+/**
+ * Собирает DTO запроса мутации производителей из валидированного payload.
+ */
 final readonly class ManufacturerMutationRequestFactory implements ManufacturerMutationRequestFactoryInterface
 {
+    /**
+     * Собирает DTO мутации производителей из payload.
+     *
+     * Шаги:
+     * 1) Прочитать тип операции из payload.
+     * 2) Собрать конкретный DTO запроса операции.
+     * 3) Вернуть общий DTO мутации с операцией и request.
+     */
     public function make(array $payload): ManufacturerMutationRequestDTO
     {
         $operation = CatalogMutationOperationEnum::from((string) $payload['operation']);
@@ -28,6 +39,9 @@ final readonly class ManufacturerMutationRequestFactory implements ManufacturerM
         );
     }
 
+    /**
+     * Собирает DTO конкретной операции производителей из общего DTO или payload.
+     */
     private function createRequest(array $payload): CreateManufacturerRequestDTO
     {
         $manufacturer = $payload['manufacturer'];
@@ -41,6 +55,9 @@ final readonly class ManufacturerMutationRequestFactory implements ManufacturerM
         );
     }
 
+    /**
+     * Собирает DTO конкретной операции производителей из общего DTO или payload.
+     */
     private function updateRequest(array $payload): UpdateManufacturerRequestDTO
     {
         $manufacturer = $payload['manufacturer'];
@@ -54,6 +71,13 @@ final readonly class ManufacturerMutationRequestFactory implements ManufacturerM
         );
     }
 
+    /**
+     * Удаляет запись производителей по внешнему идентификатору.
+     *
+     * Шаги:
+     * 1) Найти целевую запись по идентификатору.
+     * 2) Удалить запись внутри транзакции без каскада.
+     */
     private function deleteRequest(array $payload): DeleteManufacturerRequestDTO
     {
         return new DeleteManufacturerRequestDTO(

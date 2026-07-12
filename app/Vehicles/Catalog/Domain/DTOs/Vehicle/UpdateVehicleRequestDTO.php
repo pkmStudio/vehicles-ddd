@@ -9,8 +9,14 @@ use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 
+/**
+ * Передает параметры сценария или результат мутации автомобилей.
+ */
 final readonly class UpdateVehicleRequestDTO
 {
+    /**
+     * Инициализирует immutable-снимок данных автомобилей.
+     */
     public function __construct(
         public int $userId,
         public string $operationId,

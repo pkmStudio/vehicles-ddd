@@ -68,6 +68,9 @@ use App\Vehicles\Catalog\Infrastructure\Repositories\ModificationRepository;
 use App\Vehicles\Catalog\Infrastructure\Repositories\VehicleRepository;
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * Регистрирует DI-биндинги фичи Catalog в контейнере Laravel.
+ */
 final class CatalogServiceProvider extends ServiceProvider
 {
     private const array USE_CASE_BINDINGS = [
@@ -116,26 +119,49 @@ final class CatalogServiceProvider extends ServiceProvider
         CatalogMutationResultServiceInterface::class => CatalogMutationResultService::class,
     ];
 
+    /**
+     * Регистрирует все биндинги фичи Catalog в контейнере.
+     *
+     * Шаги:
+     * 1) Зарегистрировать use case биндинги.
+     * 2) Зарегистрировать command/repository/factory биндинги.
+     * 3) Зарегистрировать service/notification биндинги.
+     */
     public function register(): void
     {
         foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {
-            $this->app->bind($interface, $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::COMMAND_BINDINGS as $interface => $implementation) {
-            $this->app->bind($interface, $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::REPOSITORY_BINDINGS as $interface => $implementation) {
-            $this->app->bind($interface, $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::FACTORY_BINDINGS as $interface => $implementation) {
-            $this->app->bind($interface, $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
-            $this->app->bind($interface, $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
     }
 }

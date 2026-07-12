@@ -6,8 +6,14 @@ namespace App\Vehicles\Catalog\Domain\DTOs\Vehicle;
 
 use App\Vehicles\Catalog\Domain\Enums\VehicleMutationOperationEnum;
 
+/**
+ * Передает параметры сценария или результат мутации автомобилей.
+ */
 final readonly class VehicleMutationRequestDTO
 {
+    /**
+     * Инициализирует immutable-снимок данных автомобилей.
+     */
     public function __construct(
         public VehicleMutationOperationEnum $operation,
         public CreateVehicleRequestDTO|UpdateVehicleRequestDTO|DeleteVehicleRequestDTO $request,

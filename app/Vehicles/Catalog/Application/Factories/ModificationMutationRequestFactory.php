@@ -16,8 +16,19 @@ use App\Vehicles\Shared\Domain\Enums\Vehicle\DriveTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\GearTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 
+/**
+ * Собирает DTO запроса мутации модификаций из валидированного payload.
+ */
 final readonly class ModificationMutationRequestFactory implements ModificationMutationRequestFactoryInterface
 {
+    /**
+     * Собирает DTO мутации модификаций из payload.
+     *
+     * Шаги:
+     * 1) Прочитать тип операции из payload.
+     * 2) Собрать конкретный DTO запроса операции.
+     * 3) Вернуть общий DTO мутации с операцией и request.
+     */
     public function make(array $payload): ModificationMutationRequestDTO
     {
         $operation = CatalogMutationOperationEnum::from((string) $payload['operation']);
@@ -32,6 +43,9 @@ final readonly class ModificationMutationRequestFactory implements ModificationM
         );
     }
 
+    /**
+     * Собирает DTO конкретной операции модификаций из общего DTO или payload.
+     */
     private function createRequest(array $payload): CreateModificationRequestDTO
     {
         $modification = $payload['modification'];
@@ -56,6 +70,9 @@ final readonly class ModificationMutationRequestFactory implements ModificationM
         );
     }
 
+    /**
+     * Собирает DTO конкретной операции модификаций из общего DTO или payload.
+     */
     private function updateRequest(array $payload): UpdateModificationRequestDTO
     {
         $modification = $payload['modification'];
@@ -80,6 +97,13 @@ final readonly class ModificationMutationRequestFactory implements ModificationM
         );
     }
 
+    /**
+     * Удаляет запись модификаций по внешнему идентификатору.
+     *
+     * Шаги:
+     * 1) Найти целевую запись по идентификатору.
+     * 2) Удалить запись внутри транзакции без каскада.
+     */
     private function deleteRequest(array $payload): DeleteModificationRequestDTO
     {
         return new DeleteModificationRequestDTO(

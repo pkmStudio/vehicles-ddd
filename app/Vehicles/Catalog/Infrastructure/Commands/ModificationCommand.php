@@ -10,8 +10,18 @@ use App\Vehicles\Catalog\Infrastructure\Models\Modification;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Выполняет запись модификаций через Eloquent-модель фичи Catalog.
+ */
 final readonly class ModificationCommand implements ModificationCommandInterface
 {
+    /**
+     * Создает запись модификаций.
+     *
+     * Шаги:
+     * 1) Выполнить запись внутри транзакции.
+     * 2) Вернуть актуальный Data-снимок созданной записи.
+     */
     public function create(ModificationData $data): ModificationData
     {
         return DB::transaction(
@@ -21,6 +31,14 @@ final readonly class ModificationCommand implements ModificationCommandInterface
         );
     }
 
+    /**
+     * Обновляет запись модификаций.
+     *
+     * Шаги:
+     * 1) Найти существующую запись внутри транзакции.
+     * 2) Применить новые значения и сохранить модель.
+     * 3) Вернуть актуальный Data-снимок записи.
+     */
     public function update(ModificationData $data): ModificationData
     {
         return DB::transaction(function () use ($data): ModificationData {
@@ -35,6 +53,13 @@ final readonly class ModificationCommand implements ModificationCommandInterface
         });
     }
 
+    /**
+     * Удаляет запись модификаций по внешнему идентификатору.
+     *
+     * Шаги:
+     * 1) Найти целевую запись по идентификатору.
+     * 2) Удалить запись внутри транзакции без каскада.
+     */
     public function deleteByModIdAndType(int $modId, string $type): void
     {
         DB::transaction(function () use ($modId, $type): void {

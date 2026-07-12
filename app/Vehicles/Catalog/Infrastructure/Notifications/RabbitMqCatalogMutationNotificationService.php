@@ -9,12 +9,25 @@ use App\Vehicles\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use PkmStudio\RabbitTransport\DTOs\RabbitMessageDTO;
 use PkmStudio\RabbitTransport\RabbitMQPublisher;
 
+/**
+ * Публикует результат мутации каталога во внешний RabbitMQ-транспорт.
+ */
 final readonly class RabbitMqCatalogMutationNotificationService implements CatalogMutationNotificationServiceInterface
 {
+    /**
+     * Инициализирует зависимости класса через контейнер.
+     */
     public function __construct(
         private RabbitMQPublisher $publisher,
     ) {}
 
+    /**
+     * Публикует результат мутации каталога наружу.
+     *
+     * Шаги:
+     * 1) Собрать транспортное RabbitMQ-сообщение.
+     * 2) Передать сообщение publisher-адаптеру.
+     */
     public function notify(CatalogMutationResultDTO $result): void
     {
         $message = new RabbitMessageDTO(
