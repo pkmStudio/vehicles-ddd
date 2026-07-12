@@ -227,6 +227,14 @@ config/warehouse/moysklad.php                        # nomenclature_sync.* (enab
    - `MoySkladJobMiddleware` перенесён как есть, включая то, что он глотает любой `\Throwable`
      кроме `MoySkladApiDisabledException` — задокументировано в README и в самом классе как
      открытый вопрос (см. «Открытые вопросы», п.1), не исправлено.
+   - **Добавлено сверх переноса из dan-center (по запросу пользователя):** `MoySkladHttpClient`
+     диспатчит `Events\MoySkladRequestSucceeded`/`Events\MoySkladRequestFailed` ровно один раз на
+     каждый вызов `request()` — после того, как retry/circuit-breaker уже решили исход. Пакет **не
+     регистрирует ни одного слушателя** — это точка расширения (метрики/алерты/аудит), потребитель
+     подписывается сам. OrderSync/customer orders и Telegram-уведомления сознательно не нужны в
+     этом продукте — не переносились и не будут (подтверждено пользователем), но
+     `CustomerOrderEndpoint` в пакете остаётся (универсален и не требует поддержки заказов в
+     Warehouse — см. «Что переезжает в пакет» выше).
    - Репозиторий пока только локальный (`git init` в `packages/moysklad-client`), без GitHub —
      публикация репозитория и подключение к dan-vehicles (VCS/`repositories`+`require`) — п.2 ниже.
 2. Подключить пакет к dan-vehicles (`repositories` + `require`, `bootstrap/providers.php`).
