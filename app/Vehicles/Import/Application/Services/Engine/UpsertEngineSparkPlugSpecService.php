@@ -9,7 +9,7 @@ use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
 use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 
 /**
  * Use-case: создать/обновить спецификацию «свечи зажигания» для двигателя по eng_id.

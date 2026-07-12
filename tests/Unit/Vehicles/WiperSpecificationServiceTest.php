@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Templates\Application\WiperSpecificationService;
+use App\Templates\Application\WiperSpecificationService;
 use Tests\TestCase;
 
 final class WiperSpecificationServiceTest extends TestCase

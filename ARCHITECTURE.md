@@ -190,7 +190,7 @@ outbound — `Notifications/RabbitMqFileNotificationService` на заверше
   забирает и удаляет файл `CleanupExternalImportFileListener` на `AbstractImportCompleted` —
   когда завершение уже наступило, вне зависимости от того, в каком job'е.
 
-Cache-ключи и TTL — **не строковые литералы в коде**, а шаблоны в `config/vehicles-import.php`
+Cache-ключи и TTL — **не строковые литералы в коде**, а шаблоны в `config/vehicles/import.php`
 (`external.cache.keys.{accepted,cleanup}`, принимают `runId` через `sprintf`); тот же принцип —
 для ключей блокировки отчёта об ошибках (`failures.cache.keys.*`).
 

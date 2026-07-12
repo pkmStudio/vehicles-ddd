@@ -10,8 +10,8 @@ use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleWiperSheet
 use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
 use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
 use App\Vehicles\Import\Infrastructure\Models\Vehicle;
-use App\Vehicles\Templates\Application\Factories\DetailsDataFactory;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Application\Factories\DetailsDataFactory;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 use RuntimeException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -20,8 +20,8 @@ final readonly class VehicleMultiSheetExport implements VehicleMultiSheetExportI
 
     public function export(ExportRunContextDTO $context, ?string $disk = null): string
     {
-        $disk ??= (string) config('vehicles-export.output.disk', 'local');
-        $directory = (string) config('vehicles-export.output.directory', 'exports');
+        $disk ??= (string) config('vehicles.export.output.disk', 'local');
+        $directory = (string) config('vehicles.export.output.directory', 'exports');
         $path = sprintf('%s/vehicle-catalog-%s.xlsx', $directory, $context->runId);
 
         ExcelFacade::store($this, $path, $disk, Excel::XLSX);

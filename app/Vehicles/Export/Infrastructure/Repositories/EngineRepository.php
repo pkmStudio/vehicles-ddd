@@ -7,7 +7,7 @@ namespace App\Vehicles\Export\Infrastructure\Repositories;
 use App\Vehicles\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Export\Domain\ModelData\EngineData;
 use App\Vehicles\Export\Infrastructure\Models\Engine;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 
 final readonly class EngineRepository implements EngineRepositoryInterface

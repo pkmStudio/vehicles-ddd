@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles;
 
-use App\Vehicles\Templates\Application\WiperSpecificationService;
+use App\Templates\Application\WiperSpecificationService;
 use App\Vehicles\Import\Application\Services\Vehicle\VehicleWiperSpecificationImportService;
 use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Vehicles\Import\Domain\ModelData\VehicleData;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Vehicles\Import\Domain\ModelData\FeatureValueData;

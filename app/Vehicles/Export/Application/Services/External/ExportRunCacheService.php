@@ -24,7 +24,7 @@ final readonly class ExportRunCacheService implements ExportRunCacheServiceInter
      */
     private function acceptedCacheKey(string $runId): string
     {
-        return sprintf((string) config('vehicles-export.external.cache.keys.accepted'), $runId);
+        return sprintf((string) config('vehicles.export.external.cache.keys.accepted'), $runId);
     }
 
     /**
@@ -32,6 +32,6 @@ final readonly class ExportRunCacheService implements ExportRunCacheServiceInter
      */
     private function cacheTtlSeconds(): int
     {
-        return (int) config('vehicles-export.external.cache.ttl_seconds', 86400);
+        return (int) config('vehicles.export.external.cache.ttl_seconds', 86400);
     }
 }

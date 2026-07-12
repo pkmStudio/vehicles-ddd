@@ -23,7 +23,7 @@ final readonly class ExportFileRequestedHandler
     /**
      * Провалидировать payload, собрать DTO и передать его в сценарий запуска экспорта.
      *
-     * Диск для выходного файла — из собственного конфига (vehicles-export.output.disk),
+     * Диск для выходного файла — из собственного конфига (vehicles.export.output.disk),
      * не из сообщения: это наш выбор, куда писать, а не то, что просит инициатор
      * (симметрично тому, как ImportFileRequestedHandler резолвит disk для входного
      * файла из filesystems.files_disk, а не из payload).
@@ -44,7 +44,7 @@ final readonly class ExportFileRequestedHandler
 
         $data = $validator->validated();
 
-        $outputDisk = (string) config('vehicles-export.output.disk', 'local');
+        $outputDisk = (string) config('vehicles.export.output.disk', 'local');
 
         $request = new ExportFileRequestDTO(
             userId: (int) $data['user_id'],

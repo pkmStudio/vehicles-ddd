@@ -18,7 +18,7 @@ final readonly class ImportFailureReporter implements ImportFailureReporterInter
         }
 
         $fileName = 'import-failures'.now()->format('Y-m-d-His').'.csv';
-        $disk = (string) config('vehicles-import.failures.disk', 'local');
+        $disk = (string) config('vehicles.import.failures.disk', 'local');
         $path = sprintf('exports/%s', $fileName);
 
         ExcelFacade::store(

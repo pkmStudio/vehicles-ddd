@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Export\Application\Services\Expanders;
 
-use App\Vehicles\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
+use App\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
 use App\Vehicles\Export\Domain\DTOs\WiperExportRowDTO;
 use App\Vehicles\Export\Domain\ModelData\PartSpecificationData;

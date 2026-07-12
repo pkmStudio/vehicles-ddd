@@ -11,7 +11,7 @@ use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertSparkPlugSpecByMo
 use App\Vehicles\Import\Domain\DTOs\Engine\ModificationSparkPlugResultDTO;
 use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 
 /**
  * Use-case: записать спецификацию «свечи зажигания» всем двигателям модификации.

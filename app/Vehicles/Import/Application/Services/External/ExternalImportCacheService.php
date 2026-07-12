@@ -61,7 +61,7 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
      */
     private function acceptedCacheKey(string $runId): string
     {
-        return sprintf((string) config('vehicles-import.external.cache.keys.accepted'), $runId);
+        return sprintf((string) config('vehicles.import.external.cache.keys.accepted'), $runId);
     }
 
     /**
@@ -69,7 +69,7 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
      */
     private function cleanupCacheKey(string $runId): string
     {
-        return sprintf((string) config('vehicles-import.external.cache.keys.cleanup'), $runId);
+        return sprintf((string) config('vehicles.import.external.cache.keys.cleanup'), $runId);
     }
 
     /**
@@ -77,6 +77,6 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
      */
     private function cacheTtlSeconds(): int
     {
-        return (int) config('vehicles-import.external.cache.ttl_seconds', 86400);
+        return (int) config('vehicles.import.external.cache.ttl_seconds', 86400);
     }
 }

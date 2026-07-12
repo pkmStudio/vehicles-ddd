@@ -9,7 +9,7 @@ use App\Vehicles\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Vehicles\Export\Infrastructure\Models\Engine;
 use App\Vehicles\Export\Infrastructure\Models\PartSpecification;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;

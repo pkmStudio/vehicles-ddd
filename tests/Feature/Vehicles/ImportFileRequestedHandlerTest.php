@@ -188,6 +188,6 @@ final class ImportFileRequestedHandlerTest extends TestCase
 
     private function cleanupCacheKey(string $runId): string
     {
-        return sprintf((string) config('vehicles-import.external.cache.keys.cleanup'), $runId);
+        return sprintf((string) config('vehicles.import.external.cache.keys.cleanup'), $runId);
     }
 }

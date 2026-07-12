@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Domain\Contracts\Repositories;
 
 use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 
 /**

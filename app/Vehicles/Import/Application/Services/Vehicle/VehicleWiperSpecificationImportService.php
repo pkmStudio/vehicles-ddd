@@ -12,8 +12,8 @@ use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificat
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Vehicles\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use RuntimeException;
 use Illuminate\Support\Facades\Log;
 

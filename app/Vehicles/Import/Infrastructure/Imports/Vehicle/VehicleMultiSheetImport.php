@@ -71,7 +71,7 @@ final class VehicleMultiSheetImport implements ShouldQueue, VehicleMultiSheetImp
     private function cacheKey(): string
     {
         return sprintf(
-            (string) config('vehicles-import.failures.cache.keys.vehicle_import_failures'),
+            (string) config('vehicles.import.failures.cache.keys.vehicle_import_failures'),
             $this->context->runId,
         );
     }
@@ -79,7 +79,7 @@ final class VehicleMultiSheetImport implements ShouldQueue, VehicleMultiSheetImp
     private function lockKey(): string
     {
         return sprintf(
-            (string) config('vehicles-import.failures.cache.keys.vehicle_import_failures_lock'),
+            (string) config('vehicles.import.failures.cache.keys.vehicle_import_failures_lock'),
             $this->context->runId,
         );
     }

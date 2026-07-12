@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Engine\Sheets;
 
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
-use App\Vehicles\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;

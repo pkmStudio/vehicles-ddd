@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Maintenance\Infrastructure\Models;
 
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**

@@ -18,7 +18,7 @@ use App\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;

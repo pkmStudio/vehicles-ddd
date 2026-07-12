@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Export\Application\Services;
 
-use App\Vehicles\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
+use App\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
 use App\Vehicles\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Export\Domain\DTOs\WiperExportRowDTO;
 use App\Vehicles\Export\Domain\ModelData\VehicleData;
-use App\Vehicles\Templates\Domain\Contracts\Services\DetailsDataPresenterInterface;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Contracts\Services\DetailsDataPresenterInterface;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
 use Illuminate\Support\Collection;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Maintenance\Application\Services;
 
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Maintenance\Infrastructure\Models\PartSpecification;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Support\Facades\DB;

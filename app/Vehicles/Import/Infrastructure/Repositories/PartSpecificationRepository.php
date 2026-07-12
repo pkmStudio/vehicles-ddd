@@ -8,7 +8,7 @@ use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositor
 use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Import\Infrastructure\Models\PartSpecification;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 
 /**

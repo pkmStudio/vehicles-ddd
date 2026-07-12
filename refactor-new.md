@@ -10,11 +10,16 @@
 дублирование логики или явный мёртвый код с риском рассинхрона), **P2** — стоит сделать, но не
 горит, **P3** — низкий приоритет / на усмотрение.
 
+> **Статус:** пункты, помеченные ✅, сделаны в рамках рефакторинга field-template DSL →
+> типизированные `Data`-классы (`Templates/Domain/ModelData/*DetailsData` + `DetailsDataFactory`/
+> `DetailsDataPresenter` в `Templates/Application/Factories/`), коммит `8b34be9`. Остальные пункты
+> (Import Command-адаптеры, Export naming, Maintenance-дубли и т.д.) той сессии не касались.
+
 ---
 
 ## P1 — сделать в первую очередь
 
-### 1. Общий DSL-обходчик шаблона деталей вместо двух копий (Export ↔ Import)
+### 1. ✅ Общий DSL-обходчик шаблона деталей вместо двух копий (Export ↔ Import)
 
 `ExportDetailsBuilder::getFieldValue()` (`app/Vehicles/Export/Application/Services/Details/ExportDetailsBuilder.php:96-142`)
 и `DetailsBuilder::getFieldValue()` (`app/Vehicles/Import/Application/Services/Template/DetailsBuilder.php:75-132`) —
@@ -37,6 +42,15 @@
 
 Файлы: `Export/Application/Services/Details/ExportDetailsBuilder.php`,
 `Import/Application/Services/Template/DetailsBuilder.php`.
+
+**✅ Сделано** — оба класса и весь `dan/field-templates` DSL удалены. Вместо переиспользуемого
+обходчика-с-кодеком получилось ещё проще: 8 типизированных `Data`-классов (`extends
+AbstractDetailsData`, только поля) + пара симметричных Application-сервисов в
+`Templates/Application/Factories/` — `DetailsDataFactory::buildFromRow()` (замена
+`Import\DetailsBuilder`) и `DetailsDataPresenter::toExportCells()/headingsFor()` (замена
+`Export\ExportDetailsBuilder`). Расхождение поведения на крайний случай (исключение при
+нераспознанном значении) теперь единое для обоих направлений — throws при сборке из строки,
+`''`/`null` при рендере в ячейки, задокументировано в одном месте (`DetailsRowCursor`).
 
 ---
 
@@ -112,6 +126,11 @@
   (все реальные `::toArray()` в проекте относятся к enum'ам из пакета `dan/field-templates`, не
   к этому трейту). Убрать `use EnumHelperTrait` из всех 9 enum'ов (и сам трейт, если не
   планируется UI-справочник) либо явно задокументировать назначение.
+  **✅ Сделано, но иначе** — `use EnumHelperTrait` убран из всех 9 исходных enum'ов (мёртвый код
+  устранён), однако сам трейт не удалён, а переиспользован под новую задачу: методы заменены на
+  `fromLabel()`/`fromName()` (перевод Excel-лейбл ↔ хранимый `case->name`), трейт переехал в
+  `Templates/Domain/Traits/EnumHelperTrait` и подключён к 11 новым enum-словарям полей
+  (`Templates/Domain/Enums/{Filter,SparkPlug,Wiper}/*`) — теперь с реальными вызывающими.
 - **`Templates/Application/WiperSpecificationService::getVehicleAdapterCount()` и
   `::sanitizeDetailsForSide()`** (`WiperSpecificationService.php:141-151`, `:160-167`) — не
   вызываются нигде, в отличие от остальных методов интерфейса. Удалить из порта и реализации.
@@ -119,6 +138,9 @@
   (`DetailTemplateResolver.php:28-31`) — нет ни одного вызывающего (все точки входа уже имеют
   типизированный `DetailTemplateEnum` и вызывают `resolve()` напрямую). Удалить, пока не
   появится реальный потребитель (например, HTTP-контроллер по слагу).
+  **✅ Сделано, шире рекомендации** — удалён не только `resolveBySlug()`, а весь
+  `DetailTemplateResolver` целиком: с переходом на типизированные `Data`-классы резолвить стало
+  нечего (инстанцировать `<X>DetailsData` через `new`/`::from()` не требует резолвера-обёртки).
 
 ---
 
@@ -293,6 +315,9 @@ return false;
   `DetailTemplateEnum` хранит те же шаблоны как `airFilter`/`oilFilter` (camelCase).
   `getTemplateKey()` пока нигде не вызывается, но при появлении потребителя это создаст путаницу.
   Привести к единому регистру.
+  **✅ Снято рефакторингом** — `AirFilterTemplate`/`OilFilterTemplate` (и весь старый DSL) удалены,
+  заменены на `AirFilterDetailsData`/`OilFilterDetailsData` — чистые объекты-значения без
+  `getTemplateKey()` вообще, рассинхронизироваться больше нечему.
 - **Rendezvous-схема Import (`EngineModificationReadinessGate` + `Subscriber` + cache-флаги +
   `EnginesAndModificationsReady`)** — сама схема корректна и соответствует конвенциям проекта
   (не требует немедленной правки). На будущее: если Excel-адаптеры импорта станут явно

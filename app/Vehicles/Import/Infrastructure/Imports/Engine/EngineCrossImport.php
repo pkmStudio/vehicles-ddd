@@ -45,11 +45,11 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
     {
         $this->context = $context;
         $this->cacheKey = sprintf(
-            (string) config('vehicles-import.failures.cache.keys.engine_import_failures'),
+            (string) config('vehicles.import.failures.cache.keys.engine_import_failures'),
             $context->runId,
         );
         $this->lockKey = sprintf(
-            (string) config('vehicles-import.failures.cache.keys.engine_import_failures_lock'),
+            (string) config('vehicles.import.failures.cache.keys.engine_import_failures_lock'),
             $context->runId,
         );
         Excel::import($this, $path, $disk);

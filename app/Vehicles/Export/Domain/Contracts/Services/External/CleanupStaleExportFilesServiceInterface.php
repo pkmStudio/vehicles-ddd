@@ -12,7 +12,7 @@ namespace App\Vehicles\Export\Domain\Contracts\Services\External;
 interface CleanupStaleExportFilesServiceInterface
 {
     /**
-     * Удалить файлы экспорта старше retention-порога (vehicles-export.output.retention_hours).
+     * Удалить файлы экспорта старше retention-порога (vehicles.export.output.retention_hours).
      *
      * @return int количество удалённых файлов
      */

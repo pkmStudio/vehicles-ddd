@@ -7,8 +7,8 @@ namespace App\Vehicles\Import\Infrastructure\Imports\Engine;
 use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineSparkPlugSpecificationImportInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\ImportRunContextDTO;
-use App\Vehicles\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Domain\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -48,11 +48,11 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
     {
         $this->context = $context;
         $this->cacheKey = sprintf(
-            (string) config('vehicles-import.failures.cache.keys.engine_import_failures'),
+            (string) config('vehicles.import.failures.cache.keys.engine_import_failures'),
             $context->runId,
         );
         $this->lockKey = sprintf(
-            (string) config('vehicles-import.failures.cache.keys.engine_import_failures_lock'),
+            (string) config('vehicles.import.failures.cache.keys.engine_import_failures_lock'),
             $context->runId,
         );
         Excel::import($this, $path, $disk);

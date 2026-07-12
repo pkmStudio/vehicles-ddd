@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Vehicles\Maintenance\Presentation\Console\Commands;
 
 use App\Vehicles\Maintenance\Application\Services\PartSpecificationDeduplicationService;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Console\Command;
 

@@ -6,8 +6,8 @@ namespace App\Vehicles\Import\Infrastructure\Imports\Vehicle\Mappers;
 
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Vehicles\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
-use App\Vehicles\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
-use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
+use App\Templates\Domain\Enums\DetailTemplateEnum;
 
 final readonly class VehicleWiperSheetRowMapper
 {
