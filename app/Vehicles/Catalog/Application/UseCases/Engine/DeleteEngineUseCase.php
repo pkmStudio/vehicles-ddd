@@ -14,7 +14,7 @@ use App\Vehicles\Catalog\Domain\DTOs\Engine\DeleteEngineRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Vehicles\Catalog\Domain\Events\EngineDeleted;
+use App\Vehicles\Catalog\Domain\Events\Engine\EngineDeleted;
 use Throwable;
 
 /**

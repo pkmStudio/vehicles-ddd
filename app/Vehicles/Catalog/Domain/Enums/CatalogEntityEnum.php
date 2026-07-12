@@ -13,4 +13,5 @@ enum CatalogEntityEnum: string
     case Manufacturer = 'manufacturer';
     case Engine = 'engine';
     case Modification = 'modification';
+    case PartSpecification = 'part_specification';
 }

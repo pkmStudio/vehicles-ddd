@@ -15,7 +15,7 @@ use App\Vehicles\Catalog\Domain\DTOs\Modification\CreateModificationRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Vehicles\Catalog\Domain\Events\ModificationCreated;
+use App\Vehicles\Catalog\Domain\Events\Modification\ModificationCreated;
 use App\Vehicles\Catalog\Domain\ModelData\ModificationData;
 use Throwable;
 

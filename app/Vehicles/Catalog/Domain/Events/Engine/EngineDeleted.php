@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Catalog\Domain\Events;
+namespace App\Vehicles\Catalog\Domain\Events\Engine;
 
 /**
  * Фиксирует доменный факт изменения двигателей.

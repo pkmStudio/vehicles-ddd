@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Catalog\Domain\Events;
+namespace App\Vehicles\Catalog\Domain\Events\Engine;
 
 use App\Vehicles\Catalog\Domain\ModelData\EngineData;
 
 /**
  * Фиксирует доменный факт изменения двигателей.
  */
-final readonly class EngineUpdated
+final readonly class EngineCreated
 {
     /**
      * Инициализирует immutable-снимок данных двигателей.

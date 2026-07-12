@@ -14,7 +14,7 @@ use App\Vehicles\Catalog\Domain\DTOs\Manufacturer\UpdateManufacturerRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Vehicles\Catalog\Domain\Events\ManufacturerUpdated;
+use App\Vehicles\Catalog\Domain\Events\Manufacturer\ManufacturerUpdated;
 use App\Vehicles\Catalog\Domain\ModelData\ManufacturerData;
 use Throwable;
 

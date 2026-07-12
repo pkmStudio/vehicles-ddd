@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Catalog\Domain\Events;
+namespace App\Vehicles\Catalog\Domain\Events\Vehicle;
+
+use App\Vehicles\Catalog\Domain\ModelData\VehicleData;
 
 /**
  * Фиксирует доменный факт изменения автомобилей.
  */
-final readonly class VehicleDeleted
+final readonly class VehicleUpdated
 {
     /**
      * Инициализирует immutable-снимок данных автомобилей.
@@ -15,7 +17,6 @@ final readonly class VehicleDeleted
     public function __construct(
         public int $userId,
         public string $operationId,
-        public int $msId,
-        public int $vehicleId,
+        public VehicleData $vehicle,
     ) {}
 }

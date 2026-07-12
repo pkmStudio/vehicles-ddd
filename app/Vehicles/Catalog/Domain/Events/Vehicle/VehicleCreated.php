@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Catalog\Domain\Events;
+namespace App\Vehicles\Catalog\Domain\Events\Vehicle;
 
 use App\Vehicles\Catalog\Domain\ModelData\VehicleData;
 
