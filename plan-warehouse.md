@@ -485,32 +485,36 @@ CabinFilter — те умеют auto-create, но с сидом использу
 
 ## Что дальше (2026-07-12, актуальный срез)
 
-Из 7 фич первоначального плана (§«Общий план реализации») готовы 5: `Import` (Nomenclature/
-PackDimension/Kit), `Export`, `Packaging`, `KitProperties`, `WiperAdapterAudit`. Осталось:
+Из 7 фич первоначального плана (§«Общий план реализации») готовы 6: `Import` (Nomenclature/
+PackDimension/Kit), `Export`, `Packaging`, `KitProperties`, `WiperAdapterAudit`, `Maintenance`.
+Осталось:
 
-1. **`Maintenance`** — пустая заготовка (4 пустые папки), ни одной команды. Нужно перенести из
-   dan-center `warehouse:cleanup-brake-pads-pak-dimensions` (удаление неиспользуемых коробок
-   колодок, `--dry-run`) и `warehouse:recalculate-brake-pads-kits` (пересчёт упаковки/веса
-   существующих китов батчами через `KitProperties`, `--dry-run`/`--chunk`) — обе тонкие обёртки
-   над уже готовыми `Packaging`/`KitProperties`/`Import`'овским `KitCommand`, блокеров нет.
-2. **Доменные события `NomenclatureUpdated`/`KitUpdated`** — запланированы в этом же документе
+1. **Доменные события `NomenclatureUpdated`/`KitUpdated`** — запланированы в этом же документе
    (см. §1 «Общий план реализации», пункт `Import`) для будущей MpCard-инвалидации в CRM
    dan-center, но не реализованы: `Import` сейчас диспатчит только `*ImportCompleted` (на весь
    прогон), не событие на каждую изменённую запись. Не блокер (CRM пока не подключена), но открытый
    пункт исходного плана.
-3. **`KitGrouping`** — авто-группировка остатков номенклатуры в кандидаты на новые наборы. Не
+2. **`KitGrouping`** — авто-группировка остатков номенклатуры в кандидаты на новые наборы. Не
    начато вообще. Открытый вопрос из этого документа остаётся открытым: возможно, стоит развести
    на отдельный триггер/фичу, а не считать частью Warehouse-Kit-фич буквально.
-4. **Мелкая доработка робастности `Import`**: все 3 Excel-адаптера (`Nomenclature`/`PackDimension`/
+3. **Мелкая доработка робастности `Import`**: все 3 Excel-адаптера (`Nomenclature`/`PackDimension`/
    `KitImport`) ловят только `InvalidArgumentException` в `collection()` — любое другое исключение
    (например, `TypeError` из Packaging, как было найдено при тесте на реальных данных до фикса
    сидов) прерывает **весь** прогон вместо того, чтобы записать одну строку в failures и продолжить
    остальные. Сознательно не трогал при переносе (1:1 с тем, как задумано), но стоит взвесить
    расширение catch на `Throwable` с логированием, если такое поведение нежелательно в проде.
-5. **`rabbit-transport:setup` не запускался** — RabbitMQ publish (уведомления о завершении
+4. **`rabbit-transport:setup` не запускался** — RabbitMQ publish (уведомления о завершении
    импорта/экспорта) сейчас реально падает в `NO_ROUTE`, т.к. exchange/очередь/bindings ещё не
    объявлены в брокере. Сам код и конфиг готовы (`config/rabbit-transport.php`), нужен только
    реальный прогон setup-команды в целевом окружении.
+
+`Maintenance` реализована (2026-07-12): `warehouse:cleanup-brake-pads-pack-dimensions`
+(`--dry-run`) и `warehouse:recalculate-brake-pads-kits` (`--dry-run`/`--chunk`), обе — тонкие
+консольные обёртки над `Application/Services`, которые напрямую читают/пишут Eloquent (без
+Domain/Repository/портов — тот же архитектурный вынос, что и у `Vehicles/Maintenance`) и зовут
+`KitPropertiesServiceInterface` для пересчёта. 9 feature-тестов на реальной БД (`RefreshDatabase`).
+Прогон `--dry-run` на существующих dev-данных: `cleanup` — 0 кандидатов, `recalculate` — 201
+изменившихся/648 без изменений/0 ошибок.
 
 ## Что отложено (сознательно, не в этом скоупе)
 
