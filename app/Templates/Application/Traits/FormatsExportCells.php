@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Templates\Application\Traits;
 
 use App\Templates\Domain\Contracts\EnumHelperInterface;
+use App\Templates\Domain\Enums\BooleanOptionEnum;
 
 /**
  * Общие переводы "хранимое имя case'а enum'а" ↔ "Excel-лейбл", нужны более чем одному
@@ -79,5 +80,32 @@ trait FormatsExportCells
     private function floatArrayToString(array $values): string
     {
         return implode(';', $values);
+    }
+
+    /**
+     * Этот метод склеивает массив целых чисел в `;`-джойн строку для Excel-ячейки. Симметрично
+     * `DetailsRowCursor::pullIntArray()`.
+     *
+     * @param  array<int, int>  $values
+     */
+    private function intArrayToString(array $values): string
+    {
+        return implode(';', $values);
+    }
+
+    /**
+     * Этот метод рендерит булево поле как Excel-лейбл ("Да"/"Нет"), обратная операция к
+     * `ParsesBooleanCells::pullBoolLabel()`.
+     * Шаги:
+     * 1) Если значение null — возвращает пустую строку (нечего писать).
+     * 2) Иначе возвращает "Да" при true, "Нет" при false.
+     */
+    private function boolToLabelCell(?bool $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        return $value ? BooleanOptionEnum::TRUE->value : BooleanOptionEnum::FALSE->value;
     }
 }

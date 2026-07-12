@@ -1,0 +1,115 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Templates\Application\Services;
+
+use App\Templates\Application\Services\Presenters\Nomenclature\AirFilterDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\BallJointDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\BrakePadDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\CabinFilterDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\CvJointDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\GenericDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\OilFilterDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\PolyVBeltDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\SparkPlugDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\StabilizerLinkDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\TieRodDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\TieRodEndDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\TimingBeltDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\WheelHubBearingDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\WheelHubDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\WiperAdapterDetailsPresenter;
+use App\Templates\Application\Services\Presenters\Nomenclature\WiperDetailsPresenter;
+use App\Templates\Domain\Contracts\Services\NomenclatureDetailsDataPresenterInterface;
+use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Templates\Domain\ModelData\Nomenclature\AirFilterDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\BallJointDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\BrakePadDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\CabinFilterDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\CvJointDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\GenericDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\OilFilterDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\PolyVBeltDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\SparkPlugDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\StabilizerLinkDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\TieRodDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\TieRodEndDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\TimingBeltDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\WheelHubBearingDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\WheelHubDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\WiperAdapterDetailsData;
+use App\Templates\Domain\ModelData\Nomenclature\WiperDetailsData;
+
+/**
+ * Selector: по `NomenclatureDetailTemplateEnum` выбирает презентер конкретного шаблона
+ * (`Presenters/Nomenclature/*`, симметрично `NomenclatureDetailsDataFactory`/`Builders/Nomenclature/*`).
+ */
+final readonly class NomenclatureDetailsDataPresenter implements NomenclatureDetailsDataPresenterInterface
+{
+    public function __construct(
+        private BrakePadDetailsPresenter $brakePads = new BrakePadDetailsPresenter,
+        private SparkPlugDetailsPresenter $sparkPlugs = new SparkPlugDetailsPresenter,
+        private WiperDetailsPresenter $wiper = new WiperDetailsPresenter,
+        private OilFilterDetailsPresenter $oilFilter = new OilFilterDetailsPresenter,
+        private AirFilterDetailsPresenter $airFilter = new AirFilterDetailsPresenter,
+        private CabinFilterDetailsPresenter $cabinFilter = new CabinFilterDetailsPresenter,
+        private WiperAdapterDetailsPresenter $wiperAdapter = new WiperAdapterDetailsPresenter,
+        private TimingBeltDetailsPresenter $timingBelt = new TimingBeltDetailsPresenter,
+        private GenericDetailsPresenter $generic = new GenericDetailsPresenter,
+        private WheelHubBearingDetailsPresenter $wheelHubBearing = new WheelHubBearingDetailsPresenter,
+        private WheelHubDetailsPresenter $wheelHub = new WheelHubDetailsPresenter,
+        private TieRodEndDetailsPresenter $tieRodEnd = new TieRodEndDetailsPresenter,
+        private TieRodDetailsPresenter $tieRod = new TieRodDetailsPresenter,
+        private StabilizerLinkDetailsPresenter $stabilizerLink = new StabilizerLinkDetailsPresenter,
+        private BallJointDetailsPresenter $ballJoint = new BallJointDetailsPresenter,
+        private CvJointDetailsPresenter $cvJoint = new CvJointDetailsPresenter,
+        private PolyVBeltDetailsPresenter $polyVBelt = new PolyVBeltDetailsPresenter,
+    ) {}
+
+    public function headingsFor(NomenclatureDetailTemplateEnum $template): array
+    {
+        return match ($template) {
+            NomenclatureDetailTemplateEnum::BRAKE_PADS => $this->brakePads->headings(),
+            NomenclatureDetailTemplateEnum::SPARK_PLUGS => $this->sparkPlugs->headings(),
+            NomenclatureDetailTemplateEnum::WIPER => $this->wiper->headings(),
+            NomenclatureDetailTemplateEnum::OIL_FILTER => $this->oilFilter->headings(),
+            NomenclatureDetailTemplateEnum::AIR_FILTER => $this->airFilter->headings(),
+            NomenclatureDetailTemplateEnum::CABIN_FILTER => $this->cabinFilter->headings(),
+            NomenclatureDetailTemplateEnum::WIPER_ADAPTER => $this->wiperAdapter->headings(),
+            NomenclatureDetailTemplateEnum::TIMING_BELT => $this->timingBelt->headings(),
+            NomenclatureDetailTemplateEnum::V_BELT => $this->generic->headings(),
+            NomenclatureDetailTemplateEnum::WHEEL_HUB_BEARING => $this->wheelHubBearing->headings(),
+            NomenclatureDetailTemplateEnum::WHEEL_HUB => $this->wheelHub->headings(),
+            NomenclatureDetailTemplateEnum::TIE_ROD_END => $this->tieRodEnd->headings(),
+            NomenclatureDetailTemplateEnum::TIE_ROD => $this->tieRod->headings(),
+            NomenclatureDetailTemplateEnum::STABILIZER_LINK => $this->stabilizerLink->headings(),
+            NomenclatureDetailTemplateEnum::BALL_JOINT => $this->ballJoint->headings(),
+            NomenclatureDetailTemplateEnum::CV_JOINT => $this->cvJoint->headings(),
+            NomenclatureDetailTemplateEnum::POLY_V_BELT => $this->polyVBelt->headings(),
+        };
+    }
+
+    public function toExportCells(NomenclatureDetailTemplateEnum $template, array $details): array
+    {
+        return match ($template) {
+            NomenclatureDetailTemplateEnum::BRAKE_PADS => $this->brakePads->cells(BrakePadDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::SPARK_PLUGS => $this->sparkPlugs->cells(SparkPlugDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::WIPER => $this->wiper->cells(WiperDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::OIL_FILTER => $this->oilFilter->cells(OilFilterDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::AIR_FILTER => $this->airFilter->cells(AirFilterDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::CABIN_FILTER => $this->cabinFilter->cells(CabinFilterDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::WIPER_ADAPTER => $this->wiperAdapter->cells(WiperAdapterDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::TIMING_BELT => $this->timingBelt->cells(TimingBeltDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::V_BELT => $this->generic->cells(GenericDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::WHEEL_HUB_BEARING => $this->wheelHubBearing->cells(WheelHubBearingDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::WHEEL_HUB => $this->wheelHub->cells(WheelHubDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::TIE_ROD_END => $this->tieRodEnd->cells(TieRodEndDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::TIE_ROD => $this->tieRod->cells(TieRodDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::STABILIZER_LINK => $this->stabilizerLink->cells(StabilizerLinkDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::BALL_JOINT => $this->ballJoint->cells(BallJointDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::CV_JOINT => $this->cvJoint->cells(CvJointDetailsData::from($details)),
+            NomenclatureDetailTemplateEnum::POLY_V_BELT => $this->polyVBelt->cells(PolyVBeltDetailsData::from($details)),
+        };
+    }
+}

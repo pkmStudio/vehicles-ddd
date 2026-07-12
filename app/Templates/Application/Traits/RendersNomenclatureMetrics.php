@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Templates\Application\Traits;
+
+use App\Templates\Domain\ModelData\Nomenclature\NomenclatureMetricsData;
+
+/** Общий блок `metrics` (length/width/height) — используется в 14 из 17 presenter-ов Nomenclature. */
+trait RendersNomenclatureMetrics
+{
+    use FormatsExportCells;
+
+    /** @return array<int, string> */
+    private function metricsHeadings(): array
+    {
+        return ['Длина', 'Ширина', 'Высота'];
+    }
+
+    /** @return array<int, string> */
+    private function metricsCells(NomenclatureMetricsData $metrics): array
+    {
+        return [
+            $this->intArrayToString($metrics->length),
+            $this->intArrayToString($metrics->width),
+            $this->intArrayToString($metrics->height),
+        ];
+    }
+}

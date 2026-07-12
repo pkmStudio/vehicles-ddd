@@ -1,0 +1,35 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Templates\Application\Factories\Builders\Nomenclature;
+
+use App\Templates\Application\Factories\DetailsRowCursor;
+use App\Templates\Application\Traits\BuildsNomenclatureMetrics;
+use App\Templates\Application\Traits\ParsesBooleanCells;
+use App\Templates\Domain\Enums\Filter\FilterMediaTypeEnum;
+use App\Templates\Domain\Enums\Filter\FormEnum;
+use App\Templates\Domain\Enums\Filter\PerformanceEnum;
+use App\Templates\Domain\ModelData\Nomenclature\AirFilterDetailsData;
+
+/**
+ * Строит форму шаблона `airFilter` (Nomenclature) из Excel-строки. Не подключена ни к одному
+ * Import/Export сценарию — см. докблок `AirFilterDetailsData`. Простой класс без собственного
+ * порта — вызывается только из `NomenclatureDetailsDataFactory`.
+ */
+final readonly class AirFilterDetailsBuilder
+{
+    use BuildsNomenclatureMetrics;
+    use ParsesBooleanCells;
+
+    public function build(DetailsRowCursor $cursor): AirFilterDetailsData
+    {
+        return new AirFilterDetailsData(
+            performance: $cursor->pullLabel(PerformanceEnum::class)?->name,
+            form: $cursor->pullLabel(FormEnum::class)?->name,
+            frame: $this->pullBoolLabel($cursor),
+            filterType: $cursor->pullLabel(FilterMediaTypeEnum::class)?->name,
+            metrics: $this->buildMetrics($cursor),
+        );
+    }
+}

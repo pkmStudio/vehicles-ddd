@@ -75,6 +75,21 @@ final class DetailsRowCursor
     }
 
     /**
+     * Этот метод читает одну ячейку строки как строку (для простых текстовых полей — там, где
+     * ячейка не select и не резолвится через enum-справочник).
+     * Шаги:
+     * 1) Читает ячейку через `pullCell()`.
+     * 2) Если значение null — возвращает null.
+     * 3) Иначе приводит значение к `string` и возвращает.
+     */
+    public function pullStringCell(): ?string
+    {
+        $value = $this->pullCell();
+
+        return $value === null ? null : (string) $value;
+    }
+
+    /**
      * Этот метод читает одну ячейку строки как число с плавающей точкой.
      * Шаги:
      * 1) Читает ячейку через `pullCell()`.
@@ -153,6 +168,32 @@ final class DetailsRowCursor
         $result = [];
         foreach (explode(';', (string) $value) as $item) {
             $result[] = (float) trim($item);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Этот метод читает одну ячейку — `;`-джойн список чисел — как `array<int>`. В отличие от
+     * `pullFloatArray()` — для полей, где источник (Nomenclature-миграция) явно объявляет
+     * колонку как `integer`, не `float`.
+     * Шаги:
+     * 1) Читает сырую ячейку через `pullCell()`.
+     * 2) Если ячейка пустая — возвращает пустой массив.
+     * 3) Иначе разбивает строку по `;`, обрезает пробелы, каждый кусок приводит к `int`.
+     *
+     * @return array<int, int>
+     */
+    public function pullIntArray(): array
+    {
+        $value = $this->pullCell();
+        if ($value === null) {
+            return [];
+        }
+
+        $result = [];
+        foreach (explode(';', (string) $value) as $item) {
+            $result[] = (int) trim($item);
         }
 
         return $result;

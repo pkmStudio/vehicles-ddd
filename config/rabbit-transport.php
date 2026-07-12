@@ -36,6 +36,7 @@ declare(strict_types=1);
 */
 
 use App\Vehicles\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
+use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
 use App\Vehicles\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
 
 return [
@@ -147,6 +148,19 @@ return [
             ExportFileRequestedHandler::class,
             'handle',
         ],
+
+        'VEHICLE_CREATE_REQUESTED' => [
+            VehicleMutationRequestedHandler::class,
+            'handle',
+        ],
+        'VEHICLE_UPDATE_REQUESTED' => [
+            VehicleMutationRequestedHandler::class,
+            'handle',
+        ],
+        'VEHICLE_DELETE_REQUESTED' => [
+            VehicleMutationRequestedHandler::class,
+            'handle',
+        ],
     ],
 
     /*
@@ -156,13 +170,14 @@ return [
     | IMPORT_COMPLETED — статус импорта: completed / completed_with_errors / failed.
     | Содержит run_id, user_id, errors_count и, если есть, путь к отчёту.
     | FILE_EXPORTED — файл сформирован и сохранён в общем хранилище (disk из
-    | vehicles-export.output.disk), путь передан в payload; сервис с Filament
+    | vehicles.export.output.disk), путь передан в payload; сервис с Filament
     | слушает это событие, чтобы уведомить получателя о готовности каталога.
     | Публикуется из Export\Infrastructure\Notifications\RabbitMqExportNotificationService.
     */
     'outbound' => [
         'FILE_EXPORTED' => 'vehicles.file.exported',
         'IMPORT_COMPLETED' => 'vehicles.import.completed',
+        'VEHICLE_MUTATION_COMPLETED' => 'vehicles.mutation.completed',
     ],
 
     /*
@@ -199,6 +214,9 @@ return [
             'crm.spark-plugs.import',
             'crm.vehicles.export',
             'crm.engines.export',
+            'crm.vehicles.create',
+            'crm.vehicles.update',
+            'crm.vehicles.delete',
         ],
 
         'dead_letter' => [
