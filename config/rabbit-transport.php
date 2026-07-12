@@ -38,10 +38,12 @@ declare(strict_types=1);
 use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\EngineMutationRequestedHandler;
 use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\ManufacturerMutationRequestedHandler;
 use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\ModificationMutationRequestedHandler;
+use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\PartSpecificationMutationRequestedHandler;
 use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
 use App\Vehicles\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
 use App\Vehicles\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
 use App\Warehouse\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as WarehouseExportFileRequestedHandler;
+use App\Warehouse\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler as WarehouseImportFileRequestedHandler;
 
 return [
 
@@ -160,6 +162,29 @@ return [
             WarehouseExportFileRequestedHandler::class,
             'handle',
         ],
+        'WAREHOUSE_WIPER_ADAPTER_AUDIT_EXPORT_FILE_REQUESTED' => [
+            WarehouseExportFileRequestedHandler::class,
+            'handle',
+        ],
+
+        /*
+        | Входящие запросы на импорт Warehouse-каталога. Один Handler на все типы —
+        | конкретный Excel-адаптер выбирается по data.import_type
+        | (см. Warehouse\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler
+        | и Warehouse\Import\Application\Factories\ImportFileFactory).
+        */
+        'WAREHOUSE_NOMENCLATURE_IMPORT_FILE_REQUESTED' => [
+            WarehouseImportFileRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_PACK_DIMENSION_IMPORT_FILE_REQUESTED' => [
+            WarehouseImportFileRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_KIT_IMPORT_FILE_REQUESTED' => [
+            WarehouseImportFileRequestedHandler::class,
+            'handle',
+        ],
 
         'VEHICLE_CREATE_REQUESTED' => [
             VehicleMutationRequestedHandler::class,
@@ -209,6 +234,18 @@ return [
             ModificationMutationRequestedHandler::class,
             'handle',
         ],
+        'PART_SPECIFICATION_CREATE_REQUESTED' => [
+            PartSpecificationMutationRequestedHandler::class,
+            'handle',
+        ],
+        'PART_SPECIFICATION_UPDATE_REQUESTED' => [
+            PartSpecificationMutationRequestedHandler::class,
+            'handle',
+        ],
+        'PART_SPECIFICATION_DELETE_REQUESTED' => [
+            PartSpecificationMutationRequestedHandler::class,
+            'handle',
+        ],
     ],
 
     /*
@@ -226,6 +263,7 @@ return [
         'FILE_EXPORTED' => 'vehicles.file.exported',
         'WAREHOUSE_FILE_EXPORTED' => 'warehouse.file.exported',
         'IMPORT_COMPLETED' => 'vehicles.import.completed',
+        'WAREHOUSE_IMPORT_COMPLETED' => 'warehouse.import.completed',
         'CATALOG_MUTATION_COMPLETED' => 'vehicles.catalog.mutation.completed',
     ],
 
@@ -265,6 +303,10 @@ return [
             'crm.engines.export',
             'crm.warehouse.nomenclatures.export',
             'crm.warehouse.kits.export',
+            'crm.warehouse.wiper-adapter-audit.export',
+            'crm.warehouse.nomenclatures.import',
+            'crm.warehouse.pack-dimensions.import',
+            'crm.warehouse.kits.import',
             'crm.vehicles.create',
             'crm.vehicles.update',
             'crm.vehicles.delete',
@@ -277,6 +319,9 @@ return [
             'crm.modifications.create',
             'crm.modifications.update',
             'crm.modifications.delete',
+            'crm.part-specifications.create',
+            'crm.part-specifications.update',
+            'crm.part-specifications.delete',
         ],
 
         'dead_letter' => [
