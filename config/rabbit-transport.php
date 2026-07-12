@@ -42,6 +42,10 @@ use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\PartSpecificationMuta
 use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
 use App\Vehicles\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
 use App\Vehicles\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
+use App\Warehouse\Catalog\Infrastructure\Messaging\Handlers\BrandMutationRequestedHandler as WarehouseBrandMutationRequestedHandler;
+use App\Warehouse\Catalog\Infrastructure\Messaging\Handlers\KitMutationRequestedHandler as WarehouseKitMutationRequestedHandler;
+use App\Warehouse\Catalog\Infrastructure\Messaging\Handlers\NomenclatureMutationRequestedHandler as WarehouseNomenclatureMutationRequestedHandler;
+use App\Warehouse\Catalog\Infrastructure\Messaging\Handlers\PackDimensionMutationRequestedHandler as WarehousePackDimensionMutationRequestedHandler;
 use App\Warehouse\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as WarehouseExportFileRequestedHandler;
 use App\Warehouse\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler as WarehouseImportFileRequestedHandler;
 
@@ -186,6 +190,55 @@ return [
             'handle',
         ],
 
+        'WAREHOUSE_BRAND_CREATE_REQUESTED' => [
+            WarehouseBrandMutationRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_BRAND_UPDATE_REQUESTED' => [
+            WarehouseBrandMutationRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_BRAND_DELETE_REQUESTED' => [
+            WarehouseBrandMutationRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_NOMENCLATURE_CREATE_REQUESTED' => [
+            WarehouseNomenclatureMutationRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_NOMENCLATURE_UPDATE_REQUESTED' => [
+            WarehouseNomenclatureMutationRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_NOMENCLATURE_DELETE_REQUESTED' => [
+            WarehouseNomenclatureMutationRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_PACK_DIMENSION_CREATE_REQUESTED' => [
+            WarehousePackDimensionMutationRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_PACK_DIMENSION_UPDATE_REQUESTED' => [
+            WarehousePackDimensionMutationRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_PACK_DIMENSION_DELETE_REQUESTED' => [
+            WarehousePackDimensionMutationRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_KIT_CREATE_REQUESTED' => [
+            WarehouseKitMutationRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_KIT_UPDATE_REQUESTED' => [
+            WarehouseKitMutationRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_KIT_DELETE_REQUESTED' => [
+            WarehouseKitMutationRequestedHandler::class,
+            'handle',
+        ],
+
         'VEHICLE_CREATE_REQUESTED' => [
             VehicleMutationRequestedHandler::class,
             'handle',
@@ -265,6 +318,7 @@ return [
         'IMPORT_COMPLETED' => 'vehicles.import.completed',
         'WAREHOUSE_IMPORT_COMPLETED' => 'warehouse.import.completed',
         'CATALOG_MUTATION_COMPLETED' => 'vehicles.catalog.mutation.completed',
+        'WAREHOUSE_CATALOG_MUTATION_COMPLETED' => 'warehouse.catalog.mutation.completed',
     ],
 
     /*
@@ -307,6 +361,18 @@ return [
             'crm.warehouse.nomenclatures.import',
             'crm.warehouse.pack-dimensions.import',
             'crm.warehouse.kits.import',
+            'crm.warehouse.brands.create',
+            'crm.warehouse.brands.update',
+            'crm.warehouse.brands.delete',
+            'crm.warehouse.nomenclatures.create',
+            'crm.warehouse.nomenclatures.update',
+            'crm.warehouse.nomenclatures.delete',
+            'crm.warehouse.pack-dimensions.create',
+            'crm.warehouse.pack-dimensions.update',
+            'crm.warehouse.pack-dimensions.delete',
+            'crm.warehouse.kits.create',
+            'crm.warehouse.kits.update',
+            'crm.warehouse.kits.delete',
             'crm.vehicles.create',
             'crm.vehicles.update',
             'crm.vehicles.delete',

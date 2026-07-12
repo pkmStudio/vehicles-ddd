@@ -1,0 +1,112 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Warehouse\Catalog\Application\UseCases\Brand;
+
+use App\Warehouse\Catalog\Domain\Contracts\Commands\BrandCommandInterface;
+use App\Warehouse\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
+use App\Warehouse\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
+use App\Warehouse\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
+use App\Warehouse\Catalog\Domain\Contracts\UseCases\Brand\DeleteBrandUseCaseInterface;
+use App\Warehouse\Catalog\Domain\DTOs\Brand\DeleteBrandRequestDTO;
+use App\Warehouse\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
+use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
+use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
+use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
+use App\Warehouse\Catalog\Domain\Events\Brand\BrandDeleted;
+use Throwable;
+
+/**
+ * Выполняет удаление Warehouse-бренда из внешнего сообщения.
+ */
+final readonly class DeleteBrandUseCase implements DeleteBrandUseCaseInterface
+{
+    /**
+     * Инициализирует чтение, запись, cache и result-сервис.
+     */
+    public function __construct(
+        private BrandRepositoryInterface $brands,
+        private BrandCommandInterface $command,
+        private WarehouseCatalogMutationCacheServiceInterface $cache,
+        private WarehouseCatalogMutationResultServiceInterface $results,
+    ) {}
+
+    /**
+     * Удаляет бренд вручную, если нет номенклатуры с этим brand_id.
+     */
+    public function execute(DeleteBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO
+    {
+        if (! $this->cache->accept($request->operationId)) {
+            return null;
+        }
+
+        try {
+            $brand = $this->brands->find($request->id);
+            if ($brand === null) {
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: WarehouseCatalogEntityEnum::Brand,
+                    operation: WarehouseCatalogMutationOperationEnum::Delete,
+                    reason: WarehouseCatalogMutationRejectReasonEnum::NotFound,
+                    recordId: $request->id,
+                );
+            }
+
+            $blockers = $this->brands->deletionBlockers($request->id);
+            if ($blockers === null) {
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: WarehouseCatalogEntityEnum::Brand,
+                    operation: WarehouseCatalogMutationOperationEnum::Delete,
+                    reason: WarehouseCatalogMutationRejectReasonEnum::NotFound,
+                    recordId: $request->id,
+                );
+            }
+
+            if ($blockers->hasBlockers()) {
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: WarehouseCatalogEntityEnum::Brand,
+                    operation: WarehouseCatalogMutationOperationEnum::Delete,
+                    reason: WarehouseCatalogMutationRejectReasonEnum::DeleteBlocked,
+                    errors: $blockers->toArray(),
+                    recordId: $request->id,
+                    businessKey: $brand->name,
+                );
+            }
+
+            $this->command->deleteById($request->id);
+
+            event(new BrandDeleted(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                brandId: $request->id,
+                name: $brand->name,
+            ));
+
+            return $this->results->completed(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                entity: WarehouseCatalogEntityEnum::Brand,
+                operation: WarehouseCatalogMutationOperationEnum::Delete,
+                recordId: $request->id,
+                businessKey: $brand->name,
+            );
+        } catch (Throwable $e) {
+            $this->cache->forgetAccepted($request->operationId);
+            $this->results->failed(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                entity: WarehouseCatalogEntityEnum::Brand,
+                operation: WarehouseCatalogMutationOperationEnum::Delete,
+                recordId: $request->id,
+            );
+
+            throw $e;
+        }
+    }
+}

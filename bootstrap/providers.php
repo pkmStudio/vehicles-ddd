@@ -8,6 +8,7 @@ use App\Vehicles\Export\Infrastructure\Providers\ExportServiceProvider;
 use App\Vehicles\Import\Infrastructure\Providers\ImportEventServiceProvider;
 use App\Vehicles\Import\Infrastructure\Providers\ImportServiceProvider;
 use App\Vehicles\Infrastructure\Providers\VehiclesServiceProvider;
+use App\Warehouse\Catalog\Infrastructure\Providers\CatalogServiceProvider as WarehouseCatalogServiceProvider;
 use App\Warehouse\Export\Infrastructure\Providers\ExportServiceProvider as WarehouseExportServiceProvider;
 use App\Warehouse\Import\Infrastructure\Providers\ImportEventServiceProvider as WarehouseImportEventServiceProvider;
 use App\Warehouse\Import\Infrastructure\Providers\ImportServiceProvider as WarehouseImportServiceProvider;
@@ -21,6 +22,7 @@ return [
     HorizonServiceProvider::class,
     VehiclesServiceProvider::class,
     WarehouseServiceProvider::class,
+    WarehouseCatalogServiceProvider::class,
     TemplatesServiceProvider::class,
     ImportServiceProvider::class,
     ImportEventServiceProvider::class,
