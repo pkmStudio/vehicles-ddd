@@ -35,9 +35,13 @@ declare(strict_types=1);
 |
 */
 
-use App\Vehicles\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
+use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\EngineMutationRequestedHandler;
+use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\ManufacturerMutationRequestedHandler;
+use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\ModificationMutationRequestedHandler;
 use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
+use App\Vehicles\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
 use App\Vehicles\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
+use App\Warehouse\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as WarehouseExportFileRequestedHandler;
 
 return [
 
@@ -148,6 +152,14 @@ return [
             ExportFileRequestedHandler::class,
             'handle',
         ],
+        'WAREHOUSE_NOMENCLATURE_EXPORT_FILE_REQUESTED' => [
+            WarehouseExportFileRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_KIT_EXPORT_FILE_REQUESTED' => [
+            WarehouseExportFileRequestedHandler::class,
+            'handle',
+        ],
 
         'VEHICLE_CREATE_REQUESTED' => [
             VehicleMutationRequestedHandler::class,
@@ -159,6 +171,42 @@ return [
         ],
         'VEHICLE_DELETE_REQUESTED' => [
             VehicleMutationRequestedHandler::class,
+            'handle',
+        ],
+        'MANUFACTURER_CREATE_REQUESTED' => [
+            ManufacturerMutationRequestedHandler::class,
+            'handle',
+        ],
+        'MANUFACTURER_UPDATE_REQUESTED' => [
+            ManufacturerMutationRequestedHandler::class,
+            'handle',
+        ],
+        'MANUFACTURER_DELETE_REQUESTED' => [
+            ManufacturerMutationRequestedHandler::class,
+            'handle',
+        ],
+        'ENGINE_CREATE_REQUESTED' => [
+            EngineMutationRequestedHandler::class,
+            'handle',
+        ],
+        'ENGINE_UPDATE_REQUESTED' => [
+            EngineMutationRequestedHandler::class,
+            'handle',
+        ],
+        'ENGINE_DELETE_REQUESTED' => [
+            EngineMutationRequestedHandler::class,
+            'handle',
+        ],
+        'MODIFICATION_CREATE_REQUESTED' => [
+            ModificationMutationRequestedHandler::class,
+            'handle',
+        ],
+        'MODIFICATION_UPDATE_REQUESTED' => [
+            ModificationMutationRequestedHandler::class,
+            'handle',
+        ],
+        'MODIFICATION_DELETE_REQUESTED' => [
+            ModificationMutationRequestedHandler::class,
             'handle',
         ],
     ],
@@ -176,8 +224,9 @@ return [
     */
     'outbound' => [
         'FILE_EXPORTED' => 'vehicles.file.exported',
+        'WAREHOUSE_FILE_EXPORTED' => 'warehouse.file.exported',
         'IMPORT_COMPLETED' => 'vehicles.import.completed',
-        'VEHICLE_MUTATION_COMPLETED' => 'vehicles.mutation.completed',
+        'CATALOG_MUTATION_COMPLETED' => 'vehicles.catalog.mutation.completed',
     ],
 
     /*
@@ -214,9 +263,20 @@ return [
             'crm.spark-plugs.import',
             'crm.vehicles.export',
             'crm.engines.export',
+            'crm.warehouse.nomenclatures.export',
+            'crm.warehouse.kits.export',
             'crm.vehicles.create',
             'crm.vehicles.update',
             'crm.vehicles.delete',
+            'crm.manufacturers.create',
+            'crm.manufacturers.update',
+            'crm.manufacturers.delete',
+            'crm.engines.create',
+            'crm.engines.update',
+            'crm.engines.delete',
+            'crm.modifications.create',
+            'crm.modifications.update',
+            'crm.modifications.delete',
         ],
 
         'dead_letter' => [
