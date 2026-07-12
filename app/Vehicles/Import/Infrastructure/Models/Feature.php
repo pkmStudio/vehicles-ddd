@@ -6,7 +6,7 @@ namespace App\Vehicles\Import\Infrastructure\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Feature extends BaseModel
+class Feature extends AbstractModel
 {
     // RELATIONS
     public function values(): HasMany

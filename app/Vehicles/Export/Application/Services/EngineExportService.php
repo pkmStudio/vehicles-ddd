@@ -4,32 +4,27 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Export\Application\Services;
 
-use App\Vehicles\Templates\Domain\Contracts\DetailTemplateResolverInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\EngineExportServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
-use App\Vehicles\Export\Domain\Contracts\Services\Details\ExportDetailsBuilderInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
 use App\Vehicles\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Export\Domain\DTOs\PartSpecificationExportRowDTO;
 use App\Vehicles\Export\Domain\ModelData\EngineData;
+use App\Vehicles\Templates\Domain\Contracts\Factories\DetailsDataPresenterInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 
 final readonly class EngineExportService implements EngineExportServiceInterface
 {
-    private array $templateConfig;
-
     private array $fieldHeadings;
 
     public function __construct(
         private EngineRepositoryInterface $engines,
         private EngineExportRowInterface $engineRow,
-        private ExportDetailsBuilderInterface $exportDetails,
         private PartSpecificationRowExpanderInterface $expander,
-        DetailTemplateResolverInterface $templates,
+        private DetailsDataPresenterInterface $detailsPresenter,
     ) {
-        $this->templateConfig = $templates->resolve(DetailTemplateEnum::SPARK_PLUGS)->getArrayTemplate();
-        $this->fieldHeadings = $this->exportDetails->extractHeadingsFromTemplate($this->templateConfig);
+        $this->fieldHeadings = $this->detailsPresenter->headingsFor(DetailTemplateEnum::SPARK_PLUGS);
     }
 
     public function getMainRows(): Collection
@@ -62,7 +57,7 @@ final readonly class EngineExportService implements EngineExportServiceInterface
         $baseData = $this->engineRow->getBaseData($row->entity);
 
         if ($row->specification) {
-            $detailsData = $this->exportDetails->getDetailsData($row->specification->details, $this->templateConfig);
+            $detailsData = $this->detailsPresenter->toExportCells(DetailTemplateEnum::SPARK_PLUGS, $row->specification->details);
         } else {
             $detailsData = array_fill(0, count($this->fieldHeadings), null);
         }

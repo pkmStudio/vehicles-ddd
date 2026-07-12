@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Shared\Domain\Enums\Vehicle;
 
-use App\Vehicles\Shared\Domain\Traits\EnumHelperTrait;
-
 enum CarcaseTypeEnum: string
 {
-    use EnumHelperTrait;
-
     // Легковые автомобили - Седаны
     case SALOON = 'Saloon';
     case LIFTBACK = 'Liftback';

@@ -34,8 +34,8 @@ Presentation ──▶ Application ──▶ Domain
 
 | Папка | Что это | Полнота слоёв |
 |---|---|---|
-| `Shared/` | Общий «словарь» без поведения: enum'ы, на которые завязаны `$casts` (`Vehicle/*`, `Engine/*`, `PartableTypeEnum`, `ProviderEnum`) + `EnumHelperTrait`. **НЕ дублируется по фичам** (два разных `VehicleTypeEnum` = риск рассинхрона данных, а не просто лишний код). | только `Domain/` |
-| `Templates/` | Декларации полей деталей (field-template) + резолвер шаблонов + `WiperSpecificationService`. Общая для Import/Export/Maintenance фича; они зависят на её **Domain-контракты**. | `Domain/` + `Application/` |
+| `Shared/` | Общий «словарь» без поведения: enum'ы, на которые завязаны `$casts` (`Vehicle/*`, `Engine/*`, `PartableTypeEnum`, `ProviderEnum`). **НЕ дублируется по фичам** (два разных `VehicleTypeEnum` = риск рассинхрона данных, а не просто лишний код). Плоский `Domain/Enums`, без группировки по под-фичам — никакого поведения, кроме самих enum'ов. | только `Domain/` |
+| `Templates/` | Полноценная фича: типизированные `Data`-классы формы `details` у `PartSpecification` (`*DetailsData` — `WiperDetailsData`, `SparkPlugDetailsData`, `OilFilterDetailsData`, `AirFilterDetailsData`, все `extends AbstractDetailsData`) + `DetailTemplateEnum` + словарные enum'ы полей (`Domain/Enums/{Filter,SparkPlug,Wiper}/*`) + `EnumHelperTrait`/`EnumHelperInterface` (Domain) — это декларация; сборка из строки (`DetailsDataFactory`), рендер в Excel-ячейки (`DetailsDataPresenter`) и доменное правило хранения дворников (`WiperSpecificationService`) — поведение (Application). Общая для Import/Export/Maintenance фича; они зависят на её **Domain-контракты**. | `Domain/` + `Application/` + `Infrastructure/` (только `Providers/`) |
 | `Import/` | Приём CSV/Excel → каталог. Единственная фича с записью (`Command`). | полный вертикальный срез |
 | `Export/` | Каталог → Excel. **Только чтение** — `Repository` есть, `Command` нет. Дублирует лишь 5 сущностей, которые реально читает. | `Domain/Application/Infrastructure` |
 | `Maintenance/` | Разовые фиксы каталога (артизан-команды). Без слоя `Repository` — читает/пишет напрямую через Eloquent, это осознанно для «разовых фиксов». | `Application/Infrastructure/Presentation` |
@@ -49,6 +49,37 @@ Presentation ──▶ Application ──▶ Domain
 
 > **Цена:** пока схема (миграции) одна на все копии, расхождения колонок между копиями
 > обнаружатся только в рантайме, не на уровне БД. Это принятый компромисс.
+
+**Форма `details` (`PartSpecification`) — декларация в Domain, сборка/рендер в Application.**
+`part_specifications.details` (jsonb) — полиморфная по `template` (`DetailTemplateEnum`) форма,
+которую пишет Import и читает Export. Раньше это обслуживал общий пакет `dan/field-templates`
+(генерический DSL `AbstractTemplate`/`Fields/*`, обходимый рекурсивно двумя параллельными
+интерпретаторами — `Import\DetailsBuilder` и `Export\ExportDetailsBuilder`) — исторически он
+обслуживал ещё и рендер формы в Filament (`Rendering\FilamentTemplateRenderer`, `@deprecated`).
+Сервис давно не имеет UI-слоя вообще (`Http/Controllers` в проекте нет), так что от DSL осталась
+только одна реальная задача — типизированный снимок формы `details`.
+
+- **`Domain/ModelData/`** — `AbstractDetailsData` (общий тип, `extends Spatie\LaravelData\Data`,
+  без implementation) + 4 конкретные формы (`WiperDetailsData`, `SparkPlugDetailsData`,
+  `OilFilterDetailsData`, `AirFilterDetailsData`) и их вложенные части (`WiperFrontDetailsData`,
+  `SparkPlugThreadDetailsData`, …). Чистые объекты-значения: только конструктор с полями, **ни
+  одного метода** — ни сборки, ни рендера. Порядок свойств конструктора = порядок колонок Excel.
+- **`Application/Factories/`** — пара классов, симметричных друг другу:
+  - `DetailsDataFactory::buildFromRow(DetailTemplateEnum, array $row, int &$index): AbstractDetailsData`
+    строит форму из Excel-строки (замена `Import\DetailsBuilder`). Возвращает типизированный
+    объект, не `array` — вызывающий сам решает, вызывать ли `->toArray()` (нужно перед записью в
+    `PartSpecificationData::$details`).
+  - `DetailsDataPresenter::headingsFor()`/`::toExportCells()` — обратное направление (замена
+    `Export\ExportDetailsBuilder`): рендерит уже сохранённый `details`-массив в плоский набор
+    Excel-ячеек/заголовков.
+  - `DetailsRowCursor` — стейтфул-хелпер чтения строки (держит `row`+позицию), которым
+    `DetailsDataFactory` пользуется для вложенной сборки без протаскивания `int &$index` через
+    каждый приватный метод.
+- Хранимый ключ select-полей — `case->name` соответствующего enum'а из `Domain/Enums/{Filter,
+  SparkPlug,Wiper}/*` (не `->value` — это Excel-лейбл). Перевод в обе стороны даёт
+  `EnumHelperTrait::fromLabel()/fromName()` (интерфейс-маркер `EnumHelperInterface` — не порт для
+  DI, а подсказка статическому анализу для `$enumClass::fromLabel(...)`, где `$enumClass` —
+  `class-string`).
 
 ---
 
@@ -65,11 +96,11 @@ Presentation ──▶ Application ──▶ Domain
 | `Enums/` | Фиче-специфичные enum'ы потоков | Напр. схемы листов `InOut/Sheets/*`. Общий словарь значений — в `Shared`, не здесь. |
 | `Events/` | Доменные события фичи | Plain DTO-события (`final readonly`), **без поведения**. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`). Все события пока в одной плоской папке `Domain/Events`, деление на доменные/интеграционные не нужно: события не сериализуются напрямую наружу, wire-контракт — explicit `*NotificationDTO` (Listener вручную собирает DTO из полей события перед публикацией, см. `ReportImportResultListener`). |
 
-**`Templates/Domain`** дополнительно держит `Templates/<Entity>/Templates/*` (декларативные
-описания полей: `AirFilterTemplate`, `WiperTemplate`, …) и `Enums/DetailTemplateEnum`
-(`templateClass()` резолвит FQCN шаблона). Общий DSL — в пакете `dan/field-templates`.
-Templates остаётся фичей-декларацией именно потому, что `DetailTemplateEnum` ссылается на классы
-Template: уедь Template в Application — доменный enum смотрел бы наружу.
+**`Templates/Domain`** дополнительно держит декларацию формы `details` — `ModelData/`
+(`AbstractDetailsData` + 4 конкретные формы), `Enums/` (`DetailTemplateEnum` + словарные enum'ы
+полей) и `Traits/EnumHelperTrait` — см. §0. Сборка/рендер этой формы (`DetailsDataFactory`/
+`DetailsDataPresenter`) и доменное правило хранения дворников (`WiperSpecificationService`) —
+поведение, оно в `Templates/Application`, не здесь.
 
 > **Domain = полная декларация того, что делает фича**: порты + `Data` + DTO + enum'ы + события
 > (+ шаблоны у Templates). Без оркестрации/IO. Application/Infrastructure реализуют поведение.
@@ -83,9 +114,9 @@ Template: уедь Template в Application — доменный enum смотр�
 
 | Папка | Что лежит | Толщина / правила |
 |---|---|---|
-| `Services/<Entity>/` и `Services/<Group>/` | **Основной строительный блок.** Прикладные правила и координация портов | `Upsert*FromRowService`, `AssignEngineGroupService`, `ReportImportResultService`, `EngineModificationReadinessGate` (gate-логика), `Template/{TemplateDataBuilder,DetailsBuilder}`, `Engine/EngineEditableColumnsMapper` и т.п. Порт обязателен (`Contracts/Services/<Entity>/`). |
+| `Services/<Entity>/` и `Services/<Group>/` | **Основной строительный блок.** Прикладные правила и координация портов | `Upsert*FromRowService`, `AssignEngineGroupService`, `ReportImportResultService`, `EngineModificationReadinessGate` (gate-логика) и т.п. Порт обязателен (`Contracts/Services/<Entity>/`). |
 | `UseCases/<Group>/` | **Точка входа сценария**, вызываемая внешним триггером | `execute(...)`. Оркестратор, который дёргают Presentation/Listener/consumer (напр. `External/StartExternalFileImportUseCase` — старт импорта по внешнему запросу). Тоже за портом (`Contracts/UseCases/`). Заводим, когда есть внешний триггер сценария; для внутренних правил хватает `Service`. |
-| `Factories/` (плоско) | **Два вида фабрик**: (1) валидация + сборка `<Entity>Data` из сырой строки; (2) выбор существующей реализации по enum/типу входящего запроса | (1) `make(array $row): <Entity>Data`. Enum-поля валидируем **сырыми значениями** через `Rule::enum(...)`, без `tryFrom` (см. «Грабли»). Приведение типов (напр. `(string)`) — до передачи в `strict_types` конструктор `Data`. (2) **Selector-фабрика**: `make(<TypeEnum> $type): <PortInterface>` — только `match` по enum на уже забинженные в контейнере зависимости, никакой валидации/сборки (`ExternalFileImportFactory::make(ExternalImportTypeEnum): FileImportInterface` — какой Excel-адаптер запускать по типу из RabbitMQ-сообщения). Оба вида — за портом в `Contracts/Factories/` (тоже плоско, без `<Entity>/`). |
+| `Factories/` (плоско) | **Три вида фабрик**: (1) валидация + сборка `<Entity>Data` из сырой строки; (2) выбор существующей реализации по enum/типу входящего запроса; (3) сборка/рендер типизированной формы по enum (пара Factory+Presenter) | (1) `make(array $row): <Entity>Data`. Enum-поля валидируем **сырыми значениями** через `Rule::enum(...)`, без `tryFrom` (см. «Грабли»). Приведение типов (напр. `(string)`) — до передачи в `strict_types` конструктор `Data`. (2) **Selector-фабрика**: `make(<TypeEnum> $type): <PortInterface>` — только `match` по enum на уже забинженные в контейнере зависимости, никакой валидации/сборки (`ExternalFileImportFactory::make(ExternalImportTypeEnum): FileImportInterface` — какой Excel-адаптер запускать по типу из RabbitMQ-сообщения). (3) **Factory+Presenter пара**: `DetailsDataFactory::buildFromRow(TypeEnum, array $row, int &$index): AbstractDetailsData` (сборка из строки, `match` по enum вызывает приватный сборщик на каждую ветку — не просто выбор готовой зависимости, а реальная построчная сборка) + симметричный `DetailsDataPresenter::toExportCells()/headingsFor()` (обратное направление, рендер в Excel-ячейки). Общий механический хелпер чтения строки (сдвиг индекса, перевод label↔name, `;`-джойн) — не в самих формах `Data`, а в отдельном стейтфул-классе (`DetailsRowCursor`), т.к. это поведение, не декларация (см. §0). Все три вида — за портом в `Contracts/Factories/` (тоже плоско, без `<Entity>/`). |
 | `Listeners/` | Слушатели доменных событий | **ТОНКИЕ.** Делегируют в Service/UseCase. **Порт НЕ нужен** (см. ниже). |
 
 **Слушателям порт в Domain НЕ нужен** — в отличие от всего остального в Application. Порт есть
@@ -126,7 +157,7 @@ Template: уедь Template в Application — доменный enum смотр�
 
 | Папка | Что лежит | Правила |
 |---|---|---|
-| `Models/` | **Eloquent-модели фичи** (своя копия набора сущностей) | **АНЕМИЧНЫЕ**: связи, `$casts`, `$timestamps`. Без бизнес-логики. Наследуют `BaseModel` (`guarded = []`; запись идёт через Command+`Data`, фиксированный набор полей → mass-assignment безопасен). Deдуп по фичам: Import — все 8 сущностей (Command пишет во все), Export — только 5 читаемых, Maintenance — только 4. Relation-методы на **недублированные** сущности убираем (иначе мина: `Class::class` на несуществующий класс падает при первом вызове связи). |
+| `Models/` | **Eloquent-модели фичи** (своя копия набора сущностей) | **АНЕМИЧНЫЕ**: связи, `$casts`, `$timestamps`. Без бизнес-логики. Наследуют `AbstractModel` (`guarded = []`; запись идёт через Command+`Data`, фиксированный набор полей → mass-assignment безопасен). Deдуп по фичам: Import — все 8 сущностей (Command пишет во все), Export — только 5 читаемых, Maintenance — только 4. Relation-методы на **недублированные** сущности убираем (иначе мина: `Class::class` на несуществующий класс падает при первом вызове связи). |
 | `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` реализует `Contracts/Repositories/<Entity>RepositoryInterface`. Внутри `<Entity>Data::from($model)` — отдаёт **`Data`**, не модель. Скалярные read-агрегаты (`minMsId(): int`) легитимны (`plan.md §12`). Только запросы, без записи. (У Export есть, у Maintenance нет.) |
 | `Commands/` | **Запись** (CQRS-lite) — **только Import** | `<Entity>Command` реализует `Contracts/Commands/<Entity>CommandInterface`. Принимают **`<Entity>Data`**. `save`/`upsert`/`delete`. `update`/`delete` принимают `Data` с обязательным `id` (identity вместо живого объекта). Из payload на запись исключают поля, которые не колонки (`Arr::except` для `engines`/`groupId` и т.п.). |
 | `Imports/<Entity>/` | Адаптеры импорта (`maatwebsite/excel`) — **только Import** | Механика чтения: `Excel::import`, чанки, `onFailure`. На каждую строку зовёт построчный **Service** (Application). Точка входа реализует порт `Contracts/Imports/<X>Interface`. Sub-sheet'ы — внутренние, создаём `app()->makeWith(...)`, не `new`. |
@@ -253,6 +284,15 @@ Cache-ключи и TTL — **не строковые литералы в код
 - **UseCase** — глагольная фраза + суффикс `UseCase`, публичный `execute()`
   (`StartExternalFileImportUseCase`). Заводим для сценариев с внешним триггером.
 - Listener/Subscriber — см. §2.
+- **`Abstract<Noun>` — префикс только для абстрактных классов** (`AbstractImportCompleted`,
+  `AbstractDetailsData`, `AbstractModel`), никогда для интерфейсов. Разные сигналы: `Abstract` —
+  «здесь есть реальный наследуемый код, просто неполный»; суффикс `Interface` — «здесь кода нет
+  вообще, чистый контракт». Навешивать оба маркера на один тип (`AbstractFooInterface`) —
+  дублировать один и тот же смысл; сколько реализаций/наследников у типа — не критерий выбора
+  (интерфейс с одним имплементором — всё ещё интерфейс, абстрактный класс с одним наследником —
+  всё ещё абстрактный класс). Базовый класс Eloquent-моделей фичи — тоже по этому правилу:
+  `AbstractModel` (`Infrastructure/Models/`), не `BaseModel` — единый стиль для всех абстрактных
+  классов домена, без отдельной конвенции для моделей.
 
 ### Enum через casts
 Колонки в миграциях — `string` с `->comment('XxxEnum')`; преобразование — в `$casts` модели.
@@ -260,10 +300,16 @@ Cache-ключи и TTL — **не строковые литералы в код
 enum-типа (`spatie/laravel-data` кастует туда-обратно сам).
 
 ### Трейты (политика)
-- `Shared/Domain/Traits/EnumHelperTrait` (логика enum'ов), `Import/Infrastructure/Traits/
-  CachesImportFailures` (своё состояние `$cacheKey`/`$lockKey` + поведение).
+- `Templates/Domain/Traits/EnumHelperTrait` (`fromLabel`/`fromName` — статический поиск по
+  `self::cases()`, без состояния; допустим в Domain, т.к. это не оркестрация, а расширение
+  самого enum'а до того, чем он по сути является — двусторонний словарь значение↔лейбл, сродни
+  `WiperSideEnum::adapterField()`), `Import/Infrastructure/Traits/CachesImportFailures` (своё
+  состояние `$cacheKey`/`$lockKey` + поведение).
 - Трейт допустим для **чистого самодостаточного** поведения без скрытого контракта с хостом.
   Крупная логика / переиспользуемые мапперы / «скрытый контракт» → сервис за портом, не трейт.
+  Стейтфул-поведение уровня сценария (держит состояние поверх нескольких полей/вызовов, может
+  бросать исключение при нарушении бизнес-правила) → отдельный класс в Application (пример —
+  `DetailsRowCursor`), не трейт и не Domain.
 
 ### Грабли
 - **`tryFrom` молча даёт `null`.** Нельзя `Enum::tryFrom($row)?->value` до валидации — невалидное
@@ -282,7 +328,7 @@ enum-типа (`spatie/laravel-data` кастует туда-обратно са
 | Хочу добавить… | Кладу в… |
 |---|---|
 | Общий enum-словарь значений (cast колонки) | `Shared/Domain/Enums/` (не дублировать по фичам) |
-| Описание полей детали (field-template) | `Templates/Domain/Templates/<Entity>/Templates/` |
+| Новый шаблон/поле формы `details` (`PartSpecification`) | `Data`-класс (`extends AbstractDetailsData`, только поля) → `Templates/Domain/ModelData/<Entity>/<X>DetailsData.php` (+ enum-словарь поля в `Templates/Domain/Enums/`, если select); сборку из строки — в `DetailsDataFactory`, рендер в ячейки — в `DetailsDataPresenter` (`Templates/Application/Factories/`), не в самом `Data`-классе |
 | Новый сценарий с внешним триггером (старт импорта по запросу) | `<Feature>/Application/UseCases/<Group>/` + порт `Domain/Contracts/UseCases/` |
 | Новое прикладное правило/координацию | `<Feature>/Application/Services/<Entity>/` + порт `Domain/Contracts/Services/<Entity>/` |
 | Валидацию + сборку `<Entity>Data` | `<Feature>/Application/Factories/` (плоско, `make(array $row)`) + порт `Contracts/Factories/` |

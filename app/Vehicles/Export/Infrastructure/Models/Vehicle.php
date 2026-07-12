@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * partSpecifications). Modification здесь не дублируется (Export её не читает), поэтому
  * relation на неё сюда не переносим.
  */
-class Vehicle extends BaseModel
+class Vehicle extends AbstractModel
 {
     protected $casts = [
         'type' => VehicleTypeEnum::class,

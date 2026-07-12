@@ -56,24 +56,26 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
         } catch (Throwable $e) {
             $this->cache->forgetAccepted($request->runId);
 
-            $this->notifier->notifyExportCompleted(new ExportCompletionNotificationDTO(
+            $failedNotification = new ExportCompletionNotificationDTO(
                 userId: $request->userId,
                 status: ExportCompletionStatusEnum::Failed,
                 exportType: $request->exportType,
                 runId: $request->runId,
                 disk: $request->disk,
-            ));
+            );
+            $this->notifier->notifyExportCompleted($failedNotification);
 
             throw $e;
         }
 
-        $this->notifier->notifyExportCompleted(new ExportCompletionNotificationDTO(
+        $completedNotification = new ExportCompletionNotificationDTO(
             userId: $request->userId,
             status: ExportCompletionStatusEnum::Completed,
             exportType: $request->exportType,
             runId: $request->runId,
             disk: $request->disk,
             path: $path,
-        ));
+        );
+        $this->notifier->notifyExportCompleted($completedNotification);
     }
 }

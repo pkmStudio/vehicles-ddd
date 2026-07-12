@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Без generic partable(): MorphTo — та же причина, что у Import/Export (см. plan.md §11, п.9);
  * у Maintenance к тому же и Engine не дублируется, так что резолвить всё равно нечем.
  */
-class PartSpecification extends BaseModel
+class PartSpecification extends AbstractModel
 {
     protected $casts = [
         'template' => DetailTemplateEnum::class,

@@ -96,7 +96,8 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
 
             if ($existing !== null) {
                 $this->warnFeatureValueConflict($existing, $featureValueId, $vehicle->id, $side);
-                $this->command->update(new PartSpecificationData(
+
+                $updatedData = new PartSpecificationData(
                     partableType: $data->partableType,
                     partableId: $vehicle->id,
                     template: $data->template,
@@ -105,7 +106,8 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
                     name: $data->name,
                     text: $data->text,
                     id: $existing->id,
-                ));
+                );
+                $this->command->update($updatedData);
 
                 continue;
             }

@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Shared\Domain\Enums\Vehicle;
 
-use App\Vehicles\Shared\Domain\Traits\EnumHelperTrait;
-
 enum GearTypeEnum: string
 {
-    use EnumHelperTrait;
-
     case AUTOMATIC = 'Автоматическая коробка передач';
     case MANUAL = 'Механическая коробка передач';
     case MANUAL_AUTO = 'Механическая коробка передач, автоматическое управление';

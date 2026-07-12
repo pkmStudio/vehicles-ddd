@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class Engine extends BaseModel
+class Engine extends AbstractModel
 {
     protected $casts = [
         'eng_fuel_type' => EngineFuelTypeEnum::class,

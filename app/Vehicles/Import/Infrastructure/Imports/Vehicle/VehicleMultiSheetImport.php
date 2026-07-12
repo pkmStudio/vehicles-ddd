@@ -56,7 +56,11 @@ final class VehicleMultiSheetImport implements ShouldQueue, VehicleMultiSheetImp
         /** @var VehicleMultiSheetImport $import */
         $import = $event->getConcernable();
 
-        event(new VehicleImportCompleted($import->context->userId, $import->cacheKey(), $import->context->runId));
+        event(new VehicleImportCompleted(
+            userId: $import->context->userId,
+            cacheKey: $import->cacheKey(),
+            runId: $import->context->runId,
+        ));
     }
 
     public function chunkSize(): int

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Import\Infrastructure\Imports\Engine\Sheets;
 
-use App\Vehicles\Import\Domain\Contracts\Services\Template\TemplateDataBuilderInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
+use App\Vehicles\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
@@ -32,7 +32,7 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
         string $cacheKey,
         string $lockKey,
         private readonly UpsertEngineSparkPlugSpecServiceInterface $service,
-        private readonly TemplateDataBuilderInterface $templateDataBuilder,
+        private readonly DetailsDataFactoryInterface $detailsFactory,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = $lockKey;
@@ -59,7 +59,7 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
             DB::beginTransaction();
             try {
                 $startIndex = self::SPEC_START_COLUMN;
-                $details = $this->templateDataBuilder->buildByTemplate($row->toArray(), $startIndex, DetailTemplateEnum::SPARK_PLUGS);
+                $details = $this->detailsFactory->buildFromRow(DetailTemplateEnum::SPARK_PLUGS, $row->toArray(), $startIndex)->toArray();
 
                 $spec = $this->service->upsertByEngine((int) $engId, $details);
 

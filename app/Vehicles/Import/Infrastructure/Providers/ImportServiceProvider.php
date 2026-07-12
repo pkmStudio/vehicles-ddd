@@ -22,8 +22,6 @@ use App\Vehicles\Import\Application\Services\EngineModificationReadinessGate;
 use App\Vehicles\Import\Application\Services\Manufacturer\UpsertManufacturerFromRowService;
 use App\Vehicles\Import\Application\Services\Modification\UpsertModificationFromRowService;
 use App\Vehicles\Import\Application\Services\Reporting\ReportImportResultService;
-use App\Vehicles\Import\Application\Services\Template\DetailsBuilder;
-use App\Vehicles\Import\Application\Services\Template\TemplateDataBuilder;
 use App\Vehicles\Import\Application\Services\Vehicle\UpsertVehicleFromSheetService;
 use App\Vehicles\Import\Application\Services\Vehicle\UpsertVehicleFromTdRowService;
 use App\Vehicles\Import\Application\Services\Vehicle\VehicleWiperSpecificationImportService;
@@ -37,8 +35,6 @@ use App\Vehicles\Import\Domain\Contracts\Services\External\CleanupExternalImport
 use App\Vehicles\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\EngineModificationReadinessGateInterface;
-use App\Vehicles\Import\Domain\Contracts\Services\Template\DetailsBuilderInterface;
-use App\Vehicles\Import\Domain\Contracts\Services\Template\TemplateDataBuilderInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\AssignEngineGroupServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
@@ -164,8 +160,6 @@ final class ImportServiceProvider extends ServiceProvider
     private const array SERVICE_BINDINGS = [
         CleanupExternalImportFileServiceInterface::class => CleanupExternalImportFileService::class,
         ExternalImportCacheServiceInterface::class => ExternalImportCacheService::class,
-        TemplateDataBuilderInterface::class => TemplateDataBuilder::class,
-        DetailsBuilderInterface::class => DetailsBuilder::class,
         EngineModificationReadinessGateInterface::class => EngineModificationReadinessGate::class,
         ReportImportResultServiceInterface::class => ReportImportResultService::class,
         UpsertEngineFromSheetServiceInterface::class => UpsertEngineFromSheetService::class,

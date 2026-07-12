@@ -18,7 +18,8 @@ final class AssignEngineGroupServiceTest extends TestCase
      *
      * Шаги:
      * 1. Мокает EngineRepositoryInterface::firstByCodeEngine — возвращает EngineData без group_id.
-     * 2. Мокает EngineCommandInterface::setGroupId — ожидает вызов с этим двигателем и group 7.
+     * 2. Мокает EngineCommandInterface::setGroupId — ожидает вызов с Data (engId/id того же
+     *    двигателя, groupId новой группы 7).
      * 3. Зовёт assignGroup('M54B30', 7).
      * 4. Проверяет результат: found=true, reassigned=false, previousGroupId=null.
      */
@@ -30,7 +31,10 @@ final class AssignEngineGroupServiceTest extends TestCase
         $engines->shouldReceive('firstByCodeEngine')->once()->with('M54B30')->andReturn($engine);
 
         $command = Mockery::mock(EngineCommandInterface::class);
-        $command->shouldReceive('setGroupId')->once()->with($engine, 7);
+        $command->shouldReceive('setGroupId')
+            ->once()
+            ->with(Mockery::on(fn (EngineData $data): bool => $data->engId === 555 && $data->id === 1 && $data->groupId === 7))
+            ->andReturn(new EngineData(engId: 555, id: 1, groupId: 7));
 
         $result = (new AssignEngineGroupService($engines, $command))->assignGroup('M54B30', 7);
 
@@ -45,7 +49,7 @@ final class AssignEngineGroupServiceTest extends TestCase
      *
      * Шаги:
      * 1. Мокает EngineRepositoryInterface::firstByCodeEngine — возвращает EngineData с group_id=3.
-     * 2. Мокает EngineCommandInterface::setGroupId — ожидает вызов с новой группой 7.
+     * 2. Мокает EngineCommandInterface::setGroupId — ожидает вызов с Data с новой группой 7.
      * 3. Зовёт assignGroup('M54B30', 7).
      * 4. Проверяет результат: found=true, reassigned=true, previousGroupId=3.
      */
@@ -57,7 +61,10 @@ final class AssignEngineGroupServiceTest extends TestCase
         $engines->shouldReceive('firstByCodeEngine')->once()->with('M54B30')->andReturn($engine);
 
         $command = Mockery::mock(EngineCommandInterface::class);
-        $command->shouldReceive('setGroupId')->once()->with($engine, 7);
+        $command->shouldReceive('setGroupId')
+            ->once()
+            ->with(Mockery::on(fn (EngineData $data): bool => $data->engId === 555 && $data->id === 1 && $data->groupId === 7))
+            ->andReturn(new EngineData(engId: 555, id: 1, groupId: 7));
 
         $result = (new AssignEngineGroupService($engines, $command))->assignGroup('M54B30', 7);
 

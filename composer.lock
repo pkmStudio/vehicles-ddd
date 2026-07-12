@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f04ac202041bddd77803dc248aa60f50",
+    "content-hash": "ea70dcaa83d1a2702dc16f6b11fb2d25",
     "packages": [
         {
             "name": "brick/math",
@@ -286,35 +286,6 @@
                 }
             ],
             "time": "2025-08-20T19:15:30+00:00"
-        },
-        {
-            "name": "dan/field-templates",
-            "version": "2.0.0",
-            "dist": {
-                "type": "path",
-                "url": "packages/field-templates",
-                "reference": "8ddb496c6bbe5b9dc34780179e95af26ac45318d"
-            },
-            "require": {
-                "php": "^8.3"
-            },
-            "suggest": {
-                "filament/filament": "Только для Rendering\\FilamentTemplateRenderer (рендер getArrayTemplate() в Filament-форму). Ядро пакета работает без него."
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Dan\\FieldTemplates\\": "src/"
-                }
-            },
-            "license": [
-                "proprietary"
-            ],
-            "description": "Переиспользуемый DSL шаблонов полей: определение полей + сериализация в массив (getArrayTemplate). Ядро — чистый PHP. Рендер в Filament — опциональный адаптер Rendering\\FilamentTemplateRenderer (нужен Filament).",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
         },
         {
             "name": "dflydev/dot-access-data",

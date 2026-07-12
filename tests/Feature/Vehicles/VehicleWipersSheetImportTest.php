@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles;
 
-use App\Vehicles\Import\Domain\Contracts\Services\Template\TemplateDataBuilderInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleWiperSheetRowMapper;
 use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
 use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
 use App\Vehicles\Import\Infrastructure\Models\Vehicle;
+use App\Vehicles\Templates\Application\Factories\DetailsDataFactory;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 use RuntimeException;
@@ -23,15 +23,64 @@ final class VehicleWipersSheetImportTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function rowMapper(array $row, array $details): VehicleWiperSheetRowMapper
+    /**
+     * Базовые 20 колонок листа + 10 колонок спецификации дворников (индексы 20-29), реальные —
+     * без мока `DetailsBuilder`/`TemplateDataBuilder` (эти классы удалены вместе со старым DSL,
+     * см. plan-refactor.md). Строка гоняется через настоящий `DetailsDataFactory::buildFromRow()`.
+     *
+     * @return array<int, mixed>
+     */
+    private function wiperRow(string $name = 'Octavia'): array
     {
-        $templateDataBuilder = $this->mock(TemplateDataBuilderInterface::class);
-        $templateDataBuilder->shouldReceive('buildBySlug')
-            ->once()
-            ->with(Mockery::on(fn (array $mappedRow): bool => $mappedRow === $row), 20, DetailTemplateEnum::WIPER->value)
-            ->andReturn($details);
+        return [
+            'A-1',
+            10,
+            300,
+            'Skoda',
+            $name,
+            'Octavia localized',
+            'A7',
+            'III',
+            2013,
+            2020,
+            'Hatchback',
+            'PC',
+            'OD',
+            null,
+            'Левый руль',
+            'Да',
+            'Левый руль',
+            DetailTemplateEnum::WIPER->value,
+            'Bosch Aerotwin',
+            'Описание дворников',
+            // --- спецификация дворников (front: length_main, length_second, adapter, count) ---
+            500, 550, 450, 500, 'Крючок (Hook / J-Hook)', 2,
+            // --- back: length_rear, adapter, count ---
+            400, 420, 'RA', 1,
+        ];
+    }
 
-        return new VehicleWiperSheetRowMapper(new ImportRowValueFormatter, $templateDataBuilder);
+    /** Ожидаемый `details` для строки из `wiperRow()` — форма `WiperDetailsData::toArray()`. */
+    private function expectedWiperDetails(): array
+    {
+        return [
+            'front' => [
+                'length_main' => ['min' => 500, 'max' => 550],
+                'length_second' => ['min' => 450, 'max' => 500],
+                'adapter_type_front' => ['H'],
+                'count_wipers' => 2,
+            ],
+            'back' => [
+                'length_rear' => ['min' => 400, 'max' => 420],
+                'adapter_type_rear' => ['RA'],
+                'count_wipers' => 1,
+            ],
+        ];
+    }
+
+    private function rowMapper(): VehicleWiperSheetRowMapper
+    {
+        return new VehicleWiperSheetRowMapper(new ImportRowValueFormatter, new DetailsDataFactory);
     }
 
     /**
@@ -41,7 +90,8 @@ final class VehicleWipersSheetImportTest extends TestCase
      * Шаги:
      * 1. Создаёт производителя и ТС с исходным name='Octavia'.
      * 2. Мокает VehicleWiperSpecificationImportServiceInterface — ожидает upsertFromRow() с
-     *    ожидаемым DTO (msId/templateSlug/featureValueName/name/text/details из строки).
+     *    ожидаемым DTO (msId/templateSlug/featureValueName/name/text/details из строки), где
+     *    details реально собраны `DetailsDataFactory::buildFromRow()`, не подставлены мок-ом.
      * 3. Прогоняет одну строку с другим name ('Changed from wipers sheet') через collection().
      * 4. Проверяет, что в БД у ТС осталось исходное имя, а изменённое — не появилось.
      */
@@ -63,32 +113,8 @@ final class VehicleWipersSheetImportTest extends TestCase
             'steering_type' => 'Левый руль',
         ]);
 
-        $details = ['front' => ['count_wipers' => 2]];
-
-        $row = [
-            'A-1',
-            10,
-            300,
-            'Skoda',
-            'Changed from wipers sheet',
-            'Octavia localized',
-            'A7',
-            'III',
-            2013,
-            2020,
-            'Hatchback',
-            'PC',
-            'OD',
-            null,
-            'Левый руль',
-            'Да',
-            'Левый руль',
-            DetailTemplateEnum::WIPER->value,
-            'Bosch Aerotwin',
-            'Описание дворников',
-            2,
-        ];
-        $rowMapper = $this->rowMapper($row, $details);
+        $row = $this->wiperRow('Changed from wipers sheet');
+        $details = $this->expectedWiperDetails();
 
         $wiperSpec = $this->mock(VehicleWiperSpecificationImportServiceInterface::class);
         $wiperSpec->shouldReceive('upsertFromRow')
@@ -104,7 +130,7 @@ final class VehicleWipersSheetImportTest extends TestCase
         $import = app()->makeWith(VehicleWipersSheetImport::class, [
             'cacheKey' => 'vehicle_wipers_sheet_test',
             'lockKey' => 'vehicle_wipers_sheet_test_lock',
-            'rowMapper' => $rowMapper,
+            'rowMapper' => $this->rowMapper(),
         ]);
 
         $rows = new Collection([new Collection($row)]);
@@ -135,31 +161,7 @@ final class VehicleWipersSheetImportTest extends TestCase
      */
     public function test_wiper_sheet_does_not_create_missing_vehicle(): void
     {
-        $details = ['front' => ['adapter_type_front' => ['A1']]];
-        $row = [
-            'A-1',
-            10,
-            300,
-            'Skoda',
-            'Octavia',
-            'Octavia localized',
-            'A7',
-            'III',
-            2013,
-            2020,
-            'Hatchback',
-            'PC',
-            'OD',
-            null,
-            'Левый руль',
-            'Да',
-            'Левый руль',
-            DetailTemplateEnum::WIPER->value,
-            'Bosch Aerotwin',
-            'Описание дворников',
-            2,
-        ];
-        $rowMapper = $this->rowMapper($row, $details);
+        $row = $this->wiperRow();
 
         $wiperSpec = $this->mock(VehicleWiperSpecificationImportServiceInterface::class);
         $wiperSpec->shouldReceive('upsertFromRow')
@@ -171,7 +173,7 @@ final class VehicleWipersSheetImportTest extends TestCase
         $import = app()->makeWith(VehicleWipersSheetImport::class, [
             'cacheKey' => 'vehicle_wipers_missing_vehicle_test',
             'lockKey' => 'vehicle_wipers_missing_vehicle_test_lock',
-            'rowMapper' => $rowMapper,
+            'rowMapper' => $this->rowMapper(),
         ]);
 
         $rows = new Collection([new Collection($row)]);

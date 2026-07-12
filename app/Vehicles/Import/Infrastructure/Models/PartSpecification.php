@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * владельца — через PartSpecificationRepository::partable() (типобезопасно, через Data своей
  * же фичи).
  */
-class PartSpecification extends BaseModel
+class PartSpecification extends AbstractModel
 {
     protected $casts = [
         'template' => DetailTemplateEnum::class,

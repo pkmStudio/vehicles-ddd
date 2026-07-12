@@ -12,7 +12,7 @@ use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Modification extends BaseModel
+class Modification extends AbstractModel
 {
     protected $casts = [
         'type' => VehicleTypeEnum::class,

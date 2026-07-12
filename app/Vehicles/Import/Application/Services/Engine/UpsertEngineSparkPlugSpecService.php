@@ -34,11 +34,13 @@ final readonly class UpsertEngineSparkPlugSpecService implements UpsertEngineSpa
             return null;
         }
 
-        return $this->partSpecs->upsert(new PartSpecificationData(
+        $specification = new PartSpecificationData(
             partableType: PartableTypeEnum::ENGINE->value,
             partableId: (int) $engine->id,
             template: DetailTemplateEnum::SPARK_PLUGS,
             details: $details,
-        ));
+        );
+
+        return $this->partSpecs->upsert($specification);
     }
 }

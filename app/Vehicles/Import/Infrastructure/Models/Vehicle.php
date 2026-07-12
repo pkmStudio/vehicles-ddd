@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class Vehicle extends BaseModel
+class Vehicle extends AbstractModel
 {
     protected $casts = [
         'type' => VehicleTypeEnum::class,

@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Shared\Domain\Enums\Engine;
 
-use App\Vehicles\Shared\Domain\Traits\EnumHelperTrait;
-
 enum EngineTypeEnum: string
 {
-    use EnumHelperTrait;
-
     case PETROL = 'Бензиновый двигатель';
     case PETROL_TWO_STROKE = 'Бензиновый двигатель (двухтактный)';
     case DIESEL = 'Дизель';

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * Копия для Export — только связь partSpecifications (нужна листу свечей зажигания).
  * Modification здесь не дублируется (Export её не читает).
  */
-class Engine extends BaseModel
+class Engine extends AbstractModel
 {
     protected $casts = [
         'eng_fuel_type' => EngineFuelTypeEnum::class,

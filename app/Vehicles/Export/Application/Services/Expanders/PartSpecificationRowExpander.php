@@ -26,13 +26,15 @@ final readonly class PartSpecificationRowExpander implements PartSpecificationRo
 
         foreach ($entities as $entity) {
             if ($entity->partSpecifications->isEmpty()) {
-                $rows->push(new PartSpecificationExportRowDTO(entity: $entity, specification: null));
+                $emptyRow = new PartSpecificationExportRowDTO(entity: $entity, specification: null);
+                $rows->push($emptyRow);
 
                 continue;
             }
 
             foreach ($entity->partSpecifications as $specification) {
-                $rows->push(new PartSpecificationExportRowDTO(entity: $entity, specification: $specification));
+                $row = new PartSpecificationExportRowDTO(entity: $entity, specification: $specification);
+                $rows->push($row);
             }
         }
 

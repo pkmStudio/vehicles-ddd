@@ -7,7 +7,6 @@ namespace App\Vehicles\Export\Infrastructure\Providers;
 use App\Vehicles\Export\Application\Services\EngineExportService;
 use App\Vehicles\Export\Application\Services\VehicleExportService;
 use App\Vehicles\Export\Application\Services\Rows\EngineExportRow;
-use App\Vehicles\Export\Application\Services\Details\ExportDetailsBuilder;
 use App\Vehicles\Export\Application\Services\Expanders\PartSpecificationRowExpander;
 use App\Vehicles\Export\Application\Services\Rows\VehicleExportRow;
 use App\Vehicles\Export\Application\Services\Expanders\WiperRowExpander;
@@ -18,7 +17,6 @@ use App\Vehicles\Export\Application\UseCases\External\StartExportUseCase;
 use App\Vehicles\Export\Domain\Contracts\Services\EngineExportServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
-use App\Vehicles\Export\Domain\Contracts\Services\Details\ExportDetailsBuilderInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
@@ -57,7 +55,6 @@ final class ExportServiceProvider extends ServiceProvider
     ];
 
     private const array SERVICE_BINDINGS = [
-        ExportDetailsBuilderInterface::class => ExportDetailsBuilder::class,
         PartSpecificationRowExpanderInterface::class => PartSpecificationRowExpander::class,
         VehicleExportRowInterface::class => VehicleExportRow::class,
         EngineExportRowInterface::class => EngineExportRow::class,

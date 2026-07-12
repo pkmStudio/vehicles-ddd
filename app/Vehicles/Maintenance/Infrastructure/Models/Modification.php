@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Копия для Maintenance — без relation на Engine: Engine-модель здесь не дублируется
  * (Maintenance её не читает).
  */
-class Modification extends BaseModel
+class Modification extends AbstractModel
 {
     protected $casts = [
         'type' => VehicleTypeEnum::class,

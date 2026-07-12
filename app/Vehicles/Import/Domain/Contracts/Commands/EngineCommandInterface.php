@@ -11,6 +11,6 @@ interface EngineCommandInterface
     /** Upsert по натуральному ключу eng_id. */
     public function upsertByEngId(EngineData $data): EngineData;
 
-    /** Проставить группу двигателю (по $engine->id). */
-    public function setGroupId(EngineData $engine, int $groupId): void;
+    /** Проставить группу двигателю. Принимает Data с обязательными id и groupId. */
+    public function setGroupId(EngineData $data): EngineData;
 }

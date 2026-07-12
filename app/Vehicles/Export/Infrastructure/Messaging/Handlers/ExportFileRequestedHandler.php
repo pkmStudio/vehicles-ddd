@@ -46,12 +46,13 @@ final readonly class ExportFileRequestedHandler
 
         $outputDisk = (string) config('vehicles-export.output.disk', 'local');
 
-        $this->useCase->execute(new ExportFileRequestDTO(
+        $request = new ExportFileRequestDTO(
             userId: (int) $data['user_id'],
             runId: (string) $data['run_id'],
             exportType: ExportTypeEnum::from((string) $data['export_type']),
             isAllow: (bool) ($data['is_allow'] ?? false),
             disk: $outputDisk,
-        ));
+        );
+        $this->useCase->execute($request);
     }
 }

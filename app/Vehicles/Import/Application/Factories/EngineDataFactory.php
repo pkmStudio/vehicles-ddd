@@ -36,18 +36,29 @@ final readonly class EngineDataFactory implements EngineDataFactoryInterface
             'eng_fuel_type' => ['nullable', Rule::enum(EngineFuelTypeEnum::class)],
         ])->validate();
 
+        $codeEngine = isset($valid['code_engine']) ? (string) $valid['code_engine'] : null;
+        $engPowerKwStart = isset($valid['eng_power_kw_start']) ? (int) $valid['eng_power_kw_start'] : null;
+        $engPowerKwUpto = isset($valid['eng_power_kw_upto']) ? (int) $valid['eng_power_kw_upto'] : null;
+        $engPowerPsStart = isset($valid['eng_power_ps_start']) ? (int) $valid['eng_power_ps_start'] : null;
+        $engPowerPsUpto = isset($valid['eng_power_ps_upto']) ? (int) $valid['eng_power_ps_upto'] : null;
+        $engineCapacity = isset($valid['engine_capacity']) ? (string) $valid['engine_capacity'] : null;
+        $cylinderDiameter = isset($valid['cylinder_diameter']) ? (float) $valid['cylinder_diameter'] : null;
+        $cylinderCount = isset($valid['cylinder_count']) ? (int) $valid['cylinder_count'] : null;
+        $engNumberOfValves = isset($valid['eng_number_of_valves']) ? (int) $valid['eng_number_of_valves'] : null;
+        $engFuelType = isset($valid['eng_fuel_type']) ? EngineFuelTypeEnum::from($valid['eng_fuel_type']) : null;
+
         return new EngineData(
             engId: (int) $valid['eng_id'],
-            codeEngine: isset($valid['code_engine']) ? (string) $valid['code_engine'] : null,
-            engPowerKwStart: isset($valid['eng_power_kw_start']) ? (int) $valid['eng_power_kw_start'] : null,
-            engPowerKwUpto: isset($valid['eng_power_kw_upto']) ? (int) $valid['eng_power_kw_upto'] : null,
-            engPowerPsStart: isset($valid['eng_power_ps_start']) ? (int) $valid['eng_power_ps_start'] : null,
-            engPowerPsUpto: isset($valid['eng_power_ps_upto']) ? (int) $valid['eng_power_ps_upto'] : null,
-            engineCapacity: isset($valid['engine_capacity']) ? (string) $valid['engine_capacity'] : null,
-            cylinderDiameter: isset($valid['cylinder_diameter']) ? (float) $valid['cylinder_diameter'] : null,
-            cylinderCount: isset($valid['cylinder_count']) ? (int) $valid['cylinder_count'] : null,
-            engNumberOfValves: isset($valid['eng_number_of_valves']) ? (int) $valid['eng_number_of_valves'] : null,
-            engFuelType: isset($valid['eng_fuel_type']) ? EngineFuelTypeEnum::from($valid['eng_fuel_type']) : null,
+            codeEngine: $codeEngine,
+            engPowerKwStart: $engPowerKwStart,
+            engPowerKwUpto: $engPowerKwUpto,
+            engPowerPsStart: $engPowerPsStart,
+            engPowerPsUpto: $engPowerPsUpto,
+            engineCapacity: $engineCapacity,
+            cylinderDiameter: $cylinderDiameter,
+            cylinderCount: $cylinderCount,
+            engNumberOfValves: $engNumberOfValves,
+            engFuelType: $engFuelType,
         );
     }
 }

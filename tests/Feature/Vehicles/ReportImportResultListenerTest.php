@@ -58,7 +58,7 @@ final class ReportImportResultListenerTest extends TestCase
             );
 
         $listener = app(ReportImportResultListener::class);
-        $listener->handle(new VehicleImportCompleted(42, $cacheKey, 'run-123'));
+        $listener->handle(new VehicleImportCompleted(userId: 42, cacheKey: $cacheKey, runId: 'run-123'));
 
         $this->assertFalse(Cache::has($cacheKey));
     }
@@ -92,7 +92,7 @@ final class ReportImportResultListenerTest extends TestCase
             );
 
         $listener = app(ReportImportResultListener::class);
-        $listener->handle(new VehicleImportCompleted(42, $cacheKey, 'run-456'));
+        $listener->handle(new VehicleImportCompleted(userId: 42, cacheKey: $cacheKey, runId: 'run-456'));
 
         $this->assertFalse(Cache::has($cacheKey));
     }

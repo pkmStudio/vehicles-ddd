@@ -25,11 +25,10 @@ final readonly class RabbitMqExportNotificationService implements ExportNotifica
 
     public function notifyExportCompleted(ExportCompletionNotificationDTO $payload): void
     {
-        $this->publisher->publish(
-            new RabbitMessageDTO(
-                name: 'FILE_EXPORTED',
-                data: $payload->toArray(),
-            ),
+        $message = new RabbitMessageDTO(
+            name: 'FILE_EXPORTED',
+            data: $payload->toArray(),
         );
+        $this->publisher->publish($message);
     }
 }

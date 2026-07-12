@@ -8,6 +8,7 @@ use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\AssignEngineGroupServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\Engine\AssignEngineGroupResultDTO;
+use App\Vehicles\Import\Domain\ModelData\EngineData;
 
 /**
  * Use-case: назначить двигателю (по коду) группу. Возвращает исход для отчёта:
@@ -34,7 +35,8 @@ final readonly class AssignEngineGroupService implements AssignEngineGroupServic
         $previousGroupId = $engine->groupId;
         $reassigned = $previousGroupId !== null && $previousGroupId !== $groupId;
 
-        $this->command->setGroupId($engine, $groupId);
+        $updatedEngine = new EngineData(engId: $engine->engId, id: $engine->id, groupId: $groupId);
+        $this->command->setGroupId($updatedEngine);
 
         return new AssignEngineGroupResultDTO(
             found: true,

@@ -7,7 +7,7 @@ namespace App\Vehicles\Import\Infrastructure\Models;
 use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Manufacturer extends BaseModel
+class Manufacturer extends AbstractModel
 {
     protected $casts = [
         'provider' => ProviderEnum::class,

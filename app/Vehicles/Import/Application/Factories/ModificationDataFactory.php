@@ -44,22 +44,35 @@ final readonly class ModificationDataFactory implements ModificationDataFactoryI
             'capacity_lt' => ['nullable', 'numeric'],
         ])->validate();
 
+        $type = VehicleTypeEnum::from($valid['type']);
+        $yearFrom = isset($valid['year_from']) ? (int) $valid['year_from'] : null;
+        $yearTo = isset($valid['year_to']) ? (int) $valid['year_to'] : null;
+        $description = isset($valid['description']) ? (string) $valid['description'] : null;
+        $powerPs = isset($valid['power_ps']) ? (int) $valid['power_ps'] : null;
+        $powerKw = isset($valid['power_kw']) ? (int) $valid['power_kw'] : null;
+        $engineType = isset($valid['engine_type']) ? EngineTypeEnum::from($valid['engine_type']) : null;
+        $gearType = isset($valid['gear_type']) ? GearTypeEnum::from($valid['gear_type']) : null;
+        $driveType = isset($valid['drive_type']) ? DriveTypeEnum::from($valid['drive_type']) : null;
+        $brakeSystemType = isset($valid['brake_system_type']) ? BrakeSystemTypeEnum::from($valid['brake_system_type']) : null;
+        $numberOfCylinders = isset($valid['number_of_cylinders']) ? (int) $valid['number_of_cylinders'] : null;
+        $capacityLt = isset($valid['capacity_lt']) ? (float) $valid['capacity_lt'] : null;
+
         return new ModificationData(
             modId: (int) $valid['mod_id'],
-            type: VehicleTypeEnum::from($valid['type']),
+            type: $type,
             vehicleId: (int) $valid['vehicle_id'],
             msId: (int) $valid['ms_id'],
-            yearFrom: isset($valid['year_from']) ? (int) $valid['year_from'] : null,
-            yearTo: isset($valid['year_to']) ? (int) $valid['year_to'] : null,
-            description: isset($valid['description']) ? (string) $valid['description'] : null,
-            powerPs: isset($valid['power_ps']) ? (int) $valid['power_ps'] : null,
-            powerKw: isset($valid['power_kw']) ? (int) $valid['power_kw'] : null,
-            engineType: isset($valid['engine_type']) ? EngineTypeEnum::from($valid['engine_type']) : null,
-            gearType: isset($valid['gear_type']) ? GearTypeEnum::from($valid['gear_type']) : null,
-            driveType: isset($valid['drive_type']) ? DriveTypeEnum::from($valid['drive_type']) : null,
-            brakeSystemType: isset($valid['brake_system_type']) ? BrakeSystemTypeEnum::from($valid['brake_system_type']) : null,
-            numberOfCylinders: isset($valid['number_of_cylinders']) ? (int) $valid['number_of_cylinders'] : null,
-            capacityLt: isset($valid['capacity_lt']) ? (float) $valid['capacity_lt'] : null,
+            yearFrom: $yearFrom,
+            yearTo: $yearTo,
+            description: $description,
+            powerPs: $powerPs,
+            powerKw: $powerKw,
+            engineType: $engineType,
+            gearType: $gearType,
+            driveType: $driveType,
+            brakeSystemType: $brakeSystemType,
+            numberOfCylinders: $numberOfCylinders,
+            capacityLt: $capacityLt,
         );
     }
 }

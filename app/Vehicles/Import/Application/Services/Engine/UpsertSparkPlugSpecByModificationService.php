@@ -55,12 +55,13 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
                 continue;
             }
 
-            $this->partSpecs->upsert(new PartSpecificationData(
+            $specification = new PartSpecificationData(
                 partableType: PartableTypeEnum::ENGINE->value,
                 partableId: (int) $engine->id,
                 template: DetailTemplateEnum::SPARK_PLUGS,
                 details: $details,
-            ));
+            );
+            $this->partSpecs->upsert($specification);
             $written++;
         }
 

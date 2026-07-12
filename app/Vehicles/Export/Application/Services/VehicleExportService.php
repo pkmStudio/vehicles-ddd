@@ -4,35 +4,30 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Export\Application\Services;
 
-use App\Vehicles\Templates\Domain\Contracts\DetailTemplateResolverInterface;
 use App\Vehicles\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
-use App\Vehicles\Export\Domain\Contracts\Services\Details\ExportDetailsBuilderInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
 use App\Vehicles\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Export\Domain\DTOs\WiperExportRowDTO;
 use App\Vehicles\Export\Domain\ModelData\VehicleData;
+use App\Vehicles\Templates\Domain\Contracts\Factories\DetailsDataPresenterInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
 use Illuminate\Support\Collection;
 
 final readonly class VehicleExportService implements VehicleExportServiceInterface
 {
-    private array $templateConfig;
-
     private array $fieldHeadings;
 
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
         private VehicleExportRowInterface $vehicleRow,
-        private ExportDetailsBuilderInterface $exportDetails,
         private WiperRowExpanderInterface $expander,
         private WiperSpecificationServiceInterface $wiper,
-        DetailTemplateResolverInterface $templates,
+        private DetailsDataPresenterInterface $detailsPresenter,
     ) {
-        $this->templateConfig = $templates->resolve(DetailTemplateEnum::WIPER)->getArrayTemplate();
-        $this->fieldHeadings = $this->exportDetails->extractHeadingsFromTemplate($this->templateConfig);
+        $this->fieldHeadings = $this->detailsPresenter->headingsFor(DetailTemplateEnum::WIPER);
     }
 
     public function getMainRows(bool $isAllow): Collection
@@ -91,9 +86,9 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
             $frontSpec?->text ?? $backSpec?->text,
         ];
 
-        $detailsData = $this->exportDetails->getDetailsData(
+        $detailsData = $this->detailsPresenter->toExportCells(
+            DetailTemplateEnum::WIPER,
             $this->wiper->mergeForExport($frontData, $backData),
-            $this->templateConfig,
         );
 
         return array_merge($baseData, $specData, $detailsData);

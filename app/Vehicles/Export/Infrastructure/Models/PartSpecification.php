@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Без generic partable(): MorphTo — раз Vehicle/Engine дублируются по фичам, у "владельца"
  * нет единого класса, к которому можно было бы резолвиться (см. plan.md §11, п.9).
  */
-class PartSpecification extends BaseModel
+class PartSpecification extends AbstractModel
 {
     protected $casts = [
         'template' => DetailTemplateEnum::class,

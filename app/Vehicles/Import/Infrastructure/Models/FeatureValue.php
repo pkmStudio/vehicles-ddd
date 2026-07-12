@@ -6,7 +6,7 @@ namespace App\Vehicles\Import\Infrastructure\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class FeatureValue extends BaseModel
+class FeatureValue extends AbstractModel
 {
     // RELATIONS
     public function feature(): BelongsTo

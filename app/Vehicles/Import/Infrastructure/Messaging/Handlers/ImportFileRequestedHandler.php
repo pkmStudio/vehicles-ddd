@@ -41,12 +41,13 @@ final readonly class ImportFileRequestedHandler
 
         $filesDisk = (string) config('filesystems.files_disk', 's3');
 
-        $this->useCase->execute(new ExternalImportFileRequestDTO(
+        $request = new ExternalImportFileRequestDTO(
             userId: (int) $data['user_id'],
             runId: (string) $data['run_id'],
             importType: ExternalImportTypeEnum::from((string) $data['import_type']),
             disk: $filesDisk,
             path: (string) $data['path'],
-        ));
+        );
+        $this->useCase->execute($request);
     }
 }

@@ -33,35 +33,34 @@ final readonly class ReportImportResultService implements ReportImportResultServ
             $path = $this->reporter->store($failures);
 
             if ($errorsCount > 0) {
-                $this->notifier->notifyImportCompleted(
-                    new ImportCompletionNotificationDTO(
-                        userId: $userId,
-                        status: ImportCompletionStatusEnum::CompletedWithErrors,
-                        runId: $runId,
-                        errorsCount: $errorsCount,
-                        path: is_string($path) ? $path : null,
-                    ),
+                $reportPath = is_string($path) ? $path : null;
+
+                $notification = new ImportCompletionNotificationDTO(
+                    userId: $userId,
+                    status: ImportCompletionStatusEnum::CompletedWithErrors,
+                    runId: $runId,
+                    errorsCount: $errorsCount,
+                    path: $reportPath,
                 );
+                $this->notifier->notifyImportCompleted($notification);
             } else {
-                $this->notifier->notifyImportCompleted(
-                    new ImportCompletionNotificationDTO(
-                        userId: $userId,
-                        status: ImportCompletionStatusEnum::Completed,
-                        runId: $runId,
-                    ),
+                $notification = new ImportCompletionNotificationDTO(
+                    userId: $userId,
+                    status: ImportCompletionStatusEnum::Completed,
+                    runId: $runId,
                 );
+                $this->notifier->notifyImportCompleted($notification);
             }
         } catch (Throwable $e) {
             Log::error('Import reporting failed', ['exception' => $e]);
 
-            $this->notifier->notifyImportCompleted(
-                new ImportCompletionNotificationDTO(
-                    userId: $userId,
-                    status: ImportCompletionStatusEnum::Failed,
-                    runId: $runId,
-                    errorsCount: $errorsCount,
-                ),
+            $failedNotification = new ImportCompletionNotificationDTO(
+                userId: $userId,
+                status: ImportCompletionStatusEnum::Failed,
+                runId: $runId,
+                errorsCount: $errorsCount,
             );
+            $this->notifier->notifyImportCompleted($failedNotification);
         } finally {
             Cache::forget($cacheKey);
         }

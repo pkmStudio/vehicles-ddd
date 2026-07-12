@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Vehicle\Mappers;
 
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
-use App\Vehicles\Import\Domain\Contracts\Services\Template\TemplateDataBuilderInterface;
 use App\Vehicles\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
+use App\Vehicles\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
+use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 
 final readonly class VehicleWiperSheetRowMapper
 {
@@ -14,10 +15,18 @@ final readonly class VehicleWiperSheetRowMapper
 
     public function __construct(
         private ImportRowValueFormatter $formatter,
-        private TemplateDataBuilderInterface $templateDataBuilder,
+        private DetailsDataFactoryInterface $detailsFactory,
     ) {}
 
     /**
+     * Этот метод собирает DTO строки листа дворников из сырой Excel-строки.
+     * Шаги:
+     * 1) Читает слаг шаблона из ячейки 17; если он пуст — спецификации в строке нет, details
+     *    остаётся пустым массивом.
+     * 2) Если слаг есть — резолвит его в `DetailTemplateEnum` и просит `DetailsDataFactory`
+     *    собрать details, начиная с колонки 20.
+     * 3) Читает остальные поля строки (ms_id, имя особенности, name/text) и собирает DTO.
+     *
      * @param  array<int, string|int|float|null>  $row
      */
     public function map(array $row): VehicleWiperSheetRowDTO
@@ -26,7 +35,8 @@ final readonly class VehicleWiperSheetRowMapper
         $details = [];
 
         if ($templateSlug !== null) {
-            $details = $this->templateDataBuilder->buildBySlug($row, self::SPEC_START_COLUMN, $templateSlug);
+            $index = self::SPEC_START_COLUMN;
+            $details = $this->detailsFactory->buildFromRow(DetailTemplateEnum::from($templateSlug), $row, $index)->toArray();
         }
 
         return new VehicleWiperSheetRowDTO(

@@ -28,8 +28,10 @@ final readonly class EngineCommand implements EngineCommandInterface
         );
     }
 
-    public function setGroupId(EngineData $engine, int $groupId): void
+    public function setGroupId(EngineData $data): EngineData
     {
-        Engine::query()->whereKey($engine->id)->update(['group_id' => $groupId]);
+        Engine::query()->whereKey($data->id)->update(['group_id' => $data->groupId]);
+
+        return EngineData::from(Engine::query()->findOrFail($data->id));
     }
 }

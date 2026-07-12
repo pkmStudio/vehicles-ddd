@@ -6,7 +6,7 @@ namespace App\Vehicles\Import\Infrastructure\Models;
 
 use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 
-class EngineModification extends BaseModel
+class EngineModification extends AbstractModel
 {
     protected $table = 'engine_modification';
 

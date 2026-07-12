@@ -46,6 +46,17 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
         ])->validate();
 
         $type = VehicleTypeEnum::from($valid['type']);
+        $steeringType = isset($valid['steering_type']) ? SteeringTypeEnum::from($valid['steering_type']) : SteeringTypeEnum::LEFT;
+        $generation = isset($valid['generation']) ? (string) $valid['generation'] : null;
+        $typeCarcase = CarcaseTypeEnum::from($valid['type_carcase']);
+        $generationYearFrom = isset($valid['generation_year_from']) ? (int) $valid['generation_year_from'] : null;
+        $generationYearTo = isset($valid['generation_year_to']) ? (int) $valid['generation_year_to'] : null;
+        $provider = ProviderEnum::from($valid['provider']);
+        $parentId = isset($valid['parent_id']) ? (int) $valid['parent_id'] : null;
+        $excelTableId = isset($valid['excel_table_id']) ? (string) $valid['excel_table_id'] : null;
+        $localizedName = isset($valid['localized_name']) ? (string) $valid['localized_name'] : null;
+        $generationShort = isset($valid['generation_short']) ? (string) $valid['generation_short'] : null;
+        $isAllow = (bool) ($valid['is_allow'] ?? false);
 
         return new VehicleData(
             msId: (int) $valid['ms_id'],
@@ -53,17 +64,17 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
             manufacturerId: (int) $valid['manufacturer_id'],
             name: (string) $valid['name'],
             type: $type,
-            steeringType: isset($valid['steering_type']) ? SteeringTypeEnum::from($valid['steering_type']) : SteeringTypeEnum::LEFT,
-            generation: isset($valid['generation']) ? (string) $valid['generation'] : null,
-            typeCarcase: CarcaseTypeEnum::from($valid['type_carcase']),
-            generationYearFrom: isset($valid['generation_year_from']) ? (int) $valid['generation_year_from'] : null,
-            generationYearTo: isset($valid['generation_year_to']) ? (int) $valid['generation_year_to'] : null,
-            provider: ProviderEnum::from($valid['provider']),
-            parentId: isset($valid['parent_id']) ? (int) $valid['parent_id'] : null,
-            excelTableId: isset($valid['excel_table_id']) ? (string) $valid['excel_table_id'] : null,
-            localizedName: isset($valid['localized_name']) ? (string) $valid['localized_name'] : null,
-            generationShort: isset($valid['generation_short']) ? (string) $valid['generation_short'] : null,
-            isAllow: (bool) ($valid['is_allow'] ?? false),
+            steeringType: $steeringType,
+            generation: $generation,
+            typeCarcase: $typeCarcase,
+            generationYearFrom: $generationYearFrom,
+            generationYearTo: $generationYearTo,
+            provider: $provider,
+            parentId: $parentId,
+            excelTableId: $excelTableId,
+            localizedName: $localizedName,
+            generationShort: $generationShort,
+            isAllow: $isAllow,
         );
     }
 }

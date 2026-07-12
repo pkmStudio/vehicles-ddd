@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Engine;
 
 use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineSparkPlugSpecificationImportInterface;
-use App\Vehicles\Import\Domain\Contracts\Services\Template\TemplateDataBuilderInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\ImportRunContextDTO;
+use App\Vehicles\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Domain\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Import\Infrastructure\Traits\CachesImportFailures;
@@ -41,7 +41,7 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
 
     public function __construct(
         private readonly UpsertSparkPlugSpecByModificationServiceInterface $service,
-        private readonly TemplateDataBuilderInterface $templateDataBuilder,
+        private readonly DetailsDataFactoryInterface $detailsFactory,
     ) {}
 
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
@@ -74,11 +74,8 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
             }
 
             try {
-                $details = $this->templateDataBuilder->buildByTemplate(
-                    $row->toArray(),
-                    self::SPEC_START_COLUMN,
-                    DetailTemplateEnum::SPARK_PLUGS,
-                );
+                $specIndex = self::SPEC_START_COLUMN;
+                $details = $this->detailsFactory->buildFromRow(DetailTemplateEnum::SPARK_PLUGS, $row->toArray(), $specIndex)->toArray();
                 $result = $this->service->upsertByModification((int) $msId, (int) $modId, $details);
 
                 if (! $result->found) {
@@ -118,7 +115,11 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         /** @var EngineSparkPlugSpecificationImport $import */
         $import = $event->getConcernable();
 
-        event(new EngineImportCompleted($import->context->userId, $import->cacheKey, $import->context->runId));
+        event(new EngineImportCompleted(
+            userId: $import->context->userId,
+            cacheKey: $import->cacheKey,
+            runId: $import->context->runId,
+        ));
     }
 
     public function startRow(): int
