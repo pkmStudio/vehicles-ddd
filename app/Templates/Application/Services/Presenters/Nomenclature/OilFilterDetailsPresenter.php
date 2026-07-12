@@ -18,7 +18,15 @@ final readonly class OilFilterDetailsPresenter
 
     public function headings(): array
     {
-        return ['Исполнение', 'Форма', 'Корпус', 'Резьба/размер "папа"', 'Диаметр', 'Диаметр уплотнителя ("мама")', ...$this->metricsHeadings()];
+        return [
+            'Исполнение фильтра',
+            'Форма фильтра',
+            'Корпус',
+            'Резьба или Папа',
+            'Диаметр (мм)',
+            'Диаметр внешний уплотнителя (мм) или мама',
+            ...$this->metricsHeadings(),
+        ];
     }
 
     public function cells(OilFilterDetailsData $data): array

@@ -14,7 +14,15 @@ final readonly class BallJointDetailsPresenter
 
     public function headings(): array
     {
-        return ['Резьба 1', 'Резьба 2', 'Длина', 'Внешний диаметр', 'Размер конуса d', 'Конусность', ...$this->metricsHeadings()];
+        return [
+            'Резьба 1',
+            'Резьба 2',
+            'Длина (мм)',
+            'Наружный диаметр (мм)',
+            'Размер конуса d (мм)',
+            'Конусность',
+            ...$this->metricsHeadings(),
+        ];
     }
 
     public function cells(BallJointDetailsData $data): array

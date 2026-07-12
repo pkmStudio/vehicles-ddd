@@ -14,7 +14,7 @@ final readonly class TimingBeltDetailsPresenter
 
     public function headings(): array
     {
-        return ['Диаметр диска сцепления d1, мм', ...$this->metricsHeadings()];
+        return ['Диаметр диска сцепления d1 (мм)', ...$this->metricsHeadings()];
     }
 
     public function cells(TimingBeltDetailsData $data): array

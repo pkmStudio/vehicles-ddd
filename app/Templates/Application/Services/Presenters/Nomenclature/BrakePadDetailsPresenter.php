@@ -17,7 +17,7 @@ final readonly class BrakePadDetailsPresenter
 
     public function headings(): array
     {
-        return ['Расположение', 'Тип тормозных колодок', 'Материал накладок', ...$this->metricsHeadings()];
+        return ['Расположение', 'Вид колодки', 'Материал накладок', ...$this->metricsHeadings()];
     }
 
     public function cells(BrakePadDetailsData $data): array

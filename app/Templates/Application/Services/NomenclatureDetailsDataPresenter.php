@@ -21,8 +21,30 @@ use App\Templates\Application\Services\Presenters\Nomenclature\WheelHubBearingDe
 use App\Templates\Application\Services\Presenters\Nomenclature\WheelHubDetailsPresenter;
 use App\Templates\Application\Services\Presenters\Nomenclature\WiperAdapterDetailsPresenter;
 use App\Templates\Application\Services\Presenters\Nomenclature\WiperDetailsPresenter;
+use App\Templates\Domain\Contracts\EnumHelperInterface;
 use App\Templates\Domain\Contracts\Services\NomenclatureDetailsDataPresenterInterface;
+use App\Templates\Domain\Enums\BooleanOptionEnum;
+use App\Templates\Domain\Enums\BrakePad\BrakePadTypeEnum;
+use App\Templates\Domain\Enums\BrakePad\LiningMaterialEnum;
+use App\Templates\Domain\Enums\Filter\FilterMediaTypeEnum;
+use App\Templates\Domain\Enums\Filter\FormEnum;
+use App\Templates\Domain\Enums\Filter\OilFilterFatherEnum;
+use App\Templates\Domain\Enums\Filter\OilFilterThreadEnum;
+use App\Templates\Domain\Enums\Filter\PerformanceEnum;
 use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Templates\Domain\Enums\PositionEnum;
+use App\Templates\Domain\Enums\SparkPlug\ElectrodeGapEnum;
+use App\Templates\Domain\Enums\SparkPlug\ElectrodeSideCountEnum;
+use App\Templates\Domain\Enums\SparkPlug\ThreadLengthEnum;
+use App\Templates\Domain\Enums\SparkPlug\ThreadPitchEnum;
+use App\Templates\Domain\Enums\SparkPlug\ThreadSizeEnum;
+use App\Templates\Domain\Enums\SparkPlug\WrenchJawWidthEnum;
+use App\Templates\Domain\Enums\TieRod\ApplicationEnum;
+use App\Templates\Domain\Enums\Wiper\ConstructionEnum;
+use App\Templates\Domain\Enums\Wiper\FrontAdapterTypeEnum;
+use App\Templates\Domain\Enums\Wiper\RearAdapterTypeEnum;
+use App\Templates\Domain\Enums\Wiper\SeasonEnum;
+use App\Templates\Domain\Enums\Wiper\SteeringCompatibilityEnum;
 use App\Templates\Domain\ModelData\Nomenclature\AirFilterDetailsData;
 use App\Templates\Domain\ModelData\Nomenclature\BallJointDetailsData;
 use App\Templates\Domain\ModelData\Nomenclature\BrakePadDetailsData;
@@ -90,6 +112,67 @@ final readonly class NomenclatureDetailsDataPresenter implements NomenclatureDet
         };
     }
 
+    /**
+     * Возвращает справочники select-полей в тех же labels, что используют presenters шаблона.
+     *
+     * @return array<string, list<string>>
+     */
+    public function referenceOptionsFor(NomenclatureDetailTemplateEnum $template): array
+    {
+        return match ($template) {
+            NomenclatureDetailTemplateEnum::BRAKE_PADS => [
+                'Расположение' => $this->labels(PositionEnum::class),
+                'Вид колодки' => $this->labels(BrakePadTypeEnum::class),
+                'Материал накладок' => $this->labels(LiningMaterialEnum::class),
+            ],
+            NomenclatureDetailTemplateEnum::SPARK_PLUGS => [
+                'Размер резьбы' => $this->labels(ThreadSizeEnum::class),
+                'Шаг резьбы (мм)' => $this->labels(ThreadPitchEnum::class),
+                'Длина резьбы (мм)' => $this->labels(ThreadLengthEnum::class),
+                'Межконтактный зазор (мм)' => $this->labels(ElectrodeGapEnum::class),
+                'Число боковых электродов' => $this->labels(ElectrodeSideCountEnum::class),
+                'Ширина зева гаечного ключа (мм)' => $this->labels(WrenchJawWidthEnum::class),
+            ],
+            NomenclatureDetailTemplateEnum::WIPER => [
+                'Расположение' => $this->labels(PositionEnum::class),
+                'Конструкция' => $this->labels(ConstructionEnum::class),
+                'Сезон' => $this->labels(SeasonEnum::class),
+                'Тип крепления передних' => $this->labels(FrontAdapterTypeEnum::class),
+                'Тип крепления задней' => $this->labels(RearAdapterTypeEnum::class),
+                'Датчик износа' => $this->labels(BooleanOptionEnum::class),
+                'Спойлер' => $this->labels(BooleanOptionEnum::class),
+                'Форсунка омывателя' => $this->labels(BooleanOptionEnum::class),
+                'C подогревом' => $this->labels(BooleanOptionEnum::class),
+                'Рулевое управление' => $this->labels(SteeringCompatibilityEnum::class),
+            ],
+            NomenclatureDetailTemplateEnum::OIL_FILTER => [
+                'Исполнение фильтра' => $this->labels(PerformanceEnum::class),
+                'Форма фильтра' => $this->labels(FormEnum::class),
+                'Корпус' => $this->labels(BooleanOptionEnum::class),
+                'Резьба или Папа' => array_values(array_unique(array_merge(
+                    $this->labels(OilFilterThreadEnum::class),
+                    $this->labels(OilFilterFatherEnum::class),
+                ))),
+            ],
+            NomenclatureDetailTemplateEnum::AIR_FILTER,
+            NomenclatureDetailTemplateEnum::CABIN_FILTER => [
+                'Исполнение фильтра' => $this->labels(PerformanceEnum::class),
+                'Форма фильтра' => $this->labels(FormEnum::class),
+                'Корпус' => $this->labels(BooleanOptionEnum::class),
+                'Вид фильтра' => $this->labels(FilterMediaTypeEnum::class),
+            ],
+            NomenclatureDetailTemplateEnum::WIPER_ADAPTER => [
+                'Расположение' => $this->labels(PositionEnum::class),
+                'Конструкция' => $this->labels(ConstructionEnum::class),
+                'Тип крепления передних' => $this->labels(FrontAdapterTypeEnum::class),
+            ],
+            NomenclatureDetailTemplateEnum::TIE_ROD => [
+                'Применение' => $this->labels(ApplicationEnum::class),
+            ],
+            default => [],
+        };
+    }
+
     public function toExportCells(NomenclatureDetailTemplateEnum $template, array $details): array
     {
         return match ($template) {
@@ -111,5 +194,19 @@ final readonly class NomenclatureDetailsDataPresenter implements NomenclatureDet
             NomenclatureDetailTemplateEnum::CV_JOINT => $this->cvJoint->cells(CvJointDetailsData::from($details)),
             NomenclatureDetailTemplateEnum::POLY_V_BELT => $this->polyVBelt->cells(PolyVBeltDetailsData::from($details)),
         };
+    }
+
+    /**
+     * Возвращает Excel-лейблы enum-справочника.
+     *
+     * @param  class-string<EnumHelperInterface>  $enumClass
+     * @return list<string>
+     */
+    private function labels(string $enumClass): array
+    {
+        return array_map(
+            fn (EnumHelperInterface $case): string => $case->value,
+            $enumClass::cases(),
+        );
     }
 }

@@ -15,7 +15,7 @@ final readonly class CvJointDetailsPresenter
     public function headings(): array
     {
         return [
-            'Резьба 1', 'Длина 1', 'Длина 2', 'ABS', 'Диаметр под сальник',
+            'Резьба 1', 'Длина 1 (мм)', 'Длина 2 (мм)', 'ABS', 'Диаметр под сальник (мм)',
             'Шлицы наружные, шт.', 'Шлицы внутренние, шт.',
             ...$this->metricsHeadings(),
         ];

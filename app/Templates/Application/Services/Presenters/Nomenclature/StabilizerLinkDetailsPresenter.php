@@ -14,7 +14,7 @@ final readonly class StabilizerLinkDetailsPresenter
 
     public function headings(): array
     {
-        return ['Резьба 1', 'Резьба 2', 'Длина', ...$this->metricsHeadings()];
+        return ['Резьба 1', 'Резьба 2', 'Длина (мм)', ...$this->metricsHeadings()];
     }
 
     public function cells(StabilizerLinkDetailsData $data): array

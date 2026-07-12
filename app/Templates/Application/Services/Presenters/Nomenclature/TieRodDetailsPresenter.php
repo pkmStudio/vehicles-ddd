@@ -15,7 +15,7 @@ final readonly class TieRodDetailsPresenter
 
     public function headings(): array
     {
-        return ['Резьба 1', 'Резьба 2', 'Длина', 'Размер конуса d', 'Конусность', 'Назначение', ...$this->metricsHeadings()];
+        return ['Резьба 1', 'Резьба 2', 'Длина (мм)', 'Размер конуса d (мм)', 'Конусность', 'Применение', ...$this->metricsHeadings()];
     }
 
     public function cells(TieRodDetailsData $data): array

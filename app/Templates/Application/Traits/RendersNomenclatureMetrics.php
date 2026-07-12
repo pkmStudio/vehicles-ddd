@@ -14,7 +14,7 @@ trait RendersNomenclatureMetrics
     /** @return array<int, string> */
     private function metricsHeadings(): array
     {
-        return ['Длина', 'Ширина', 'Высота'];
+        return ['Длина (мм)', 'Ширина (мм)', 'Высота (мм)'];
     }
 
     /** @return array<int, string> */

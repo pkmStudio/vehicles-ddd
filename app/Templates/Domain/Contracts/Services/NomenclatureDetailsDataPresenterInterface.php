@@ -16,6 +16,9 @@ interface NomenclatureDetailsDataPresenterInterface
     /** @return array<int, string> */
     public function headingsFor(NomenclatureDetailTemplateEnum $template): array;
 
+    /** @return array<string, list<string>> */
+    public function referenceOptionsFor(NomenclatureDetailTemplateEnum $template): array;
+
     /**
      * @param  array<string, mixed>  $details
      * @return array<int, mixed>

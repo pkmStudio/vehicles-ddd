@@ -17,7 +17,7 @@ final readonly class AirFilterDetailsPresenter
 
     public function headings(): array
     {
-        return ['Исполнение', 'Форма', 'Корпус', 'Тип фильтрующего элемента', ...$this->metricsHeadings()];
+        return ['Исполнение фильтра', 'Форма фильтра', 'Корпус', 'Вид фильтра', ...$this->metricsHeadings()];
     }
 
     public function cells(AirFilterDetailsData $data): array

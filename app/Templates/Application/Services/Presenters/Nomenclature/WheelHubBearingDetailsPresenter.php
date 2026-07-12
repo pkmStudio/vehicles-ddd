@@ -14,7 +14,15 @@ final readonly class WheelHubBearingDetailsPresenter
 
     public function headings(): array
     {
-        return ['Высота', 'ABS', 'Крепление 1', 'Крепление 2', 'Внутренний диаметр', 'Внешний диаметр', ...$this->metricsHeadings()];
+        return [
+            'Высота (мм)',
+            'ABS',
+            'Крепление 1',
+            'Крепление 2',
+            'Внутренний диаметр (мм)',
+            'Наружный диаметр (мм)',
+            ...$this->metricsHeadings(),
+        ];
     }
 
     public function cells(WheelHubBearingDetailsData $data): array
