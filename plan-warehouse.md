@@ -133,12 +133,10 @@ StabilizerLink, TimingBelt, PolyVBelt, Generic и т.д.) — делаем то 
   dan-center.** Подход dan-center (`Models/Warehouse`, `Services/Warehouse`, `Imports/Warehouse` —
   плоские папки по техническому типу файла, внутри вперемешку все сущности) признан неправильным.
   Ориентируемся на паттерн Vehicles (`Templates`/`Import`/`Export`/`Maintenance`/`Shared`, где
-  Import/Export держат каждый свои модели на одни и те же таблицы). Кандидаты на фичи Warehouse
-  (не финализировано, решать на этапе детального планирования реализации): `Import` (Excel-импорт
-  Nomenclature/Kit/PakDimension), `Export`, `Maintenance` (консоль-команды: пересчёт китов,
-  очистка pack_dimensions и т.п.), и отдельная фича под ~40-файловый сервисный слой сборки Kit
-  (подбор упаковки/группировка/расчёт свойств набора — сейчас в dan-center это `Services/Warehouse/
-  Kit/*`, нужно найти для этого функциональное имя фичи, не привязанное к слову "Kit" как сущности).
+  Import/Export держат каждый свои модели на одни и те же таблицы). `Assembly` как одна большая
+  "всё умеющая" фича признана слишком широкой: сервисный слой `Services/Warehouse/Kit/*` из
+  dan-center режется на более мелкие функциональные фичи — `Packaging`, `KitProperties`,
+  `KitGrouping`, `WiperAdapterAudit`; `Maintenance` остаётся тонкой обёрткой над ними.
 - **Транспорт события "Nomenclature/Kit изменились" — решено, максимально просто.** Warehouse
   просто диспатчит доменное событие о факте изменения (например: номенклатура изменилась, набор
   изменился) — и на этом ответственность Warehouse заканчивается. Как именно CRM/dan-center это
@@ -152,7 +150,8 @@ StabilizerLink, TimingBelt, PolyVBelt, Generic и т.д.) — делаем то 
   `Maintenance/Infrastructure/Models/Manufacturer.php`), реальная логика (upsert из Excel, DTO,
   события) живёт только там, где нужна — в `Import`. `Brand` и `Type` в Warehouse — той же роли,
   делаем так же: своя модель на общую таблицу в каждой фиче, которой нужен справочник (Import,
-  Export, вероятно фича сборки Kit), без отдельной "справочник"-фичи.
+  Export, Packaging/KitProperties/KitGrouping/WiperAdapterAudit при необходимости), без отдельной
+  "справочник"-фичи.
   **Исключение на будущее:** если `Type` получит полноценный CRUD через API/UI (уже запланировано
   пользователем), само администрирование справочника (создание/редактирование типов) может стать
   поводом для отдельной небольшой фичи — но это про функцию "администрирование", а не про то, что
@@ -170,30 +169,80 @@ StabilizerLink, TimingBelt, PolyVBelt, Generic и т.д.) — делаем то 
    и т.п.). Для `details` Nomenclature опирается на расширенный `Templates` (17 типов — это работа
    в shared kernel `Templates`, НЕ отдельная фича Warehouse, но обязательный пререквизит для
    Import/Export). Для сборки производных свойств Kit (упаковка/вес/комплектация) не считает сам —
-   вызывает `Assembly`, по аналогии с тем, как Import в Vehicles вызывает `Templates` для деталей.
+   вызывает `KitProperties`/`Packaging`, по аналогии с тем, как Import в Vehicles вызывает
+   `Templates` для деталей.
    Здесь же — доменные события `NomenclatureUpdated`/`KitUpdated` ("просто выкидываем событие" для
    будущей MpCard-инвалидации в CRM) — не отдельная фича, а часть той фичи, где реально происходит
    запись (пока это `Import`; в будущем — если появится прямой API на запись, событие переедет туда).
 
-2. **`Export`** — Excel-экспорт Nomenclature/Kit + отчёт по несовпадению адаптеров дворников
-   (рендер отчёта, не расчёт — расчёт живёт в `Assembly`).
+2. **`Export`** — Excel-экспорт Nomenclature/Kit + рендер отчёта по несовпадению адаптеров
+   дворников. Стили Excel из dan-center (`WithStyles`: серая жирная шапка, autosize колонок) **не
+   переносим**: сервис headless, контракт — данные и структура листов, не визуальное оформление.
+   Расчёт несовпадений адаптеров не живёт в Export — Export только принимает готовые строки отчёта
+   от `WiperAdapterAudit` и сохраняет файл.
 
-3. **`Assembly`** (рабочее имя, НЕ entity-имя "Kit") — ядро бизнес-логики Kit: подбор упаковки
-   (8 стратегий из dan-center `Services/Warehouse/Kit/PakDimension/*`), расчёт комплектации/веса из
-   состава номенклатур (`KitService`/`Assembly/*` в dan-center), авто-группировка совместимых
-   номенклатур в кандидаты на наборы (`Grouping/*`), сверка адаптеров дворников
-   (`KitWiperAdapterMatcher`). Используется и `Import` (создание/обновление Kit), и `Maintenance`
-   (пересчёт). Это функциональный слой вместо entity-папки `Services/Warehouse/Kit/*` в dan-center.
-   **Явно исключено из Assembly** (уходит в будущий домен Applicability, не Warehouse):
+   Для `Nomenclature` обязательно сверить Excel-контракт с dan-center: строки `details` уже
+   рендерятся через `Templates`, но справочный лист должен строиться из того же источника, что и
+   headings/cells, а не отдельным ручным `match` в Export. Иначе легко разъедутся 17 шаблонов.
+   Зафиксированные расхождения после сравнения с dan-center, которые надо исправить в Templates/
+   Export:
+   - `PositionEnum`: старые лейблы Warehouse — `Переднее` / `Универсальное` / `Заднее`, не
+     `Передняя` / `Универсальная` / `Задняя`;
+   - `SeasonEnum`: старые лейблы — `Зима` и `На любой сезон, Демисезон`, не `Зимняя` и
+     `Всесезонная`;
+   - заголовки detail-колонок должны повторять старые `FieldTemplate` labels (`Длина (мм)`,
+     `Вид колодки`, `Шаг резьбы (мм)`, `Межконтактный зазор (мм)`, и т.д.), если внешний Excel
+     контракт должен остаться совместимым.
+
+   Для `Kit` экспорт должен принимать явные фильтры во входящем payload, а не наружный аналог
+   Filament `Builder`. Минимальный wire-контракт:
+   ```
+   filters: {
+       ids: [1, 2, 3],
+       type_ids: [2, 3],
+       is_active: true,
+       is_sale_separately: false,
+       nomenclature_part_numbers: ["A1", "B2"],
+       search: "text"
+   },
+   sort: {
+       field: "id",
+       direction: "asc"
+   }
+   ```
+   `ids` — точечная выгрузка наборов; `type_ids` — замена старого Filament-фильтра по типу;
+   `is_active`/`is_sale_separately` — фильтры по явным флагам набора;
+   `nomenclature_part_numbers` — набор содержит хотя бы одну номенклатуру из списка;
+   `search` — совместимость с табличным поиском (`complectation`, `nomenclatures.part_number`,
+   `nomenclatures.name`), не основной интеграционный ключ. Сортировка по умолчанию — `id asc`.
+
+3. **`Packaging`** — подбор/создание упаковки (`pack_dimensions`). Сюда переезжают 8 стратегий из
+   dan-center `Services/Warehouse/Kit/PakDimension/*` и query-слой подбора упаковки. Используется
+   `KitProperties` при расчёте набора и `Maintenance` при пересчётах/очистке. Это отдельная фича,
+   потому что подбор упаковки имеет свою стратегическую логику, свой read/write к `pack_dimensions`
+   и не должен разрастаться внутри "сборки всего".
+
+4. **`KitProperties`** — расчёт свойств уже заданного набора: комплектация, вес, `quantity_*`,
+   `complement`, `type_id`, выбор упаковки через `Packaging`. Источник в dan-center —
+   `Services/Warehouse/Kit/KitService.php` и `Services/Warehouse/Kit/Assembly/*`. Используется
+   `Import` при создании/обновлении Kit и `Maintenance` при принудительном пересчёте.
+
+5. **`KitGrouping`** — автогруппировка номенклатур в кандидаты на наборы: `Grouping/SparkPlug/*`,
+   `Grouping/Wiper/*`, совместимость щёток и адаптеров как алгоритм предложения новых наборов.
+   Это не то же самое, что пересчёт свойств уже существующего Kit, поэтому не смешиваем с
+   `KitProperties`.
+
+6. **`WiperAdapterAudit`** — расчёт несовпадений адаптеров дворников по старому
+   `KitWiperAdapterMatcher`: выбрать наборы с адаптерами, сравнить адаптеры из комплекта и из
+   номенклатуры, вернуть строки отчёта (`kit_id`, `kit`, `matched_adapters`, `place`). Файл отчёта
+   рендерит `Export`, но расчёт живёт здесь.
+
+   **Явно исключено из Warehouse Kit-фич** (уходит в будущий домен Applicability, не Warehouse):
    `Applicability/SparkPlug`, `Applicability/Wiper`, `KitApplicabilityImport`, `KitApplicabilityJob`,
    `KitApplicabilityCalculated`.
-   **Открытый момент (не решать сейчас):** `Grouping` (авто-группировка номенклатур в кандидаты на
-   Kit) условно отнесена сюда, но по смыслу это скорее "предложить новый Kit из остатков", а не
-   "посчитать свойства уже заданного Kit" — при детальном планировании возможно стоит развести на
-   отдельный триггер/фичу.
 
-4. **`Maintenance`** — консольные команды (пересчёт китов колодок, очистка `pack_dimensions`) —
-   тонкие обёртки, делегирующие реальную работу в `Assembly`/`Import`.
+7. **`Maintenance`** — консольные команды (пересчёт китов колодок, очистка `pack_dimensions`) —
+   тонкие обёртки, делегирующие реальную работу в `Packaging`/`KitProperties`/`KitGrouping`/`Import`.
 
 **Справочники (`Brand`, `Type`) — без своей фичи** (решено ранее): тонкая модель на общую таблицу
 в каждой фиче, которой нужен справочник (по прецеденту `Manufacturer` в Vehicles).
@@ -204,7 +253,7 @@ SDK-фичу.
 
 **Итоговая структура (предварительно):**
 ```
-app/Warehouse/{Import,Export,Assembly,Maintenance}/{Domain,Application,Infrastructure,Presentation}
+app/Warehouse/{Import,Export,Packaging,KitProperties,KitGrouping,WiperAdapterAudit,Maintenance}/{Domain,Application,Infrastructure,Presentation}
 app/Templates/*          (shared kernel, расширяется под 17 типов Nomenclature)
 ```
 
@@ -252,11 +301,12 @@ Laravel — `auth`/`cache`/`queue`/и т.п., не расширяемо на с�
 Сделано: `Templates` перенесён в `app/Templates/*` (73 файла обновлены), миграции Vehicles
 co-located в `app/Vehicles/Infrastructure/Database/Migrations` (`VehiclesServiceProvider`),
 конфиги `vehicles-export.php`/`vehicles-import.php` → `config/vehicles/{export,import}.php`,
-создан скелет `app/Warehouse/{Import,Export,Assembly,Maintenance}/{Domain,Application,
-Infrastructure,Presentation}` + 7 миграций (`types`, `brands`, `nomenclatures`,
+создан первоначальный скелет `app/Warehouse/{Import,Export,Assembly,Maintenance}/{Domain,
+Application,Infrastructure,Presentation}` + 7 миграций (`types`, `brands`, `nomenclatures`,
 `pack_dimensions`, `kits`, `kit_nomenclature`, `nomenclature_integrations`) в
 `app/Warehouse/Infrastructure/Database/Migrations` + `WarehouseServiceProvider`. Все 76 тестов
-зелёные, `migrate:fresh` проходит целиком.
+зелёные, `migrate:fresh` проходит целиком. Позже принято решение не развивать `Assembly` как одну
+широкую фичу: целевое разбиение — `Packaging`/`KitProperties`/`KitGrouping`/`WiperAdapterAudit`.
 
 **Дополнительное решение по ходу реализации: никакого `onDelete('cascade')` в FK.** Ни в одной
 миграции Warehouse (в отличие от dan-center, где `pak_dimensions.type_id`, `kits.pak_dimension_id`/
@@ -296,6 +346,123 @@ Vehicles), `Filter\FilterMediaTypeEnum`, `SparkPlug\ElectrodeSideCountEnum`,
 числовые `#[MapName]`-поля, пустая заглушка) — работает корректно. Как и Vehicle-side классы —
 без тестового покрытия, пока не подключены к реальному Import/Export (это уже работа фичей).
 
+## Реализация — Warehouse/Import (2026-07-12)
+
+Реализован полный вертикальный срез `app/Warehouse/Import/{Domain,Application,Infrastructure,
+Presentation}` — Excel-импорт **Nomenclature + PackDimension** (chunked, `ShouldQueue`), с полным
+RabbitMQ-триггером симметрично `Warehouse/Export` (`ImportFileRequestedHandler` →
+`StartExternalFileImportUseCase` → идемпотентность/cleanup через cache → `AfterImport` →
+`NomenclatureImportCompleted`/`PackDimensionImportCompleted` → `ReportImportResultListener` +
+`CleanupExternalImportFileListener`), плюс тонкие Artisan-команды
+(`warehouse:import-nomenclature`, `warehouse:import-pack-dimensions`) для ручного запуска.
+
+Резолв `type_id`/`brand_id` — предзагрузка карт по имени через свои `TypeRepository`/
+`BrandRepository` (своя копия моделей/Data на фичу, как и у Export). Форма `details` номенклатуры
+собирается через уже готовый shared kernel `Templates\NomenclatureDetailsDataFactory`
+(`buildFromRow()`), `TypeTemplateResolver` — своя копия резолвера из `Warehouse\Export`
+(осознанное дублирование, фичи не должны знать друг о друге). Материал/вид техники номенклатуры
+переводятся из русских Excel-лейблов в ключи через обратные таблицы, симметричные
+`NomenclatureExportRow::MATERIAL_LABELS`/`VEHICLE_TYPE_LABELS` (в проекте нет реальных backed enum
+`MaterialEnum`/`VehicleTypeEnum`, несмотря на комментарий в миграции — только лейбл-словари).
+
+Добавлены/изменены: `config/warehouse/import.php` (новый), `bootstrap/providers.php`
+(`ImportServiceProvider`/`ImportEventServiceProvider` с алиасами `WarehouseImport*`),
+`bootstrap/app.php` (путь Presentation-команд), `config/rabbit-transport.php`
+(`WAREHOUSE_NOMENCLATURE_IMPORT_FILE_REQUESTED`/`WAREHOUSE_PACK_DIMENSION_IMPORT_FILE_REQUESTED`
+inbound, `WAREHOUSE_IMPORT_COMPLETED` outbound, соответствующие `setup.bindings`). 27 новых
+unit/feature-тестов (`tests/{Unit,Feature}/Warehouse/Import/*`), полный набор проекта (133 теста)
+зелёный.
+
+**Явный TODO — Kit-импорт не реализован.** Зависит от ещё не построенной `Warehouse/KitProperties`
+(расчёт свойств набора — комплектация/вес/`quantity_*`/`complement`/`type_id`, сейчас
+`Services/Warehouse/Kit/KitService.php`+`Assembly/*` в dan-center; сама она зовёт `Packaging` для
+подбора упаковки — см. «Общий план реализации — фичи Warehouse»). При реализации нужно добавить в
+`ImportTypeEnum` кейс `Kit`, адаптер `KitImport` (резолв номенклатур по артикулам, вызов
+`KitProperties` для расчёта производных свойств — по аналогии с тем, как dan-center `KitImport`
+вызывает `KitService`) и соответствующие RabbitMQ inbound-записи.
+
+**Важно для реализации KitImport:** вызов `Import → KitProperties` — это межфичевый вызов **внутри
+одного домена** Warehouse, не shared kernel вроде `Templates` (у `KitProperties`/`Packaging` есть
+своя БД-логика и бизнес-правила, в отличие от `Templates`, который декларативно без состояния). Он
+должен идти через `Domain/Contracts` вызываемой фичи (`KitProperties` публикует свой порт, `Import`
+зависит только от интерфейса), а не через прямой `use` конкретного класса — то же правило «порт у
+каждого инъектируемого класса» (ARCHITECTURE.md §5), применённое между фичами одного домена, а не
+только внутри одной фичи. Не копировать сюда паттерн `Templates` (прямой `use` без порта) — это
+неверная аналогия: `Templates` — намеренное единственное исключение из правила изоляции.
+
+## Реализация — Warehouse/Packaging + Warehouse/KitProperties (2026-07-12)
+
+Реализованы обе фичи, на которые опирался явный TODO Kit-импорта. Источник — dan-center
+`Services/Warehouse/Kit/{PakDimension,Assembly}/*`, прочитан полностью напрямую (не по памяти).
+
+**`Packaging`** (`app/Warehouse/Packaging/*`) — подбор/создание упаковки. Все 8 стратегий dan-center
+перенесены 1:1 (`BrakePads/Wiper/CabinFilter/OilFilter/Generic/SparkPlugs/WiperAdapter/AirFilter`,
+включая хардкод-исключения по конкретным артикулам — перенесены как приватные const, не как
+конфиг/БД, по прецеденту `TypeTemplateResolver::BY_CHAR/BY_ID/BY_NAME`). Диспетчеризация — по
+`NomenclatureDetailTemplateEnum` (общий с Templates/Export/Import), не по хардкод-`TypeEnum` из
+dan-center (такого enum в dan-vehicles нет). Стратегии — простые классы без порта (как билдеры
+`NomenclatureDetailsDataFactory`), выбираются `match` внутри `PackagingService`. Ошибка "нет
+подходящей коробки" (только `OilFilterPackagingStrategy`) — именованное
+`PackDimensionNotResolvableException`, не общий `Throwable`, как было у dan-center.
+
+**`KitProperties`** (`app/Warehouse/KitProperties/*`) — расчёт свойств набора (комплектация/вес/
+quantity/type), зовёт `Packaging` через порт (`PackagingServiceInterface`) — межфичевый вызов
+внутри домена, не shared kernel, поэтому на границе явный перевод своих `TypeData`/
+`NomenclatureData` в Packaging-шные (обе фичи держат собственные копии этих Data-классов).
+`WordNumberConverter`/`KitComplectationService` перенесены дословно (числительные словами на
+русском, склонения); словарь материалов — своя копия лейбл-таблицы (в dan-vehicles нет backed
+`MaterialEnum`, только приватные таблицы у Export/Import/здесь для той же цели — это уже 3-е
+дублирование одних и тех же 12 пар, кандидат на будущий вынос в реальный shared enum, если
+понадобится 4-е место). Две стратегии состава (`SingleTypeStrategy` fallback,
+`WiperWithAdapterStrategy`) — единственный случай в Warehouse, где стратегии реально полиморфны
+(перебор chain-of-responsibility, не `match`), поэтому у них есть настоящий интерфейс
+(`KitCompositionStrategyInterface`); DI — closure-биндинг с явным упорядоченным массивом в
+`KitPropertiesServiceProvider` (как `KitServiceProvider` в dan-center), не `*_BINDINGS`-константа.
+
+**Явно вне скоупа (как и планировалось):** сам upsert `Kit`/`kit_nomenclature`
+(`KitService::upsert()` из dan-center) — не перенесён, это будущий `KitImport`, который вызовет
+`KitPropertiesServiceInterface::build()` так же, как `Import` уже вызывает `Templates`. У
+`Packaging`/`KitProperties` пока нет ни Console, ни RabbitMQ-слоя — их единственный потребитель
+появится вместе с `KitImport`.
+
+46 новых unit-тестов (`tests/Unit/Warehouse/{Packaging,KitProperties}/*`), полный набор проекта
+(179 тестов) зелёный.
+
+## Реализация — Kit-импорт (2026-07-12)
+
+Закрыт TODO из раздела «Реализация — Warehouse/Import»: `ImportTypeEnum` пополнен кейсом `Kit`,
+добавлен полный вертикальный срез внутри уже существующей `Warehouse/Import` — Excel-адаптер
+`KitImport` (тот же паттерн `ShouldQueue`+chunked+`CachesImportFailures`, что у Nomenclature/
+PackDimension), `KitCommand` (транзакционный `find по id/import_hash → update|create → detach+
+attach` состава — 1:1 порт persist-части dan-center `KitService::upsert()`), новый порт
+`NomenclatureRepositoryInterface::findByPartNumbers()` (Import раньше только писал номенклатуру,
+читать её обратно по артикулу было нечем — потребовалось для резолва состава набора) и Artisan-
+команда `warehouse:import-kits`.
+
+`UpsertKitFromRowService` — межфичевый вызов `Import → KitProperties` через порт
+(`KitPropertiesServiceInterface::build()`), с явным переводом `NomenclatureForKitData`/`TypeData`
+Import-фичи в `KitProperties`-шные Data-объекты на границе (тот же принцип, что уже закреплён для
+`KitProperties → Packaging`). Правило dan-center «нет упаковки — нет Kit» (`KitService::upsert()`
+кидал `RuntimeException` при `pakDimensionId === null`) перенесено как явная валидация
+(`InvalidArgumentException` до вызова Command) — в dan-vehicles это же ограничение задано и в
+схеме (`kits.pack_dimension_id` — NOT NULL FK), так что валидация просто ловит проблему раньше и с
+понятным сообщением, а не полагается на ошибку БД.
+
+RabbitMQ: `WAREHOUSE_KIT_IMPORT_FILE_REQUESTED` добавлен в тот же inbound-блок и обрабатывается
+тем же `ImportFileRequestedHandler` (диспетчеризация по `import_type` уже была общей — правки
+самого handler'а не потребовалось), `crm.warehouse.kits.import` — в `setup.bindings`.
+
+8 новых тестов (`UpsertKitFromRowServiceTest`, `KitImportTest` — последний реальным образом
+прогоняет `KitProperties`+`Packaging` через контейнер, не моки, включая auto-create упаковки для
+generic-типа без detail-колонок), плюс новый кейс в `ImportFileRequestedHandlerTest` и обновлённая
+registration-проверка `rabbit-transport.php`. Полный набор проекта — 186 тестов, зелёный.
+
+**Warehouse-домен на этом закрыт по изначальному скоупу** (`Import`: Nomenclature/PackDimension/
+Kit; `Export`; `Packaging`; `KitProperties`; `WiperAdapterAudit`). Не сделано осознанно (см. выше
+по документу) — `Maintenance` (пустая заготовка, консольные команды пересчёта/очистки),
+`KitGrouping` (авто-группировка остатков в кандидаты на наборы), `Applicability`-домен целиком,
+MoySklad/MpCard-интеграции.
+
 ## Что дальше
 
 Когда будет решение приступать к реализации: отдельная сессия/заход в Plan Mode для детального
@@ -303,5 +470,5 @@ Vehicles), `Filter\FilterMediaTypeEnum`, `SparkPlug\ElectrodeSideCountEnum`,
 в каком порядке с учётом FK, включая переименование `pak_dimensions` → `pack_dimensions`),
 конкретные модели/Data-классы для 17 типов Nomenclature (по образцу `DetailsDataFactory`/
 `DetailsDataPresenter`/`AbstractDetailsData` в `Templates`), что именно переносится из ~40-файлового
-сервисного слоя Kit в `Assembly` и в каком виде, а что упрощается/выбрасывается как техдолг
-dan-center, и финальное решение по `Grouping`.
+сервисного слоя Kit в `Packaging`/`KitProperties`/`KitGrouping`/`WiperAdapterAudit` и в каком виде,
+а что упрощается/выбрасывается как техдолг dan-center.
