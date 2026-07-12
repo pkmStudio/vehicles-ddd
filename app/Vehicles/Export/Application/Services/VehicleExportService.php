@@ -11,7 +11,7 @@ use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInte
 use App\Vehicles\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Export\Domain\DTOs\WiperExportRowDTO;
 use App\Vehicles\Export\Domain\ModelData\VehicleData;
-use App\Vehicles\Templates\Domain\Contracts\Factories\DetailsDataPresenterInterface;
+use App\Vehicles\Templates\Domain\Contracts\Services\DetailsDataPresenterInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
 use Illuminate\Support\Collection;

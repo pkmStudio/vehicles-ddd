@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Vehicles\Templates\Domain\Contracts\Factories;
+namespace App\Vehicles\Templates\Domain\Contracts\Services;
 
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 

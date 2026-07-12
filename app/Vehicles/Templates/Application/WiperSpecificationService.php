@@ -60,7 +60,7 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
      *
      * @return array<int, string>
      */
-    public function normalizeAdapters(mixed $value): array
+    private function normalizeAdapters(mixed $value): array
     {
         if (is_array($value)) {
             $adapters = array_filter($value, static fn ($item) => $item !== null && $item !== '');
@@ -89,7 +89,7 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
      * 2. Логирует предупреждение, если кодов больше одного.
      * 3. Возвращает нормализованный массив без потери данных.
      */
-    public function normalizeVehicleAdapters(?int $partSpecificationId, string $side, mixed $rawAdapters): array
+    private function normalizeVehicleAdapters(?int $partSpecificationId, string $side, mixed $rawAdapters): array
     {
         $adapters = $this->normalizeAdapters($rawAdapters);
 
@@ -113,7 +113,7 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
      * 2. Нормализует значение адаптера.
      * 3. Возвращает side-details с адаптером в массивном формате.
      */
-    public function normalizeSideDetails(array $sideDetails, ?int $partSpecificationId, string $side): array
+    private function normalizeSideDetails(array $sideDetails, ?int $partSpecificationId, string $side): array
     {
         $sideEnum = WiperSideEnum::tryFrom($side);
         if ($sideEnum === null) {

@@ -35,21 +35,34 @@ final class WiperSpecificationServiceTest extends TestCase
     }
 
     /**
-     * Проверяет normalizeAdapters(): приведение сырых значений адаптера (строка/массив/null,
-     * с возможными пустыми/дублирующимися элементами) к чистому списку строк.
+     * Проверяет нормализацию значений адаптера (приватный normalizeAdapters()) через публичный
+     * splitDetails(): приведение сырых значений (строка/массив/null, с возможными
+     * пустыми/дублирующимися элементами) к чистому списку строк, по одному адаптеру на вариант.
      *
      * Шаги:
-     * 1. Проверяет, что массив с пустой строкой и дублем схлопывается в уникальные значения.
-     * 2. Проверяет, что одиночная строка оборачивается в массив из одного элемента.
-     * 3. Проверяет, что null даёт пустой массив.
-     * 4. Проверяет, что массив из пустых/null-значений тоже даёт пустой массив.
+     * 1. Массив с пустой строкой и дублем схлопывается в 2 уникальных варианта ('A' и 'B').
+     * 2. Одиночная строка оборачивается в один вариант с адаптером из одного элемента.
+     * 3. null даёт один вариант с пустым списком адаптеров (не падает, не размножает записи).
+     * 4. Массив из пустых/null-значений даёт тот же результат, что и null.
      */
-    public function test_normalize_adapters(): void
+    public function test_split_details_normalizes_adapter_values(): void
     {
-        $this->assertSame(['A', 'B'], $this->service->normalizeAdapters(['A', '', 'B', 'A']));
-        $this->assertSame(['X'], $this->service->normalizeAdapters('X'));
-        $this->assertSame([], $this->service->normalizeAdapters(null));
-        $this->assertSame([], $this->service->normalizeAdapters(['', null]));
+        $duplicates = $this->service->splitDetails(['front' => ['adapter_type_front' => ['A', '', 'B', 'A']]]);
+        $this->assertCount(2, $duplicates);
+        $this->assertSame(['A'], $duplicates[0]['details']['front']['adapter_type_front']);
+        $this->assertSame(['B'], $duplicates[1]['details']['front']['adapter_type_front']);
+
+        $singleString = $this->service->splitDetails(['front' => ['adapter_type_front' => 'X']]);
+        $this->assertCount(1, $singleString);
+        $this->assertSame(['X'], $singleString[0]['details']['front']['adapter_type_front']);
+
+        $null = $this->service->splitDetails(['front' => ['adapter_type_front' => null]]);
+        $this->assertCount(1, $null);
+        $this->assertSame([], $null[0]['details']['front']['adapter_type_front']);
+
+        $emptyAndNull = $this->service->splitDetails(['front' => ['adapter_type_front' => ['', null]]]);
+        $this->assertCount(1, $emptyAndNull);
+        $this->assertSame([], $emptyAndNull[0]['details']['front']['adapter_type_front']);
     }
 
     /**

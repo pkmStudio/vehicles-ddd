@@ -11,7 +11,7 @@ use App\Vehicles\Templates\Domain\ModelData\AbstractDetailsData;
  * входит — это была чисто UI-конструкция, в details никогда не попадала.
  *
  * Сборка из Excel-строки — забота `Templates\Application\Factories\DetailsDataFactory`. Рендер в
- * Excel-ячейки экспорта — забота `Templates\Application\Factories\DetailsDataPresenter`. Сам
+ * Excel-ячейки экспорта — забота `Templates\Application\Services\DetailsDataPresenter`. Сам
  * класс — чистый объект-значение, ни то ни другое поведение сюда не входит.
  *
  * Импорт всегда строит ОБЕ стороны вместе (Excel-лист всегда содержит все 10 колонок подряд —

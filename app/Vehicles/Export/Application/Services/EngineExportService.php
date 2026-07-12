@@ -10,7 +10,7 @@ use App\Vehicles\Export\Domain\Contracts\Services\Expanders\PartSpecificationRow
 use App\Vehicles\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Export\Domain\DTOs\PartSpecificationExportRowDTO;
 use App\Vehicles\Export\Domain\ModelData\EngineData;
-use App\Vehicles\Templates\Domain\Contracts\Factories\DetailsDataPresenterInterface;
+use App\Vehicles\Templates\Domain\Contracts\Services\DetailsDataPresenterInterface;
 use App\Vehicles\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 
