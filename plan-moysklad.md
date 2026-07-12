@@ -237,7 +237,18 @@ config/warehouse/moysklad.php                        # nomenclature_sync.* (enab
      Warehouse — см. «Что переезжает в пакет» выше).
    - Репозиторий пока только локальный (`git init` в `packages/moysklad-client`), без GitHub —
      публикация репозитория и подключение к dan-vehicles (VCS/`repositories`+`require`) — п.2 ниже.
-2. Подключить пакет к dan-vehicles (`repositories` + `require`, `bootstrap/providers.php`).
+2. ✅ **Сделано (2026-07-12).** Пакет подключён через **path-репозиторий с `symlink: true`**
+   (не VCS — GitHub-репозитория ещё нет): `composer.json` → `repositories` указывает на
+   `/packages/moysklad-client` (абсолютный путь **внутри контейнера**), `require` →
+   `"pkmstudio/moysklad-client": "@dev"`. Чтобы путь резолвился, в `docker-compose.yml` в сервисы
+   `app`/`horizon` добавлен read-only bind-mount `../packages:/packages:ro` (соседняя хостовая
+   папка, где также лежат `rabbit-transport`/`audit`) — без этого монтирования path-репозиторий
+   был бы недоступен внутри контейнера, т.к. до этого мониторился только сам `dan-vehicles/`.
+   `vendor/pkmstudio/moysklad-client` — реальный symlink на `/packages/moysklad-client`, не копия
+   (проверено `readlink -f`). `MoySkladClientServiceProvider` подхватывается автодискавери
+   (`extra.laravel.providers` в composer.json пакета), в `bootstrap/providers.php` ничего вручную
+   не добавлялось — как и у `rabbit-transport`. Полный набор тестов проекта (214) зелёный после
+   подключения.
 3. Создать `app/Warehouse/MoySklad/*` — Infrastructure Models (свои копии `Nomenclature`/
    `NomenclatureIntegration`), `NomenclatureProductMapper`/`NomenclatureSyncService`/
    `NomenclatureBackfillService` (перенос `ProductsResource`+`NomenclatureBackfillService` с
