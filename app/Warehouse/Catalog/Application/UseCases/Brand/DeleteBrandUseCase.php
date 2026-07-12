@@ -34,6 +34,12 @@ final readonly class DeleteBrandUseCase implements DeleteBrandUseCaseInterface
 
     /**
      * Удаляет бренд вручную, если нет номенклатуры с этим brand_id.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не выполнил удаление дважды.
+     * 2) Проверить существование бренда и отсутствие связанных номенклатур.
+     * 3) Удалить бренд через Command и отправить доменный факт.
+     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(DeleteBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

@@ -26,14 +26,23 @@ final readonly class ImportFailureReporter implements ImportFailureReporterInter
         }
 
         $fileName = 'warehouse-import-failures-'.now()->format('Y-m-d-His').'.csv';
-        $disk = (string) config('warehouse.import.failures.disk', 'local');
+        $disk = (string) config(
+            key: 'warehouse.import.failures.disk',
+            default: 'local',
+        );
         $path = sprintf('exports/%s', $fileName);
+        $export = app()->makeWith(
+            abstract: FailuresExportInterface::class,
+            parameters: [
+                'failures' => $failures,
+            ],
+        );
 
         ExcelFacade::store(
-            app()->makeWith(FailuresExportInterface::class, ['failures' => $failures]),
-            $path,
-            $disk,
-            ExcelFormat::CSV,
+            export: $export,
+            filePath: $path,
+            diskName: $disk,
+            writerType: ExcelFormat::CSV,
         );
 
         return $path;

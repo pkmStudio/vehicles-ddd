@@ -9,13 +9,13 @@ use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
 /**
- * Валидированный снимок Warehouse-номенклатуры, готовый к записи Command'ом.
+ * Снимок Warehouse-номенклатуры для Import: запись через Command и чтение сохранённых строк для Kit.
  */
 #[MapName(SnakeCaseMapper::class)]
 final class NomenclatureData extends Data
 {
     /**
-     * Хранит поля номенклатуры, которые пишет Import.
+     * Хранит поля номенклатуры, которые пишет Import, и optional type для read-сценариев Kit.
      *
      * @param  array<int, string>  $material
      * @param  array<int, string>  $vehicleType
@@ -35,5 +35,6 @@ final class NomenclatureData extends Data
         public readonly int $quantityInPak,
         public readonly array $details,
         public readonly ?int $id = null,
+        public readonly ?TypeData $type = null,
     ) {}
 }

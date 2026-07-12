@@ -34,6 +34,12 @@ final readonly class DeletePackDimensionUseCase implements DeletePackDimensionUs
 
     /**
      * Удаляет упаковочный размер вручную, если его не используют наборы.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не выполнил удаление дважды.
+     * 2) Проверить существование упаковочного размера и отсутствие наборов, которые на него ссылаются.
+     * 3) Удалить упаковочный размер через Command и отправить доменный факт.
+     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(DeletePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

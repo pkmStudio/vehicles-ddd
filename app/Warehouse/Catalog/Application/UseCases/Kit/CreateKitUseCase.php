@@ -46,6 +46,13 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
 
     /**
      * Создаёт набор из состава номенклатур, рассчитывая производные свойства через KitProperties.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не создал дубль.
+     * 2) Резолвить номенклатуры состава и рассчитать производные свойства через KitProperties.
+     * 3) Проверить упаковку и отсутствие дубля по import_hash.
+     * 4) Собрать KitData, записать набор через Command и отправить доменный факт.
+     * 5) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(CreateKitRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -171,8 +178,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
     private function buildProperties(
         CreateKitRequestDTO $request,
         array $nomenclatures,
-    ): KitPropertiesDTO|WarehouseCatalogMutationResultDTO
-    {
+    ): KitPropertiesDTO|WarehouseCatalogMutationResultDTO {
         try {
             return $this->kitProperties->build(array_map(
                 fn (NomenclatureData $nomenclature): KitPropertiesNomenclatureData => $this->toKitPropertiesNomenclature($nomenclature),

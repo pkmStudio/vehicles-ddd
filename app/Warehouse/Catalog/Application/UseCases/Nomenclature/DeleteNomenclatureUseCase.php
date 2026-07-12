@@ -34,6 +34,12 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
 
     /**
      * Удаляет номенклатуру вручную, если нет kit_nomenclature и integrations.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не выполнил удаление дважды.
+     * 2) Проверить существование записи и отсутствие блокирующих связей.
+     * 3) Удалить номенклатуру через Command и отправить доменный факт.
+     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(DeleteNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

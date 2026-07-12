@@ -54,7 +54,6 @@ final readonly class ExportRunCacheService implements ExportRunCacheServiceInter
     {
         return (int) config(
             key: 'warehouse.export.external.cache.ttl_seconds',
-            default: 86400,
         );
     }
 }

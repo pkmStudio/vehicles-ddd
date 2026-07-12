@@ -34,6 +34,12 @@ final readonly class DeleteKitUseCase implements DeleteKitUseCaseInterface
 
     /**
      * Удаляет набор и вручную очищает pivot kit_nomenclature внутри Command.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не выполнил удаление дважды.
+     * 2) Проверить существование набора.
+     * 3) Удалить набор и pivot-состав через Command, затем отправить доменный факт.
+     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(DeleteKitRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

@@ -7,8 +7,8 @@ namespace Tests\Unit\Warehouse\Import;
 use App\Warehouse\Import\Application\Services\Kit\UpsertKitFromRowService;
 use App\Warehouse\Import\Domain\Contracts\Commands\KitCommandInterface;
 use App\Warehouse\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
-use App\Warehouse\Import\Domain\ModelData\Kit\NomenclatureForKitData;
 use App\Warehouse\Import\Domain\ModelData\KitData;
+use App\Warehouse\Import\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Import\Domain\ModelData\TypeData;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
 use App\Warehouse\KitProperties\Domain\DTOs\KitPropertiesDTO;
@@ -20,17 +20,22 @@ use Tests\TestCase;
 
 final class UpsertKitFromRowServiceTest extends TestCase
 {
-    private function nomenclature(int $id, string $partNumber): NomenclatureForKitData
+    private function nomenclature(int $id, string $partNumber): NomenclatureData
     {
-        return new NomenclatureForKitData(
-            id: $id,
+        return new NomenclatureData(
             typeId: 9,
+            brandId: 1,
+            name: "Номенклатура {$partNumber}",
+            country: 'Россия',
             partNumber: $partNumber,
-            quantityInPak: 1,
-            quantityPak: 1,
+            color: '',
             weight: 100,
             material: [],
+            vehicleType: [],
+            quantityInPak: 1,
+            quantityPak: 1,
             details: [],
+            id: $id,
             type: new TypeData(name: 'Ремень клиновой', id: 9),
         );
     }

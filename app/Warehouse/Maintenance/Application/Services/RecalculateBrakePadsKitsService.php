@@ -67,10 +67,13 @@ final readonly class RecalculateBrakePadsKitsService
                         }
                     } catch (Throwable $exception) {
                         $failed++;
-                        Log::warning('RecalculateBrakePadsKitsService: failed to recalculate kit', [
-                            'id' => $kit->id,
-                            'error' => $exception->getMessage(),
-                        ]);
+                        Log::warning(
+                            message: 'RecalculateBrakePadsKitsService: failed to recalculate kit',
+                            context: [
+                                'id' => $kit->id,
+                                'error' => $exception->getMessage(),
+                            ],
+                        );
                     }
                 }
             });

@@ -46,9 +46,23 @@ trait CachesImportFailures
         $cacheKey = $this->cacheKey;
         $lockKey = $this->lockKey;
 
-        Cache::lock($lockKey, seconds: 3)->block(3, function () use ($cacheKey, $entries) {
-            $existing = Cache::get($cacheKey, []);
-            Cache::put($cacheKey, array_merge($existing, $entries), now()->addMinutes(5));
-        });
+        Cache::lock(
+            name: $lockKey,
+            seconds: 3,
+        )->block(
+            seconds: 3,
+            callback: function () use ($cacheKey, $entries): void {
+                $existing = Cache::get(
+                    key: $cacheKey,
+                    default: [],
+                );
+
+                Cache::put(
+                    key: $cacheKey,
+                    value: array_merge($existing, $entries),
+                    ttl: now()->addMinutes(5),
+                );
+            },
+        );
     }
 }

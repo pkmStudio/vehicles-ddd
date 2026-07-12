@@ -46,6 +46,13 @@ final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
 
     /**
      * Обновляет набор из состава номенклатур, пересчитывая производные свойства через KitProperties.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не выполнил обновление дважды.
+     * 2) Проверить существование набора, резолвить состав и пересчитать свойства через KitProperties.
+     * 3) Проверить упаковку и отсутствие конфликта по import_hash с другим набором.
+     * 4) Собрать KitData с identity, обновить набор через Command и отправить доменный факт.
+     * 5) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(UpdateKitRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

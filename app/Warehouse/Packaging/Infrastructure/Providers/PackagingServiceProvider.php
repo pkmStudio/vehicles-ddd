@@ -55,6 +55,10 @@ final class PackagingServiceProvider extends ServiceProvider
 
     /**
      * Биндит порты Packaging-фичи на инфраструктурные и прикладные реализации.
+     *
+     * Шаги:
+     * 1) Передать PackagingService упорядоченный список стратегий подбора упаковки.
+     * 2) Зарегистрировать repository, command и application-service биндинги фичи.
      */
     public function register(): void
     {
@@ -69,15 +73,24 @@ final class PackagingServiceProvider extends ServiceProvider
             });
 
         foreach (self::REPOSITORY_BINDINGS as $interface => $implementation) {
-            $this->app->bind(abstract: $interface, concrete: $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::COMMAND_BINDINGS as $interface => $implementation) {
-            $this->app->bind(abstract: $interface, concrete: $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
-            $this->app->bind(abstract: $interface, concrete: $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
     }
 }

@@ -59,9 +59,12 @@ final readonly class CleanupBrakePadsPackDimensionsService
 
             if (! $stillUnused) {
                 $skipped++;
-                Log::warning('CleanupBrakePadsPackDimensionsService: skipped busy record', [
-                    'id' => $candidate->id,
-                ]);
+                Log::warning(
+                    message: 'CleanupBrakePadsPackDimensionsService: skipped busy record',
+                    context: [
+                        'id' => $candidate->id,
+                    ],
+                );
 
                 continue;
             }

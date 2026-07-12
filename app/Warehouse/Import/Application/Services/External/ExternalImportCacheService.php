@@ -104,7 +104,6 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
     {
         return (int) config(
             key: 'warehouse.import.external.cache.ttl_seconds',
-            default: 86400,
         );
     }
 }

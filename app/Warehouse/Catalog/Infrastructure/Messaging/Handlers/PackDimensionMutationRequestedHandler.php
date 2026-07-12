@@ -33,9 +33,12 @@ final readonly class PackDimensionMutationRequestedHandler
         $validator = $this->validator->make($data);
 
         if ($validator->fails()) {
-            Log::error('RabbitMQ: Warehouse pack dimension mutation payload validation failed', [
-                'invalid_keys' => array_keys($validator->errors()->toArray()),
-            ]);
+            Log::error(
+                message: 'RabbitMQ: Warehouse pack dimension mutation payload validation failed',
+                context: [
+                    'invalid_keys' => array_keys($validator->errors()->toArray()),
+                ],
+            );
 
             return;
         }

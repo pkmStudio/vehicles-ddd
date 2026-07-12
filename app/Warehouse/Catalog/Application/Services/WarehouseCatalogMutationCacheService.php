@@ -17,7 +17,11 @@ final readonly class WarehouseCatalogMutationCacheService implements WarehouseCa
      */
     public function accept(string $operationId): bool
     {
-        return Cache::add($this->key($operationId), true, $this->ttlSeconds());
+        return Cache::add(
+            key: $this->key($operationId),
+            value: true,
+            ttl: $this->ttlSeconds(),
+        );
     }
 
     /**
@@ -25,7 +29,9 @@ final readonly class WarehouseCatalogMutationCacheService implements WarehouseCa
      */
     public function forgetAccepted(string $operationId): void
     {
-        Cache::forget($this->key($operationId));
+        Cache::forget(
+            key: $this->key($operationId),
+        );
     }
 
     /**
@@ -34,7 +40,9 @@ final readonly class WarehouseCatalogMutationCacheService implements WarehouseCa
     private function key(string $operationId): string
     {
         return sprintf(
-            (string) config('warehouse.catalog.mutations.cache.keys.accepted', 'warehouse_catalog_mutation_accepted_%s'),
+            (string) config(
+                key: 'warehouse.catalog.mutations.cache.keys.accepted',
+            ),
             $operationId,
         );
     }
@@ -44,6 +52,11 @@ final readonly class WarehouseCatalogMutationCacheService implements WarehouseCa
      */
     private function ttlSeconds(): int
     {
-        return max(1, (int) config('warehouse.catalog.mutations.cache.ttl_seconds', 86400));
+        return max(
+            1,
+            (int) config(
+                key: 'warehouse.catalog.mutations.cache.ttl_seconds',
+            ),
+        );
     }
 }

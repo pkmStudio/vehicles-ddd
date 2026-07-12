@@ -37,6 +37,12 @@ final readonly class UpdatePackDimensionUseCase implements UpdatePackDimensionUs
 
     /**
      * Обновляет упаковочный размер, если запись и тип существуют.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не выполнил обновление дважды.
+     * 2) Проверить существование упаковочного размера и type.
+     * 3) Собрать PackDimensionData с identity, обновить запись через Command и отправить доменный факт.
+     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(UpdatePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

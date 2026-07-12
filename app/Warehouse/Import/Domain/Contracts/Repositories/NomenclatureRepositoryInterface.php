@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Import\Domain\Contracts\Repositories;
 
-use App\Warehouse\Import\Domain\ModelData\Kit\NomenclatureForKitData;
+use App\Warehouse\Import\Domain\ModelData\NomenclatureData;
 use Illuminate\Support\Collection;
 
 /**
@@ -19,7 +19,7 @@ interface NomenclatureRepositoryInterface
      * артикулы просто не попадут в результат — вызывающий сам решает, как на это реагировать.
      *
      * @param  array<int, string>  $partNumbers
-     * @return Collection<string, NomenclatureForKitData>
+     * @return Collection<string, NomenclatureData>
      */
     public function findByPartNumbers(array $partNumbers): Collection;
 }

@@ -94,7 +94,7 @@ Presentation ──▶ Application ──▶ Domain
 | `ModelData/` | **`<Entity>Data extends Spatie\LaravelData\Data`** | Плоская папка. Работает в обе стороны: вход `Command` (запись) и выход `Repository` (чтение). Enum-поля — реального enum-типа (пакет кастует туда-обратно). Вложенные связи — только те, что реально читаются, и только когда Repository их eager-load'ит (не через `#[LoadRelation]` — риск бесконечного цикла на двусторонних связях). |
 | `DTOs/` | **Транспортные объекты сценариев** (вход/выход, payload, контекст) | `final readonly`. Не повторяют модель. Плоско — сквозные DTO сценария (`ImportRunContextDTO`, `ExternalImportFileRequestDTO`, `ExternalImportFileCleanupDTO`, `ImportCompletionNotificationDTO`, `AssignEngineGroupResultDTO`); по сущности — `DTOs/<Entity>/` там, где на сущность несколько построчных DTO (`Engine/EngineSheetRowDTO`, `Vehicle/VehicleTdRowDTO`, `Manufacturer/ManufacturerCommandRowDTO`, …) — тот же принцип группировки, что у `Services/`/`Factories/`. **`ImportRunContextDTO`** (`userId` + `runId`) — явный контекст запуска для `Imports/External/*` (не для консольного TecDoc-каскада — у него нет внешнего инициатора вообще): `userId` заменяет неявный `Auth::id()` (источник вызова — HTTP/Rabbit — всегда знает, кто просит), `runId` — а не `userId` — основа cache-ключа отчёта об ошибках и идемпотентности, чтобы конкурентные прогоны одного инициатора не затирали друг друга. |
 | `Enums/` | Фиче-специфичные enum'ы потоков | Напр. схемы листов `InOut/Sheets/*`. Общий словарь значений — в `Shared`, не здесь. |
-| `Events/` | Доменные события фичи | Plain DTO-события (`final readonly`), **без поведения**. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`). Все события пока в одной плоской папке `Domain/Events`, деление на доменные/интеграционные не нужно: события не сериализуются напрямую наружу, wire-контракт — explicit `*NotificationDTO` (Listener вручную собирает DTO из полей события перед публикацией, см. `ReportImportResultListener`). |
+| `Events/` | Доменные события фичи | Plain DTO-события (`final readonly`), **без поведения**. Имя — **факт в прошедшем времени БЕЗ суффикса `Event`** (`VehicleImportCompleted`). По умолчанию события лежат плоско в `Domain/Events`; если в CRUD-фиче на каждую сущность есть набор однотипных фактов (`Created`/`Updated`/`Deleted`) и это не дробление на под-фичи, допустима группировка `Domain/Events/<Entity>/`. События не сериализуются напрямую наружу, wire-контракт — explicit `*NotificationDTO` (Listener вручную собирает DTO из полей события перед публикацией, см. `ReportImportResultListener`). |
 
 **`Templates/Domain`** дополнительно держит декларацию формы `details` — `ModelData/`
 (`AbstractDetailsData` + 4 конкретные формы), `Enums/` (`DetailTemplateEnum` + словарные enum'ы
@@ -159,7 +159,7 @@ Presentation ──▶ Application ──▶ Domain
 |---|---|---|
 | `Models/` | **Eloquent-модели фичи** (своя копия набора сущностей) | **АНЕМИЧНЫЕ**: связи, `$casts`, `$timestamps`. Без бизнес-логики. Наследуют `AbstractModel` (`guarded = []`; запись идёт через Command+`Data`, фиксированный набор полей → mass-assignment безопасен). Deдуп по фичам: Import — все 8 сущностей (Command пишет во все), Export — только 5 читаемых, Maintenance — только 4. Relation-методы на **недублированные** сущности убираем (иначе мина: `Class::class` на несуществующий класс падает при первом вызове связи). |
 | `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` реализует `Contracts/Repositories/<Entity>RepositoryInterface`. Внутри `<Entity>Data::from($model)` — отдаёт **`Data`**, не модель. Скалярные read-агрегаты (`minMsId(): int`) легитимны (`plan.md §12`). Только запросы, без записи. (У Export есть, у Maintenance нет.) |
-| `Commands/` | **Запись** (CQRS-lite) — **только Import** | `<Entity>Command` реализует `Contracts/Commands/<Entity>CommandInterface`. Принимают **`<Entity>Data`**. `save`/`upsert`/`delete`. `update`/`delete` принимают `Data` с обязательным `id` (identity вместо живого объекта). Из payload на запись исключают поля, которые не колонки (`Arr::except` для `engines`/`groupId` и т.п.). |
+| `Commands/` | **Запись** (CQRS-lite) — только в фичах, где запись является частью сценария | `<Entity>Command` реализует `Contracts/Commands/<Entity>CommandInterface`. Принимают **`<Entity>Data`**. `save`/`upsert`/`delete`. `update`/`delete` принимают `Data` с обязательным `id` (identity вместо живого объекта). Из payload на запись исключают поля, которые не колонки (`Arr::except` для `engines`/`groupId` и т.п.). У read-only фич (`Export`) `Command` не заводим. |
 | `Imports/<Entity>/` | Адаптеры импорта (`maatwebsite/excel`) — **только Import** | Механика чтения: `Excel::import`, чанки, `onFailure`. На каждую строку зовёт построчный **Service** (Application). Точка входа реализует порт `Contracts/Imports/<X>Interface`. Sub-sheet'ы — внутренние, создаём `app()->makeWith(...)`, не `new`. |
 | `Exports/<Entity>/` | Адаптеры экспорта — Export + `ImportFailureReporter`/`FailuresExport` в Import (отчёт об ошибках) | Источник — Repository; сборка строк — `Application/Services/Rows|Expanders`. Точка входа реализует порт `Contracts/Exports/<X>Interface`. |
 | `Notifications/` | Внешние уведомления (**исходящий** адаптер брокера) | Напр. `RabbitMqFileNotificationService` → `FileNotificationServiceInterface`; внутри — напрямую `PkmStudio\RabbitTransport\RabbitMQPublisher` (Infra→Infra, отдельный порт-обёртка не нужен). |
@@ -247,6 +247,11 @@ Cache-ключи и TTL — **не строковые литералы в код
 (`Messaging/Validators/`, тоже без порта — вспомогательный класс одного `Handler`, не
 подменяемая точка расширения). `Data`/`Model`/`DTO`/`Enum`/`Event` — это **значения**, их не
 интерфейсим.
+
+**Maintenance-исключение:** разовые artisan-команды Maintenance могут инжектить конкретный
+Application-сервис напрямую, если этот сервис не является расширяемой точкой фичи и не вызывается
+другим кодом через контейнерный порт. Это та же прагматика, что и прямой Eloquent в Maintenance:
+одноразовый фикс держим простым, не превращая его в полноценный вертикальный срез.
 
 > Это осознанно строже, чем «порт только driven-адаптерам»: цена — много интерфейсов, выгода —
 > любой класс подменяем/мокаем единообразно, DI однороден.
@@ -390,9 +395,9 @@ $this->service->execute(
 | Выбор реализации по enum/типу входящего запроса | `<Feature>/Application/Factories/` (selector-фабрика, `make(Enum): Interface`) + порт `Contracts/Factories/` |
 | Реакцию на доменное событие | `<Feature>/Application/Listeners/` (тонко, **без порта**) |
 | Новый запрос к БД | порт → `Domain/Contracts/Repositories/`, адаптер → `Infrastructure/Repositories/` (отдаёт `Data`) |
-| Новую запись в БД (только Import) | порт → `Domain/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход `Data`) |
+| Новую запись в БД | если запись является ответственностью фичи: порт → `Domain/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход `Data`); в read-only фичах `Command` не заводим |
 | Снимок строки / транспорт | `Domain/ModelData/` (`extends Data`) или `Domain/DTOs/` (транспорт сценария) |
-| Доменное событие | `Domain/Events/` (плоский `final readonly`, факт в прошедшем времени) |
+| Доменное событие | `Domain/Events/` (обычно плоский `final readonly`, факт в прошедшем времени); для CRUD-наборов допустимо `Domain/Events/<Entity>/` |
 | Импорт из Excel (консольный, без внешнего инициатора) | адаптер → `Import/Infrastructure/Imports/<Entity>/` + построчный Service; порт → `Contracts/Imports/Command/` |
 | Импорт из Excel по внешнему запросу (userId/runId/disk снаружи) | адаптер implements `Contracts/Imports/External/FileImportInterface`; DTO-контекст → `ImportRunContextDTO` |
 | Входящую команду от брокера (RabbitMQ) | `Import/Infrastructure/Messaging/Handlers/` (+ `Messaging/Validators/`) → зовёт `UseCase` |

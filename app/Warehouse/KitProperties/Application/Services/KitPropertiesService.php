@@ -117,6 +117,8 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
     }
 
     /**
+     * Суммирует количество штук и упаковок по primary-номенклатурам состава.
+     *
      * @param  Collection<int, NomenclatureData>  $primary
      * @return array{0: int, 1: int} [quantityInPackage, quantityPackage]
      */
@@ -126,6 +128,8 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
     }
 
     /**
+     * Складывает вес номенклатур и подобранной упаковки.
+     *
      * @param  Collection<int, NomenclatureData>  $nomenclatures
      */
     private function resolveWeight(Collection $nomenclatures, ?PackagingPackDimensionData $packDimension): float
@@ -136,6 +140,13 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
     }
 
     /**
+     * Формирует текст комплектации по matching primary-номенклатуре и материалу.
+     *
+     * Шаги:
+     * 1) Найти primary-номенклатуру, чей type_id совпадает с итоговым типом набора.
+     * 2) Взять первый непустой material из primary-состава.
+     * 3) Нормализовать quantity и делегировать текст в KitComplectationService.
+     *
      * @param  Collection<int, NomenclatureData>  $primary
      */
     private function resolveComplectation(Collection $primary, int $quantity, TypeData $type): string
@@ -145,9 +156,12 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
         $typeName = $matching?->type?->name;
 
         if ($typeName === null) {
-            Log::warning('KitPropertiesService: не удалось сформировать комплектацию', [
-                'part_numbers' => $primary->pluck('partNumber')->all(),
-            ]);
+            Log::warning(
+                message: 'KitPropertiesService: не удалось сформировать комплектацию',
+                context: [
+                    'part_numbers' => $primary->pluck('partNumber')->all(),
+                ],
+            );
 
             return '';
         }
@@ -155,9 +169,12 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
         $material = $primary->map(fn (NomenclatureData $n): array => $n->material)->first(fn (array $m): bool => $m !== []) ?? [];
 
         if ($quantity <= 0) {
-            Log::warning('KitPropertiesService: quantity <= 0, forcing 1', [
-                'part_numbers' => $primary->pluck('partNumber')->all(),
-            ]);
+            Log::warning(
+                message: 'KitPropertiesService: quantity <= 0, forcing 1',
+                context: [
+                    'part_numbers' => $primary->pluck('partNumber')->all(),
+                ],
+            );
 
             $quantity = 1;
         }

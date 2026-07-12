@@ -35,6 +35,12 @@ final readonly class UpdateBrandUseCase implements UpdateBrandUseCaseInterface
 
     /**
      * Обновляет бренд, если запись существует и новое имя не занято другой записью.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не выполнил обновление дважды.
+     * 2) Проверить существование бренда и уникальность нового имени.
+     * 3) Собрать BrandData с identity, обновить запись через Command и отправить доменный факт.
+     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(UpdateBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

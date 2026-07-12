@@ -33,9 +33,12 @@ final readonly class BrandMutationRequestedHandler
         $validator = $this->validator->make($data);
 
         if ($validator->fails()) {
-            Log::error('RabbitMQ: Warehouse brand mutation payload validation failed', [
-                'invalid_keys' => array_keys($validator->errors()->toArray()),
-            ]);
+            Log::error(
+                message: 'RabbitMQ: Warehouse brand mutation payload validation failed',
+                context: [
+                    'invalid_keys' => array_keys($validator->errors()->toArray()),
+                ],
+            );
 
             return;
         }

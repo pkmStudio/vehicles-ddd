@@ -7,8 +7,8 @@ namespace App\Warehouse\Import\Application\Services\Kit;
 use App\Warehouse\Import\Domain\Contracts\Commands\KitCommandInterface;
 use App\Warehouse\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Warehouse\Import\Domain\Contracts\Services\Kit\UpsertKitFromRowServiceInterface;
-use App\Warehouse\Import\Domain\ModelData\Kit\NomenclatureForKitData;
 use App\Warehouse\Import\Domain\ModelData\KitData;
+use App\Warehouse\Import\Domain\ModelData\NomenclatureData;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
 use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData as KitPropertiesNomenclatureData;
 use App\Warehouse\KitProperties\Domain\ModelData\TypeData as KitPropertiesTypeData;
@@ -58,7 +58,7 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
         $ordered = $this->resolveOrderedNomenclatures($partNumbers);
 
         $properties = $this->kitProperties->build(array_map(
-            fn (NomenclatureForKitData $n): KitPropertiesNomenclatureData => $this->toKitPropertiesNomenclature($n),
+            fn (NomenclatureData $n): KitPropertiesNomenclatureData => $this->toKitPropertiesNomenclature($n),
             $ordered,
         ));
 
@@ -83,7 +83,10 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
             id: $id,
         );
 
-        $nomenclatureIds = array_map(fn (NomenclatureForKitData $n): int => $n->id, $ordered);
+        $nomenclatureIds = array_map(
+            fn (NomenclatureData $n): int => $this->nomenclatureId($n),
+            $ordered,
+        );
 
         return $this->command->upsert(
             data: $data,
@@ -107,7 +110,7 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
      * становится `sort` в pivot-таблице.
      *
      * @param  array<int, string>  $partNumbers
-     * @return array<int, NomenclatureForKitData>
+     * @return array<int, NomenclatureData>
      */
     private function resolveOrderedNomenclatures(array $partNumbers): array
     {
@@ -136,9 +139,21 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
     }
 
     /**
+     * Возвращает id сохранённой номенклатуры для записи pivot-состава набора.
+     */
+    private function nomenclatureId(NomenclatureData $nomenclature): int
+    {
+        if ($nomenclature->id === null) {
+            throw new InvalidArgumentException("Номенклатура {$nomenclature->partNumber} не имеет id");
+        }
+
+        return $nomenclature->id;
+    }
+
+    /**
      * Переводит Import-снимок номенклатуры в DTO фичи KitProperties.
      */
-    private function toKitPropertiesNomenclature(NomenclatureForKitData $nomenclature): KitPropertiesNomenclatureData
+    private function toKitPropertiesNomenclature(NomenclatureData $nomenclature): KitPropertiesNomenclatureData
     {
         $type = $nomenclature->type === null
             ? null

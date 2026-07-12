@@ -124,6 +124,10 @@ final class CatalogServiceProvider extends ServiceProvider
 
     /**
      * Регистрирует все биндинги фичи Warehouse Catalog в контейнере.
+     *
+     * Шаги:
+     * 1) Зарегистрировать use cases, factories и commands CRUD-сценариев.
+     * 2) Зарегистрировать repositories, services и outbound notification adapter.
      */
     public function register(): void
     {

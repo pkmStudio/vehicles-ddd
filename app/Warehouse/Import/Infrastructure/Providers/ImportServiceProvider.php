@@ -103,31 +103,52 @@ final class ImportServiceProvider extends ServiceProvider
         );
 
         foreach (self::IMPORT_BINDINGS as $interface => $implementation) {
-            $this->app->bind(abstract: $interface, concrete: $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::COMMAND_BINDINGS as $interface => $implementation) {
-            $this->app->bind(abstract: $interface, concrete: $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::REPOSITORY_BINDINGS as $interface => $implementation) {
-            $this->app->bind(abstract: $interface, concrete: $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
-            $this->app->bind(abstract: $interface, concrete: $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::FACTORY_BINDINGS as $interface => $implementation) {
-            $this->app->bind(abstract: $interface, concrete: $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {
-            $this->app->bind(abstract: $interface, concrete: $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         foreach (self::REPORTING_BINDINGS as $interface => $implementation) {
-            $this->app->bind(abstract: $interface, concrete: $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
     }
 }

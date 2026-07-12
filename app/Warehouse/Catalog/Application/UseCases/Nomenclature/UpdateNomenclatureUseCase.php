@@ -39,6 +39,12 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
 
     /**
      * Обновляет номенклатуру, если запись существует, type/brand существуют и артикул не занят.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не выполнил обновление дважды.
+     * 2) Проверить существование записи, type/brand и отсутствие конфликта по артикулу.
+     * 3) Собрать NomenclatureData с identity, обновить запись через Command и отправить доменный факт.
+     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(UpdateNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

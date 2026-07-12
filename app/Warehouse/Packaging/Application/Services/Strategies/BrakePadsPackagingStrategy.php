@@ -89,9 +89,12 @@ final readonly class BrakePadsPackagingStrategy extends AbstractPackagingStrateg
     private function resolveByPartNumber(array $nomenclatures, Collection $packDimensions): ?PackDimensionData
     {
         if (count($nomenclatures) !== 1) {
-            Log::warning('BrakePadsPackagingStrategy: fallback to dimensions for multi-nomenclature kit', [
-                'nomenclatures_count' => count($nomenclatures),
-            ]);
+            Log::warning(
+                message: 'BrakePadsPackagingStrategy: fallback to dimensions for multi-nomenclature kit',
+                context: [
+                    'nomenclatures_count' => count($nomenclatures),
+                ],
+            );
 
             return null;
         }
@@ -109,9 +112,12 @@ final readonly class BrakePadsPackagingStrategy extends AbstractPackagingStrateg
         );
 
         if ($matched === null) {
-            Log::warning('BrakePadsPackagingStrategy: fallback to dimensions because box not found by part number', [
-                'part_number' => $partNumber,
-            ]);
+            Log::warning(
+                message: 'BrakePadsPackagingStrategy: fallback to dimensions because box not found by part number',
+                context: [
+                    'part_number' => $partNumber,
+                ],
+            );
         }
 
         return $matched;

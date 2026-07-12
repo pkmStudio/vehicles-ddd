@@ -35,6 +35,12 @@ final readonly class CreateBrandUseCase implements CreateBrandUseCaseInterface
 
     /**
      * Создаёт бренд, если имя ещё не занято.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не создал дубль.
+     * 2) Проверить уникальность имени и вернуть rejected-результат при конфликте.
+     * 3) Собрать BrandData, записать бренд через Command и отправить доменный факт.
+     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(CreateBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

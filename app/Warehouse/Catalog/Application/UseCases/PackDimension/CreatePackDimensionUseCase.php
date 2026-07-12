@@ -35,6 +35,12 @@ final readonly class CreatePackDimensionUseCase implements CreatePackDimensionUs
 
     /**
      * Создаёт упаковочный размер, если тип существует.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не создал дубль.
+     * 2) Проверить существование type для упаковочного размера.
+     * 3) Собрать PackDimensionData, записать упаковку через Command и отправить доменный факт.
+     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(CreatePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

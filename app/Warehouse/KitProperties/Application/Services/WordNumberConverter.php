@@ -14,6 +14,11 @@ final class WordNumberConverter
     /**
      * Этот метод преобразует число в слова, опционально дописывая согласованное существительное.
      *
+     * Шаги:
+     * 1) Выбрать род числительного по переданным вариантам склонения.
+     * 2) Разложить число на сотни, десятки и единицы с отдельной веткой для 10-19.
+     * 3) Добавить согласованное существительное, если переданы варианты склонения.
+     *
      * @param  array<int, string>|null  $words  варианты склонения, например ['товар', 'товара', 'товаров']
      */
     public static function convertNumberToWords(int $number, ?array $words = null): string
@@ -45,10 +50,8 @@ final class WordNumberConverter
             return '';
         }
 
-        // Автоматически определяет род по первому слову
-        $gender = 'male'; // по умолчанию мужской род
+        $gender = 'male';
         if ($words && count($words) >= 3) {
-            // Если слово заканчивается на "а" или "я" - женский род
             $firstWord = $words[0];
             if (preg_match('/[ая]$/u', $firstWord)) {
                 $gender = 'female';
@@ -61,21 +64,17 @@ final class WordNumberConverter
         $tens = floor($tensUnits / 10);
         $units = $tensUnits % 10;
 
-        // Обрабатывает сотни
         if ($hundreds > 0) {
             $result .= $numberWords['сотни'][$hundreds].' ';
         }
 
-        // Обрабатывает числа от 10 до 19
         if ($tensUnits >= 11 && $tensUnits <= 19) {
             $result .= $numberWords['особые'][$tensUnits];
         } else {
-            // Обрабатывает десятки (кроме 10)
             if ($tens > 0) {
                 $result .= $numberWords['десятки'][$tens].' ';
             }
 
-            // Обрабатывает единицы и выбирает форму в зависимости от рода
             if ($units > 0) {
                 if ($gender === 'female') {
                     $result .= $numberWords['единицы_жен'][$units];
@@ -84,7 +83,6 @@ final class WordNumberConverter
                 }
             }
 
-            // Обрабатывает отдельно число 10
             if ($tensUnits === 10) {
                 $result .= 'десять';
             }
@@ -92,7 +90,6 @@ final class WordNumberConverter
 
         $result = trim($result);
 
-        // Добавляет склонение, если переданы слова
         if ($words && count($words) >= 3) {
             $result .= ' '.self::declensionWord((string) $number, $words, false);
         }

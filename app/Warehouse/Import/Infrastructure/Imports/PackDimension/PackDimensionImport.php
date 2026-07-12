@@ -51,8 +51,18 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
     {
         $this->userId = $context->userId;
         $this->runId = $context->runId;
-        $this->cacheKey = sprintf((string) config('warehouse.import.failures.cache.keys.pack_dimension_import_failures'), $context->runId);
-        $this->lockKey = sprintf((string) config('warehouse.import.failures.cache.keys.pack_dimension_import_failures_lock'), $context->runId);
+        $this->cacheKey = sprintf(
+            (string) config(
+                key: 'warehouse.import.failures.cache.keys.pack_dimension_import_failures',
+            ),
+            $context->runId,
+        );
+        $this->lockKey = sprintf(
+            (string) config(
+                key: 'warehouse.import.failures.cache.keys.pack_dimension_import_failures_lock',
+            ),
+            $context->runId,
+        );
 
         Excel::import(
             import: $this,

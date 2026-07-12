@@ -36,6 +36,10 @@ final class KitPropertiesServiceProvider extends ServiceProvider
 
     /**
      * Биндит сервисы KitProperties и передаёт упорядоченный список стратегий через контейнер.
+     *
+     * Шаги:
+     * 1) Передать KitPropertiesService упорядоченный список стратегий состава.
+     * 2) Зарегистрировать обычные service-биндинги и основной KitPropertiesService.
      */
     public function register(): void
     {
@@ -50,7 +54,10 @@ final class KitPropertiesServiceProvider extends ServiceProvider
             });
 
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
-            $this->app->bind(abstract: $interface, concrete: $implementation);
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
         }
 
         $this->app->bind(

@@ -34,6 +34,11 @@ final readonly class PackagingService implements PackagingServiceInterface
      * Этот метод резолвит detail-шаблон типа, читает упаковки этого типа и делегирует расчёт
      * соответствующей стратегии.
      *
+     * Шаги:
+     * 1) Определить detail-шаблон типа номенклатуры.
+     * 2) Загрузить доступные упаковки этого типа.
+     * 3) Найти первую стратегию, поддерживающую шаблон, и делегировать ей расчёт.
+     *
      * @param  array<int, NomenclatureData>  $nomenclatures
      */
     public function selectOrCreate(TypeData $type, array $nomenclatures): PackDimensionData

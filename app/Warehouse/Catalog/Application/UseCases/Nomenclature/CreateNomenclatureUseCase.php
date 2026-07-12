@@ -39,6 +39,12 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
 
     /**
      * Создаёт номенклатуру, если type/brand существуют и артикул свободен.
+     *
+     * Шаги:
+     * 1) Принять operationId через cache, чтобы повтор брокера не создал дубль.
+     * 2) Проверить существование type/brand и уникальность артикула.
+     * 3) Собрать NomenclatureData, записать номенклатуру через Command и отправить доменный факт.
+     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
     public function execute(CreateNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

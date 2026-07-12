@@ -7,7 +7,6 @@ namespace App\Warehouse\Import\Infrastructure\Commands;
 use App\Warehouse\Import\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Warehouse\Import\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Import\Infrastructure\Models\Nomenclature;
-use Illuminate\Support\Arr;
 use RuntimeException;
 
 /**
@@ -28,15 +27,23 @@ final readonly class NomenclatureCommand implements NomenclatureCommandInterface
         }
 
         $conflict = Nomenclature::query()
-            ->where('part_number', $data->partNumber)
-            ->where('id', '!=', $data->id)
+            ->where(
+                column: 'part_number',
+                operator: '=',
+                value: $data->partNumber,
+            )
+            ->where(
+                column: 'id',
+                operator: '!=',
+                value: $data->id,
+            )
             ->first();
 
         if ($conflict !== null) {
             throw new RuntimeException("Артикул '{$data->partNumber}' уже используется записью с ID {$conflict->id}");
         }
 
-        $nomenclature->update(Arr::except($data->toArray(), ['id']));
+        $nomenclature->update($this->payload($data));
 
         return NomenclatureData::from($nomenclature->refresh());
     }
@@ -47,10 +54,23 @@ final readonly class NomenclatureCommand implements NomenclatureCommandInterface
     public function upsertByPartNumber(NomenclatureData $data): NomenclatureData
     {
         $nomenclature = Nomenclature::query()->updateOrCreate(
-            ['part_number' => $data->partNumber],
-            Arr::except($data->toArray(), ['id']),
+            attributes: ['part_number' => $data->partNumber],
+            values: $this->payload($data),
         );
 
         return NomenclatureData::from($nomenclature);
+    }
+
+    /**
+     * Возвращает массив колонок для записи, исключая identity и read-only relation `type`.
+     *
+     * @return array<string, mixed>
+     */
+    private function payload(NomenclatureData $data): array
+    {
+        $payload = $data->toArray();
+        unset($payload['id'], $payload['type']);
+
+        return $payload;
     }
 }
