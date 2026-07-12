@@ -1,0 +1,47 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Warehouse\Packaging\Application\Services\Strategies;
+
+use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData;
+use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
+use App\Warehouse\Packaging\Domain\ModelData\TypeData;
+use Illuminate\Support\Collection;
+
+/**
+ * Подбирает упаковку для щёток стеклоочистителя по длине щётки — единственная стратегия, которая
+ * никогда не создаёт новую коробку (только выбирает из существующих), поэтому не наследует
+ * `AbstractPackagingStrategy` (её `calculatePak()`/`Command` здесь не нужны).
+ */
+final readonly class WiperPackagingStrategy
+{
+    /**
+     * Этот метод возвращает коробку, длины которой хватает на самую длинную щётку в комплекте.
+     *
+     * Шаги:
+     * 1) Определить максимальную длину среди `length_main`/`length_second` всех номенклатур.
+     * 2) Отсортировать коробки по длине по возрастанию и взять первую, которая не короче.
+     * 3) Если такой нет — взять самую длинную из существующих (fallback, не создаём новую).
+     *
+     * @param  array<int, NomenclatureData>  $nomenclatures
+     * @param  Collection<int, PackDimensionData>  $packDimensions
+     */
+    public function calculate(TypeData $type, array $nomenclatures, Collection $packDimensions): PackDimensionData
+    {
+        $maxLength = 0;
+
+        foreach ($nomenclatures as $nomenclature) {
+            $lengthMain = (int) ($nomenclature->details['length_main'] ?? 0);
+            $lengthSecond = (int) ($nomenclature->details['length_second'] ?? 0);
+
+            $maxLength = max($maxLength, $lengthMain, $lengthSecond);
+        }
+
+        $suitableBox = $packDimensions
+            ->sortBy('length')
+            ->first(fn (PackDimensionData $box): bool => $box->length >= $maxLength);
+
+        return $suitableBox ?? $packDimensions->sortByDesc('length')->first();
+    }
+}
