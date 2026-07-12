@@ -16,6 +16,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             FeatureSeeder::class,
+            WarehouseTypeSeeder::class,
+            WarehouseBrandSeeder::class,
+            WarehousePackDimensionSeeder::class,
         ]);
     }
 }
