@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ea70dcaa83d1a2702dc16f6b11fb2d25",
+    "content-hash": "201b33a45685ac0b6c8202db60c4980e",
     "packages": [
         {
             "name": "brick/math",
@@ -1870,16 +1870,16 @@
         },
         {
             "name": "league/commonmark",
-            "version": "2.8.2",
+            "version": "2.8.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/commonmark.git",
-                "reference": "59fb075d2101740c337c7216e3f32b36c204218b"
+                "reference": "1902f60f984235023acbe03db6ad614a37b3c3e7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/59fb075d2101740c337c7216e3f32b36c204218b",
-                "reference": "59fb075d2101740c337c7216e3f32b36c204218b",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/1902f60f984235023acbe03db6ad614a37b3c3e7",
+                "reference": "1902f60f984235023acbe03db6ad614a37b3c3e7",
                 "shasum": ""
             },
             "require": {
@@ -1901,8 +1901,8 @@
                 "github/gfm": "0.29.0",
                 "michelf/php-markdown": "^1.4 || ^2.0",
                 "nyholm/psr7": "^1.5",
-                "phpstan/phpstan": "^1.8.2",
-                "phpunit/phpunit": "^9.5.21 || ^10.5.9 || ^11.0.0",
+                "phpstan/phpstan": "^2.0.0",
+                "phpunit/phpunit": "^9.5.21 || ^10.5.9 || ^11.0.0 || ^12.0.0 || ^13.0.0",
                 "scrutinizer/ocular": "^1.8.1",
                 "symfony/finder": "^5.3 | ^6.0 | ^7.0 || ^8.0",
                 "symfony/process": "^5.4 | ^6.0 | ^7.0 || ^8.0",
@@ -1973,7 +1973,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-19T13:16:38+00:00"
+            "time": "2026-07-12T15:29:16+00:00"
         },
         {
             "name": "league/config",
@@ -3918,6 +3918,52 @@
                 "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.3"
             },
             "time": "2026-07-08T07:01:06+00:00"
+        },
+        {
+            "name": "pkmstudio/moysklad-client",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "/packages/moysklad-client",
+                "reference": "ec73c398643be47c93557e9016b07e7a46711fa6"
+            },
+            "require": {
+                "illuminate/http": "^12.0 || ^13.0",
+                "illuminate/redis": "^12.0 || ^13.0",
+                "illuminate/support": "^12.0 || ^13.0",
+                "nesbot/carbon": "^2.72 || ^3.0",
+                "php": "^8.3 || ^8.4"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^10.0",
+                "pestphp/pest": "^3.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "PkmStudio\\MoySkladClient\\MoySkladClientServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "PkmStudio\\MoySkladClient\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "PkmStudio\\MoySkladClient\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Generic HTTP client for the MoySklad (МойСклад) JSON API v1.2: retry, circuit breaker, proactive + Redis rate-limit, and array-in/array-out endpoints for products, bundles, product folders, counterparties and customer orders.",
+            "transport-options": {
+                "symlink": true,
+                "relative": false
+            }
         },
         {
             "name": "pkmstudio/rabbit-transport",
@@ -10083,6 +10129,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "pkmstudio/moysklad-client": 20,
         "pkmstudio/rabbit-transport": 20
     },
     "prefer-stable": true,

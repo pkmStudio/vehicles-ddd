@@ -14,6 +14,9 @@ services:
         volumes:
             - .:/var/www
             - ./docker/php/custom.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+            # Локальные pkmstudio/* пакеты (../packages, соседняя папка) — нужно для path-репозитория
+            # с symlink в composer.json, пока пакет не опубликован на GitHub/Packagist.
+            - ../packages:/packages:ro
         networks:
             - app-network   # внутренняя сеть проекта (app <-> pgsql)
             - dan-shared    # общая инфра: redis, rabbitmq (проект ~/projects/infra)
@@ -36,6 +39,7 @@ services:
         volumes:
             - .:/var/www
             - ./docker/php/custom.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+            - ../packages:/packages:ro
         networks:
             - app-network   # app <-> pgsql
             - dan-shared    # общая инфра: redis (хранилище Horizon), rabbitmq (очереди)
