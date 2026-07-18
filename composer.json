@@ -11,9 +11,8 @@
             "url": "https://github.com/pkmStudio/laravel-rabbitmq-transport"
         },
         {
-            "type": "path",
-            "url": "/packages/moysklad-client",
-            "options": { "symlink": true }
+            "type": "vcs",
+            "url": "https://github.com/pkmStudio/laravel-moysklad-client"
         }
     ],
     "require": {
@@ -22,7 +21,7 @@
         "laravel/horizon": "^5.47",
         "laravel/tinker": "^3.0",
         "maatwebsite/excel": "^3.1",
-        "pkmstudio/moysklad-client": "@dev",
+        "pkmstudio/moysklad-client": "dev-main",
         "pkmstudio/rabbit-transport": "dev-master",
         "spatie/laravel-data": "^4.23",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^15.0"

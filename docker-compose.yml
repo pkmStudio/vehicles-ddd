@@ -24,7 +24,7 @@ services:
             pgsql:
                 condition: service_started
         restart: on-failure
-        command: sh -c "composer install && php-fpm"
+        command: sh -c "composer update && php-fpm"
 
     # Horizon — менеджер воркеров очередей (замена supervisor для queue:work)
     horizon:
