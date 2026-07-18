@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Maintenance\Application\Services;
 
-use App\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
 use App\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Vehicles\Maintenance\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Vehicles\Maintenance\Infrastructure\Models\PartSpecification;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 final readonly class VehicleWiperPartSpecificationSplitService
 {
     public function __construct(
-        private WiperSpecificationServiceInterface $wiper,
+        private TemplatesClientInterface $templates,
     ) {}
 
     /**
@@ -65,7 +65,7 @@ final readonly class VehicleWiperPartSpecificationSplitService
             return;
         }
 
-        $entries = $this->wiper->splitSpecification((array) ($specification->details ?? []), (int) $specification->id);
+        $entries = $this->templates->splitVehicleWiperSpecification((array) ($specification->details ?? []), (int) $specification->id);
         if (! $this->shouldSplit($entries)) {
             return;
         }
@@ -209,7 +209,7 @@ final readonly class VehicleWiperPartSpecificationSplitService
                 $specification->save();
             }
 
-            if ($this->shouldSplit($this->wiper->splitSpecification($details, (int) $specification->id))) {
+            if ($this->shouldSplit($this->templates->splitVehicleWiperSpecification($details, (int) $specification->id))) {
                 return false;
             }
 

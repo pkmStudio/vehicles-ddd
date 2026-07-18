@@ -8,9 +8,9 @@ use App\Vehicles\Export\Domain\Contracts\Services\EngineExportServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
 use App\Vehicles\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Vehicles\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Vehicles\Export\Domain\DTOs\PartSpecificationExportRowDTO;
 use App\Vehicles\Export\Domain\ModelData\EngineData;
-use App\Templates\Domain\Contracts\Services\DetailsDataPresenterInterface;
 use App\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 
@@ -22,9 +22,9 @@ final readonly class EngineExportService implements EngineExportServiceInterface
         private EngineRepositoryInterface $engines,
         private EngineExportRowInterface $engineRow,
         private PartSpecificationRowExpanderInterface $expander,
-        private DetailsDataPresenterInterface $detailsPresenter,
+        private TemplatesClientInterface $templates,
     ) {
-        $this->fieldHeadings = $this->detailsPresenter->headingsFor(DetailTemplateEnum::SPARK_PLUGS);
+        $this->fieldHeadings = $this->templates->vehicleDetailHeadings(DetailTemplateEnum::SPARK_PLUGS);
     }
 
     public function getMainRows(): Collection
@@ -57,7 +57,7 @@ final readonly class EngineExportService implements EngineExportServiceInterface
         $baseData = $this->engineRow->getBaseData($row->entity);
 
         if ($row->specification) {
-            $detailsData = $this->detailsPresenter->toExportCells(DetailTemplateEnum::SPARK_PLUGS, $row->specification->details);
+            $detailsData = $this->templates->renderVehicleDetails(DetailTemplateEnum::SPARK_PLUGS, $row->specification->details);
         } else {
             $detailsData = array_fill(0, count($this->fieldHeadings), null);
         }

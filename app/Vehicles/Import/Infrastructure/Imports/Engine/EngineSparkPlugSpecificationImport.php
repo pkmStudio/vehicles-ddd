@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Engine;
 
 use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineSparkPlugSpecificationImportInterface;
+use App\Vehicles\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\ImportRunContextDTO;
-use App\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
 use App\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Domain\Events\Engine\EngineImportCompleted;
 use App\Vehicles\Import\Infrastructure\Traits\CachesImportFailures;
@@ -41,7 +41,7 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
 
     public function __construct(
         private readonly UpsertSparkPlugSpecByModificationServiceInterface $service,
-        private readonly DetailsDataFactoryInterface $detailsFactory,
+        private readonly TemplatesClientInterface $templates,
     ) {}
 
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
@@ -74,8 +74,11 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
             }
 
             try {
-                $specIndex = self::SPEC_START_COLUMN;
-                $details = $this->detailsFactory->buildFromRow(DetailTemplateEnum::SPARK_PLUGS, $row->toArray(), $specIndex)->toArray();
+                $details = $this->templates->buildVehicleDetails(
+                    template: DetailTemplateEnum::SPARK_PLUGS,
+                    row: $row->toArray(),
+                    startIndex: self::SPEC_START_COLUMN,
+                );
                 $result = $this->service->upsertByModification((int) $msId, (int) $modId, $details);
 
                 if (! $result->found) {

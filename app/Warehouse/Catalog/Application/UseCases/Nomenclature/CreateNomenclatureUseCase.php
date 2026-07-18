@@ -16,7 +16,7 @@ use App\Warehouse\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Warehouse\Catalog\Domain\Events\Nomenclature\NomenclatureCreated;
+use App\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use App\Warehouse\Catalog\Domain\ModelData\NomenclatureData;
 use Throwable;
 
@@ -92,7 +92,7 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
             event(new NomenclatureCreated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                nomenclature: $nomenclature,
+                nomenclature: $nomenclature->toArray(),
             ));
 
             return $this->results->completed(

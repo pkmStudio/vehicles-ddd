@@ -30,6 +30,7 @@ use App\Warehouse\Catalog\Domain\Contracts\Commands\BrandCommandInterface;
 use App\Warehouse\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Warehouse\Catalog\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Warehouse\Catalog\Domain\Contracts\Commands\PackDimensionCommandInterface;
+use App\Warehouse\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
 use App\Warehouse\Catalog\Domain\Contracts\Factories\BrandMutationRequestFactoryInterface;
 use App\Warehouse\Catalog\Domain\Contracts\Factories\KitMutationRequestFactoryInterface;
 use App\Warehouse\Catalog\Domain\Contracts\Factories\NomenclatureMutationRequestFactoryInterface;
@@ -62,6 +63,7 @@ use App\Warehouse\Catalog\Infrastructure\Commands\BrandCommand;
 use App\Warehouse\Catalog\Infrastructure\Commands\KitCommand;
 use App\Warehouse\Catalog\Infrastructure\Commands\NomenclatureCommand;
 use App\Warehouse\Catalog\Infrastructure\Commands\PackDimensionCommand;
+use App\Warehouse\Catalog\Infrastructure\Clients\KitPropertiesClient;
 use App\Warehouse\Catalog\Infrastructure\Notifications\RabbitMqWarehouseCatalogMutationNotificationService;
 use App\Warehouse\Catalog\Infrastructure\Repositories\BrandRepository;
 use App\Warehouse\Catalog\Infrastructure\Repositories\KitRepository;
@@ -122,6 +124,10 @@ final class CatalogServiceProvider extends ServiceProvider
         WarehouseCatalogMutationResultServiceInterface::class => WarehouseCatalogMutationResultService::class,
     ];
 
+    private const array CLIENT_BINDINGS = [
+        KitPropertiesClientInterface::class => KitPropertiesClient::class,
+    ];
+
     /**
      * Регистрирует все биндинги фичи Warehouse Catalog в контейнере.
      *
@@ -160,6 +166,13 @@ final class CatalogServiceProvider extends ServiceProvider
         }
 
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
+        }
+
+        foreach (self::CLIENT_BINDINGS as $interface => $implementation) {
             $this->app->bind(
                 abstract: $interface,
                 concrete: $implementation,

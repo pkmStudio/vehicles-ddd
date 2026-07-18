@@ -5,24 +5,21 @@ declare(strict_types=1);
 namespace App\Warehouse\Catalog\Application\UseCases\Kit;
 
 use App\Warehouse\Catalog\Domain\Contracts\Commands\KitCommandInterface;
+use App\Warehouse\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
 use App\Warehouse\Catalog\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Warehouse\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Warehouse\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Warehouse\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Warehouse\Catalog\Domain\Contracts\UseCases\Kit\CreateKitUseCaseInterface;
 use App\Warehouse\Catalog\Domain\DTOs\Kit\CreateKitRequestDTO;
+use App\Warehouse\Catalog\Domain\DTOs\KitProperties\KitPropertiesDTO;
 use App\Warehouse\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Warehouse\Catalog\Domain\Events\Kit\KitCreated;
+use App\Warehouse\Shared\Domain\Events\Kit\KitCreated;
 use App\Warehouse\Catalog\Domain\ModelData\KitData;
 use App\Warehouse\Catalog\Domain\ModelData\NomenclatureData;
-use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
-use App\Warehouse\KitProperties\Domain\DTOs\KitPropertiesDTO;
-use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData as KitPropertiesNomenclatureData;
-use App\Warehouse\KitProperties\Domain\ModelData\TypeData as KitPropertiesTypeData;
-use App\Warehouse\Packaging\Domain\Exceptions\PackDimensionNotResolvableException;
 use InvalidArgumentException;
 use Throwable;
 use UnexpectedValueException;
@@ -38,7 +35,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
         private KitRepositoryInterface $kits,
-        private KitPropertiesServiceInterface $kitProperties,
+        private KitPropertiesClientInterface $kitProperties,
         private KitCommandInterface $command,
         private WarehouseCatalogMutationCacheServiceInterface $cache,
         private WarehouseCatalogMutationResultServiceInterface $results,
@@ -118,7 +115,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
             event(new KitCreated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                kit: $kit,
+                kit: $kit->toArray(),
             ));
 
             return $this->results->completed(
@@ -180,19 +177,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
         array $nomenclatures,
     ): KitPropertiesDTO|WarehouseCatalogMutationResultDTO {
         try {
-            return $this->kitProperties->build(array_map(
-                fn (NomenclatureData $nomenclature): KitPropertiesNomenclatureData => $this->toKitPropertiesNomenclature($nomenclature),
-                $nomenclatures,
-            ));
-        } catch (PackDimensionNotResolvableException $e) {
-            return $this->results->rejected(
-                userId: $request->userId,
-                operationId: $request->operationId,
-                entity: WarehouseCatalogEntityEnum::Kit,
-                operation: WarehouseCatalogMutationOperationEnum::Create,
-                reason: WarehouseCatalogMutationRejectReasonEnum::PackDimensionNotResolvable,
-                errors: ['message' => $e->getMessage()],
-            );
+            return $this->kitProperties->build($nomenclatures);
         } catch (InvalidArgumentException|UnexpectedValueException $e) {
             return $this->results->rejected(
                 userId: $request->userId,
@@ -203,32 +188,6 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
                 errors: ['message' => $e->getMessage()],
             );
         }
-    }
-
-    /**
-     * Переводит Catalog-снимок номенклатуры в DTO фичи KitProperties.
-     */
-    private function toKitPropertiesNomenclature(NomenclatureData $nomenclature): KitPropertiesNomenclatureData
-    {
-        $type = $nomenclature->type === null
-            ? null
-            : new KitPropertiesTypeData(
-                name: $nomenclature->type->name,
-                char: $nomenclature->type->char,
-                id: $nomenclature->type->id,
-            );
-
-        return new KitPropertiesNomenclatureData(
-            typeId: $nomenclature->typeId,
-            partNumber: $nomenclature->partNumber,
-            quantityInPak: $nomenclature->quantityInPak,
-            quantityPak: $nomenclature->quantityPak,
-            weight: $nomenclature->weight,
-            material: $nomenclature->material,
-            details: $nomenclature->details,
-            id: $nomenclature->id,
-            type: $type,
-        );
     }
 
     /**

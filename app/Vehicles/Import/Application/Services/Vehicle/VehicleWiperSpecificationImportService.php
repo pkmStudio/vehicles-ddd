@@ -8,11 +8,11 @@ use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterf
 use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Vehicles\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
 use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
 use App\Templates\Domain\Enums\DetailTemplateEnum;
 use RuntimeException;
 use Illuminate\Support\Facades\Log;
@@ -29,7 +29,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
         private FeatureValueRepositoryInterface $featureValues,
         private PartSpecificationRepositoryInterface $specifications,
         private PartSpecificationCommandInterface $command,
-        private WiperSpecificationServiceInterface $wiper,
+        private TemplatesClientInterface $templates,
         private VehicleRepositoryInterface $vehicles,
     ) {}
 
@@ -59,13 +59,13 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
             $featureValueId = $featureValue->id;
         }
 
-        $parts = $this->wiper->splitDetails($row->details);
+        $parts = $this->templates->splitVehicleWiperDetails($row->details);
         $sideCounts = array_count_values(array_column($parts, 'side'));
 
         foreach ($parts as $part) {
             $side = (string) $part['side'];
             $partDetails = (array) $part['details'];
-            $sideDetails = $this->wiper->sideData($partDetails, $side);
+            $sideDetails = $this->templates->vehicleWiperSideData($partDetails, $side);
             if (! $this->hasUsableSideDetails($sideDetails)) {
                 Log::warning('Импорт дворников: пустые данные стороны пропущены', [
                     'vehicle_id' => $vehicle->id,
@@ -142,7 +142,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
 
         $candidates = $this->specifications
             ->forVehicleTemplateAndSide($vehicleId, $template, $side)
-            ->filter(fn (PartSpecificationData $candidate): bool => $this->wiper->detectSide($candidate->details) === $side)
+            ->filter(fn (PartSpecificationData $candidate): bool => $this->templates->detectVehicleWiperSide($candidate->details) === $side)
             ->values();
 
         if ($candidates->count() === 1) {

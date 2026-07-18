@@ -14,7 +14,7 @@ use App\Vehicles\Catalog\Domain\DTOs\Vehicle\UpdateVehicleRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Vehicles\Catalog\Domain\Events\Vehicle\VehicleUpdated;
+use App\Vehicles\Shared\Domain\Events\Vehicle\VehicleUpdated;
 use App\Vehicles\Catalog\Domain\ModelData\VehicleData;
 use Throwable;
 
@@ -113,7 +113,7 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
             event(new VehicleUpdated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                vehicle: $vehicle,
+                vehicle: $vehicle->toArray(),
             ));
 
             return $this->results->completed(

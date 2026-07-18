@@ -25,11 +25,13 @@ use App\Vehicles\Export\Domain\Contracts\Services\External\CleanupStaleExportFil
 use App\Vehicles\Export\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
 use App\Vehicles\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
 use App\Vehicles\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
+use App\Vehicles\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Vehicles\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
 use App\Vehicles\Export\Infrastructure\Exports\Engine\EngineMultiSheetExport;
+use App\Vehicles\Export\Infrastructure\Clients\TemplatesClient;
 use App\Vehicles\Export\Infrastructure\Exports\Vehicle\VehicleMultiSheetExport;
 use App\Vehicles\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
 use App\Vehicles\Export\Infrastructure\Repositories\EngineRepository;
@@ -73,6 +75,10 @@ final class ExportServiceProvider extends ServiceProvider
         StartExportUseCaseInterface::class => StartExportUseCase::class,
     ];
 
+    private const array CLIENT_BINDINGS = [
+        TemplatesClientInterface::class => TemplatesClient::class,
+    ];
+
     public function register(): void
     {
         // Уведомление о готовом файле экспорта уходит в RabbitMQ (FILE_EXPORTED).
@@ -95,6 +101,10 @@ final class ExportServiceProvider extends ServiceProvider
         }
 
         foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
+        }
+
+        foreach (self::CLIENT_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
     }

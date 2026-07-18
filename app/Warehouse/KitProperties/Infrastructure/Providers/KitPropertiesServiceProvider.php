@@ -9,10 +9,12 @@ use App\Warehouse\KitProperties\Application\Services\KitPropertiesService;
 use App\Warehouse\KitProperties\Application\Services\Strategies\SingleTypeStrategy;
 use App\Warehouse\KitProperties\Application\Services\Strategies\WiperWithAdapterStrategy;
 use App\Warehouse\KitProperties\Application\Services\TypeTemplateResolver;
+use App\Warehouse\KitProperties\Domain\Contracts\Clients\PackagingClientInterface;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitComplectationServiceInterface;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitCompositionStrategyInterface;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Warehouse\KitProperties\Infrastructure\Clients\PackagingClient;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
@@ -32,6 +34,10 @@ final class KitPropertiesServiceProvider extends ServiceProvider
     private const array SERVICE_BINDINGS = [
         TypeTemplateResolverInterface::class => TypeTemplateResolver::class,
         KitComplectationServiceInterface::class => KitComplectationService::class,
+    ];
+
+    private const array CLIENT_BINDINGS = [
+        PackagingClientInterface::class => PackagingClient::class,
     ];
 
     /**
@@ -54,6 +60,13 @@ final class KitPropertiesServiceProvider extends ServiceProvider
             });
 
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
+        }
+
+        foreach (self::CLIENT_BINDINGS as $interface => $implementation) {
             $this->app->bind(
                 abstract: $interface,
                 concrete: $implementation,

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Vehicles\Import\Infrastructure\Imports\Vehicle\Mappers;
 
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
+use App\Vehicles\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Vehicles\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
-use App\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
 use App\Templates\Domain\Enums\DetailTemplateEnum;
 
 final readonly class VehicleWiperSheetRowMapper
@@ -15,7 +15,7 @@ final readonly class VehicleWiperSheetRowMapper
 
     public function __construct(
         private ImportRowValueFormatter $formatter,
-        private DetailsDataFactoryInterface $detailsFactory,
+        private TemplatesClientInterface $templates,
     ) {}
 
     /**
@@ -35,8 +35,11 @@ final readonly class VehicleWiperSheetRowMapper
         $details = [];
 
         if ($templateSlug !== null) {
-            $index = self::SPEC_START_COLUMN;
-            $details = $this->detailsFactory->buildFromRow(DetailTemplateEnum::from($templateSlug), $row, $index)->toArray();
+            $details = $this->templates->buildVehicleDetails(
+                template: DetailTemplateEnum::from($templateSlug),
+                row: $row,
+                startIndex: self::SPEC_START_COLUMN,
+            );
         }
 
         return new VehicleWiperSheetRowDTO(

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Export\Application\Services;
 
-use App\Templates\Domain\Contracts\Services\NomenclatureDetailsDataPresenterInterface;
 use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Warehouse\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Warehouse\Export\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Warehouse\Export\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Warehouse\Export\Domain\Contracts\Services\NomenclatureExportServiceInterface;
@@ -51,7 +51,7 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
         private TypeRepositoryInterface $types,
         private NomenclatureExportRowInterface $row,
         private TypeTemplateResolverInterface $templates,
-        private NomenclatureDetailsDataPresenterInterface $detailsPresenter,
+        private TemplatesClientInterface $templatesClient,
     ) {}
 
     /**
@@ -74,7 +74,7 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
     public function getHeadings(int $typeId): array
     {
         $template = $this->template($this->type($typeId));
-        $detailHeadings = $template === null ? [] : $this->detailsPresenter->headingsFor($template);
+        $detailHeadings = $template === null ? [] : $this->templatesClient->nomenclatureDetailHeadings($template);
 
         return array_merge($this->row->getBaseHeadings(), $detailHeadings);
     }
@@ -89,10 +89,7 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
         $template = $row->type === null ? null : $this->templates->resolve($row->type);
         $details = $template === null
             ? []
-            : $this->detailsPresenter->toExportCells(
-                template: $template,
-                details: $row->details,
-            );
+            : $this->templatesClient->renderNomenclatureDetails($template, $row->details);
 
         return array_merge($this->row->getBaseData($row), $details);
     }
@@ -180,6 +177,6 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
      */
     private function templateReferences(?NomenclatureDetailTemplateEnum $template): array
     {
-        return $template === null ? [] : $this->detailsPresenter->referenceOptionsFor($template);
+        return $template === null ? [] : $this->templatesClient->nomenclatureReferenceOptions($template);
     }
 }

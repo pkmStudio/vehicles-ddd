@@ -14,6 +14,8 @@ use App\Warehouse\Import\Application\UseCases\External\StartExternalFileImportUs
 use App\Warehouse\Import\Domain\Contracts\Commands\KitCommandInterface;
 use App\Warehouse\Import\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Warehouse\Import\Domain\Contracts\Commands\PackDimensionCommandInterface;
+use App\Warehouse\Import\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Warehouse\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Warehouse\Import\Domain\Contracts\Factories\ImportFileFactoryInterface;
 use App\Warehouse\Import\Domain\Contracts\Imports\KitImportInterface;
 use App\Warehouse\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
@@ -33,6 +35,8 @@ use App\Warehouse\Import\Domain\Contracts\UseCases\External\StartExternalFileImp
 use App\Warehouse\Import\Infrastructure\Commands\KitCommand;
 use App\Warehouse\Import\Infrastructure\Commands\NomenclatureCommand;
 use App\Warehouse\Import\Infrastructure\Commands\PackDimensionCommand;
+use App\Warehouse\Import\Infrastructure\Clients\KitPropertiesClient;
+use App\Warehouse\Import\Infrastructure\Clients\TemplatesClient;
 use App\Warehouse\Import\Infrastructure\Imports\Kit\KitImport;
 use App\Warehouse\Import\Infrastructure\Imports\Nomenclature\NomenclatureImport;
 use App\Warehouse\Import\Infrastructure\Imports\PackDimension\PackDimensionImport;
@@ -86,6 +90,11 @@ final class ImportServiceProvider extends ServiceProvider
     private const array REPORTING_BINDINGS = [
         ImportFailureReporterInterface::class => ImportFailureReporter::class,
         FailuresExportInterface::class => FailuresExport::class,
+    ];
+
+    private const array CLIENT_BINDINGS = [
+        KitPropertiesClientInterface::class => KitPropertiesClient::class,
+        TemplatesClientInterface::class => TemplatesClient::class,
     ];
 
     /**
@@ -145,6 +154,13 @@ final class ImportServiceProvider extends ServiceProvider
         }
 
         foreach (self::REPORTING_BINDINGS as $interface => $implementation) {
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
+        }
+
+        foreach (self::CLIENT_BINDINGS as $interface => $implementation) {
             $this->app->bind(
                 abstract: $interface,
                 concrete: $implementation,

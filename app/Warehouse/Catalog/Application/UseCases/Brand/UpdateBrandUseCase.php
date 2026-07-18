@@ -14,7 +14,7 @@ use App\Warehouse\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Warehouse\Catalog\Domain\Events\Brand\BrandUpdated;
+use App\Warehouse\Shared\Domain\Events\Brand\BrandUpdated;
 use App\Warehouse\Catalog\Domain\ModelData\BrandData;
 use Throwable;
 
@@ -87,7 +87,7 @@ final readonly class UpdateBrandUseCase implements UpdateBrandUseCaseInterface
             event(new BrandUpdated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                brand: $brand,
+                brand: $brand->toArray(),
             ));
 
             return $this->results->completed(

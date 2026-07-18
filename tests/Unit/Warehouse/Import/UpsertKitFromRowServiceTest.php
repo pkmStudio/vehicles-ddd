@@ -6,13 +6,12 @@ namespace Tests\Unit\Warehouse\Import;
 
 use App\Warehouse\Import\Application\Services\Kit\UpsertKitFromRowService;
 use App\Warehouse\Import\Domain\Contracts\Commands\KitCommandInterface;
+use App\Warehouse\Import\Domain\Contracts\Clients\KitPropertiesClientInterface;
 use App\Warehouse\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
+use App\Warehouse\Import\Domain\DTOs\KitProperties\KitPropertiesDTO;
 use App\Warehouse\Import\Domain\ModelData\KitData;
 use App\Warehouse\Import\Domain\ModelData\NomenclatureData;
 use App\Warehouse\Import\Domain\ModelData\TypeData;
-use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
-use App\Warehouse\KitProperties\Domain\DTOs\KitPropertiesDTO;
-use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData as KitPropertiesNomenclatureData;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Mockery;
@@ -61,10 +60,10 @@ final class UpsertKitFromRowServiceTest extends TestCase
             importHash: 'hash-1',
         );
 
-        $kitProperties = Mockery::mock(KitPropertiesServiceInterface::class);
+        $kitProperties = Mockery::mock(KitPropertiesClientInterface::class);
         $kitProperties->shouldReceive('build')
             ->once()
-            ->with(Mockery::on(fn (array $noms): bool => count($noms) === 2 && $noms[0] instanceof KitPropertiesNomenclatureData && $noms[0]->partNumber === 'A-1'))
+            ->with(Mockery::on(fn (array $noms): bool => count($noms) === 2 && $noms[0] instanceof NomenclatureData && $noms[0]->partNumber === 'A-1'))
             ->andReturn($properties);
 
         $expected = new KitData(
@@ -117,7 +116,7 @@ final class UpsertKitFromRowServiceTest extends TestCase
             ->once()
             ->andReturn(new Collection(['A-1' => $n1]));
 
-        $kitProperties = Mockery::mock(KitPropertiesServiceInterface::class);
+        $kitProperties = Mockery::mock(KitPropertiesClientInterface::class);
         $kitProperties->shouldNotReceive('build');
 
         $command = Mockery::mock(KitCommandInterface::class);
@@ -146,7 +145,7 @@ final class UpsertKitFromRowServiceTest extends TestCase
             importHash: 'hash-2',
         );
 
-        $kitProperties = Mockery::mock(KitPropertiesServiceInterface::class);
+        $kitProperties = Mockery::mock(KitPropertiesClientInterface::class);
         $kitProperties->shouldReceive('build')->once()->andReturn($properties);
 
         $command = Mockery::mock(KitCommandInterface::class);
@@ -165,7 +164,7 @@ final class UpsertKitFromRowServiceTest extends TestCase
 
         $service = new UpsertKitFromRowService(
             $repository,
-            Mockery::mock(KitPropertiesServiceInterface::class),
+            Mockery::mock(KitPropertiesClientInterface::class),
             Mockery::mock(KitCommandInterface::class),
         );
 

@@ -52,6 +52,7 @@ use App\Vehicles\Import\Domain\Contracts\Commands\ManufacturerCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Vehicles\Import\Domain\Contracts\Commands\VehicleCommandInterface;
+use App\Vehicles\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
@@ -77,6 +78,7 @@ use App\Vehicles\Import\Infrastructure\Commands\ManufacturerCommand;
 use App\Vehicles\Import\Infrastructure\Commands\ModificationCommand;
 use App\Vehicles\Import\Infrastructure\Commands\PartSpecificationCommand;
 use App\Vehicles\Import\Infrastructure\Commands\VehicleCommand;
+use App\Vehicles\Import\Infrastructure\Clients\TemplatesClient;
 use App\Vehicles\Import\Infrastructure\Repositories\EngineRepository;
 use App\Vehicles\Import\Infrastructure\Repositories\FeatureValueRepository;
 use App\Vehicles\Import\Infrastructure\Repositories\ManufacturerRepository;
@@ -174,6 +176,10 @@ final class ImportServiceProvider extends ServiceProvider
         LinkEngineModificationFromRowServiceInterface::class => LinkEngineModificationFromRowService::class,
     ];
 
+    private const array CLIENT_BINDINGS = [
+        TemplatesClientInterface::class => TemplatesClient::class,
+    ];
+
     public function register(): void
     {
         // Уведомление о готовом файле уходит в RabbitMQ (сервису с Filament).
@@ -207,6 +213,10 @@ final class ImportServiceProvider extends ServiceProvider
         }
 
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
+        }
+
+        foreach (self::CLIENT_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
     }

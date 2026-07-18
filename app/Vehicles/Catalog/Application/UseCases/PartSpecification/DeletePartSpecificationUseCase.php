@@ -14,7 +14,7 @@ use App\Vehicles\Catalog\Domain\DTOs\PartSpecification\DeletePartSpecificationRe
 use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Vehicles\Catalog\Domain\Events\PartSpecification\PartSpecificationDeleted;
+use App\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationDeleted;
 use Throwable;
 
 /**

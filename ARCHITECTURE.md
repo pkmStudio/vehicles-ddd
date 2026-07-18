@@ -2,8 +2,17 @@
 
 Справочник: **что куда класть, что должно быть тонким, что к какому слою/фиче относится и почему.**
 
-Раскладка — **feature-first**. Домен живёт в `app/Vehicles/`, разбит на фичи; внутри каждой
-фичи — 4 слоя: **Domain → Application → Infrastructure → Presentation**.
+> Актуализация 2026-07-18: `Templates` вынесен в top-level `app/Templates`, а `Warehouse` и
+> `Vehicles` имеют module-level `Shared/` с публичными событиями и общей инфраструктурой
+> (`Shared/Infrastructure/Database/Migrations`, `Shared/Infrastructure/Providers`). Межфичевые
+> синхронные вызовы идут через локальные `Domain/Contracts/Clients/*ClientInterface` фичи-потребителя
+> и adapter в её `Infrastructure/Clients`; чужие service/factory/presenter-контракты в
+> `Application` не импортируем. Детальный план и список выполненных переносов см. `refactor-ms.md`.
+
+Раскладка — **feature-first**. Домены модулей живут в `app/Vehicles/` и `app/Warehouse/`, а
+общая фича шаблонов — в top-level `app/Templates/`. Внутри модуля сначала выбираем фичу
+(`Catalog`, `Import`, `Export`, `Maintenance`, `Packaging`, `KitProperties`, ...), внутри фичи —
+слой: **Domain → Application → Infrastructure → Presentation**.
 
 > История перехода layer-first → feature-first, переход на `spatie/laravel-data`, удаление
 > общей `Domain/Models` и т.п. зафиксированы в `plan.md` (§1–§3, §11). Здесь — только **целевое
@@ -27,6 +36,70 @@ Presentation ──▶ Application ──▶ Domain
 
 Нарушение, за которым следим: Domain/Application фичи **не импортируют** `Maatwebsite\Excel`,
 конкретные пакеты брокера, фасады записи и т.п. — только через порты в `Domain/Contracts`.
+
+### Module `Shared` и межфичевые границы
+
+`Shared/` внутри `Warehouse` или `Vehicles` — публичная часть модуля, а не папка для удобного
+складывания общего кода.
+
+В `Shared` можно класть:
+
+- `Domain/Events` — факты, которые должны слушать другие фичи этого же модуля;
+- `Domain/Enums` — только enum'ы, которые являются wire/db-контрактом между фичами;
+- `Infrastructure/Database/Migrations` и `Infrastructure/Providers/<Module>ServiceProvider.php` —
+  module-level инфраструктуру, общую для всех фич модуля.
+
+В `Shared` не кладём:
+
+- `ModelData`;
+- Eloquent-модели;
+- repositories, commands, use cases, services;
+- внутренние enum'ы конкретного workflow;
+- события, которые используются только внутри одной фичи.
+
+**ModelData остаётся локальным для фичи.** Даже если два `Data`-класса имеют одинаковые поля, это
+совпадение контракта на границе, а не повод делать `Shared/Domain/ModelData`. При межфичевом
+вызове adapter явно переводит DTO/Data фичи-потребителя в публичный контракт фичи-владельца.
+
+**Enum'ы по умолчанию локальные.** В `Shared/Domain/Enums` enum переносится только если расхождение
+значений недопустимо: общий `$casts`/db-контракт, внешний payload для нескольких фич или единый
+словарь значений, которым реально пользуются несколько фич. Workflow-статусы, reason'ы, operation
+types и режимы импорта/экспорта остаются в своей фиче.
+
+### События и sync clients
+
+Событие — это факт "что-то произошло". У события нет return value. Если нужен ответ прямо сейчас,
+это не event flow, а синхронный client/query contract.
+
+Правила:
+
+- cross-feature факт внутри модуля лежит в `<Module>/Shared/Domain/Events`;
+- внутренний факт фичи лежит в `<Feature>/Domain/Events`;
+- request/result workflow делается двумя событиями: request/fact event и отдельный result-event с
+  `runId`/`correlationId`;
+- observer'ы для межфичевой синхронизации не используем, реакция идёт через listener/use case.
+
+Синхронный вызов между фичами оформляется как public client владельца возможности и локальный
+порт у потребителя:
+
+```text
+app/Templates/
+  Domain/Contracts/Clients/TemplatesClientInterface.php
+  Application/Clients/TemplatesClient.php
+
+app/Vehicles/Import/
+  Domain/Contracts/Clients/TemplatesClientInterface.php
+  Infrastructure/Clients/TemplatesClient.php
+```
+
+Application фичи-потребителя зависит только от своего локального
+`Domain/Contracts/Clients/*ClientInterface`. Adapter в `Infrastructure/Clients` уже переводит этот
+локальный язык в публичный API владельца (`Templates`, `KitProperties`, `Packaging`, ...).
+
+Запрещённый вариант для Application-потребителя: напрямую импортировать чужие
+`Domain\Contracts\Services`, `Domain\Contracts\Factories`, `Application\Services`,
+`Application\Factories`, presenters или чужие `ModelData`. Эти зависимости допустимы только внутри
+инфраструктурного adapter'а, который и является границей перевода.
 
 ---
 

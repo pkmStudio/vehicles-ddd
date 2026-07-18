@@ -14,7 +14,7 @@ use App\Vehicles\Catalog\Domain\DTOs\Manufacturer\CreateManufacturerRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Vehicles\Catalog\Domain\Events\Manufacturer\ManufacturerCreated;
+use App\Vehicles\Shared\Domain\Events\Manufacturer\ManufacturerCreated;
 use App\Vehicles\Catalog\Domain\ModelData\ManufacturerData;
 use Throwable;
 
@@ -71,7 +71,7 @@ final readonly class CreateManufacturerUseCase implements CreateManufacturerUseC
             event(new ManufacturerCreated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                manufacturer: $manufacturer,
+                manufacturer: $manufacturer->toArray(),
             ));
 
             return $this->results->completed(

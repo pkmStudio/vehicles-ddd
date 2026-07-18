@@ -4,27 +4,23 @@ declare(strict_types=1);
 
 namespace App\Warehouse\KitProperties\Application\Services;
 
+use App\Warehouse\KitProperties\Domain\Contracts\Clients\PackagingClientInterface;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitComplectationServiceInterface;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitCompositionStrategyInterface;
 use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
 use App\Warehouse\KitProperties\Domain\DTOs\KitPropertiesDTO;
+use App\Warehouse\KitProperties\Domain\DTOs\Packaging\PackDimensionDTO;
+use App\Warehouse\KitProperties\Domain\Exceptions\PackDimensionNotResolvableException;
 use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Warehouse\KitProperties\Domain\ModelData\TypeData;
-use App\Warehouse\Packaging\Domain\Contracts\Services\PackagingServiceInterface;
-use App\Warehouse\Packaging\Domain\Exceptions\PackDimensionNotResolvableException;
-use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData as PackagingNomenclatureData;
-use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData as PackagingPackDimensionData;
-use App\Warehouse\Packaging\Domain\ModelData\TypeData as PackagingTypeData;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use UnexpectedValueException;
 
 /**
- * Считает производные свойства Warehouse-набора (Kit) по его составу. Зовёт `Packaging` через порт
- * `PackagingServiceInterface` — межфичевый вызов внутри домена, не shared kernel, поэтому на
- * границе явно переводит свои `TypeData`/`NomenclatureData` в Packaging-шные (см. план, п.1): обе
- * фичи держат собственные копии этих Data-классов, единая структура полей — совпадение, не связь.
+ * Считает производные свойства Warehouse-набора (Kit) по его составу. Packaging вызывается через
+ * локальный клиент KitProperties, поэтому приложение не зависит от доменных типов соседней фичи.
  */
 final readonly class KitPropertiesService implements KitPropertiesServiceInterface
 {
@@ -32,7 +28,7 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
      * @param  KitCompositionStrategyInterface[]  $strategies  упорядоченный список — первый подходящий побеждает
      */
     public function __construct(
-        private PackagingServiceInterface $packaging,
+        private PackagingClientInterface $packaging,
         private KitComplectationServiceInterface $complectationService,
         private array $strategies,
     ) {}
@@ -98,14 +94,12 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
      *
      * @param  Collection<int, NomenclatureData>  $primary
      */
-    private function resolvePackDimension(Collection $primary, TypeData $type): ?PackagingPackDimensionData
+    private function resolvePackDimension(Collection $primary, TypeData $type): ?PackDimensionDTO
     {
         try {
             return $this->packaging->selectOrCreate(
-                type: $this->toPackagingType($type),
-                nomenclatures: $primary
-                    ->map(fn (NomenclatureData $n): PackagingNomenclatureData => $this->toPackagingNomenclature($n))
-                    ->all(),
+                type: $type,
+                nomenclatures: $primary->all(),
             );
         } catch (PackDimensionNotResolvableException $e) {
             Log::warning(
@@ -132,7 +126,7 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
      *
      * @param  Collection<int, NomenclatureData>  $nomenclatures
      */
-    private function resolveWeight(Collection $nomenclatures, ?PackagingPackDimensionData $packDimension): float
+    private function resolveWeight(Collection $nomenclatures, ?PackDimensionDTO $packDimension): float
     {
         $itemsWeight = $nomenclatures->sum(fn (NomenclatureData $n): int => $n->weight);
 
@@ -192,28 +186,4 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
         return md5(implode('|', $partNumbers));
     }
 
-    /**
-     * Переводит TypeData фичи KitProperties в TypeData фичи Packaging.
-     */
-    private function toPackagingType(TypeData $type): PackagingTypeData
-    {
-        return new PackagingTypeData(
-            name: $type->name,
-            char: $type->char,
-            id: $type->id,
-        );
-    }
-
-    /**
-     * Переводит NomenclatureData фичи KitProperties в NomenclatureData фичи Packaging.
-     */
-    private function toPackagingNomenclature(NomenclatureData $nomenclature): PackagingNomenclatureData
-    {
-        return new PackagingNomenclatureData(
-            partNumber: $nomenclature->partNumber,
-            quantityInPak: $nomenclature->quantityInPak,
-            details: $nomenclature->details,
-            id: $nomenclature->id,
-        );
-    }
 }

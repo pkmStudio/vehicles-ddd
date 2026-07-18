@@ -14,7 +14,7 @@ use App\Vehicles\Catalog\Domain\DTOs\Engine\CreateEngineRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Vehicles\Catalog\Domain\Events\Engine\EngineCreated;
+use App\Vehicles\Shared\Domain\Events\Engine\EngineCreated;
 use App\Vehicles\Catalog\Domain\ModelData\EngineData;
 use Throwable;
 
@@ -80,7 +80,7 @@ final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
             event(new EngineCreated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                engine: $engine,
+                engine: $engine->toArray(),
             ));
 
             return $this->results->completed(

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Import;
 
-use App\Templates\Application\WiperSpecificationService;
 use App\Vehicles\Import\Application\Services\Vehicle\VehicleWiperSpecificationImportService;
 use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
+use App\Vehicles\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Vehicles\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
@@ -42,7 +42,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
             $featureValues ?? Mockery::mock(FeatureValueRepositoryInterface::class),
             $specs,
             $command,
-            new WiperSpecificationService,
+            app(TemplatesClientInterface::class),
             $vehicles,
         );
     }

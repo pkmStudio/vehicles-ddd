@@ -14,7 +14,7 @@ use App\Warehouse\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Warehouse\Catalog\Domain\Events\Kit\KitDeleted;
+use App\Warehouse\Shared\Domain\Events\Kit\KitDeleted;
 use Throwable;
 
 /**

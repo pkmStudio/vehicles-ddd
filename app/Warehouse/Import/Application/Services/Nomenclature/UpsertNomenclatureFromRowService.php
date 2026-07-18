@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Import\Application\Services\Nomenclature;
 
-use App\Templates\Domain\Contracts\Factories\NomenclatureDetailsDataFactoryInterface;
+use App\Warehouse\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Warehouse\Import\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Warehouse\Import\Domain\Contracts\Services\Nomenclature\UpsertNomenclatureFromRowServiceInterface;
 use App\Warehouse\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
@@ -16,7 +16,7 @@ use InvalidArgumentException;
 
 /**
  * Резолвит type_id/brand_id и detail-шаблон по предзагруженным справочникам, собирает `details`
- * через shared kernel Templates и пишет Warehouse-номенклатуру через Command.
+ * через локальный Templates-клиент и пишет Warehouse-номенклатуру через Command.
  */
 final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclatureFromRowServiceInterface
 {
@@ -63,7 +63,7 @@ final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclat
     public function __construct(
         private NomenclatureCommandInterface $command,
         private TypeTemplateResolverInterface $templateResolver,
-        private NomenclatureDetailsDataFactoryInterface $detailsFactory,
+        private TemplatesClientInterface $templates,
     ) {}
 
     /**
@@ -109,8 +109,7 @@ final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclat
             );
         }
 
-        $detailsIndex = self::DETAILS_START_INDEX;
-        $details = $this->detailsFactory->buildFromRow($template, $row, $detailsIndex)->toArray();
+        $details = $this->templates->buildNomenclatureDetails($template, $row, self::DETAILS_START_INDEX);
         $weight = $this->parsePositiveInteger(
             value: $row[7] ?? null,
             columnName: 'Вес',

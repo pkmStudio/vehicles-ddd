@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Export\Application\Services;
 
-use App\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
+use App\Vehicles\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
 use App\Vehicles\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Vehicles\Export\Domain\DTOs\WiperExportRowDTO;
 use App\Vehicles\Export\Domain\ModelData\VehicleData;
-use App\Templates\Domain\Contracts\Services\DetailsDataPresenterInterface;
 use App\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
 use Illuminate\Support\Collection;
@@ -24,10 +23,9 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
         private VehicleRepositoryInterface $vehicles,
         private VehicleExportRowInterface $vehicleRow,
         private WiperRowExpanderInterface $expander,
-        private WiperSpecificationServiceInterface $wiper,
-        private DetailsDataPresenterInterface $detailsPresenter,
+        private TemplatesClientInterface $templates,
     ) {
-        $this->fieldHeadings = $this->detailsPresenter->headingsFor(DetailTemplateEnum::WIPER);
+        $this->fieldHeadings = $this->templates->vehicleDetailHeadings(DetailTemplateEnum::WIPER);
     }
 
     public function getMainRows(bool $isAllow): Collection
@@ -76,8 +74,8 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
             );
         }
 
-        $frontData = $frontSpec ? $this->wiper->sideData($frontSpec->details, WiperSideEnum::FRONT->value) : [];
-        $backData = $backSpec ? $this->wiper->sideData($backSpec->details, WiperSideEnum::BACK->value) : [];
+        $frontData = $frontSpec ? $this->templates->vehicleWiperSideData($frontSpec->details, WiperSideEnum::FRONT->value) : [];
+        $backData = $backSpec ? $this->templates->vehicleWiperSideData($backSpec->details, WiperSideEnum::BACK->value) : [];
 
         $specData = [
             $frontSpec?->featureValue?->name ?? $backSpec?->featureValue?->name,
@@ -86,9 +84,9 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
             $frontSpec?->text ?? $backSpec?->text,
         ];
 
-        $detailsData = $this->detailsPresenter->toExportCells(
+        $detailsData = $this->templates->renderVehicleDetails(
             DetailTemplateEnum::WIPER,
-            $this->wiper->mergeForExport($frontData, $backData),
+            $this->templates->mergeVehicleWiperForExport($frontData, $backData),
         );
 
         return array_merge($baseData, $specData, $detailsData);

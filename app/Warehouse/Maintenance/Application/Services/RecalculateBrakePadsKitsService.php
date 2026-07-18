@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Maintenance\Application\Services;
 
-use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
-use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData as KitPropertiesNomenclatureData;
-use App\Warehouse\KitProperties\Domain\ModelData\TypeData as KitPropertiesTypeData;
+use App\Warehouse\Maintenance\Domain\Contracts\Clients\KitPropertiesClientInterface;
 use App\Warehouse\Maintenance\Infrastructure\Models\Kit;
-use App\Warehouse\Maintenance\Infrastructure\Models\Nomenclature;
 use App\Warehouse\Maintenance\Infrastructure\Models\Type;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -27,7 +24,7 @@ final readonly class RecalculateBrakePadsKitsService
      * Получает сервис расчёта производных свойств набора.
      */
     public function __construct(
-        private KitPropertiesServiceInterface $kitProperties,
+        private KitPropertiesClientInterface $kitProperties,
     ) {}
 
     /**
@@ -92,11 +89,7 @@ final readonly class RecalculateBrakePadsKitsService
             throw new RuntimeException("Набор #{$kit->id} не содержит номенклатур");
         }
 
-        $properties = $this->kitProperties->build(
-            $nomenclatures
-                ->map(fn (Nomenclature $nomenclature): KitPropertiesNomenclatureData => $this->toKitPropertiesNomenclature($nomenclature))
-                ->all(),
-        );
+        $properties = $this->kitProperties->build($nomenclatures->all());
 
         $weight = (int) round($properties->weight);
         $hasChanges = $kit->pack_dimension_id !== $properties->packDimensionId
@@ -129,29 +122,4 @@ final readonly class RecalculateBrakePadsKitsService
         return true;
     }
 
-    /**
-     * Переводит Maintenance-модель номенклатуры в DTO фичи KitProperties.
-     */
-    private function toKitPropertiesNomenclature(Nomenclature $nomenclature): KitPropertiesNomenclatureData
-    {
-        $type = $nomenclature->type === null
-            ? null
-            : new KitPropertiesTypeData(
-                name: $nomenclature->type->name,
-                char: $nomenclature->type->char,
-                id: $nomenclature->type->id,
-            );
-
-        return new KitPropertiesNomenclatureData(
-            typeId: $nomenclature->type_id,
-            partNumber: $nomenclature->part_number,
-            quantityInPak: $nomenclature->quantity_in_pak,
-            quantityPak: $nomenclature->quantity_pak,
-            weight: $nomenclature->weight,
-            material: $nomenclature->material,
-            details: $nomenclature->details,
-            id: $nomenclature->id,
-            type: $type,
-        );
-    }
 }

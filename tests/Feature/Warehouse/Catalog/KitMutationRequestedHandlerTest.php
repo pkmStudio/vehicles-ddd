@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Warehouse\Catalog;
 
 use App\Warehouse\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationNotificationServiceInterface;
+use App\Warehouse\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Warehouse\Catalog\Domain\DTOs\KitProperties\KitPropertiesDTO;
 use App\Warehouse\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
@@ -19,8 +21,6 @@ use App\Warehouse\Catalog\Infrastructure\Models\Kit;
 use App\Warehouse\Catalog\Infrastructure\Models\Nomenclature;
 use App\Warehouse\Catalog\Infrastructure\Models\PackDimension;
 use App\Warehouse\Catalog\Infrastructure\Models\Type;
-use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
-use App\Warehouse\KitProperties\Domain\DTOs\KitPropertiesDTO;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Mockery;
@@ -54,7 +54,7 @@ final class KitMutationRequestedHandlerTest extends TestCase
         $second = Nomenclature::query()->create($this->nomenclatureAttributes($type->id, $brand->id, 'VB-2'));
         $third = Nomenclature::query()->create($this->nomenclatureAttributes($type->id, $brand->id, 'VB-3'));
 
-        $kitProperties = $this->mock(KitPropertiesServiceInterface::class);
+        $kitProperties = $this->mock(KitPropertiesClientInterface::class);
         $kitProperties->shouldReceive('build')
             ->twice()
             ->andReturn(
@@ -120,7 +120,7 @@ final class KitMutationRequestedHandlerTest extends TestCase
 
     public function test_kit_create_is_rejected_when_nomenclature_is_missing(): void
     {
-        $kitProperties = $this->mock(KitPropertiesServiceInterface::class);
+        $kitProperties = $this->mock(KitPropertiesClientInterface::class);
         $kitProperties->shouldNotReceive('build');
 
         $notifier = $this->mock(WarehouseCatalogMutationNotificationServiceInterface::class);
@@ -147,7 +147,7 @@ final class KitMutationRequestedHandlerTest extends TestCase
         $nomenclature = Nomenclature::query()->create($this->nomenclatureAttributes($type->id, $brand->id, 'VB-1'));
         Kit::query()->create($this->kitAttributes($type->id, $packDimension->id, 'hash-duplicate'));
 
-        $kitProperties = $this->mock(KitPropertiesServiceInterface::class);
+        $kitProperties = $this->mock(KitPropertiesClientInterface::class);
         $kitProperties->shouldReceive('build')
             ->once()
             ->andReturn(new KitPropertiesDTO(

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Export\Application\Services\Expanders;
 
-use App\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
+use App\Vehicles\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Vehicles\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
 use App\Vehicles\Export\Domain\DTOs\WiperExportRowDTO;
 use App\Vehicles\Export\Domain\ModelData\PartSpecificationData;
@@ -21,7 +21,7 @@ use Illuminate\Support\Collection;
 final readonly class WiperRowExpander implements WiperRowExpanderInterface
 {
     public function __construct(
-        private WiperSpecificationServiceInterface $wiper,
+        private TemplatesClientInterface $templates,
     ) {}
 
     /**
@@ -91,8 +91,8 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
         return $specifications->filter(function ($spec) use ($side, $other) {
             $details = (array) $spec->details;
 
-            return $this->wiper->sideData($details, $side) !== []
-                && $this->wiper->sideData($details, $other) === [];
+            return $this->templates->vehicleWiperSideData($details, $side) !== []
+                && $this->templates->vehicleWiperSideData($details, $other) === [];
         })->values();
     }
 
@@ -107,8 +107,8 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
         return $specifications->filter(function ($spec) {
             $details = (array) $spec->details;
 
-            return $this->wiper->sideData($details, WiperSideEnum::FRONT->value) !== []
-                && $this->wiper->sideData($details, WiperSideEnum::BACK->value) !== [];
+            return $this->templates->vehicleWiperSideData($details, WiperSideEnum::FRONT->value) !== []
+                && $this->templates->vehicleWiperSideData($details, WiperSideEnum::BACK->value) !== [];
         })->values();
     }
 }

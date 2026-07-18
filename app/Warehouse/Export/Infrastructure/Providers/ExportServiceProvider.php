@@ -13,6 +13,7 @@ use App\Warehouse\Export\Application\Services\Rows\KitExportRow;
 use App\Warehouse\Export\Application\Services\Rows\NomenclatureExportRow;
 use App\Warehouse\Export\Application\Services\TypeTemplateResolver;
 use App\Warehouse\Export\Application\UseCases\External\StartExportUseCase;
+use App\Warehouse\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Warehouse\Export\Domain\Contracts\Exports\KitExportInterface;
 use App\Warehouse\Export\Domain\Contracts\Exports\NomenclatureByTypeExportInterface;
 use App\Warehouse\Export\Domain\Contracts\Exports\WiperAdapterAuditExportInterface;
@@ -32,6 +33,7 @@ use App\Warehouse\Export\Domain\Contracts\UseCases\External\StartExportUseCaseIn
 use App\Warehouse\Export\Infrastructure\Exports\Kit\KitExport;
 use App\Warehouse\Export\Infrastructure\Exports\Nomenclature\NomenclatureByTypeExport;
 use App\Warehouse\Export\Infrastructure\Exports\WiperAdapterAudit\WiperAdapterAuditExport;
+use App\Warehouse\Export\Infrastructure\Clients\TemplatesClient;
 use App\Warehouse\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
 use App\Warehouse\Export\Infrastructure\Repositories\KitRepository;
 use App\Warehouse\Export\Infrastructure\Repositories\NomenclatureRepository;
@@ -71,6 +73,10 @@ final class ExportServiceProvider extends ServiceProvider
 
     private const array USE_CASE_BINDINGS = [
         StartExportUseCaseInterface::class => StartExportUseCase::class,
+    ];
+
+    private const array CLIENT_BINDINGS = [
+        TemplatesClientInterface::class => TemplatesClient::class,
     ];
 
     /**
@@ -116,6 +122,13 @@ final class ExportServiceProvider extends ServiceProvider
         }
 
         foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
+        }
+
+        foreach (self::CLIENT_BINDINGS as $interface => $implementation) {
             $this->app->bind(
                 abstract: $interface,
                 concrete: $implementation,

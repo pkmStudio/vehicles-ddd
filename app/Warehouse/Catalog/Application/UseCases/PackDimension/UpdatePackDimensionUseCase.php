@@ -15,7 +15,7 @@ use App\Warehouse\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Warehouse\Catalog\Domain\Events\PackDimension\PackDimensionUpdated;
+use App\Warehouse\Shared\Domain\Events\PackDimension\PackDimensionUpdated;
 use App\Warehouse\Catalog\Domain\ModelData\PackDimensionData;
 use Throwable;
 
@@ -92,7 +92,7 @@ final readonly class UpdatePackDimensionUseCase implements UpdatePackDimensionUs
             event(new PackDimensionUpdated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                packDimension: $packDimension,
+                packDimension: $packDimension->toArray(),
             ));
 
             return $this->results->completed(

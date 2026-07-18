@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Warehouse\Import\Application\Services\Kit;
 
 use App\Warehouse\Import\Domain\Contracts\Commands\KitCommandInterface;
+use App\Warehouse\Import\Domain\Contracts\Clients\KitPropertiesClientInterface;
 use App\Warehouse\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Warehouse\Import\Domain\Contracts\Services\Kit\UpsertKitFromRowServiceInterface;
 use App\Warehouse\Import\Domain\ModelData\KitData;
 use App\Warehouse\Import\Domain\ModelData\NomenclatureData;
-use App\Warehouse\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
-use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData as KitPropertiesNomenclatureData;
-use App\Warehouse\KitProperties\Domain\ModelData\TypeData as KitPropertiesTypeData;
 use InvalidArgumentException;
 
 /**
@@ -28,7 +26,7 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
-        private KitPropertiesServiceInterface $kitProperties,
+        private KitPropertiesClientInterface $kitProperties,
         private KitCommandInterface $command,
     ) {}
 
@@ -57,10 +55,7 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
 
         $ordered = $this->resolveOrderedNomenclatures($partNumbers);
 
-        $properties = $this->kitProperties->build(array_map(
-            fn (NomenclatureData $n): KitPropertiesNomenclatureData => $this->toKitPropertiesNomenclature($n),
-            $ordered,
-        ));
+        $properties = $this->kitProperties->build($ordered);
 
         if ($properties->packDimensionId === null) {
             throw new InvalidArgumentException(
@@ -150,29 +145,4 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
         return $nomenclature->id;
     }
 
-    /**
-     * Переводит Import-снимок номенклатуры в DTO фичи KitProperties.
-     */
-    private function toKitPropertiesNomenclature(NomenclatureData $nomenclature): KitPropertiesNomenclatureData
-    {
-        $type = $nomenclature->type === null
-            ? null
-            : new KitPropertiesTypeData(
-                name: $nomenclature->type->name,
-                char: $nomenclature->type->char,
-                id: $nomenclature->type->id,
-            );
-
-        return new KitPropertiesNomenclatureData(
-            typeId: $nomenclature->typeId,
-            partNumber: $nomenclature->partNumber,
-            quantityInPak: $nomenclature->quantityInPak,
-            quantityPak: $nomenclature->quantityPak,
-            weight: $nomenclature->weight,
-            material: $nomenclature->material,
-            details: $nomenclature->details,
-            id: $nomenclature->id,
-            type: $type,
-        );
-    }
 }

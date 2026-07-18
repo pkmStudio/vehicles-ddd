@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Templates\Infrastructure\Providers;
 
+use App\Templates\Application\Clients\TemplatesClient;
 use App\Templates\Application\Factories\DetailsDataFactory;
 use App\Templates\Application\Factories\NomenclatureDetailsDataFactory;
 use App\Templates\Application\Services\DetailsDataPresenter;
 use App\Templates\Application\Services\NomenclatureDetailsDataPresenter;
 use App\Templates\Application\WiperSpecificationService;
+use App\Templates\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Templates\Domain\Contracts\Factories\DetailsDataFactoryInterface;
 use App\Templates\Domain\Contracts\Factories\NomenclatureDetailsDataFactoryInterface;
 use App\Templates\Domain\Contracts\Services\DetailsDataPresenterInterface;
@@ -28,5 +30,6 @@ final class TemplatesServiceProvider extends ServiceProvider
         $this->app->bind(DetailsDataPresenterInterface::class, DetailsDataPresenter::class);
         $this->app->bind(NomenclatureDetailsDataFactoryInterface::class, NomenclatureDetailsDataFactory::class);
         $this->app->bind(NomenclatureDetailsDataPresenterInterface::class, NomenclatureDetailsDataPresenter::class);
+        $this->app->bind(TemplatesClientInterface::class, TemplatesClient::class);
     }
 }

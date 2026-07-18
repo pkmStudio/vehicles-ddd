@@ -15,7 +15,7 @@ use App\Vehicles\Catalog\Domain\DTOs\PartSpecification\CreatePartSpecificationRe
 use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Vehicles\Catalog\Domain\Events\PartSpecification\PartSpecificationCreated;
+use App\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use App\Vehicles\Catalog\Domain\ModelData\PartSpecificationData;
 use Throwable;
 
@@ -90,7 +90,7 @@ final readonly class CreatePartSpecificationUseCase implements CreatePartSpecifi
             event(new PartSpecificationCreated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                specification: $specification,
+                specification: $specification->toArray(),
             ));
 
             return $this->results->completed(

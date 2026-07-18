@@ -16,7 +16,7 @@ use App\Warehouse\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Warehouse\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Warehouse\Catalog\Domain\Events\Nomenclature\NomenclatureUpdated;
+use App\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use App\Warehouse\Catalog\Domain\ModelData\NomenclatureData;
 use Throwable;
 
@@ -107,7 +107,7 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
             event(new NomenclatureUpdated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                nomenclature: $nomenclature,
+                nomenclature: $nomenclature->toArray(),
             ));
 
             return $this->results->completed(

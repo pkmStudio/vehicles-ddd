@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Vehicles\Import;
 
 use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
+use App\Vehicles\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleWiperSheetRowMapper;
 use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
 use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
 use App\Vehicles\Import\Infrastructure\Models\Vehicle;
-use App\Templates\Application\Factories\DetailsDataFactory;
 use App\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Vehicles\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 use RuntimeException;
@@ -80,7 +80,7 @@ final class VehicleWipersSheetImportTest extends TestCase
 
     private function rowMapper(): VehicleWiperSheetRowMapper
     {
-        return new VehicleWiperSheetRowMapper(new ImportRowValueFormatter, new DetailsDataFactory);
+        return new VehicleWiperSheetRowMapper(new ImportRowValueFormatter, app(TemplatesClientInterface::class));
     }
 
     /**

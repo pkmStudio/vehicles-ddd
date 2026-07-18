@@ -1,0 +1,14 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Vehicles\Maintenance\Domain\Contracts\Clients;
+
+interface TemplatesClientInterface
+{
+    /**
+     * @param  array<string, mixed>  $details
+     * @return array<int, array<string, mixed>>
+     */
+    public function splitVehicleWiperSpecification(array $details, ?int $partSpecificationId): array;
+}

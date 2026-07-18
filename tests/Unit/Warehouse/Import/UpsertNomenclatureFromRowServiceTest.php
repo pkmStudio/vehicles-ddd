@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\Import;
 
-use App\Templates\Domain\Contracts\Factories\NomenclatureDetailsDataFactoryInterface;
 use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
-use App\Templates\Domain\ModelData\Nomenclature\GenericDetailsData;
 use App\Warehouse\Import\Application\Services\Nomenclature\UpsertNomenclatureFromRowService;
+use App\Warehouse\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Warehouse\Import\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Warehouse\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Warehouse\Import\Domain\ModelData\BrandData;
@@ -38,7 +37,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
 
     /**
      * Проверяет happy-path: type/brand резолвятся по имени, шаблон — через resolver, details —
-     * через Templates-фабрику, материал/вид техники переводятся в ключи, запись без id уходит в
+     * через локальный Templates-клиент, материал/вид техники переводятся в ключи, запись без id уходит в
      * upsertByPartNumber.
      */
     public function test_resolves_type_brand_and_upserts_by_part_number(): void
@@ -51,15 +50,11 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
             ->with(Mockery::on(fn (TypeData $type) => $type->id === 5))
             ->andReturn(NomenclatureDetailTemplateEnum::V_BELT);
 
-        $detailsFactory = Mockery::mock(NomenclatureDetailsDataFactoryInterface::class);
-        $detailsFactory->shouldReceive('buildFromRow')
+        $templates = Mockery::mock(TemplatesClientInterface::class);
+        $templates->shouldReceive('buildNomenclatureDetails')
             ->once()
             ->with(NomenclatureDetailTemplateEnum::V_BELT, Mockery::type('array'), Mockery::any())
-            ->andReturnUsing(function (NomenclatureDetailTemplateEnum $template, array $row, int &$index) {
-                $index = 12;
-
-                return new GenericDetailsData;
-            });
+            ->andReturn([]);
 
         $command = Mockery::mock(NomenclatureCommandInterface::class);
         $command->shouldNotReceive('updateById');
@@ -79,7 +74,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
             }))
             ->andReturn($expected);
 
-        $service = new UpsertNomenclatureFromRowService($command, $templateResolver, $detailsFactory);
+        $service = new UpsertNomenclatureFromRowService($command, $templateResolver, $templates);
 
         $this->assertSame($expected, $service->upsertFromRow($this->validRow(), $this->types(), $this->brands()));
     }
@@ -95,14 +90,10 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
         $templateResolver = Mockery::mock(TypeTemplateResolverInterface::class);
         $templateResolver->shouldReceive('resolve')->once()->andReturn(NomenclatureDetailTemplateEnum::V_BELT);
 
-        $detailsFactory = Mockery::mock(NomenclatureDetailsDataFactoryInterface::class);
-        $detailsFactory->shouldReceive('buildFromRow')
+        $templates = Mockery::mock(TemplatesClientInterface::class);
+        $templates->shouldReceive('buildNomenclatureDetails')
             ->once()
-            ->andReturnUsing(function (NomenclatureDetailTemplateEnum $template, array $row, int &$index) {
-                $index = 12;
-
-                return new GenericDetailsData;
-            });
+            ->andReturn([]);
 
         $row = $this->validRow();
         $row[0] = '99';
@@ -114,7 +105,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
             ->with(Mockery::on(fn (NomenclatureData $data) => $data->id === 99))
             ->andReturn($expected);
 
-        $service = new UpsertNomenclatureFromRowService($command, $templateResolver, $detailsFactory);
+        $service = new UpsertNomenclatureFromRowService($command, $templateResolver, $templates);
 
         $this->assertSame($expected, $service->upsertFromRow($row, $this->types(), $this->brands()));
     }
@@ -124,7 +115,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
         $service = new UpsertNomenclatureFromRowService(
             Mockery::mock(NomenclatureCommandInterface::class),
             Mockery::mock(TypeTemplateResolverInterface::class),
-            Mockery::mock(NomenclatureDetailsDataFactoryInterface::class),
+            Mockery::mock(TemplatesClientInterface::class),
         );
 
         $row = $this->validRow();
@@ -140,7 +131,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
         $service = new UpsertNomenclatureFromRowService(
             Mockery::mock(NomenclatureCommandInterface::class),
             Mockery::mock(TypeTemplateResolverInterface::class),
-            Mockery::mock(NomenclatureDetailsDataFactoryInterface::class),
+            Mockery::mock(TemplatesClientInterface::class),
         );
 
         $row = $this->validRow();
@@ -159,7 +150,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
         $service = new UpsertNomenclatureFromRowService(
             Mockery::mock(NomenclatureCommandInterface::class),
             $templateResolver,
-            Mockery::mock(NomenclatureDetailsDataFactoryInterface::class),
+            Mockery::mock(TemplatesClientInterface::class),
         );
 
         $this->expectException(InvalidArgumentException::class);
@@ -172,14 +163,14 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
         $templateResolver = Mockery::mock(TypeTemplateResolverInterface::class);
         $templateResolver->shouldReceive('resolve')->once()->andReturn(NomenclatureDetailTemplateEnum::V_BELT);
 
-        $detailsFactory = Mockery::mock(NomenclatureDetailsDataFactoryInterface::class);
-        $detailsFactory->shouldReceive('buildFromRow')->once()->andReturn(new GenericDetailsData);
+        $templates = Mockery::mock(TemplatesClientInterface::class);
+        $templates->shouldReceive('buildNomenclatureDetails')->once()->andReturn([]);
 
         $command = Mockery::mock(NomenclatureCommandInterface::class);
         $command->shouldNotReceive('upsertByPartNumber');
         $command->shouldNotReceive('updateById');
 
-        $service = new UpsertNomenclatureFromRowService($command, $templateResolver, $detailsFactory);
+        $service = new UpsertNomenclatureFromRowService($command, $templateResolver, $templates);
 
         $row = $this->validRow();
         $row[7] = '0';

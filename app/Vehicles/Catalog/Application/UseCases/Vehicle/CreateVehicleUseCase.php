@@ -14,7 +14,7 @@ use App\Vehicles\Catalog\Domain\DTOs\Vehicle\CreateVehicleRequestDTO;
 use App\Vehicles\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Vehicles\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Vehicles\Catalog\Domain\Events\Vehicle\VehicleCreated;
+use App\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
 use App\Vehicles\Catalog\Domain\ModelData\VehicleData;
 use Throwable;
 
@@ -111,7 +111,7 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
             event(new VehicleCreated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                vehicle: $vehicle,
+                vehicle: $vehicle->toArray(),
             ));
 
             return $this->results->completed(
