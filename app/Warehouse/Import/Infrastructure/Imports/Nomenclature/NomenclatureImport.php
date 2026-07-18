@@ -10,7 +10,10 @@ use App\Warehouse\Import\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Warehouse\Import\Domain\Contracts\Services\Nomenclature\UpsertNomenclatureFromRowServiceInterface;
 use App\Warehouse\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Warehouse\Import\Domain\Events\NomenclatureImportCompleted;
+use App\Warehouse\Import\Infrastructure\Models\Nomenclature;
 use App\Warehouse\Import\Infrastructure\Traits\CachesImportFailures;
+use App\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
+use App\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -89,10 +92,14 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
 
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
+            $id = isset($rowValues[0]) && trim((string) $rowValues[0]) !== '' ? (int) trim((string) $rowValues[0]) : null;
             $partNumber = trim((string) ($rowValues[5] ?? ''));
+            $wasExisting = $id !== null
+                || ($partNumber !== '' && Nomenclature::query()->where('part_number', $partNumber)->exists());
 
             try {
-                $this->service->upsertFromRow($rowValues, $types, $brands);
+                $nomenclature = $this->service->upsertFromRow($rowValues, $types, $brands);
+                $this->dispatchNomenclatureMutationEvent($nomenclature->toArray(), $wasExisting);
             } catch (InvalidArgumentException|RuntimeException $e) {
                 $failure = new Failure(
                     row: $indexRow + $this->startRow(),
@@ -134,5 +141,32 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
                 runId: $this->runId,
             )),
         ];
+    }
+
+    /**
+     * Диспатчит публичный факт изменения номенклатуры для внешних фич, например MoySklad.
+     *
+     * @param  array<string, mixed>  $nomenclature
+     */
+    private function dispatchNomenclatureMutationEvent(array $nomenclature, bool $wasExisting): void
+    {
+        $userId = $this->userId ?? 0;
+        $operationId = $this->runId ?? 'warehouse-nomenclature-import';
+
+        if ($wasExisting) {
+            event(new NomenclatureUpdated(
+                userId: $userId,
+                operationId: $operationId,
+                nomenclature: $nomenclature,
+            ));
+
+            return;
+        }
+
+        event(new NomenclatureCreated(
+            userId: $userId,
+            operationId: $operationId,
+            nomenclature: $nomenclature,
+        ));
     }
 }

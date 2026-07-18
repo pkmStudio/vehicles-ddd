@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Warehouse\Catalog\Domain\Contracts\Repositories;
 
 use App\Warehouse\Catalog\Domain\DTOs\Nomenclature\NomenclatureDeletionBlockersDTO;
+use App\Warehouse\Catalog\Domain\DTOs\Nomenclature\NomenclatureIntegrationDeletionContextDTO;
 use App\Warehouse\Catalog\Domain\ModelData\NomenclatureData;
 use Illuminate\Support\Collection;
 
@@ -40,4 +41,11 @@ interface NomenclatureRepositoryInterface
      * Собирает зависимости, блокирующие удаление номенклатуры.
      */
     public function deletionBlockers(int $id): ?NomenclatureDeletionBlockersDTO;
+
+    /**
+     * Возвращает integration contexts, которые нужно передать в событие удаления.
+     *
+     * @return Collection<int, NomenclatureIntegrationDeletionContextDTO>
+     */
+    public function deletionIntegrationContexts(int $id): Collection;
 }

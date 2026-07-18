@@ -10,6 +10,7 @@ use App\Warehouse\Import\Domain\Events\NomenclatureImportCompleted;
 use App\Warehouse\Import\Infrastructure\Models\Brand;
 use App\Warehouse\Import\Infrastructure\Models\Nomenclature;
 use App\Warehouse\Import\Infrastructure\Models\Type;
+use App\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
@@ -38,7 +39,7 @@ final class NomenclatureImportTest extends TestCase
      */
     public function test_imports_nomenclature_from_csv_into_database(): void
     {
-        Event::fake([NomenclatureImportCompleted::class]);
+        Event::fake([NomenclatureCreated::class, NomenclatureImportCompleted::class]);
 
         Type::query()->create(['name' => 'V-Belt', 'char' => 'VB']);
         Brand::query()->create([
@@ -64,6 +65,7 @@ final class NomenclatureImportTest extends TestCase
         ]);
 
         Event::assertDispatched(NomenclatureImportCompleted::class);
+        Event::assertDispatched(NomenclatureCreated::class);
     }
 
     /**

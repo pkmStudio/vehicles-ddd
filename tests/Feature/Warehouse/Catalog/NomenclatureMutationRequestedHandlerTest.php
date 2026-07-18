@@ -201,6 +201,46 @@ final class NomenclatureMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseHas('nomenclatures', ['id' => $nomenclature->id]);
     }
 
+    public function test_nomenclature_delete_allows_moysklad_integration_and_detaches_it(): void
+    {
+        $type = Type::query()->create(['name' => 'V-Belt', 'char' => 'VB']);
+        $brand = Brand::query()->create($this->brandAttributes());
+        $nomenclature = Nomenclature::query()->create($this->nomenclatureAttributes($type->id, $brand->id, 'VB-MS'));
+
+        DB::table('nomenclature_integrations')->insert([
+            'nomenclature_id' => $nomenclature->id,
+            'provider' => 'moysklad',
+            'external_id' => '44444444-4444-4444-4444-444444444444',
+            'external_code' => "nomenclature:{$nomenclature->id}",
+            'sync_status' => 'synced',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $notifier = $this->mock(WarehouseCatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (WarehouseCatalogMutationResultDTO $result): bool => $result->entity === WarehouseCatalogEntityEnum::Nomenclature
+                && $result->operation === WarehouseCatalogMutationOperationEnum::Delete
+                && $result->status === WarehouseCatalogMutationStatusEnum::Completed));
+
+        app(NomenclatureMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'warehouse-nomenclature-delete-moysklad-1',
+            'operation' => 'delete',
+            'nomenclature' => [
+                'id' => $nomenclature->id,
+            ],
+        ]);
+
+        $this->assertDatabaseMissing('nomenclatures', ['id' => $nomenclature->id]);
+        $this->assertDatabaseHas('nomenclature_integrations', [
+            'provider' => 'moysklad',
+            'external_id' => '44444444-4444-4444-4444-444444444444',
+            'nomenclature_id' => null,
+        ]);
+    }
+
     /**
      * @return array<string, mixed>
      */

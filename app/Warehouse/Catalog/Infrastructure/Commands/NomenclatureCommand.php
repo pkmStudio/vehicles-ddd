@@ -47,6 +47,14 @@ final readonly class NomenclatureCommand implements NomenclatureCommandInterface
     public function deleteById(int $id): void
     {
         DB::transaction(function () use ($id): void {
+            DB::table('nomenclature_integrations')
+                ->where('provider', 'moysklad')
+                ->where('nomenclature_id', $id)
+                ->update([
+                    'nomenclature_id' => null,
+                    'updated_at' => now(),
+                ]);
+
             Nomenclature::query()->whereKey($id)->delete();
         });
     }

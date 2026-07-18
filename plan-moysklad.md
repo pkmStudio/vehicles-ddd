@@ -1,7 +1,7 @@
 # План: пакет `pkmstudio/moysklad-client` + фича `Warehouse/MoySklad`
 
-> Статус: анализ dan-center завершён, архитектурные решения зафиксированы (сессия 2026-07-12).
-> Пошаговой реализации ещё не было — это следующий шаг, когда решим приступать (см. «План работ»).
+> Статус: пакет подключён, фича `Warehouse/MoySklad` реализована в dan-vehicles, sync включается
+> явно через env `WAREHOUSE_MOYSKLAD_NOMENCLATURE_SYNC_ENABLED=true`.
 
 ## Источник
 
@@ -195,10 +195,9 @@ config/warehouse/moysklad.php                        # nomenclature_sync.* (enab
    `MoySkladApiDisabledException`, только логируется — job считается успешно обработанной, ретрая
    не будет, в `failed_jobs` запись не попадёт. Перенести как есть (сознательно, задокументировав) —
    или исправить на `$job->fail($e)`? Влияет на наблюдаемость сразу у всех потребителей пакета.
-2. **События вместо observer.** Observer не используем. Catalog уже диспатчит shared
-   `NomenclatureCreated`/`NomenclatureUpdated`/`NomenclatureDeleted`. Import нужно доработать:
-   при per-row upsert номенклатуры диспатчить те же shared events, иначе изменения из Excel/import
-   не попадут в МойСклад до ручного backfill.
+2. **Решено: события вместо observer.** Observer не используем. Catalog диспатчит shared
+   `NomenclatureCreated`/`NomenclatureUpdated`/`NomenclatureDeleted`; Import при per-row upsert
+   номенклатуры тоже диспатчит `NomenclatureCreated`/`NomenclatureUpdated`.
 3. **`NomenclatureProductMapper` не покрывает новые поля** dan-vehicles-модели (`brand_id`,
    `material`, `vehicle_type`, `quantity_pak`, `quantity_in_pak`, `details`) — в dan-center мапятся
    только `name`/`country`/`part_number`/`color`/`weight`. Решить при реализации, нужно ли
@@ -209,13 +208,12 @@ config/warehouse/moysklad.php                        # nomenclature_sync.* (enab
    синхронизация именно складских `kits` в МойСклад как отдельных "комплектов" (не только
    номенклатуры) — это отдельная, не проанализированная в dan-center задача, нужно уточнять у
    бизнеса, а не переносить существующий код (он про другую сущность).
-5. **Удаление в МойСклад.** При локальном удалении номенклатуры `Warehouse/MoySklad` тоже удаляет
+5. **Решено: удаление в МойСклад.** При локальном удалении номенклатуры `Warehouse/MoySklad` тоже удаляет
    товар в МойСклад. Для этого listener на `NomenclatureDeleted` ставит `DeleteNomenclatureJob`,
    job находит integration по `provider=moysklad` + локальному `nomenclature_id`/сохранённому
-   external id, вызывает delete в клиенте МойСклад и после успеха обновляет integration: либо
-   отвязывает `nomenclature_id`, либо помечает статусом `deleted`/`synced_at`. Перед реализацией
-   проверить blockers удаления в Catalog: запись в `nomenclature_integrations` не должна навсегда
-   запрещать удаление, если это integration МойСклад и есть delete workflow.
+   external id, вызывает delete в клиенте МойСклад и после успеха помечает integration статусом
+   `deleted`. Catalog deletion blockers больше не считают `provider=moysklad` блокером; перед
+   физическим удалением локальной номенклатуры `moysklad` integration отвязывается от FK.
 6. **`organization_id`/`store_id` захардкожены дефолтами в конфиге dan-center** (реальные UUID
    аккаунта) — при переносе в dan-vehicles завести отдельные env-значения, не копировать чужой
    аккаунт как дефолт "на всякий случай".
@@ -263,20 +261,24 @@ config/warehouse/moysklad.php                        # nomenclature_sync.* (enab
    автодискавери (`extra.laravel.providers` в composer.json пакета), в `bootstrap/providers.php`
    ничего вручную не добавлялось — как и у `rabbit-transport`. Полный набор тестов проекта (214)
    был зелёный после подключения.
-3. Создать `app/Warehouse/MoySklad/*` — Infrastructure Models (свои копии `Nomenclature`/
+3. ✅ **Сделано.** Создано `app/Warehouse/MoySklad/*` — Infrastructure Models (свои копии `Nomenclature`/
    `NomenclatureIntegration`), локальный `MoySkladProductClientInterface` + adapter к пакету,
    `NomenclatureProductMapper`/`NomenclatureSyncService`/`NomenclatureBackfillService` (перенос
    `ProductsResource`+`NomenclatureBackfillService` с разрезанием на генерик/бизнес, как описано
    выше), event listeners, Jobs, консольная команда, провайдер.
-4. `config/warehouse/moysklad.php` — только `nomenclature_sync.*`.
-5. Доработать Import: при per-row upsert номенклатуры диспатчить shared
+4. ✅ **Сделано.** `config/warehouse/moysklad.php` — только `queue` и `nomenclature_sync.*`.
+   Синхронизация по умолчанию выключена; включается через
+   `WAREHOUSE_MOYSKLAD_NOMENCLATURE_SYNC_ENABLED=true`.
+5. ✅ **Сделано.** Import при per-row upsert номенклатуры диспатчит shared
    `NomenclatureCreated`/`NomenclatureUpdated`, чтобы MoySklad sync не зависел от observer и не
    пропускал Excel/import изменения.
-6. Реализовать delete workflow: на `NomenclatureDeleted` удалять товар в МойСклад и корректно
+6. ✅ **Сделано.** Delete workflow: на `NomenclatureDeleted` удалять товар в МойСклад и корректно
    обновлять/отвязывать `nomenclature_integrations`; при необходимости поправить Catalog deletion
    blockers.
-7. Тесты: unit на `NomenclatureProductMapper`/`NomenclatureSyncService` (мокая локальный
+7. ✅ **Сделано.** Тесты: unit на `NomenclatureProductMapper`, feature на `NomenclatureSyncService`
+   (мокая локальный
    `MoySkladProductClientInterface`), feature-тест на Event→Listener→Job→client end-to-end,
-   отдельный тест на delete workflow.
-8. Решить открытые вопросы 1–6 выше до или во время реализации (не блокеры для старта, но должны
-   быть решены до продакшена).
+   отдельный тест на delete workflow. Полный suite после реализации: 220 тестов зелёные.
+8. Остаётся перед продакшен-включением: проверить реальные env `MOYSKLAD_*`, включить
+   `WAREHOUSE_MOYSKLAD_NOMENCLATURE_SYNC_ENABLED=true` и прогнать backfill-команду
+   `warehouse:moysklad-backfill-nomenclature`.

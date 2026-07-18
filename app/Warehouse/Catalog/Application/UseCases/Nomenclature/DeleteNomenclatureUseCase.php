@@ -85,6 +85,12 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
                 );
             }
 
+            $integrationContexts = $this->nomenclatures
+                ->deletionIntegrationContexts($request->id)
+                ->map(fn ($context): array => $context->toArray())
+                ->values()
+                ->all();
+
             $this->command->deleteById($request->id);
 
             event(new NomenclatureDeleted(
@@ -92,6 +98,7 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
                 operationId: $request->operationId,
                 nomenclatureId: $request->id,
                 partNumber: $nomenclature->partNumber,
+                integrations: $integrationContexts,
             ));
 
             return $this->results->completed(
