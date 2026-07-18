@@ -5,24 +5,16 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Infrastructure\Exports\Engine;
 
 use App\Vehicles\Export\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
-use App\Vehicles\Export\Domain\DTOs\ExportRunContextDTO;
+use App\Vehicles\Export\Domain\Enums\ExportTypeEnum;
+use App\Vehicles\Export\Infrastructure\Exports\AbstractMultiSheetExport;
 use App\Vehicles\Export\Infrastructure\Exports\Engine\Sheets\EngineMainSheetExport;
 use App\Vehicles\Export\Infrastructure\Exports\Engine\Sheets\EngineSparkPlugsSheetExport;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Maatwebsite\Excel\Excel;
-use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
-final readonly class EngineMultiSheetExport implements EngineMultiSheetExportInterface, WithMultipleSheets
+final readonly class EngineMultiSheetExport extends AbstractMultiSheetExport implements EngineMultiSheetExportInterface
 {
-    public function export(ExportRunContextDTO $context, ?string $disk = null): string
+    protected function exportType(): ExportTypeEnum
     {
-        $disk ??= (string) config('vehicles.export.output.disk', 'local');
-        $directory = (string) config('vehicles.export.output.directory', 'exports');
-        $path = sprintf('%s/engine-catalog-%s.xlsx', $directory, $context->runId);
-
-        ExcelFacade::store($this, $path, $disk, Excel::XLSX);
-
-        return $path;
+        return ExportTypeEnum::Engine;
     }
 
     public function sheets(): array

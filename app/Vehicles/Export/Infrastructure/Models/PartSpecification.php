@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Vehicles\Export\Infrastructure\Models;
 
-use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -23,12 +22,5 @@ class PartSpecification extends AbstractModel
     public function featureValue(): BelongsTo
     {
         return $this->belongsTo(FeatureValue::class, 'feature_value_id', 'id');
-    }
-
-    public function vehicle(): BelongsTo
-    {
-        return $this
-            ->belongsTo(Vehicle::class, 'partable_id', 'id')
-            ->where('part_specifications.partable_type', PartableTypeEnum::VEHICLE->value);
     }
 }

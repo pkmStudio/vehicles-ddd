@@ -5,23 +5,18 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Application\Services\External;
 
 use App\Vehicles\Export\Domain\Contracts\Services\External\CleanupStaleExportFilesServiceInterface;
+use App\Vehicles\Export\Domain\Enums\ExportTypeEnum;
 use Illuminate\Support\Facades\Storage;
 
 final readonly class CleanupStaleExportFilesService implements CleanupStaleExportFilesServiceInterface
 {
     /**
-     * Шаблоны имён файлов, которые пишут VehicleMultiSheetExport/EngineMultiSheetExport
-     * (см. sprintf в соответствующих export()). Ограничение по паттерну и по подпапке —
-     * намеренно, а не «весь диск»: 'output.directory' на этом диске делят с другим
+     * Ограничение по enum-префиксам и по подпапке — намеренно, а не «весь диск»:
+     * 'output.directory' на этом диске делят с другим
      * контентом (Import кладёт туда же отчёты об ошибках, 'exports/import-failures*.csv'),
      * поэтому неявная зависимость от постороннего файла в той же папке — не то, ради чего
      * стоит рисковать удалением чужого файла.
      */
-    private const array FILE_PATTERNS = [
-        'vehicle-catalog-*.xlsx',
-        'engine-catalog-*.xlsx',
-    ];
-
     public function cleanup(): int
     {
         $disk = (string) config('vehicles.export.output.disk', 'local');
@@ -52,12 +47,23 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
     {
         $fileName = basename($path);
 
-        foreach (self::FILE_PATTERNS as $pattern) {
+        foreach ($this->filePatterns() as $pattern) {
             if (fnmatch($pattern, $fileName)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function filePatterns(): array
+    {
+        return array_map(
+            static fn (ExportTypeEnum $type): string => $type->filePrefix().'-*.xlsx',
+            ExportTypeEnum::cases(),
+        );
     }
 }

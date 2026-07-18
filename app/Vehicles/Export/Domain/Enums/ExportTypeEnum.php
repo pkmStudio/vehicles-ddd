@@ -11,4 +11,12 @@ enum ExportTypeEnum: string
 {
     case Vehicle = 'vehicle_multi_sheet';
     case Engine = 'engine_multi_sheet';
+
+    public function filePrefix(): string
+    {
+        return match ($this) {
+            self::Vehicle => 'vehicle-catalog',
+            self::Engine => 'engine-catalog',
+        };
+    }
 }

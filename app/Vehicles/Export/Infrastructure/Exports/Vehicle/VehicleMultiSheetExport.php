@@ -5,28 +5,20 @@ declare(strict_types=1);
 namespace App\Vehicles\Export\Infrastructure\Exports\Vehicle;
 
 use App\Vehicles\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
-use App\Vehicles\Export\Domain\DTOs\ExportRunContextDTO;
+use App\Vehicles\Export\Domain\Enums\ExportTypeEnum;
+use App\Vehicles\Export\Infrastructure\Exports\AbstractMultiSheetExport;
 use App\Vehicles\Export\Infrastructure\Exports\Vehicle\Sheets\VehicleMainSheetExport;
 use App\Vehicles\Export\Infrastructure\Exports\Vehicle\Sheets\VehicleWipersSheetExport;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Maatwebsite\Excel\Excel;
-use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
-final readonly class VehicleMultiSheetExport implements VehicleMultiSheetExportInterface, WithMultipleSheets
+final readonly class VehicleMultiSheetExport extends AbstractMultiSheetExport implements VehicleMultiSheetExportInterface
 {
     public function __construct(
         private bool $isAllow = false,
     ) {}
 
-    public function export(ExportRunContextDTO $context, ?string $disk = null): string
+    protected function exportType(): ExportTypeEnum
     {
-        $disk ??= (string) config('vehicles.export.output.disk', 'local');
-        $directory = (string) config('vehicles.export.output.directory', 'exports');
-        $path = sprintf('%s/vehicle-catalog-%s.xlsx', $directory, $context->runId);
-
-        ExcelFacade::store($this, $path, $disk, Excel::XLSX);
-
-        return $path;
+        return ExportTypeEnum::Vehicle;
     }
 
     public function sheets(): array
