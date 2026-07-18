@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Vehicles\Features\Catalog\Domain\Enums;
+
+/**
+ * Перечисляет допустимые значения потока мутаций каталога.
+ */
+enum CatalogEntityEnum: string
+{
+    case Vehicle = 'vehicle';
+    case Manufacturer = 'manufacturer';
+    case Engine = 'engine';
+    case Modification = 'modification';
+    case PartSpecification = 'part_specification';
+}

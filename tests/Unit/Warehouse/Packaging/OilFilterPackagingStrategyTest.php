@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\Packaging;
 
-use App\Warehouse\Packaging\Application\Services\Strategies\OilFilterPackagingStrategy;
-use App\Warehouse\Packaging\Domain\Contracts\Commands\PackDimensionCommandInterface;
-use App\Warehouse\Packaging\Domain\Exceptions\PackDimensionNotResolvableException;
-use App\Warehouse\Packaging\Domain\ModelData\NomenclatureData;
-use App\Warehouse\Packaging\Domain\ModelData\PackDimensionData;
-use App\Warehouse\Packaging\Domain\ModelData\TypeData;
+use App\Modules\Warehouse\Features\Packaging\Application\Services\Strategies\OilFilterPackagingStrategy;
+use App\Modules\Warehouse\Features\Packaging\Domain\Contracts\Commands\PackDimensionCommandInterface;
+use App\Modules\Warehouse\Features\Packaging\Domain\Exceptions\PackDimensionNotResolvableException;
+use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\PackDimensionData;
+use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;

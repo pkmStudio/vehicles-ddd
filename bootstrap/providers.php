@@ -2,23 +2,23 @@
 
 use App\Providers\AuthServiceProvider;
 use App\Providers\HorizonServiceProvider;
-use App\Templates\Infrastructure\Providers\TemplatesServiceProvider;
-use App\Vehicles\Catalog\Infrastructure\Providers\CatalogServiceProvider;
-use App\Vehicles\Export\Infrastructure\Providers\ExportServiceProvider;
-use App\Vehicles\Import\Infrastructure\Providers\ImportEventServiceProvider;
-use App\Vehicles\Import\Infrastructure\Providers\ImportServiceProvider;
-use App\Vehicles\Maintenance\Infrastructure\Providers\MaintenanceServiceProvider;
-use App\Vehicles\Shared\Infrastructure\Providers\VehiclesServiceProvider;
-use App\Warehouse\Catalog\Infrastructure\Providers\CatalogServiceProvider as WarehouseCatalogServiceProvider;
-use App\Warehouse\Export\Infrastructure\Providers\ExportServiceProvider as WarehouseExportServiceProvider;
-use App\Warehouse\Import\Infrastructure\Providers\ImportEventServiceProvider as WarehouseImportEventServiceProvider;
-use App\Warehouse\Import\Infrastructure\Providers\ImportServiceProvider as WarehouseImportServiceProvider;
-use App\Warehouse\KitProperties\Infrastructure\Providers\KitPropertiesServiceProvider;
-use App\Warehouse\Maintenance\Infrastructure\Providers\MaintenanceServiceProvider as WarehouseMaintenanceServiceProvider;
-use App\Warehouse\MoySklad\Infrastructure\Providers\MoySkladServiceProvider as WarehouseMoySkladServiceProvider;
-use App\Warehouse\Packaging\Infrastructure\Providers\PackagingServiceProvider;
-use App\Warehouse\Shared\Infrastructure\Providers\WarehouseServiceProvider;
-use App\Warehouse\WiperAdapterAudit\Infrastructure\Providers\WiperAdapterAuditServiceProvider;
+use App\Modules\Templates\Infrastructure\Providers\TemplatesServiceProvider;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Providers\CatalogServiceProvider;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Providers\ExportServiceProvider;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Providers\ImportEventServiceProvider;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Providers\ImportServiceProvider;
+use App\Modules\Vehicles\Features\Maintenance\Infrastructure\Providers\MaintenanceServiceProvider;
+use App\Modules\Vehicles\Shared\Infrastructure\Providers\VehiclesServiceProvider;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Providers\CatalogServiceProvider as WarehouseCatalogServiceProvider;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Providers\ExportServiceProvider as WarehouseExportServiceProvider;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Providers\ImportEventServiceProvider as WarehouseImportEventServiceProvider;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Providers\ImportServiceProvider as WarehouseImportServiceProvider;
+use App\Modules\Warehouse\Features\KitProperties\Infrastructure\Providers\KitPropertiesServiceProvider;
+use App\Modules\Warehouse\Features\Maintenance\Infrastructure\Providers\MaintenanceServiceProvider as WarehouseMaintenanceServiceProvider;
+use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Providers\MoySkladServiceProvider as WarehouseMoySkladServiceProvider;
+use App\Modules\Warehouse\Features\Packaging\Infrastructure\Providers\PackagingServiceProvider;
+use App\Modules\Warehouse\Shared\Infrastructure\Providers\WarehouseServiceProvider;
+use App\Modules\Warehouse\Features\WiperAdapterAudit\Infrastructure\Providers\WiperAdapterAuditServiceProvider;
 
 return [
     AuthServiceProvider::class,

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse\Import;
 
-use App\Warehouse\Import\Application\Listeners\ReportImportResultListener;
-use App\Warehouse\Import\Domain\Contracts\Notifications\ImportNotificationServiceInterface;
-use App\Warehouse\Import\Domain\DTOs\ImportCompletionNotificationDTO;
-use App\Warehouse\Import\Domain\Enums\ImportCompletionStatusEnum;
-use App\Warehouse\Import\Domain\Enums\ImportTypeEnum;
-use App\Warehouse\Import\Domain\Events\NomenclatureImportCompleted;
-use App\Warehouse\Import\Domain\Events\PackDimensionImportCompleted;
+use App\Modules\Warehouse\Features\Import\Application\Listeners\ReportImportResultListener;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Notifications\ImportNotificationServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportCompletionNotificationDTO;
+use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportCompletionStatusEnum;
+use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportTypeEnum;
+use App\Modules\Warehouse\Features\Import\Domain\Events\NomenclatureImportCompleted;
+use App\Modules\Warehouse\Features\Import\Domain\Events\PackDimensionImportCompleted;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Mockery;

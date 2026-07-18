@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\MoySklad;
 
-use App\Warehouse\MoySklad\Application\Services\NomenclatureProductMapper;
-use App\Warehouse\MoySklad\Domain\ModelData\BrandData;
-use App\Warehouse\MoySklad\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Features\MoySklad\Application\Services\NomenclatureProductMapper;
+use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\BrandData;
+use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureData;
 use PHPUnit\Framework\TestCase;
 
 /**

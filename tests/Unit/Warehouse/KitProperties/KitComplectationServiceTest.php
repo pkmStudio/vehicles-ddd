@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\KitProperties;
 
-use App\Warehouse\KitProperties\Application\Services\KitComplectationService;
+use App\Modules\Warehouse\Features\KitProperties\Application\Services\KitComplectationService;
 use Tests\TestCase;
 
 final class KitComplectationServiceTest extends TestCase

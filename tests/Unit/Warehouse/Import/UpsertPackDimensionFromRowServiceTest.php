@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\Import;
 
-use App\Warehouse\Import\Application\Services\PackDimension\UpsertPackDimensionFromRowService;
-use App\Warehouse\Import\Domain\Contracts\Commands\PackDimensionCommandInterface;
-use App\Warehouse\Import\Domain\ModelData\PackDimensionData;
+use App\Modules\Warehouse\Features\Import\Application\Services\PackDimension\UpsertPackDimensionFromRowService;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\PackDimensionCommandInterface;
+use App\Modules\Warehouse\Features\Import\Domain\ModelData\PackDimensionData;
 use InvalidArgumentException;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;

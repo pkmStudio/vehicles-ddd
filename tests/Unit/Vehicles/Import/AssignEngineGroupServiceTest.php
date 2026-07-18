@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Import;
 
-use App\Vehicles\Import\Application\Services\Engine\AssignEngineGroupService;
-use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
-use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
-use App\Vehicles\Import\Domain\ModelData\EngineData;
+use App\Modules\Vehicles\Features\Import\Application\Services\Engine\AssignEngineGroupService;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 use Mockery;
 use Tests\TestCase;
 

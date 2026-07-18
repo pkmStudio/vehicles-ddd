@@ -35,19 +35,19 @@ declare(strict_types=1);
 |
 */
 
-use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\EngineMutationRequestedHandler;
-use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\ManufacturerMutationRequestedHandler;
-use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\ModificationMutationRequestedHandler;
-use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\PartSpecificationMutationRequestedHandler;
-use App\Vehicles\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
-use App\Vehicles\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
-use App\Vehicles\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
-use App\Warehouse\Catalog\Infrastructure\Messaging\Handlers\BrandMutationRequestedHandler as WarehouseBrandMutationRequestedHandler;
-use App\Warehouse\Catalog\Infrastructure\Messaging\Handlers\KitMutationRequestedHandler as WarehouseKitMutationRequestedHandler;
-use App\Warehouse\Catalog\Infrastructure\Messaging\Handlers\NomenclatureMutationRequestedHandler as WarehouseNomenclatureMutationRequestedHandler;
-use App\Warehouse\Catalog\Infrastructure\Messaging\Handlers\PackDimensionMutationRequestedHandler as WarehousePackDimensionMutationRequestedHandler;
-use App\Warehouse\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as WarehouseExportFileRequestedHandler;
-use App\Warehouse\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler as WarehouseImportFileRequestedHandler;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\EngineMutationRequestedHandler;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\ManufacturerMutationRequestedHandler;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\ModificationMutationRequestedHandler;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\PartSpecificationMutationRequestedHandler;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\BrandMutationRequestedHandler as WarehouseBrandMutationRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\KitMutationRequestedHandler as WarehouseKitMutationRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\NomenclatureMutationRequestedHandler as WarehouseNomenclatureMutationRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\PackDimensionMutationRequestedHandler as WarehousePackDimensionMutationRequestedHandler;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as WarehouseExportFileRequestedHandler;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler as WarehouseImportFileRequestedHandler;
 
 return [
 

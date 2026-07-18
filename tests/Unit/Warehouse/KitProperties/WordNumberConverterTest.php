@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\KitProperties;
 
-use App\Warehouse\KitProperties\Application\Services\WordNumberConverter;
+use App\Modules\Warehouse\Features\KitProperties\Application\Services\WordNumberConverter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 

@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Import;
 
-use App\Vehicles\Import\Application\Factories\ModificationDataFactory;
-use App\Vehicles\Import\Application\Services\Modification\UpsertModificationFromRowService;
-use App\Vehicles\Import\Domain\Contracts\Commands\ModificationCommandInterface;
-use App\Vehicles\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Vehicles\Import\Domain\DTOs\Modification\ModificationCommandRowDTO;
-use App\Vehicles\Import\Domain\ModelData\ModificationData;
-use App\Vehicles\Import\Domain\ModelData\VehicleData;
-use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
-use App\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
-use App\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
-use App\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
+use App\Modules\Vehicles\Features\Import\Application\Factories\ModificationDataFactory;
+use App\Modules\Vehicles\Features\Import\Application\Services\Modification\UpsertModificationFromRowService;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\ModificationCommandInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Modification\ModificationCommandRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\ModificationData;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Mockery;
 use Tests\TestCase;
 

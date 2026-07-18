@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Import;
 
-use App\Vehicles\Import\Domain\Contracts\Imports\External\VehicleMultiSheetImportInterface;
-use App\Vehicles\Import\Domain\Contracts\Services\External\CleanupExternalImportFileServiceInterface;
-use App\Vehicles\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
-use App\Vehicles\Import\Domain\DTOs\ImportRunContextDTO;
-use App\Vehicles\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\VehicleMultiSheetImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\External\CleanupExternalImportFileServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportRunContextDTO;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;

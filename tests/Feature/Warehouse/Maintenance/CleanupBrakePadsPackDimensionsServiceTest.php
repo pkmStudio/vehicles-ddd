@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse\Maintenance;
 
-use App\Warehouse\Maintenance\Application\Services\CleanupBrakePadsPackDimensionsService;
-use App\Warehouse\Maintenance\Infrastructure\Models\Kit;
-use App\Warehouse\Maintenance\Infrastructure\Models\PackDimension;
-use App\Warehouse\Maintenance\Infrastructure\Models\Type;
+use App\Modules\Warehouse\Features\Maintenance\Application\Services\CleanupBrakePadsPackDimensionsService;
+use App\Modules\Warehouse\Features\Maintenance\Infrastructure\Models\Kit;
+use App\Modules\Warehouse\Features\Maintenance\Infrastructure\Models\PackDimension;
+use App\Modules\Warehouse\Features\Maintenance\Infrastructure\Models\Type;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

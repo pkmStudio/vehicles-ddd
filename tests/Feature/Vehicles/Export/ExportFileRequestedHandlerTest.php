@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Export;
 
-use App\Vehicles\Export\Domain\Contracts\Exports\FileExportInterface;
-use App\Vehicles\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
-use App\Vehicles\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
-use App\Vehicles\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
-use App\Vehicles\Export\Domain\DTOs\ExportCompletionNotificationDTO;
-use App\Vehicles\Export\Domain\DTOs\ExportRunContextDTO;
-use App\Vehicles\Export\Domain\Enums\ExportCompletionStatusEnum;
-use App\Vehicles\Export\Domain\Enums\ExportTypeEnum;
-use App\Vehicles\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\FileExportInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
+use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportCompletionNotificationDTO;
+use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportRunContextDTO;
+use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportCompletionStatusEnum;
+use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Mockery;

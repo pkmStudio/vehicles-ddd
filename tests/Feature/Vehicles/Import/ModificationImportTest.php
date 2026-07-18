@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Import;
 
-use App\Vehicles\Import\Domain\Contracts\Imports\Command\ModificationCommandImportInterface;
-use App\Vehicles\Import\Domain\Events\Modification\ModificationCommandImported;
-use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
-use App\Vehicles\Import\Infrastructure\Models\Modification;
-use App\Vehicles\Import\Infrastructure\Models\Vehicle;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\ModificationCommandImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Modification\ModificationCommandImported;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Manufacturer;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Modification;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;

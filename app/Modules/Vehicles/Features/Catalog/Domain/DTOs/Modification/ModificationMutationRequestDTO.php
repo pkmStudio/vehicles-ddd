@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification;
+
+use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
+
+/**
+ * Передает параметры сценария или результат мутации модификаций.
+ */
+final readonly class ModificationMutationRequestDTO
+{
+    /**
+     * Инициализирует immutable-снимок данных модификаций.
+     */
+    public function __construct(
+        public CatalogMutationOperationEnum $operation,
+        public CreateModificationRequestDTO|UpdateModificationRequestDTO|DeleteModificationRequestDTO $request,
+    ) {}
+}

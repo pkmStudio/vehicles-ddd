@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Warehouse\Import\Infrastructure\Models\Brand;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Models\Brand;
 use Illuminate\Database\Seeder;
 
 /**

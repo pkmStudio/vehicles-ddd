@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\KitProperties;
 
-use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
-use App\Warehouse\KitProperties\Application\Services\KitPropertiesService;
-use App\Warehouse\KitProperties\Application\Services\Strategies\SingleTypeStrategy;
-use App\Warehouse\KitProperties\Application\Services\Strategies\WiperWithAdapterStrategy;
-use App\Warehouse\KitProperties\Domain\Contracts\Clients\PackagingClientInterface;
-use App\Warehouse\KitProperties\Domain\Contracts\Services\KitComplectationServiceInterface;
-use App\Warehouse\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
-use App\Warehouse\KitProperties\Domain\DTOs\Packaging\PackDimensionDTO;
-use App\Warehouse\KitProperties\Domain\Exceptions\PackDimensionNotResolvableException;
-use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData;
-use App\Warehouse\KitProperties\Domain\ModelData\TypeData;
+use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Modules\Warehouse\Features\KitProperties\Application\Services\KitPropertiesService;
+use App\Modules\Warehouse\Features\KitProperties\Application\Services\Strategies\SingleTypeStrategy;
+use App\Modules\Warehouse\Features\KitProperties\Application\Services\Strategies\WiperWithAdapterStrategy;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Clients\PackagingClientInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitComplectationServiceInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\DTOs\Packaging\PackDimensionDTO;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\PackDimensionNotResolvableException;
+use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use Mockery;
 use Tests\TestCase;
 use UnexpectedValueException;

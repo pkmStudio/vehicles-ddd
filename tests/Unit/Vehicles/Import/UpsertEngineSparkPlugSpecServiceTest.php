@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Import;
 
-use App\Vehicles\Import\Application\Services\Engine\UpsertEngineSparkPlugSpecService;
-use App\Vehicles\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
-use App\Vehicles\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
-use App\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Vehicles\Import\Domain\ModelData\EngineData;
-use App\Vehicles\Import\Domain\ModelData\PartSpecificationData;
-use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Features\Import\Application\Services\Engine\UpsertEngineSparkPlugSpecService;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Mockery;
 use Tests\TestCase;
 

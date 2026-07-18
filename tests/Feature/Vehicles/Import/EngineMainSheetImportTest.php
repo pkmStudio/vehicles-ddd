@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Import;
 
-use App\Vehicles\Import\Infrastructure\Models\Engine;
-use App\Vehicles\Import\Infrastructure\Imports\Engine\Sheets\EngineMainSheetImport;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Engine;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Sheets\EngineMainSheetImport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Tests\TestCase;

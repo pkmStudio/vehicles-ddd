@@ -2,17 +2,19 @@
 
 Справочник: **что куда класть, что должно быть тонким, что к какому слою/фиче относится и почему.**
 
-> Актуализация 2026-07-18: `Templates` вынесен в top-level `app/Templates`, а `Warehouse` и
-> `Vehicles` имеют module-level `Shared/` с публичными событиями и общей инфраструктурой
+> Актуализация 2026-07-18: бизнес-модули перенесены в `app/Modules/*`. `Templates` живёт как
+> отдельный shared-kernel модуль, а `Warehouse` и `Vehicles` имеют module-level `Shared/` с
+> публичными событиями и общей инфраструктурой
 > (`Shared/Infrastructure/Database/Migrations`, `Shared/Infrastructure/Providers`). Межфичевые
 > синхронные вызовы идут через локальные `Domain/Contracts/Clients/*ClientInterface` фичи-потребителя
 > и adapter в её `Infrastructure/Clients`; чужие service/factory/presenter-контракты в
 > `Application` не импортируем. Детальный план и список выполненных переносов см. `refactor-ms.md`.
 
-Раскладка — **feature-first**. Домены модулей живут в `app/Vehicles/` и `app/Warehouse/`, а
-общая фича шаблонов — в top-level `app/Templates/`. Внутри модуля сначала выбираем фичу
+Раскладка — **module-first + feature-first**. Бизнес-модули живут в `app/Modules/*`.
+У доменных модулей (`Vehicles`, `Warehouse`) сначала выбираем фичу в `Features/*`
 (`Catalog`, `Import`, `Export`, `Maintenance`, `Packaging`, `KitProperties`, ...), внутри фичи —
-слой: **Domain → Application → Infrastructure → Presentation**.
+слой: **Domain → Application → Infrastructure → Presentation**. Общий модуль `Templates` пока
+не дробится на `Features/`, потому что внутри него нет нескольких самостоятельных фич.
 
 > История перехода layer-first → feature-first, переход на `spatie/laravel-data`, удаление
 > общей `Domain/Models` и т.п. зафиксированы в `plan.md` (§1–§3, §11). Здесь — только **целевое
@@ -83,11 +85,11 @@ types и режимы импорта/экспорта остаются в сво
 порт у потребителя:
 
 ```text
-app/Templates/
+app/Modules/Templates/
   Domain/Contracts/Clients/TemplatesClientInterface.php
   Application/Clients/TemplatesClient.php
 
-app/Vehicles/Import/
+app/Modules/Vehicles/Features/Import/
   Domain/Contracts/Clients/TemplatesClientInterface.php
   Infrastructure/Clients/TemplatesClient.php
 ```
@@ -103,15 +105,18 @@ Application фичи-потребителя зависит только от с�
 
 ---
 
-## 0. Карта фич — `app/Vehicles/`
+## 0. Карта модулей и фич
 
 | Папка | Что это | Полнота слоёв |
 |---|---|---|
-| `Shared/` | Общий «словарь» без поведения: enum'ы, на которые завязаны `$casts` (`Vehicle/*`, `Engine/*`, `PartableTypeEnum`, `ProviderEnum`). **НЕ дублируется по фичам** (два разных `VehicleTypeEnum` = риск рассинхрона данных, а не просто лишний код). Плоский `Domain/Enums`, без группировки по под-фичам — никакого поведения, кроме самих enum'ов. | только `Domain/` |
-| `Templates/` | Полноценная фича: типизированные `Data`-классы формы `details` у `PartSpecification` (`*DetailsData` — `WiperDetailsData`, `SparkPlugDetailsData`, `OilFilterDetailsData`, `AirFilterDetailsData`, все `extends AbstractDetailsData`) + `DetailTemplateEnum` + словарные enum'ы полей (`Domain/Enums/{Filter,SparkPlug,Wiper}/*`) + `EnumHelperTrait`/`EnumHelperInterface` (Domain) — это декларация; сборка из строки (`DetailsDataFactory`), рендер в Excel-ячейки (`DetailsDataPresenter`) и доменное правило хранения дворников (`WiperSpecificationService`) — поведение (Application). Общая для Import/Export/Maintenance фича; они зависят на её **Domain-контракты**. | `Domain/` + `Application/` + `Infrastructure/` (только `Providers/`) |
-| `Import/` | Приём CSV/Excel → каталог. Единственная фича с записью (`Command`). | полный вертикальный срез |
-| `Export/` | Каталог → Excel. **Только чтение** — `Repository` есть, `Command` нет. Дублирует лишь 5 сущностей, которые реально читает. | `Domain/Application/Infrastructure` |
-| `Maintenance/` | Разовые фиксы каталога (артизан-команды). Без слоя `Repository` — читает/пишет напрямую через Eloquent, это осознанно для «разовых фиксов». | `Application/Infrastructure/Presentation` |
+| `app/Modules/Templates/` | Shared-kernel модуль: типизированные `Data`-классы формы `details`, enum'ы шаблонов и словарей, сборка из строки, рендер в Excel-ячейки и доменное правило хранения дворников. | `Domain/` + `Application/` + `Infrastructure/` |
+| `app/Modules/Vehicles/Shared/` | Общий «словарь» Vehicles без поведения: enum'ы, публичные события и module-level инфраструктура. | `Domain/` + `Infrastructure/` |
+| `app/Modules/Vehicles/Features/Import/` | Приём CSV/Excel → каталог. Единственная Vehicles-фича с записью (`Command`). | полный вертикальный срез |
+| `app/Modules/Vehicles/Features/Export/` | Каталог → Excel. **Только чтение** — `Repository` есть, `Command` нет. | `Domain/Application/Infrastructure/Presentation` |
+| `app/Modules/Vehicles/Features/Catalog/` | Внешние catalog mutation-сценарии Vehicles. | полный вертикальный срез |
+| `app/Modules/Vehicles/Features/Maintenance/` | Разовые фиксы каталога (артизан-команды). Без слоя `Repository` — читает/пишет напрямую через Eloquent, это осознанно для «разовых фиксов». | `Application/Infrastructure/Presentation` |
+| `app/Modules/Warehouse/Shared/` | Общие события и module-level инфраструктура Warehouse, включая миграции. | `Domain/` + `Infrastructure/` |
+| `app/Modules/Warehouse/Features/*/` | Warehouse-фичи: `Catalog`, `Import`, `Export`, `Packaging`, `KitProperties`, `WiperAdapterAudit`, `Maintenance`, `MoySklad`. | по фиче |
 
 **Почему feature-first, а Enums — в `Shared`:** фичи режем по способностям (Import/Export/…),
 каждая независима и переезжаемая. Но enum'ы — это словарь значений колонок (`$casts`), а не

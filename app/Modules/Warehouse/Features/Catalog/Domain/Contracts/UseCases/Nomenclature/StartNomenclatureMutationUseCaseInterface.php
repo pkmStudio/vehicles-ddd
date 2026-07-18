@@ -1,0 +1,19 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature;
+
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureMutationRequestDTO;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
+
+/**
+ * Порт стартового сценария мутации Warehouse-номенклатуры из внешнего сообщения.
+ */
+interface StartNomenclatureMutationUseCaseInterface
+{
+    /**
+     * Запускает сценарий мутации Warehouse-номенклатуры.
+     */
+    public function execute(NomenclatureMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
+}

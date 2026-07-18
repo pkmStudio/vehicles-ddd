@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\Import;
 
-use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
-use App\Warehouse\Import\Application\Services\Nomenclature\UpsertNomenclatureFromRowService;
-use App\Warehouse\Import\Domain\Contracts\Clients\TemplatesClientInterface;
-use App\Warehouse\Import\Domain\Contracts\Commands\NomenclatureCommandInterface;
-use App\Warehouse\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
-use App\Warehouse\Import\Domain\ModelData\BrandData;
-use App\Warehouse\Import\Domain\ModelData\NomenclatureData;
-use App\Warehouse\Import\Domain\ModelData\TypeData;
+use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Modules\Warehouse\Features\Import\Application\Services\Nomenclature\UpsertNomenclatureFromRowService;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\NomenclatureCommandInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Modules\Warehouse\Features\Import\Domain\ModelData\BrandData;
+use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Mockery;

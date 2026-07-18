@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Import;
 
-use App\Vehicles\Import\Infrastructure\Models\Engine;
-use App\Vehicles\Import\Infrastructure\Models\PartSpecification;
-use App\Vehicles\Import\Infrastructure\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
-use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Engine;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\PartSpecification;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
+use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Tests\TestCase;

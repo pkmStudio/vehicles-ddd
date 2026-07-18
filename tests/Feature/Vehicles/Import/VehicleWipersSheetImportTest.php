@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Import;
 
-use App\Vehicles\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
-use App\Vehicles\Import\Domain\Contracts\Clients\TemplatesClientInterface;
-use App\Vehicles\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
-use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleWiperSheetRowMapper;
-use App\Vehicles\Import\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
-use App\Vehicles\Import\Infrastructure\Models\Manufacturer;
-use App\Vehicles\Import\Infrastructure\Models\Vehicle;
-use App\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Vehicles\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleWiperSheetRowMapper;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Manufacturer;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Vehicle;
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 use RuntimeException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;

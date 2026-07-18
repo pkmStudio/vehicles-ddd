@@ -1,0 +1,66 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Warehouse\Features\Packaging\Application\Services\Strategies;
+
+use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Modules\Warehouse\Features\Packaging\Domain\Contracts\Services\Strategies\PackagingStrategyInterface;
+use App\Modules\Warehouse\Features\Packaging\Domain\DTOs\PackagingBoxRequirementDTO;
+use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\PackDimensionData;
+use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\TypeData;
+use Illuminate\Support\Collection;
+
+/**
+ * Подбирает упаковку для салонных фильтров. Один артикул (`LAC-513C`) исторически всегда уходит в
+ * первую доступную коробку без проверки габаритов — унаследованное из dan-center бизнес-исключение.
+ */
+final readonly class CabinFilterPackagingStrategy extends AbstractPackagingStrategy implements PackagingStrategyInterface
+{
+    private const string EXACT_PART_NUMBER = 'LAC-513C';
+
+    /**
+     * Проверяет, что стратегия применима к detail-шаблону салонных фильтров.
+     */
+    public function supports(?NomenclatureDetailTemplateEnum $template): bool
+    {
+        return $template === NomenclatureDetailTemplateEnum::CABIN_FILTER;
+    }
+
+    /**
+     * Этот метод возвращает упаковку для набора салонных фильтров.
+     *
+     * @param  array<int, NomenclatureData>  $nomenclatures
+     * @param  Collection<int, PackDimensionData>  $packDimensions
+     */
+    public function calculate(TypeData $type, array $nomenclatures, Collection $packDimensions): PackDimensionData
+    {
+        $maxLength = $maxHeight = $maxWidth = 0.0;
+
+        foreach ($nomenclatures as $nomenclature) {
+            if ($nomenclature->partNumber === self::EXACT_PART_NUMBER) {
+                return $packDimensions->first();
+            }
+
+            $metrics = $nomenclature->details['metrics'] ?? [];
+            $maxLength = max($maxLength, $this->getMaxValue($metrics['length'] ?? [0]));
+            $maxHeight = max($maxHeight, $this->getMaxValue($metrics['height'] ?? [0]));
+            $maxWidth = max($maxWidth, $this->getMaxValue($metrics['width'] ?? [0]));
+        }
+
+        $dto = new PackagingBoxRequirementDTO(
+            weight: 70,
+            width: $maxWidth,
+            height: $maxHeight,
+            length: $maxLength,
+        );
+
+        return $this->calculatePackDimension(
+            type: $type,
+            name: 'салонных фильтров',
+            dto: $dto,
+            packDimensions: $packDimensions,
+        );
+    }
+}

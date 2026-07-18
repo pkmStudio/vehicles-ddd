@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse;
 
-use App\Warehouse\Export\Domain\Contracts\Exports\FileExportInterface;
-use App\Warehouse\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
-use App\Warehouse\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
-use App\Warehouse\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
-use App\Warehouse\Export\Domain\DTOs\ExportCompletionNotificationDTO;
-use App\Warehouse\Export\Domain\DTOs\ExportRunContextDTO;
-use App\Warehouse\Export\Domain\DTOs\KitExportFiltersDTO;
-use App\Warehouse\Export\Domain\DTOs\KitExportSortDTO;
-use App\Warehouse\Export\Domain\Enums\ExportCompletionStatusEnum;
-use App\Warehouse\Export\Domain\Enums\ExportTypeEnum;
-use App\Warehouse\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\FileExportInterface;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
+use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportCompletionNotificationDTO;
+use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportRunContextDTO;
+use App\Modules\Warehouse\Features\Export\Domain\DTOs\KitExportFiltersDTO;
+use App\Modules\Warehouse\Features\Export\Domain\DTOs\KitExportSortDTO;
+use App\Modules\Warehouse\Features\Export\Domain\Enums\ExportCompletionStatusEnum;
+use App\Modules\Warehouse\Features\Export\Domain\Enums\ExportTypeEnum;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Mockery;

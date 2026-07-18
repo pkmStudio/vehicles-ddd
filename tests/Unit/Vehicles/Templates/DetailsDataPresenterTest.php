@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Templates;
 
-use App\Templates\Application\Services\DetailsDataPresenter;
-use App\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Templates\Application\Services\DetailsDataPresenter;
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use Tests\TestCase;
 
 /**

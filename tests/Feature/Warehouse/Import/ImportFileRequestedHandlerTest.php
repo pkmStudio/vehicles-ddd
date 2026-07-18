@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse\Import;
 
-use App\Warehouse\Import\Domain\Contracts\Imports\KitImportInterface;
-use App\Warehouse\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
-use App\Warehouse\Import\Domain\Contracts\Imports\PackDimensionImportInterface;
-use App\Warehouse\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
-use App\Warehouse\Import\Domain\DTOs\ImportRunContextDTO;
-use App\Warehouse\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\KitImportInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\PackDimensionImportInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;

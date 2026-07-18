@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\Import;
 
-use App\Warehouse\Import\Application\Services\External\ExternalImportCacheService;
-use App\Warehouse\Import\Domain\DTOs\ExternalImportFileRequestDTO;
-use App\Warehouse\Import\Domain\Enums\ImportTypeEnum;
+use App\Modules\Warehouse\Features\Import\Application\Services\External\ExternalImportCacheService;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\ExternalImportFileRequestDTO;
+use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportTypeEnum;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 

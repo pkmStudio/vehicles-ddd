@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\Import;
 
-use App\Warehouse\Import\Application\Services\Kit\UpsertKitFromRowService;
-use App\Warehouse\Import\Domain\Contracts\Commands\KitCommandInterface;
-use App\Warehouse\Import\Domain\Contracts\Clients\KitPropertiesClientInterface;
-use App\Warehouse\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
-use App\Warehouse\Import\Domain\DTOs\KitProperties\KitPropertiesDTO;
-use App\Warehouse\Import\Domain\ModelData\KitData;
-use App\Warehouse\Import\Domain\ModelData\NomenclatureData;
-use App\Warehouse\Import\Domain\ModelData\TypeData;
+use App\Modules\Warehouse\Features\Import\Application\Services\Kit\UpsertKitFromRowService;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\KitCommandInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\KitProperties\KitPropertiesDTO;
+use App\Modules\Warehouse\Features\Import\Domain\ModelData\KitData;
+use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Mockery;

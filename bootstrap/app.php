@@ -15,13 +15,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // Папки с командами вне стандартной app/Console/Commands (доменные/инфраструктурные).
         // Laravel рекурсивно найдёт в них все классы-команды. Добавляйте сюда новые папки.
         // rabbit-transport:setup регистрируется самим пакетом pkmstudio/rabbit-transport.
-        __DIR__.'/../app/Vehicles/Import/Presentation/Console/Commands',
-        __DIR__.'/../app/Vehicles/Export/Presentation/Console/Commands',
-        __DIR__.'/../app/Vehicles/Maintenance/Presentation/Console/Commands',
-        __DIR__.'/../app/Warehouse/Export/Presentation/Console/Commands',
-        __DIR__.'/../app/Warehouse/Import/Presentation/Console/Commands',
-        __DIR__.'/../app/Warehouse/Maintenance/Presentation/Console/Commands',
-        __DIR__.'/../app/Warehouse/MoySklad/Presentation/Console/Commands',
+        __DIR__.'/../app/Modules/Vehicles/Features/Import/Presentation/Console/Commands',
+        __DIR__.'/../app/Modules/Vehicles/Features/Export/Presentation/Console/Commands',
+        __DIR__.'/../app/Modules/Vehicles/Features/Maintenance/Presentation/Console/Commands',
+        __DIR__.'/../app/Modules/Warehouse/Features/Export/Presentation/Console/Commands',
+        __DIR__.'/../app/Modules/Warehouse/Features/Import/Presentation/Console/Commands',
+        __DIR__.'/../app/Modules/Warehouse/Features/Maintenance/Presentation/Console/Commands',
+        __DIR__.'/../app/Modules/Warehouse/Features/MoySklad/Presentation/Console/Commands',
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         //

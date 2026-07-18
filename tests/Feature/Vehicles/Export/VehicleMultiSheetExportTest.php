@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Export;
 
-use App\Vehicles\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
-use App\Vehicles\Export\Domain\DTOs\ExportRunContextDTO;
-use App\Vehicles\Export\Infrastructure\Models\Manufacturer;
-use App\Vehicles\Export\Infrastructure\Models\PartSpecification;
-use App\Vehicles\Export\Infrastructure\Models\Vehicle;
-use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
+use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportRunContextDTO;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Models\Manufacturer;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Models\PartSpecification;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Models\Vehicle;
+use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;

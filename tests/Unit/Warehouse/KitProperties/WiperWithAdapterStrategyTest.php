@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\KitProperties;
 
-use App\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
-use App\Warehouse\KitProperties\Application\Services\Strategies\WiperWithAdapterStrategy;
-use App\Warehouse\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
-use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData;
-use App\Warehouse\KitProperties\Domain\ModelData\TypeData;
+use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Modules\Warehouse\Features\KitProperties\Application\Services\Strategies\WiperWithAdapterStrategy;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;

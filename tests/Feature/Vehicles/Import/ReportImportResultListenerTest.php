@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Import;
 
-use App\Vehicles\Import\Application\Listeners\ReportImportResultListener;
-use App\Vehicles\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
-use App\Vehicles\Import\Domain\DTOs\ImportCompletionNotificationDTO;
-use App\Vehicles\Import\Domain\Events\Vehicle\VehicleImportCompleted;
-use App\Vehicles\Import\Domain\Enums\ImportCompletionStatusEnum;
+use App\Modules\Vehicles\Features\Import\Application\Listeners\ReportImportResultListener;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportCompletionNotificationDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Vehicle\VehicleImportCompleted;
+use App\Modules\Vehicles\Features\Import\Domain\Enums\ImportCompletionStatusEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse\MoySklad;
 
-use App\Warehouse\MoySklad\Domain\Contracts\Clients\MoySkladProductClientInterface;
-use App\Warehouse\MoySklad\Domain\Contracts\Services\NomenclatureSyncServiceInterface;
-use App\Warehouse\MoySklad\Infrastructure\Models\Brand;
-use App\Warehouse\MoySklad\Infrastructure\Models\Nomenclature;
-use App\Warehouse\MoySklad\Infrastructure\Models\NomenclatureIntegration;
-use App\Warehouse\MoySklad\Infrastructure\Models\Type;
+use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Clients\MoySkladProductClientInterface;
+use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Services\NomenclatureSyncServiceInterface;
+use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\Brand;
+use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\Nomenclature;
+use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\NomenclatureIntegration;
+use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\Type;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse;
 
-use App\Warehouse\Export\Domain\Contracts\Exports\NomenclatureByTypeExportInterface;
-use App\Warehouse\Export\Domain\DTOs\ExportRunContextDTO;
-use App\Warehouse\Export\Infrastructure\Models\Brand;
-use App\Warehouse\Export\Infrastructure\Models\Nomenclature;
-use App\Warehouse\Export\Infrastructure\Models\Type;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\NomenclatureByTypeExportInterface;
+use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportRunContextDTO;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Models\Brand;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Models\Nomenclature;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Models\Type;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;

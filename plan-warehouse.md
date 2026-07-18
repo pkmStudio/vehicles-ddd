@@ -8,10 +8,11 @@
 
 Warehouse MVP реализован и не требует повторного планирования в этом документе:
 
-- `Templates` вынесен в `app/Templates/*` и расширен под Warehouse-номенклатуру.
-- Миграции Warehouse лежат в `app/Warehouse/Infrastructure/Database/Migrations`.
+- `Templates` вынесен в `app/Modules/Templates/*` и расширен под Warehouse-номенклатуру.
+- Миграции Warehouse лежат в
+  `app/Modules/Warehouse/Shared/Infrastructure/Database/Migrations`.
 - Реализованы `Import`, `Export`, `Packaging`, `KitProperties`, `WiperAdapterAudit`,
-  `Maintenance`, `Catalog`.
+  `Maintenance`, `Catalog`, `MoySklad`.
 - Добавлены сидеры Warehouse-справочников и упаковок.
 
 ## Осталось
@@ -20,7 +21,7 @@ Warehouse MVP реализован и не требует повторного �
 
    Автогруппировка остатков номенклатуры в кандидаты на новые наборы.
 
-   Текущий статус: не начато, папки `app/Warehouse/KitGrouping` нет.
+   Текущий статус: не начато, папки `app/Modules/Warehouse/Features/KitGrouping` нет.
 
    Нужно отдельно спроектировать границу фичи: входные данные, алгоритмы группировки по типам
    номенклатуры, формат кандидатов, способ запуска и место сохранения результата.
@@ -50,8 +51,6 @@ Warehouse MVP реализован и не требует повторного �
 
 - **`Applicability`** — отдельный будущий домен: `kit_oem_numbers`, `kit_kit_group`,
   `kit_groups`, `kit_applicabilitables`, применимость Kit к Vehicles/Engines.
-- **MoySklad-синхронизация** — отдельный план в `plan-moysklad.md`.
 - **MpCard-инвалидация** — кросс-доменная задача, см. `plan-new.md`.
 - **`larastan`/`phpstan` + CI** — отдельная независимая задача, см. `plan-new.md`.
-- **Реструктуризация `app/`** в `Domains/` + `Features/` — отложена отдельно.
 - **Filament-админка** — не нужна, сервис остается headless.

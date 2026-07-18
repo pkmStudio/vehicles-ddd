@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Warehouse\Import\Infrastructure\Models\PackDimension;
-use App\Warehouse\Import\Infrastructure\Models\Type;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Models\PackDimension;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Models\Type;
 use Illuminate\Database\Seeder;
 
 /**

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Import;
 
-use App\Vehicles\Import\Application\Factories\EngineModificationDataFactory;
-use App\Vehicles\Import\Application\Services\EngineModification\LinkEngineModificationFromRowService;
-use App\Vehicles\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
-use App\Vehicles\Import\Domain\DTOs\EngineModification\EngineModificationCommandRowDTO;
-use App\Vehicles\Import\Domain\ModelData\EngineModificationData;
+use App\Modules\Vehicles\Features\Import\Application\Factories\EngineModificationDataFactory;
+use App\Modules\Vehicles\Features\Import\Application\Services\EngineModification\LinkEngineModificationFromRowService;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\EngineModification\EngineModificationCommandRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineModificationData;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;

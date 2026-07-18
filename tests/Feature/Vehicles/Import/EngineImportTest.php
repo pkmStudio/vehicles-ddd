@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Import;
 
-use App\Vehicles\Import\Domain\Contracts\Imports\Command\EngineCommandImportInterface;
-use App\Vehicles\Import\Domain\Events\Engine\EngineCommandImported;
-use App\Vehicles\Import\Infrastructure\Models\Engine;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EngineCommandImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineCommandImported;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Engine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;

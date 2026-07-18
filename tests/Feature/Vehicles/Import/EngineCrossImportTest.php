@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Import;
 
-use App\Vehicles\Import\Domain\Contracts\Imports\External\EngineCrossImportInterface;
-use App\Vehicles\Import\Domain\DTOs\ImportRunContextDTO;
-use App\Vehicles\Import\Domain\Events\Engine\EngineCrossImportCompleted;
-use App\Vehicles\Import\Infrastructure\Models\Engine;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\EngineCrossImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportRunContextDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineCrossImportCompleted;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Engine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;

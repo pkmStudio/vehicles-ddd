@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\KitProperties;
 
-use App\Warehouse\KitProperties\Application\Services\Strategies\SingleTypeStrategy;
-use App\Warehouse\KitProperties\Domain\ModelData\NomenclatureData;
-use App\Warehouse\KitProperties\Domain\ModelData\TypeData;
+use App\Modules\Warehouse\Features\KitProperties\Application\Services\Strategies\SingleTypeStrategy;
+use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
 use UnexpectedValueException;

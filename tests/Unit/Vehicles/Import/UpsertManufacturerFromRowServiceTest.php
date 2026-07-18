@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Import;
 
-use App\Vehicles\Import\Application\Factories\ManufacturerDataFactory;
-use App\Vehicles\Import\Application\Services\Manufacturer\UpsertManufacturerFromRowService;
-use App\Vehicles\Import\Domain\Contracts\Commands\ManufacturerCommandInterface;
-use App\Vehicles\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
-use App\Vehicles\Import\Domain\ModelData\ManufacturerData;
-use App\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Modules\Vehicles\Features\Import\Application\Factories\ManufacturerDataFactory;
+use App\Modules\Vehicles\Features\Import\Application\Services\Manufacturer\UpsertManufacturerFromRowService;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\ManufacturerCommandInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;

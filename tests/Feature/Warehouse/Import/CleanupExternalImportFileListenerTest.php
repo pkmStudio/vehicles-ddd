@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse\Import;
 
-use App\Warehouse\Import\Application\Listeners\CleanupExternalImportFileListener;
-use App\Warehouse\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
-use App\Warehouse\Import\Domain\DTOs\ExternalImportFileRequestDTO;
-use App\Warehouse\Import\Domain\Enums\ImportTypeEnum;
-use App\Warehouse\Import\Domain\Events\NomenclatureImportCompleted;
+use App\Modules\Warehouse\Features\Import\Application\Listeners\CleanupExternalImportFileListener;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\ExternalImportFileRequestDTO;
+use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportTypeEnum;
+use App\Modules\Warehouse\Features\Import\Domain\Events\NomenclatureImportCompleted;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;

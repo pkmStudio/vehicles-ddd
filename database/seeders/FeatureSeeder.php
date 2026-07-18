@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Vehicles\Import\Infrastructure\Models\Feature;
-use App\Vehicles\Import\Infrastructure\Models\FeatureValue;
-use App\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Feature;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Models\FeatureValue;
+use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Database\Seeder;
 
 class FeatureSeeder extends Seeder

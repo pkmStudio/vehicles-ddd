@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse\Import;
 
-use App\Warehouse\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
-use App\Warehouse\Import\Domain\DTOs\ImportRunContextDTO;
-use App\Warehouse\Import\Domain\Events\NomenclatureImportCompleted;
-use App\Warehouse\Import\Infrastructure\Models\Brand;
-use App\Warehouse\Import\Infrastructure\Models\Nomenclature;
-use App\Warehouse\Import\Infrastructure\Models\Type;
-use App\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
+use App\Modules\Warehouse\Features\Import\Domain\Events\NomenclatureImportCompleted;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Models\Brand;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Models\Nomenclature;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Models\Type;
+use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;

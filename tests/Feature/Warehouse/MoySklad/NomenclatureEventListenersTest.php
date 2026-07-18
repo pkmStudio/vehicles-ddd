@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse\MoySklad;
 
-use App\Warehouse\MoySklad\Infrastructure\Jobs\DeleteNomenclatureJob;
-use App\Warehouse\MoySklad\Infrastructure\Jobs\SyncNomenclatureJob;
-use App\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
-use App\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureDeleted;
-use App\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
+use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Jobs\DeleteNomenclatureJob;
+use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Jobs\SyncNomenclatureJob;
+use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
+use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureDeleted;
+use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 

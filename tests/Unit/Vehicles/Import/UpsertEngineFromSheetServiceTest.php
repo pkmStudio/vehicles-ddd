@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Import;
 
-use App\Vehicles\Import\Application\Factories\EngineDataFactory;
-use App\Vehicles\Import\Application\Services\Engine\UpsertEngineFromSheetService;
-use App\Vehicles\Import\Domain\Contracts\Commands\EngineCommandInterface;
-use App\Vehicles\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
-use App\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
-use App\Vehicles\Import\Domain\ModelData\EngineData;
+use App\Modules\Vehicles\Features\Import\Application\Factories\EngineDataFactory;
+use App\Modules\Vehicles\Features\Import\Application\Services\Engine\UpsertEngineFromSheetService;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;

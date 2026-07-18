@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse\Maintenance;
 
-use App\Warehouse\Maintenance\Application\Services\RecalculateBrakePadsKitsService;
-use App\Warehouse\Maintenance\Infrastructure\Models\Kit;
-use App\Warehouse\Maintenance\Infrastructure\Models\Nomenclature;
-use App\Warehouse\Maintenance\Infrastructure\Models\Type;
+use App\Modules\Warehouse\Features\Maintenance\Application\Services\RecalculateBrakePadsKitsService;
+use App\Modules\Warehouse\Features\Maintenance\Infrastructure\Models\Kit;
+use App\Modules\Warehouse\Features\Maintenance\Infrastructure\Models\Nomenclature;
+use App\Modules\Warehouse\Features\Maintenance\Infrastructure\Models\Type;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
