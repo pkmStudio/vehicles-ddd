@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Sheets;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
@@ -51,41 +51,36 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
                 continue;
             }
 
-            $specValues = array_slice($row->toArray(), self::SPEC_START_COLUMN);
+            $rowValues = $row->toArray();
+            $specValues = array_slice($rowValues, self::SPEC_START_COLUMN);
             if (empty(array_filter($specValues, fn ($v) => $v !== null && $v !== ''))) {
                 continue;
             }
 
-            DB::beginTransaction();
             try {
-                $details = $this->templates->buildVehicleDetails(
-                    template: DetailTemplateEnum::SPARK_PLUGS,
-                    row: $row->toArray(),
-                    startIndex: self::SPEC_START_COLUMN,
-                );
+                DB::transaction(function () use ($rowValues, $engId, $indexRow): void {
+                    $details = $this->templates->buildVehicleDetails(
+                        template: DetailTemplateEnum::SPARK_PLUGS,
+                        row: $rowValues,
+                        startIndex: self::SPEC_START_COLUMN,
+                    );
 
-                $spec = $this->service->upsertByEngine((int) $engId, $details);
+                    $spec = $this->service->upsertByEngine((int) $engId, $details);
 
-                if (! $spec) {
-                    Log::warning('EngineSparkPlugsSheetImport: двигатель не найден', [
-                        'row' => $indexRow + $this->startRow(),
-                        'eng_id' => $engId,
-                    ]);
-                    DB::rollBack();
-
-                    continue;
-                }
-
-                DB::commit();
+                    if (! $spec) {
+                        Log::warning('EngineSparkPlugsSheetImport: двигатель не найден', [
+                            'row' => $indexRow + $this->startRow(),
+                            'eng_id' => $engId,
+                        ]);
+                    }
+                });
             } catch (Throwable $e) {
-                DB::rollBack();
-
                 $this->onFailure(
                     new Failure(
                         row: $indexRow + $this->startRow(),
                         attribute: 'Свечи зажигания',
                         errors: [$e->getMessage()],
-                        values: $row->toArray(),
+                        values: $rowValues,
                     )
                 );
             }

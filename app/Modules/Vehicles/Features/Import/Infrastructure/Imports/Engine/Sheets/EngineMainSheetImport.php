@@ -36,15 +36,13 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
     {
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
-            DB::beginTransaction();
             try {
-                $engineRow = $this->rowMapper->map($rowValues);
+                DB::transaction(function () use ($rowValues): void {
+                    $engineRow = $this->rowMapper->map($rowValues);
 
-                $this->service->upsertFromRow($engineRow);
-                DB::commit();
+                    $this->service->upsertFromRow($engineRow);
+                });
             } catch (\Throwable $e) {
-                DB::rollBack();
-
                 $this->onFailure(
                     new Failure(
                         row: $indexRow + $this->startRow(),

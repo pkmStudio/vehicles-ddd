@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Application\Services\Engine;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\PartSpecificationDataFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
-use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 
 /**
  * Use-case: создать/обновить спецификацию «свечи зажигания» для двигателя по eng_id.
@@ -21,6 +20,7 @@ final readonly class UpsertEngineSparkPlugSpecService implements UpsertEngineSpa
     public function __construct(
         private EngineRepositoryInterface $engines,
         private PartSpecificationCommandInterface $partSpecs,
+        private PartSpecificationDataFactoryInterface $factory,
     ) {}
 
     /**
@@ -34,12 +34,7 @@ final readonly class UpsertEngineSparkPlugSpecService implements UpsertEngineSpa
             return null;
         }
 
-        $specification = new PartSpecificationData(
-            partableType: PartableTypeEnum::ENGINE->value,
-            partableId: (int) $engine->id,
-            template: DetailTemplateEnum::SPARK_PLUGS,
-            details: $details,
-        );
+        $specification = $this->factory->make((int) $engine->id, $details);
 
         return $this->partSpecs->upsert($specification);
     }

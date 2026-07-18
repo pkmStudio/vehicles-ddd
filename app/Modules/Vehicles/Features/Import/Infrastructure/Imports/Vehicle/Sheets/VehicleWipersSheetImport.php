@@ -38,10 +38,6 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
     public function collection(Collection $collection): void
     {
         foreach ($collection as $indexRow => $row) {
-            if ($row->filter()->isEmpty()) {
-                continue;
-            }
-
             $row = $row->map(fn ($value) => is_string($value) ? trim($value) : $value);
             $rowValues = $row->toArray();
             try {

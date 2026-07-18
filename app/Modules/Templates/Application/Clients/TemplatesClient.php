@@ -40,7 +40,7 @@ final readonly class TemplatesClient implements TemplatesClientInterface
     {
         $index = $startIndex;
 
-        return $this->vehicleFactory->buildFromRow(DetailTemplateEnum::from($template), $row, $index)->toArray();
+        return $this->vehicleFactory->make(DetailTemplateEnum::from($template), $row, $index)->toArray();
     }
 
     public function splitVehicleWiperDetails(array $details): array
@@ -87,6 +87,6 @@ final readonly class TemplatesClient implements TemplatesClientInterface
     {
         $index = $startIndex;
 
-        return $this->nomenclatureFactory->buildFromRow(NomenclatureDetailTemplateEnum::from($template), $row, $index)->toArray();
+        return $this->nomenclatureFactory->make(NomenclatureDetailTemplateEnum::from($template), $row, $index)->toArray();
     }
 }

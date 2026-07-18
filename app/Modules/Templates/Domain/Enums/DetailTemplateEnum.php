@@ -7,7 +7,7 @@ namespace App\Modules\Templates\Domain\Enums;
 /**
  * Шаблон заполнения details у PartSpecification.
  * Значение — слаг шаблона; сборка details из строки для конкретного шаблона — забота
- * `Templates\Application\Factories\DetailsDataFactory::buildFromRow()` (порт —
+ * `Templates\Application\Factories\DetailsDataFactory::make()` (порт —
  * `Domain\Contracts\Factories\DetailsDataFactoryInterface`), не самого enum'а — это только
  * декларация словаря шаблонов, без поведения. Заменяет прежнюю таблицу detail_templates + types.
  */

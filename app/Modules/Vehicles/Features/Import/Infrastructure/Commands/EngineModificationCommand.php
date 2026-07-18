@@ -24,7 +24,11 @@ final readonly class EngineModificationCommand implements EngineModificationComm
 
         if ($engine && $modification) {
             $engine->modifications()->syncWithoutDetaching([
-                $modification->id => $data->toArray(),
+                $modification->id => [
+                    'eng_id' => $data->engId,
+                    'mod_id' => $data->modId,
+                    'type' => $data->type,
+                ],
             ]);
         }
     }

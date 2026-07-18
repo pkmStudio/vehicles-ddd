@@ -39,7 +39,7 @@ final readonly class DetailsDataFactory implements DetailsDataFactoryInterface
      * 3) Синхронизирует внешнюю ссылку `&$index` с итоговой позицией курсора.
      * 4) Возвращает собранный типизированный объект.
      */
-    public function buildFromRow(DetailTemplateEnum $template, array $row, int &$index): AbstractDetailsData
+    public function make(DetailTemplateEnum $template, array $row, int &$index): AbstractDetailsData
     {
         $cursor = new DetailsRowCursor($row, $index);
 

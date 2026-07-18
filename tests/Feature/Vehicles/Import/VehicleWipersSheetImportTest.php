@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Import;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleWiperSheetRowMapper;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Vehicle;
-use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
-use RuntimeException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Mockery;
+use RuntimeException;
 use Tests\TestCase;
 
 final class VehicleWipersSheetImportTest extends TestCase
@@ -26,7 +26,7 @@ final class VehicleWipersSheetImportTest extends TestCase
     /**
      * Базовые 20 колонок листа + 10 колонок спецификации дворников (индексы 20-29), реальные —
      * без мока `DetailsBuilder`/`TemplateDataBuilder` (эти классы удалены вместе со старым DSL,
-     * см. plan-refactor.md). Строка гоняется через настоящий `DetailsDataFactory::buildFromRow()`.
+     * см. plan-refactor.md). Строка гоняется через настоящий `DetailsDataFactory::make()`.
      *
      * @return array<int, mixed>
      */
@@ -91,7 +91,7 @@ final class VehicleWipersSheetImportTest extends TestCase
      * 1. Создаёт производителя и ТС с исходным name='Octavia'.
      * 2. Мокает VehicleWiperSpecificationImportServiceInterface — ожидает upsertFromRow() с
      *    ожидаемым DTO (msId/templateSlug/featureValueName/name/text/details из строки), где
-     *    details реально собраны `DetailsDataFactory::buildFromRow()`, не подставлены мок-ом.
+     *    details реально собраны `DetailsDataFactory::make()`, не подставлены мок-ом.
      * 3. Прогоняет одну строку с другим name ('Changed from wipers sheet') через collection().
      * 4. Проверяет, что в БД у ТС осталось исходное имя, а изменённое — не появилось.
      */

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Import;
 
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Vehicles\Features\Import\Application\Factories\PartSpecificationDataFactory;
 use App\Modules\Vehicles\Features\Import\Application\Services\Engine\UpsertEngineSparkPlugSpecService;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
-use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
@@ -52,7 +53,7 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
             }))
             ->andReturn($expected);
 
-        $service = new UpsertEngineSparkPlugSpecService($engines, $partSpecs);
+        $service = new UpsertEngineSparkPlugSpecService($engines, $partSpecs, new PartSpecificationDataFactory);
 
         $this->assertSame($expected, $service->upsertByEngine(101, $details));
     }
@@ -73,7 +74,7 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
         $partSpecs = Mockery::mock(PartSpecificationCommandInterface::class);
         $partSpecs->shouldNotReceive('upsert');
 
-        $service = new UpsertEngineSparkPlugSpecService($engines, $partSpecs);
+        $service = new UpsertEngineSparkPlugSpecService($engines, $partSpecs, new PartSpecificationDataFactory);
 
         $this->assertNull($service->upsertByEngine(999, ['gap' => '0.9']));
     }

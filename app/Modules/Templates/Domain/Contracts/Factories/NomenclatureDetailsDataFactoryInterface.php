@@ -15,5 +15,5 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
  */
 interface NomenclatureDetailsDataFactoryInterface
 {
-    public function buildFromRow(NomenclatureDetailTemplateEnum $template, array $row, int &$index): AbstractDetailsData;
+    public function make(NomenclatureDetailTemplateEnum $template, array $row, int &$index): AbstractDetailsData;
 }

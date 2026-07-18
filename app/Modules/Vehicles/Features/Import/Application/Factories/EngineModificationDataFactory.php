@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Application\Factories;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\EngineModificationDataFactoryInterface;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineModificationData;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -30,7 +30,7 @@ final readonly class EngineModificationDataFactory implements EngineModification
         return new EngineModificationData(
             engId: (int) $valid['eng_id'],
             modId: (int) $valid['mod_id'],
-            type: (string) $valid['type'],
+            type: VehicleTypeEnum::from((string) $valid['type']),
         );
     }
 }

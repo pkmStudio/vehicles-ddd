@@ -9,6 +9,7 @@ use App\Modules\Vehicles\Features\Import\Application\Services\EngineModification
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\EngineModification\EngineModificationCommandRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineModificationData;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;
@@ -29,7 +30,7 @@ final class LinkEngineModificationFromRowServiceTest extends TestCase
         $command = Mockery::mock(EngineModificationCommandInterface::class);
         $command->shouldReceive('syncWithoutDetaching')
             ->once()
-            ->with(Mockery::on(fn (EngineModificationData $d) => $d->engId === 1 && $d->modId === 2 && $d->type === 'PC'));
+            ->with(Mockery::on(fn (EngineModificationData $d) => $d->engId === 1 && $d->modId === 2 && $d->type === VehicleTypeEnum::PC));
 
         $service = new LinkEngineModificationFromRowService($command, new EngineModificationDataFactory);
         $service->linkFromRow(new EngineModificationCommandRowDTO(engId: 1, modId: 2, type: 'PC'));

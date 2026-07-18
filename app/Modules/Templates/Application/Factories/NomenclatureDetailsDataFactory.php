@@ -61,7 +61,7 @@ final readonly class NomenclatureDetailsDataFactory implements NomenclatureDetai
      * 3) Синхронизирует внешнюю ссылку `&$index` с итоговой позицией курсора.
      * 4) Возвращает собранный типизированный объект.
      */
-    public function buildFromRow(NomenclatureDetailTemplateEnum $template, array $row, int &$index): AbstractDetailsData
+    public function make(NomenclatureDetailTemplateEnum $template, array $row, int &$index): AbstractDetailsData
     {
         $cursor = new DetailsRowCursor($row, $index);
 

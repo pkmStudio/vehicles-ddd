@@ -18,5 +18,5 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
  */
 interface DetailsDataFactoryInterface
 {
-    public function buildFromRow(DetailTemplateEnum $template, array $row, int &$index): AbstractDetailsData;
+    public function make(DetailTemplateEnum $template, array $row, int &$index): AbstractDetailsData;
 }

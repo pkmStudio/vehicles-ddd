@@ -33,15 +33,7 @@
 проверяет валидность `type_carcase`), либо в общий приватный хелпер, вызываемый из обоих
 сервисов.
 
-### 2. Дублирование сборки `PartSpecificationData` для свечей зажигания (Import)
-
-`UpsertEngineSparkPlugSpecService.php:37-42` и `UpsertSparkPlugSpecByModificationService.php:58-63`
-— идентичная конструкция `new PartSpecificationData(partableType: ENGINE, template: SPARK_PLUGS,
-...)`. Вынести в именованный статический конструктор `PartSpecificationData::forEngineSparkPlugs(
-int $engineId, array $details): self` (это сборка значения, не бизнес-логика — можно прямо в
-Data-классе).
-
-### 3. Дублирование cache-key логики отчёта об ошибках импорта (4 места)
+### 2. Дублирование cache-key логики отчёта об ошибках импорта (4 места)
 
 `EngineCrossImport.php:43-50`, `EngineSparkPlugSpecificationImport.php:50-57`,
 `EngineMultiSheetImport.php:67-81`, `VehicleMultiSheetImport.php:67-81` — каждый независимо
@@ -49,23 +41,7 @@ Data-классе).
 общий хелпер (метод на `CachesImportFailures` или отдельный
 `ImportFailureCacheKeys::forEntity(string $prefix, string $runId): array{cacheKey, lockKey}`).
 
-### 4. Ручные транзакции вместо `DB::transaction()` (Import)
-
-`EngineMainSheetImport.php:39-56`, `EngineSparkPlugsSheetImport.php:59-88`,
-`VehicleMainSheetImport.php:38-56` вручную повторяют `DB::beginTransaction()/commit()/rollBack()`
-в `try/catch`, тогда как соседний `VehicleWipersSheetImport.php:50` уже делает то же самое
-идиоматично через `DB::transaction(fn () => ...)`. Привести первые три к тому же стилю — короче
-и без риска забыть `rollBack()`.
-
-### 5. Избыточная проверка, которая никогда не сработает (Import)
-
-`VehicleWipersSheetImport.php:21,41` — класс реализует `SkipsEmptyRows` (пакет `maatwebsite/excel`
-сам фильтрует полностью пустые строки до вызова `collection()`), но внутри `collection()` всё
-ещё вручную проверяет `if ($row->filter()->isEmpty()) { continue; }` — до этой строки пустая
-строка в принципе дойти не может. Удалить (либо, если имелась в виду «пустая после trim» —
-прокомментировать явно, иначе выглядит как случайное дублирование).
-
-### 6. Частично избыточная повторная валидация типов (Import)
+### 3. Частично избыточная повторная валидация типов (Import)
 
 Формат-конвертер в Infrastructure (`ImportRowValueFormatter::nullableInt/nullableFloat`) уже
 бросает исключение и отдаёт типизированный DTO (`?int`/`?float`), но Application-фабрики
@@ -75,7 +51,7 @@ EngineModification) повторно валидируют те же поля ч�
 ценность (`required`, `Rule::enum`, бизнес-правила), либо явно задокументировать как осознанный
 defense-in-depth.
 
-### 7. Разнобой в доступе к Cache/Storage — фасады vs DI (Import)
+### 4. Разнобой в доступе к Cache/Storage — фасады vs DI (Import)
 
 `ExternalImportCacheService`, `CleanupExternalImportFileService`, `ReportImportResultService`
 используют статические фасады `Cache::`/`Storage::` напрямую, тогда как соседний
@@ -84,22 +60,13 @@ defense-in-depth.
 А» стоит унифицировать — перейти на конструкторную инъекцию контрактов вместо фасадов, для
 единообразия и тестируемости через моки конструктора.
 
-### 8. `EngineModificationData::$type` — не enum-тип, вопреки собственному правилу (Import)
-
-`Domain\ModelData\EngineModificationData.php:21` — поле `public readonly string $type`, хотя
-колонка `engine_modification.type` кастится как `VehicleTypeEnum` и ARCHITECTURE.md §1 явно
-требует enum-тип для таких полей (сравните с корректными `ModificationData::$type`,
-`VehicleData::$type`). Соответствующая фабрика `EngineModificationDataFactory.php:33` тоже
-единственная, которая после `Rule::enum(...)`-валидации не конвертирует в `VehicleTypeEnum::from(...)`,
-а оставляет `(string)`. Привести к enum-типу, как у всех сиблингов.
-
-### 9. Разнобой в именовании констант «поля не для записи» (Import Commands)
+### 5. Разнобой в именовании констант «поля не для записи» (Import Commands)
 
 `EngineCommand::NON_WRITABLE_FIELDS` vs `ModificationCommand::NON_COLUMN_FIELDS` — одна и та же
 концепция под разными именами, остальные Command-классы вообще инлайнят `['id']` без константы.
 Унифицировать нейминг/подход во всех Command-классах.
 
-### 10. Избыточная развилка вместо прямого return (Import)
+### 6. Избыточная развилка вместо прямого return (Import)
 
 `ExternalImportCacheService::accept()` (`Application/Services/External/ExternalImportCacheService.php:17-24`):
 ```php
@@ -108,7 +75,7 @@ return false;
 ```
 эквивалентно `return Cache::add(...);`. Мелкая, но безопасная правка.
 
-### 11. Дублирование в Maintenance: две почти идентичные Artisan-команды
+### 7. Дублирование в Maintenance: две почти идентичные Artisan-команды
 
 `UpdateModificationYears.php:29-40` и `UpdateVehicleYears.php:29-40` — отличаются только моделью
 (`Modification`/`Vehicle`) и колонкой (`year_to`/`generation_year_to`), логика (`get()` + `foreach`
@@ -119,7 +86,7 @@ return false;
 Заодно там же — N+1: цикл `get()`+`foreach`+`update()` стоит заменить на один массовый
 `Model::query()->where(...)->update([...])`, который сам вернёт число затронутых строк.
 
-### 12. Дублирование JSONB-сравнения `details` в Maintenance
+### 8. Дублирование JSONB-сравнения `details` в Maintenance
 
 `PartSpecificationDeduplicationService.php:110-118` и
 `VehicleWiperPartSpecificationSplitService.php:121-130` — оба содержат один и тот же фрагмент
@@ -127,14 +94,14 @@ return false;
 (`MatchesPartSpecificationDetails` с методом `whereDetailsEqual($query, array $details)`) — по
 собственной политике трейтов проекта («чистое самодостаточное поведение»).
 
-### 13. Двойной пересчёт `splitSpecification()` в Maintenance
+### 9. Двойной пересчёт `splitSpecification()` в Maintenance
 
 `VehicleWiperPartSpecificationSplitService::cleanupEmptySides()` (строка 212) вычисляет
 `splitSpecification()` только ради проверки `shouldSplit()` и отбрасывает результат; если проверка
 говорит «нужно разбивать», `processSpecification` (строка 68) пересчитывает то же самое заново на
 тех же данных. Посчитать один раз и переиспользовать результат.
 
-### 14. Несоответствие архитектуре: Maintenance-команды пишут Eloquent прямо в `handle()`
+### 10. Несоответствие архитектуре: Maintenance-команды пишут Eloquent прямо в `handle()`
 
 `UpdateModificationYears`/`UpdateVehicleYears` нарушают собственный паттерн фичи (шпаргалка §6:
 «разовый фикс → команда в Presentation + Application/Services»). Соседние

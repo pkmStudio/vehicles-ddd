@@ -9,7 +9,7 @@ namespace App\Modules\Templates\Domain\Enums;
  * (тот — про PartSpecification/Vehicles): даже одноимённые по сути товары (например Wiper) здесь
  * описывают собственные характеристики товара, а не потребность конкретного ТС — разные формы,
  * разные Data-классы, поэтому и разный диспетчеризационный enum. Сборка — забота
- * `Templates\Application\Factories\DetailsDataFactory::buildFromRow()`, не самого enum'а.
+ * `Templates\Application\Factories\DetailsDataFactory::make()`, не самого enum'а.
  */
 enum NomenclatureDetailTemplateEnum: string
 {

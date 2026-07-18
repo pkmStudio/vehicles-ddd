@@ -25,12 +25,12 @@ final class DetailsDataFactoryTest extends TestCase
     }
 
     /**
-     * Проверяет `buildFromRow()` для свечи зажигания: те же 5 ячеек, что использует
+     * Проверяет `make()` для свечи зажигания: те же 5 ячеек, что использует
      * `EngineSparkPlugsSheetImportTest`, дают тот же хранимый массив (`case->name`), что и
      * старый `DetailsBuilder` — эталон синхронизирован с тем feature-тестом.
      *
      * Шаги:
-     * 1. Зовёт `buildFromRow(SPARK_PLUGS, ...)` со строкой `['M14x1.25', '1.25', '19', '0.9', '19']`.
+     * 1. Зовёт `make(SPARK_PLUGS, ...)` со строкой `['M14x1.25', '1.25', '19', '0.9', '19']`.
      * 2. Проверяет, что результат — вложенный массив хранимых имён (`M14X125`/`TP125`/`TL19`/`G09`/`WJ19`).
      * 3. Проверяет, что `$index` сдвинулся ровно на 5 (по числу прочитанных ячеек).
      */
@@ -39,7 +39,7 @@ final class DetailsDataFactoryTest extends TestCase
         $row = ['M14x1.25', '1.25', '19', '0.9', '19'];
         $index = 0;
 
-        $details = $this->factory->buildFromRow(DetailTemplateEnum::SPARK_PLUGS, $row, $index)->toArray();
+        $details = $this->factory->make(DetailTemplateEnum::SPARK_PLUGS, $row, $index)->toArray();
 
         $this->assertSame([
             'thread' => ['size' => 'M14X125', 'pitch' => 'TP125', 'length' => 'TL19'],
@@ -50,11 +50,11 @@ final class DetailsDataFactoryTest extends TestCase
     }
 
     /**
-     * Проверяет `buildFromRow()` для свечи зажигания: пустые/отсутствующие ячейки — не ошибка,
+     * Проверяет `make()` для свечи зажигания: пустые/отсутствующие ячейки — не ошибка,
      * а null в соответствующих полях.
      *
      * Шаги:
-     * 1. Зовёт `buildFromRow(SPARK_PLUGS, ...)` со строкой `[null, '', '19']`.
+     * 1. Зовёт `make(SPARK_PLUGS, ...)` со строкой `[null, '', '19']`.
      * 2. Проверяет, что `size`/`pitch`/`gap`/`wrench_jaw_width` стали null, а `length` — `'TL19'`.
      */
     public function test_spark_plugs_missing_cells_produce_nulls_without_throwing(): void
@@ -62,7 +62,7 @@ final class DetailsDataFactoryTest extends TestCase
         $row = [null, '', '19'];
         $index = 0;
 
-        $details = $this->factory->buildFromRow(DetailTemplateEnum::SPARK_PLUGS, $row, $index)->toArray();
+        $details = $this->factory->make(DetailTemplateEnum::SPARK_PLUGS, $row, $index)->toArray();
 
         $this->assertSame([
             'thread' => ['size' => null, 'pitch' => null, 'length' => 'TL19'],
@@ -72,11 +72,11 @@ final class DetailsDataFactoryTest extends TestCase
     }
 
     /**
-     * Проверяет `buildFromRow()`: нераспознанный лейбл — явное исключение (как раньше
+     * Проверяет `make()`: нераспознанный лейбл — явное исключение (как раньше
      * `DetailsBuilder::getVarKey()`), а не тихий null.
      *
      * Шаги:
-     * 1. Зовёт `buildFromRow(SPARK_PLUGS, ...)` со строкой с несуществующим значением размера резьбы.
+     * 1. Зовёт `make(SPARK_PLUGS, ...)` со строкой с несуществующим значением размера резьбы.
      * 2. Проверяет, что выбрасывается `RuntimeException`.
      */
     public function test_unknown_label_throws(): void
@@ -86,16 +86,16 @@ final class DetailsDataFactoryTest extends TestCase
 
         $this->expectException(\RuntimeException::class);
 
-        $this->factory->buildFromRow(DetailTemplateEnum::SPARK_PLUGS, $row, $index);
+        $this->factory->make(DetailTemplateEnum::SPARK_PLUGS, $row, $index);
     }
 
     /**
-     * Проверяет `buildFromRow()` для дворников: импорт всегда строит ОБЕ стороны (10 колонок
+     * Проверяет `make()` для дворников: импорт всегда строит ОБЕ стороны (10 колонок
      * подряд), даже если реально заполнена только одна — фильтрация по факту заполненности
      * остаётся заботой `WiperSpecificationService::splitDetails()`, не фабрики.
      *
      * Шаги:
-     * 1. Зовёт `buildFromRow(WIPER, ...)` со строкой, где заполнены и front, и back.
+     * 1. Зовёт `make(WIPER, ...)` со строкой, где заполнены и front, и back.
      * 2. Проверяет, что результат содержит оба корневых ключа (`front`/`back`) с ожидаемыми полями.
      * 3. Проверяет, что `$index` сдвинулся ровно на 10 (по числу прочитанных ячеек).
      */
@@ -107,7 +107,7 @@ final class DetailsDataFactoryTest extends TestCase
         ];
         $index = 0;
 
-        $details = $this->factory->buildFromRow(DetailTemplateEnum::WIPER, $row, $index)->toArray();
+        $details = $this->factory->make(DetailTemplateEnum::WIPER, $row, $index)->toArray();
 
         $this->assertSame([
             'front' => [
@@ -126,11 +126,11 @@ final class DetailsDataFactoryTest extends TestCase
     }
 
     /**
-     * Проверяет `buildFromRow()` для дворников: пустые ячейки по всей строке — не ошибка, все
+     * Проверяет `make()` для дворников: пустые ячейки по всей строке — не ошибка, все
      * листья становятся null/[].
      *
      * Шаги:
-     * 1. Зовёт `buildFromRow(WIPER, ...)` со строкой из 10 null-ячеек.
+     * 1. Зовёт `make(WIPER, ...)` со строкой из 10 null-ячеек.
      * 2. Проверяет, что все скалярные поля — null, а массивы адаптеров — пустые.
      */
     public function test_wiper_handles_fully_blank_row(): void
@@ -138,7 +138,7 @@ final class DetailsDataFactoryTest extends TestCase
         $row = array_fill(0, 10, null);
         $index = 0;
 
-        $details = $this->factory->buildFromRow(DetailTemplateEnum::WIPER, $row, $index)->toArray();
+        $details = $this->factory->make(DetailTemplateEnum::WIPER, $row, $index)->toArray();
 
         $this->assertSame([
             'front' => [
@@ -156,11 +156,11 @@ final class DetailsDataFactoryTest extends TestCase
     }
 
     /**
-     * Проверяет `buildFromRow()` для дворников: многозначный `;`-джойн лейбл адаптера
+     * Проверяет `make()` для дворников: многозначный `;`-джойн лейбл адаптера
      * разбирается в массив хранимых имён, а не остаётся одной строкой.
      *
      * Шаги:
-     * 1. Зовёт `buildFromRow(WIPER, ...)` со строкой, где ячейка адаптера — два лейбла через `;`.
+     * 1. Зовёт `make(WIPER, ...)` со строкой, где ячейка адаптера — два лейбла через `;`.
      * 2. Проверяет, что `adapter_type_front` стал массивом из двух хранимых имён (`H`, `S`).
      */
     public function test_wiper_multiple_adapters_parsed_from_semicolon_joined_labels(): void
@@ -168,7 +168,7 @@ final class DetailsDataFactoryTest extends TestCase
         $row = [null, null, null, null, 'Крючок (Hook / J-Hook);Боковой штырь (Side pin)', null, null, null, null, null];
         $index = 0;
 
-        $details = $this->factory->buildFromRow(DetailTemplateEnum::WIPER, $row, $index)->toArray();
+        $details = $this->factory->make(DetailTemplateEnum::WIPER, $row, $index)->toArray();
 
         $this->assertSame(['H', 'S'], $details['front']['adapter_type_front']);
     }
