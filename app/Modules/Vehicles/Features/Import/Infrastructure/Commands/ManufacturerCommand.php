@@ -11,14 +11,15 @@ use Illuminate\Support\Arr;
 
 final readonly class ManufacturerCommand implements ManufacturerCommandInterface
 {
+    private const array NON_WRITABLE_FIELDS = ['id'];
+
     public function upsertByMfaId(ManufacturerData $data): ManufacturerData
     {
         return ManufacturerData::from(
             Manufacturer::query()->updateOrCreate(
                 ['mfa_id' => $data->mfaId],
-                Arr::except($data->toArray(), ['id']),
+                Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS),
             ),
         );
     }
-
 }

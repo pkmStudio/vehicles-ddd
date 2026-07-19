@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Application\Factories;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\ModificationDataFactoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\ModificationData;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\BrakeSystemTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\DriveTypeEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\GearTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
-use App\Modules\Vehicles\Features\Import\Domain\ModelData\ModificationData;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Валидирует сырую строку и собирает ModificationData.
+ * Валидирует контракт данных и собирает ModificationData.
  * vehicle_id (резолв ТС вызывающим) передаётся тем же массивом.
  */
 final readonly class ModificationDataFactory implements ModificationDataFactoryInterface

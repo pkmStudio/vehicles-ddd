@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Валидирует сырую строку и собирает ManufacturerData.
+ * Валидирует контракт данных и собирает ManufacturerData.
  */
 final readonly class ManufacturerDataFactory implements ManufacturerDataFactoryInterface
 {

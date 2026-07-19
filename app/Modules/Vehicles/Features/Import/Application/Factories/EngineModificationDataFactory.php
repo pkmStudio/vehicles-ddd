@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Валидирует сырую строку и собирает EngineModificationData (связь пивота).
+ * Валидирует контракт данных и собирает EngineModificationData (связь пивота).
  */
 final readonly class EngineModificationDataFactory implements EngineModificationDataFactoryInterface
 {

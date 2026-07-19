@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Application\Factories;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\VehicleDataFactoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
-use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Валидирует сырую строку и собирает VehicleData.
+ * Валидирует контракт данных и собирает VehicleData.
  * manufacturer_id/parent_id (резолв вызывающим) передаются тем же массивом.
  * Отсутствующие в строке поля берут дефолты (вызовы дают разные подмножества).
  */

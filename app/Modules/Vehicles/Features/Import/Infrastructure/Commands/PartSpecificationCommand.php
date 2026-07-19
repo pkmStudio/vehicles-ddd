@@ -11,17 +11,19 @@ use Illuminate\Support\Arr;
 
 final readonly class PartSpecificationCommand implements PartSpecificationCommandInterface
 {
+    private const array NON_WRITABLE_FIELDS = ['id'];
+
     public function create(PartSpecificationData $data): PartSpecificationData
     {
         return PartSpecificationData::from(
-            PartSpecification::query()->create(Arr::except($data->toArray(), ['id'])),
+            PartSpecification::query()->create(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS)),
         );
     }
 
     public function update(PartSpecificationData $data): PartSpecificationData
     {
         $specification = PartSpecification::query()->findOrFail($data->id);
-        $specification->update(Arr::except($data->toArray(), ['id']));
+        $specification->update(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS));
 
         return PartSpecificationData::from($specification);
     }

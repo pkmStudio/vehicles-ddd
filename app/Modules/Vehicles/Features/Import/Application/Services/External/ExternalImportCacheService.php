@@ -16,11 +16,7 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
 {
     public function accept(ExternalImportFileRequestDTO $request): bool
     {
-        if (Cache::add($this->acceptedCacheKey($request->runId), true, now()->addSeconds($this->cacheTtlSeconds()))) {
-            return true;
-        }
-
-        return false;
+        return Cache::add($this->acceptedCacheKey($request->runId), true, now()->addSeconds($this->cacheTtlSeconds()));
     }
 
     public function forgetAccepted(string $runId): void

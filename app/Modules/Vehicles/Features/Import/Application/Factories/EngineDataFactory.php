@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Application\Factories;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\EngineDataFactoryInterface;
-use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Валидирует сырую строку и собирает EngineData.
+ * Валидирует контракт данных и собирает EngineData.
  * eng_fuel_type валидируется как enum (сырое значение), маппинг — в casts модели.
  */
 final readonly class EngineDataFactory implements EngineDataFactoryInterface

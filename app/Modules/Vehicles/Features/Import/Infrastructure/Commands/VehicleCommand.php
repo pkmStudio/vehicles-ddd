@@ -11,12 +11,14 @@ use Illuminate\Support\Arr;
 
 final readonly class VehicleCommand implements VehicleCommandInterface
 {
+    private const array NON_WRITABLE_FIELDS = ['id'];
+
     public function upsertByMsId(VehicleData $data): VehicleData
     {
         return VehicleData::from(
             Vehicle::query()->updateOrCreate(
                 ['ms_id' => $data->msId],
-                Arr::except($data->toArray(), ['id']),
+                Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS),
             ),
         );
     }
