@@ -49,7 +49,7 @@ final readonly class CreatePackDimensionUseCase implements CreatePackDimensionUs
         }
 
         try {
-            if ($this->types->find($request->typeId) === null) {
+            if ($this->types->findById($request->typeId) === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

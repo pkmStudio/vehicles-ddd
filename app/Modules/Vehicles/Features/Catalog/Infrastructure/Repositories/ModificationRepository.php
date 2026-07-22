@@ -17,7 +17,7 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
     /**
      * Возвращает первый Data-снимок модификаций по внешнему идентификатору.
      */
-    public function firstByModIdAndType(int $modId, string $type): ?ModificationData
+    public function findByModIdAndType(int $modId, string $type): ?ModificationData
     {
         return ModificationData::optional(
             Modification::query()

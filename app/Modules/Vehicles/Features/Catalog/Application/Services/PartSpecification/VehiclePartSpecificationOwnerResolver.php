@@ -39,7 +39,7 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
      */
     public function execute(PartSpecificationOwnerDTO $owner): PartSpecificationOwnerResolutionDTO
     {
-        $existing = $this->vehicles->firstByMsId($owner->externalId);
+        $existing = $this->vehicles->findByMsId($owner->externalId);
         if ($existing === null) {
             return $this->createOwner($owner);
         }

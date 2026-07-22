@@ -14,5 +14,5 @@ interface PartSpecificationRepositoryInterface
     /**
      * Возвращает Data-снимок спецификации детали по id.
      */
-    public function firstById(int $id): ?PartSpecificationData;
+    public function findById(int $id): ?PartSpecificationData;
 }

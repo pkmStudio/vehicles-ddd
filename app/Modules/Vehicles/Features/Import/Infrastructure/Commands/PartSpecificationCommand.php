@@ -28,22 +28,4 @@ final readonly class PartSpecificationCommand implements PartSpecificationComman
         return PartSpecificationData::from($specification);
     }
 
-    public function upsert(PartSpecificationData $data): PartSpecificationData
-    {
-        return PartSpecificationData::from(
-            PartSpecification::query()->updateOrCreate(
-                [
-                    'partable_type' => $data->partableType,
-                    'partable_id' => $data->partableId,
-                    'template' => $data->template,
-                    'feature_value_id' => $data->featureValueId,
-                ],
-                [
-                    'name' => $data->name,
-                    'text' => $data->text,
-                    'details' => $data->details,
-                ],
-            ),
-        );
-    }
 }

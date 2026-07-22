@@ -49,7 +49,7 @@ final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
         }
 
         try {
-            if ($this->engines->firstByEngId($request->engId) !== null) {
+            if ($this->engines->findByEngId($request->engId) !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

@@ -19,7 +19,7 @@ interface NomenclatureIntegrationRepositoryInterface
     /**
      * Возвращает связь номенклатуры с МойСклад или null.
      */
-    public function firstForNomenclature(int $nomenclatureId): ?NomenclatureIntegrationData;
+    public function findByNomenclatureId(int $nomenclatureId): ?NomenclatureIntegrationData;
 
     /**
      * Находит связь для delete workflow по явному id, локальному id или externalCode.

@@ -28,8 +28,8 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
      * id как manufacturerId и уходит в Command.
      *
      * Шаги:
-     * 1. Мокает ManufacturerRepositoryInterface::firstByMfaId — возвращает ManufacturerData(id=3).
-     * 2. Мокает Command::upsertByMsId — ожидает данные с manufacturerId=3 и остальными полями
+     * 1. Мокает ManufacturerRepositoryInterface::findByMfaId — возвращает ManufacturerData(id=3).
+     * 2. Мокает Command::create — ожидает данные с manufacturerId=3 и остальными полями
      *    строки (msId/name/type).
      * 3. Зовёт upsertFromRow() с валидным VehicleTdRowDTO.
      * 4. Проверяет, что вернулся именно ожидаемый результат Command.
@@ -51,13 +51,13 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
         );
 
         $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
-        $manufacturers->shouldReceive('firstByMfaId')->once()->with(10)->andReturn($manufacturer);
+        $manufacturers->shouldReceive('findByMfaId')->once()->with(10)->andReturn($manufacturer);
 
         $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
-        $vehicles->shouldReceive('firstByMsId')->once()->with(200)->andReturnNull();
+        $vehicles->shouldReceive('findByMsId')->once()->with(200)->andReturnNull();
 
         $command = Mockery::mock(VehicleCommandInterface::class);
-        $command->shouldReceive('upsertByMsId')
+        $command->shouldReceive('create')
             ->once()
             ->with(Mockery::on(function (VehicleData $data) {
                 return $data->msId === 200
@@ -80,20 +80,20 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
      * нет смысла заводить ТС без родителя-производителя.
      *
      * Шаги:
-     * 1. Мокает ManufacturerRepositoryInterface::firstByMfaId — возвращает null.
-     * 2. Мокает Command — ожидает, что upsertByMsId НЕ вызовется.
+     * 1. Мокает ManufacturerRepositoryInterface::findByMfaId — возвращает null.
+     * 2. Мокает Command — ожидает, что create НЕ вызовется.
      * 3. Зовёт upsertFromRow() и проверяет, что результат null.
      */
     public function test_returns_null_when_manufacturer_not_found(): void
     {
         $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
-        $manufacturers->shouldReceive('firstByMfaId')->once()->with(10)->andReturnNull();
+        $manufacturers->shouldReceive('findByMfaId')->once()->with(10)->andReturnNull();
 
         $command = Mockery::mock(VehicleCommandInterface::class);
-        $command->shouldNotReceive('upsertByMsId');
+        $command->shouldNotReceive('create');
 
         $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
-        $vehicles->shouldNotReceive('firstByMsId');
+        $vehicles->shouldNotReceive('findByMsId');
 
         $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers, $vehicles);
 
@@ -106,7 +106,7 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
      *
      * Шаги:
      * 1. Мокает ManufacturerRepositoryInterface — возвращает ManufacturerData.
-     * 2. Мокает Command::upsertByMsId — просто возвращает переданный ему VehicleData как есть.
+     * 2. Мокает Command::create — просто возвращает переданный ему VehicleData как есть.
      * 3. Зовёт upsertFromRow() со строкой type='MB', typeCarcase=null.
      * 4. Проверяет, что итоговый VehicleData имеет type=MB и typeCarcase=MOTORCYCLE.
      */
@@ -127,13 +127,13 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
         $manufacturer = new ManufacturerData(mfaId: 10, name: 'Kawasaki', provider: ProviderEnum::TD, id: 3);
 
         $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
-        $manufacturers->shouldReceive('firstByMfaId')->once()->with(10)->andReturn($manufacturer);
+        $manufacturers->shouldReceive('findByMfaId')->once()->with(10)->andReturn($manufacturer);
 
         $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
-        $vehicles->shouldReceive('firstByMsId')->once()->with(200)->andReturnNull();
+        $vehicles->shouldReceive('findByMsId')->once()->with(200)->andReturnNull();
 
         $command = Mockery::mock(VehicleCommandInterface::class);
-        $command->shouldReceive('upsertByMsId')
+        $command->shouldReceive('create')
             ->once()
             ->andReturnUsing(fn (VehicleData $data) => $data);
 

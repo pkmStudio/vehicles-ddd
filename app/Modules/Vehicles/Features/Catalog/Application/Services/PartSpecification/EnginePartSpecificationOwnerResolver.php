@@ -39,7 +39,7 @@ final readonly class EnginePartSpecificationOwnerResolver implements EnginePartS
      */
     public function execute(PartSpecificationOwnerDTO $owner): PartSpecificationOwnerResolutionDTO
     {
-        $existing = $this->engines->firstByEngId($owner->externalId);
+        $existing = $this->engines->findByEngId($owner->externalId);
         if ($existing === null) {
             return $this->createOwner($owner);
         }

@@ -10,7 +10,7 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Vehicle;
 
 final readonly class VehicleRepository implements VehicleRepositoryInterface
 {
-    public function firstByMsId(int $msId): ?VehicleData
+    public function findByMsId(int $msId): ?VehicleData
     {
         return VehicleData::optional(Vehicle::query()->where('ms_id', $msId)->first());
     }

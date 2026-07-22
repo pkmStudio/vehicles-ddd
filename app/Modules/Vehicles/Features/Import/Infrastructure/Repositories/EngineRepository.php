@@ -10,12 +10,12 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Engine;
 
 final readonly class EngineRepository implements EngineRepositoryInterface
 {
-    public function firstByEngId(int $engId): ?EngineData
+    public function findByEngId(int $engId): ?EngineData
     {
         return EngineData::optional(Engine::query()->where('eng_id', $engId)->first());
     }
 
-    public function firstByCodeEngine(string $code): ?EngineData
+    public function findByCodeEngine(string $code): ?EngineData
     {
         return EngineData::optional(Engine::query()->where('code_engine', $code)->first());
     }

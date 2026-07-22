@@ -44,7 +44,7 @@ final readonly class UpsertModificationFromRowService implements UpsertModificat
             return null;
         }
 
-        $vehicle = $this->vehicles->firstByMsId($row->msId);
+        $vehicle = $this->vehicles->findByMsId($row->msId);
 
         if (! $vehicle) {
             return null;
@@ -68,12 +68,14 @@ final readonly class UpsertModificationFromRowService implements UpsertModificat
             'vehicle_id' => $vehicle->id,
         ]);
 
-        $wasExisting = $this->modifications->firstByModIdAndType($data->modId, $data->type->value) !== null;
-        $modification = $this->command->upsertByModIdAndType($data);
+        $existing = $this->modifications->findByModIdAndType($data->modId, $data->type->value);
+        $modification = $existing === null
+            ? $this->command->create($data)
+            : $this->command->updateByModIdAndType($data);
 
-        event($wasExisting
-            ? new ModificationUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $modification->toArray())
-            : new ModificationCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $modification->toArray()));
+        event($existing === null
+            ? new ModificationCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $modification->toArray())
+            : new ModificationUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $modification->toArray()));
 
         return $modification;
     }

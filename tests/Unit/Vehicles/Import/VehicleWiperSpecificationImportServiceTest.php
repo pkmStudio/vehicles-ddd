@@ -38,7 +38,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
     ): VehicleWiperSpecificationImportService {
         $vehicles ??= Mockery::mock(VehicleRepositoryInterface::class);
         $vehicles
-            ->shouldReceive('firstByMsId')
+            ->shouldReceive('findByMsId')
             ->with(77)
             ->andReturn($this->vehicleData());
 
@@ -84,7 +84,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
      * ни существующей записи стороны — создаётся по одной новой PartSpecification на сторону.
      *
      * Шаги:
-     * 1. Мокает Repository: firstByVehicleTemplateSideAndDetails и forVehicleTemplateAndSide
+     * 1. Мокает Repository: findByVehicleTemplateSideAndDetails и forVehicleTemplateAndSide
      *    для front/back возвращают null/пустую коллекцию (совпадений и существующих нет).
      * 2. Мокает Command::create — ожидает ровно 2 вызова (по одному на сторону), update не
      *    ожидается вообще.
@@ -96,10 +96,10 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         Event::fake([PartSpecificationCreated::class]);
 
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
-        $specs->shouldReceive('firstByVehicleTemplateSideAndDetails')->once()
+        $specs->shouldReceive('findByVehicleTemplateSideAndDetails')->once()
             ->with(77, DetailTemplateEnum::WIPER, 'front', ['front' => ['adapter_type_front' => ['A1'], 'count_wipers' => 2]])
             ->andReturnNull();
-        $specs->shouldReceive('firstByVehicleTemplateSideAndDetails')->once()
+        $specs->shouldReceive('findByVehicleTemplateSideAndDetails')->once()
             ->with(77, DetailTemplateEnum::WIPER, 'back', ['back' => ['adapter_type_rear' => ['B1']]])
             ->andReturnNull();
         $specs->shouldReceive('forVehicleTemplateAndSide')->once()
@@ -136,7 +136,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
      * теми же details — сервис обновляет именно её (по id), а не создаёт дубликат.
      *
      * Шаги:
-     * 1. Мокает Repository::firstByVehicleTemplateSideAndDetails('front', ...) — возвращает
+     * 1. Мокает Repository::findByVehicleTemplateSideAndDetails('front', ...) — возвращает
      *    существующую спецификацию (id=5) с точно такими же details.
      * 2. Мокает Command::update — ожидает вызов с этим же id=5, create не ожидается.
      * 3. Зовёт upsertFromRow() со строкой только с front-стороной.
@@ -154,7 +154,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         );
 
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
-        $specs->shouldReceive('firstByVehicleTemplateSideAndDetails')->once()
+        $specs->shouldReceive('findByVehicleTemplateSideAndDetails')->once()
             ->with(77, DetailTemplateEnum::WIPER, 'front', ['front' => ['adapter_type_front' => ['A1']]])
             ->andReturn($existing);
         $specs->shouldNotReceive('forVehicleTemplateAndSide');
@@ -180,7 +180,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
      * создаёт вторую запись для той же стороны.
      *
      * Шаги:
-     * 1. Мокает Repository::firstByVehicleTemplateSideAndDetails — не находит точное
+     * 1. Мокает Repository::findByVehicleTemplateSideAndDetails — не находит точное
      *    совпадение (null).
      * 2. Мокает Repository::forVehicleTemplateAndSide('front') — возвращает коллекцию с
      *    ровно одной существующей записью (id=5, другие details).
@@ -198,7 +198,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         );
 
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
-        $specs->shouldReceive('firstByVehicleTemplateSideAndDetails')->once()
+        $specs->shouldReceive('findByVehicleTemplateSideAndDetails')->once()
             ->with(77, DetailTemplateEnum::WIPER, 'front', ['front' => ['adapter_type_front' => ['A1']]])
             ->andReturnNull();
         $specs->shouldReceive('forVehicleTemplateAndSide')->once()
@@ -223,7 +223,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
      * FeatureValueRepository и попадает в создаваемую PartSpecification.
      *
      * Шаги:
-     * 1. Мокает FeatureValueRepositoryInterface::firstByName('Левый руль') — возвращает
+     * 1. Мокает FeatureValueRepositoryInterface::findByName('Левый руль') — возвращает
      *    FeatureValueData(id=9).
      * 2. Мокает Repository — совпадений/существующих записей нет (ветка создания).
      * 3. Мокает Command::create — ожидает вызов с featureValueId=9.
@@ -233,10 +233,10 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
     {
         $fv = new FeatureValueData(featureId: 1, name: 'Левый руль', shortCode: 'L', id: 9);
         $featureValues = Mockery::mock(FeatureValueRepositoryInterface::class);
-        $featureValues->shouldReceive('firstByName')->once()->with('Левый руль')->andReturn($fv);
+        $featureValues->shouldReceive('findByName')->once()->with('Левый руль')->andReturn($fv);
 
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
-        $specs->shouldReceive('firstByVehicleTemplateSideAndDetails')->once()->andReturnNull();
+        $specs->shouldReceive('findByVehicleTemplateSideAndDetails')->once()->andReturnNull();
         $specs->shouldReceive('forVehicleTemplateAndSide')->once()->andReturn(new Collection);
 
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
@@ -258,7 +258,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
      * сообщением, а не молчать.
      *
      * Шаги:
-     * 1. Мокает FeatureValueRepositoryInterface::firstByName — возвращает null для
+     * 1. Мокает FeatureValueRepositoryInterface::findByName — возвращает null для
      *    несуществующего имени.
      * 2. Зовёт upsertFromRow() со строкой с featureValueName='Неизвестная особенность'.
      * 3. Ожидает RuntimeException с точным текстом «Особенность не найдена...».
@@ -266,7 +266,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
     public function test_throws_when_feature_value_name_not_found(): void
     {
         $featureValues = Mockery::mock(FeatureValueRepositoryInterface::class);
-        $featureValues->shouldReceive('firstByName')->once()->with('Неизвестная особенность')->andReturnNull();
+        $featureValues->shouldReceive('findByName')->once()->with('Неизвестная особенность')->andReturnNull();
 
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
@@ -287,7 +287,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
      * обновить существующую (fallback update здесь неприменим, т.к. вариантов несколько).
      *
      * Шаги:
-     * 1. Мокает Repository::firstByVehicleTemplateSideAndDetails — не находит совпадений ни
+     * 1. Мокает Repository::findByVehicleTemplateSideAndDetails — не находит совпадений ни
      *    для варианта A1, ни для A2; forVehicleTemplateAndSide не ожидается вообще (сервис не
      *    должен даже пытаться искать «единственную существующую» при множественных адаптерах).
      * 2. Мокает Command::create — ожидает ровно 2 вызова, update не ожидается.
@@ -297,10 +297,10 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
     public function test_creates_separate_specs_for_multiple_front_adapters_without_fallback_update(): void
     {
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
-        $specs->shouldReceive('firstByVehicleTemplateSideAndDetails')->once()
+        $specs->shouldReceive('findByVehicleTemplateSideAndDetails')->once()
             ->with(77, DetailTemplateEnum::WIPER, 'front', ['front' => ['adapter_type_front' => ['A1'], 'count_wipers' => 2]])
             ->andReturnNull();
-        $specs->shouldReceive('firstByVehicleTemplateSideAndDetails')->once()
+        $specs->shouldReceive('findByVehicleTemplateSideAndDetails')->once()
             ->with(77, DetailTemplateEnum::WIPER, 'front', ['front' => ['adapter_type_front' => ['A2'], 'count_wipers' => 2]])
             ->andReturnNull();
         $specs->shouldNotReceive('forVehicleTemplateAndSide');

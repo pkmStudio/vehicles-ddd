@@ -50,12 +50,14 @@ final readonly class UpsertEngineFromSheetService implements UpsertEngineFromShe
             'eng_fuel_type' => $row->engFuelType,
         ]);
 
-        $wasExisting = $this->engines->firstByEngId($data->engId) !== null;
-        $engine = $this->command->upsertByEngId($data);
+        $existing = $this->engines->findByEngId($data->engId);
+        $engine = $existing === null
+            ? $this->command->create($data)
+            : $this->command->updateByEngId($data);
 
-        event($wasExisting
-            ? new EngineUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $engine->toArray())
-            : new EngineCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $engine->toArray()));
+        event($existing === null
+            ? new EngineCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $engine->toArray())
+            : new EngineUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $engine->toArray()));
 
         return $engine;
     }

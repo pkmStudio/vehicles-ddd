@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 
 interface VehicleCommandInterface
 {
-    /** Upsert по натуральному ключу ms_id. */
-    public function upsertByMsId(VehicleData $data): VehicleData;
+    public function create(VehicleData $data): VehicleData;
+
+    public function updateByMsId(VehicleData $data): VehicleData;
 }

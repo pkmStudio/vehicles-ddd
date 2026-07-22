@@ -48,7 +48,7 @@ final readonly class DeleteModificationUseCase implements DeleteModificationUseC
         }
 
         try {
-            $modification = $this->modifications->firstByModIdAndType(
+            $modification = $this->modifications->findByModIdAndType(
                 modId: $request->modId,
                 type: $request->type->value,
             );

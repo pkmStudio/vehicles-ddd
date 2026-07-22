@@ -48,7 +48,7 @@ final readonly class DeleteManufacturerUseCase implements DeleteManufacturerUseC
         }
 
         try {
-            $manufacturer = $this->manufacturers->firstByMfaId($request->mfaId);
+            $manufacturer = $this->manufacturers->findByMfaId($request->mfaId);
             if ($manufacturer === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

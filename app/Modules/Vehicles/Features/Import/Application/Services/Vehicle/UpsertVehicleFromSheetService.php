@@ -52,7 +52,7 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
         $minMsId = min($this->vehicles->minMsId(), 0);
 
         $parentId = $row->parentMsId !== null
-            ? $this->vehicles->firstByMsId($row->parentMsId)?->id
+            ? $this->vehicles->findByMsId($row->parentMsId)?->id
             : null;
 
         $type = $row->type;
@@ -87,12 +87,14 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
             'parent_id' => $parentId,
         ]);
 
-        $wasExisting = $this->vehicles->firstByMsId($data->msId) !== null;
-        $vehicle = $this->command->upsertByMsId($data);
+        $existing = $this->vehicles->findByMsId($data->msId);
+        $vehicle = $existing === null
+            ? $this->command->create($data)
+            : $this->command->updateByMsId($data);
 
-        event($wasExisting
-            ? new VehicleUpdated(self::IMPORT_USER_ID, self::VEHICLE_OPERATION_ID, $vehicle->toArray())
-            : new VehicleCreated(self::IMPORT_USER_ID, self::VEHICLE_OPERATION_ID, $vehicle->toArray()));
+        event($existing === null
+            ? new VehicleCreated(self::IMPORT_USER_ID, self::VEHICLE_OPERATION_ID, $vehicle->toArray())
+            : new VehicleUpdated(self::IMPORT_USER_ID, self::VEHICLE_OPERATION_ID, $vehicle->toArray()));
 
         return $vehicle;
     }
@@ -103,8 +105,8 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
     private function resolveManufacturer(int &$minMfaId, VehicleSheetRowDTO $row): array
     {
         $manufacturer = $row->mfaId === null
-            ? $this->manufacturers->firstByName((string) $row->manufacturerName)
-            : $this->manufacturers->firstByMfaId($row->mfaId);
+            ? $this->manufacturers->findByName((string) $row->manufacturerName)
+            : $this->manufacturers->findByMfaId($row->mfaId);
 
         if (! $manufacturer) {
             $mfaId = $row->mfaId ?? --$minMfaId;
@@ -115,7 +117,7 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
                 'provider' => ProviderEnum::OD->value,
             ]);
 
-            $manufacturer = $this->manufacturerCommand->upsertByMfaId($manufacturerData);
+            $manufacturer = $this->manufacturerCommand->create($manufacturerData);
 
             event(new ManufacturerCreated(
                 self::IMPORT_USER_ID,

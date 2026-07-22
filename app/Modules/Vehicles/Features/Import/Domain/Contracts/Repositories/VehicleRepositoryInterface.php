@@ -8,7 +8,7 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 
 interface VehicleRepositoryInterface
 {
-    public function firstByMsId(int $msId): ?VehicleData;
+    public function findByMsId(int $msId): ?VehicleData;
 
     /** Минимальный ms_id (для генерации отрицательных id новых ТС). 0 если таблица пуста. */
     public function minMsId(): int;

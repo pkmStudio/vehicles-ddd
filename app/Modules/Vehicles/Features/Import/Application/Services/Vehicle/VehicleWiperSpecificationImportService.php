@@ -46,7 +46,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
             throw new RuntimeException('Не указан ms_id для записи спецификации дворников.');
         }
 
-        $vehicle = $this->vehicles->firstByMsId($row->msId);
+        $vehicle = $this->vehicles->findByMsId($row->msId);
         if ($vehicle?->id === null) {
             throw new RuntimeException("ТС с ms_id {$row->msId} не найдено. Сначала импортируйте основной лист.");
         }
@@ -58,7 +58,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
         $template = DetailTemplateEnum::from($row->templateSlug);
         $featureValueId = null;
         if (! empty($row->featureValueName)) {
-            $featureValue = $this->featureValues->firstByName($row->featureValueName);
+            $featureValue = $this->featureValues->findByName($row->featureValueName);
             if ($featureValue === null) {
                 throw new RuntimeException("Особенность \"{$row->featureValueName}\" не найдена. Сначала импортируйте особенности.");
             }
@@ -150,7 +150,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
         array $details,
         int $expectedSideVariants,
     ): ?PartSpecificationData {
-        $exact = $this->specifications->firstByVehicleTemplateSideAndDetails($vehicleId, $template, $side, $details);
+        $exact = $this->specifications->findByVehicleTemplateSideAndDetails($vehicleId, $template, $side, $details);
         if ($exact !== null) {
             return $exact;
         }

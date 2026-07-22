@@ -58,7 +58,7 @@ final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
         }
 
         try {
-            if ($this->kits->find($request->id) === null) {
+            if ($this->kits->findById($request->id) === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -102,7 +102,7 @@ final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
                 );
             }
 
-            $duplicate = $this->kits->firstByImportHash($properties->importHash);
+            $duplicate = $this->kits->findByImportHash($properties->importHash);
             if ($duplicate !== null && $duplicate->id !== $request->id) {
                 return $this->results->rejected(
                     userId: $request->userId,

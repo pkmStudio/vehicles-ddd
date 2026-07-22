@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 
 final readonly class ModificationRepository implements ModificationRepositoryInterface
 {
-    public function firstByModIdAndType(int $modId, string $type): ?ModificationData
+    public function findByModIdAndType(int $modId, string $type): ?ModificationData
     {
         $modification = Modification::query()
             ->where('mod_id', $modId)
@@ -22,7 +22,7 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
         return $modification === null ? null : ModificationData::from($modification);
     }
 
-    public function firstByMsIdAndModIdWithEngines(int $msId, int $modId): ?ModificationData
+    public function findByMsIdAndModIdWithEngines(int $msId, int $modId): ?ModificationData
     {
         $modification = Modification::query()
             ->where('ms_id', $msId)

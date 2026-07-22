@@ -13,13 +13,18 @@ final readonly class VehicleCommand implements VehicleCommandInterface
 {
     private const array NON_WRITABLE_FIELDS = ['id'];
 
-    public function upsertByMsId(VehicleData $data): VehicleData
+    public function create(VehicleData $data): VehicleData
     {
         return VehicleData::from(
-            Vehicle::query()->updateOrCreate(
-                ['ms_id' => $data->msId],
-                Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS),
-            ),
+            Vehicle::query()->create(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS)),
         );
+    }
+
+    public function updateByMsId(VehicleData $data): VehicleData
+    {
+        $vehicle = Vehicle::query()->where('ms_id', $data->msId)->firstOrFail();
+        $vehicle->update(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS));
+
+        return VehicleData::from($vehicle->refresh());
     }
 }

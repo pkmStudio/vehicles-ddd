@@ -15,7 +15,7 @@ interface VehicleRepositoryInterface
     /**
      * Возвращает первый Data-снимок автомобилей по внешнему идентификатору.
      */
-    public function firstByMsId(int $msId): ?VehicleData;
+    public function findByMsId(int $msId): ?VehicleData;
 
     /**
      * Возвращает внутренний id записи по внешнему идентификатору.

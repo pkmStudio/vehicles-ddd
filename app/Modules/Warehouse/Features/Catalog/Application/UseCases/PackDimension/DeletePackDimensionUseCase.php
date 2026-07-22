@@ -48,7 +48,7 @@ final readonly class DeletePackDimensionUseCase implements DeletePackDimensionUs
         }
 
         try {
-            $packDimension = $this->packDimensions->find($request->id);
+            $packDimension = $this->packDimensions->findById($request->id);
             if ($packDimension === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

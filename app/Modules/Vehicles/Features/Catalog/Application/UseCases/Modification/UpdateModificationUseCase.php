@@ -51,7 +51,7 @@ final readonly class UpdateModificationUseCase implements UpdateModificationUseC
         }
 
         try {
-            $existing = $this->modifications->firstByModIdAndType(
+            $existing = $this->modifications->findByModIdAndType(
                 modId: $request->modId,
                 type: $request->type->value,
             );

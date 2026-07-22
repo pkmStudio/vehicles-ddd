@@ -48,7 +48,7 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
         }
 
         try {
-            $nomenclature = $this->nomenclatures->find($request->id);
+            $nomenclature = $this->nomenclatures->findById($request->id);
             if ($nomenclature === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

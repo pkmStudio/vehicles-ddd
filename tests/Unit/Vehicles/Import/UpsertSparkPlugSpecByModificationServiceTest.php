@@ -47,9 +47,9 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
      *
      * Шаги:
      * 1. Собирает модификацию с двумя двигателями: PETROL и DIESEL.
-     * 2. Мокает ModificationRepositoryInterface::firstByMsIdAndModIdWithEngines — возвращает
+     * 2. Мокает ModificationRepositoryInterface::findByMsIdAndModIdWithEngines — возвращает
      *    эту модификацию с уже eager-loaded двигателями.
-     * 3. Мокает PartSpecificationCommandInterface::upsert — ожидает вызов только для
+     * 3. Мокает PartSpecificationCommandInterface::create — ожидает вызов только для
      *    PETROL-двигателя (partableId=1).
      * 4. Зовёт upsertByModification(200, 50, $details).
      * 5. Проверяет found=true, writtenCount=1 и что DIESEL-двигатель попал в skippedEngines.
@@ -64,16 +64,16 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
         ]);
 
         $modifications = Mockery::mock(ModificationRepositoryInterface::class);
-        $modifications->shouldReceive('firstByMsIdAndModIdWithEngines')->once()->with(200, 50)->andReturn($mod);
+        $modifications->shouldReceive('findByMsIdAndModIdWithEngines')->once()->with(200, 50)->andReturn($mod);
 
         $specifications = Mockery::mock(PartSpecificationRepositoryInterface::class);
-        $specifications->shouldReceive('firstByPartableTemplateAndFeatureValue')
+        $specifications->shouldReceive('findByPartableTemplateAndFeatureValue')
             ->once()
             ->with(PartableTypeEnum::ENGINE->value, 1, DetailTemplateEnum::SPARK_PLUGS, null)
             ->andReturnNull();
 
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
-        $command->shouldReceive('upsert')->once()
+        $command->shouldReceive('create')->once()
             ->with(Mockery::on(fn (PartSpecificationData $d) => $d->partableId === 1 && $d->partableType === PartableTypeEnum::ENGINE->value))
             ->andReturn(new PartSpecificationData(partableType: PartableTypeEnum::ENGINE->value, partableId: 1, template: DetailTemplateEnum::SPARK_PLUGS, details: []));
 
@@ -99,20 +99,21 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
      *
      * Шаги:
      * 1. Мокает ModificationRepositoryInterface — возвращает null.
-     * 2. Мокает Command — ожидает, что upsert НЕ вызовется.
+     * 2. Мокает Command — ожидает, что запись НЕ вызовется.
      * 3. Зовёт upsertByModification(200, 50, []).
      * 4. Проверяет found=false и что notFoundReason заполнен.
      */
     public function test_not_found_when_modification_missing(): void
     {
         $modifications = Mockery::mock(ModificationRepositoryInterface::class);
-        $modifications->shouldReceive('firstByMsIdAndModIdWithEngines')->once()->with(200, 50)->andReturnNull();
+        $modifications->shouldReceive('findByMsIdAndModIdWithEngines')->once()->with(200, 50)->andReturnNull();
 
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
-        $command->shouldNotReceive('upsert');
+        $command->shouldNotReceive('create');
+        $command->shouldNotReceive('update');
 
         $specifications = Mockery::mock(PartSpecificationRepositoryInterface::class);
-        $specifications->shouldNotReceive('firstByPartableTemplateAndFeatureValue');
+        $specifications->shouldNotReceive('findByPartableTemplateAndFeatureValue');
 
         $service = new UpsertSparkPlugSpecByModificationService(
             Mockery::mock(VehicleRepositoryInterface::class),
@@ -134,9 +135,9 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
      * родителя, а не по самому отрицательному значению.
      *
      * Шаги:
-     * 1. Мокает VehicleRepositoryInterface: firstByMsId(-5) возвращает дочернее ТС,
+     * 1. Мокает VehicleRepositoryInterface: findByMsId(-5) возвращает дочернее ТС,
      *    parentMsId(-5) возвращает 200 (ms_id родителя).
-     * 2. Мокает ModificationRepositoryInterface::firstByMsIdAndModIdWithEngines — ожидает
+     * 2. Мокает ModificationRepositoryInterface::findByMsIdAndModIdWithEngines — ожидает
      *    вызов именно с (200, 50), не (-5, 50).
      * 3. Зовёт upsertByModification(-5, 50, []).
      * 4. Проверяет found=true и writtenCount=1.
@@ -155,18 +156,18 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
         );
 
         $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
-        $vehicles->shouldReceive('firstByMsId')->once()->with(-5)->andReturn($child);
+        $vehicles->shouldReceive('findByMsId')->once()->with(-5)->andReturn($child);
         $vehicles->shouldReceive('parentMsId')->once()->with(-5)->andReturn(200);
 
         $mod = $this->modification([$this->engine(1, 'PETROL-1', EngineFuelTypeEnum::PETROL)]);
         $modifications = Mockery::mock(ModificationRepositoryInterface::class);
-        $modifications->shouldReceive('firstByMsIdAndModIdWithEngines')->once()->with(200, 50)->andReturn($mod);
+        $modifications->shouldReceive('findByMsIdAndModIdWithEngines')->once()->with(200, 50)->andReturn($mod);
 
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
-        $command->shouldReceive('upsert')->once()->andReturn(new PartSpecificationData(partableType: PartableTypeEnum::ENGINE->value, partableId: 1, template: DetailTemplateEnum::SPARK_PLUGS, details: []));
+        $command->shouldReceive('create')->once()->andReturn(new PartSpecificationData(partableType: PartableTypeEnum::ENGINE->value, partableId: 1, template: DetailTemplateEnum::SPARK_PLUGS, details: []));
 
         $specifications = Mockery::mock(PartSpecificationRepositoryInterface::class);
-        $specifications->shouldReceive('firstByPartableTemplateAndFeatureValue')
+        $specifications->shouldReceive('findByPartableTemplateAndFeatureValue')
             ->once()
             ->with(PartableTypeEnum::ENGINE->value, 1, DetailTemplateEnum::SPARK_PLUGS, null)
             ->andReturnNull();

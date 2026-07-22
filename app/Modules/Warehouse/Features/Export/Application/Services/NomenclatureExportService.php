@@ -158,7 +158,7 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
      */
     private function type(int $typeId): TypeData
     {
-        return $this->types->find($typeId)
+        return $this->types->findById($typeId)
             ?? throw new InvalidArgumentException("Тип Warehouse #{$typeId} не найден");
     }
 

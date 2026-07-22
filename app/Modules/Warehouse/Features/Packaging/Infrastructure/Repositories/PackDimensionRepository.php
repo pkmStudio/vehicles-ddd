@@ -30,7 +30,7 @@ final readonly class PackDimensionRepository implements PackDimensionRepositoryI
     /**
      * Возвращает упаковочный размер по id или null, если он отсутствует.
      */
-    public function find(int $id): ?PackDimensionData
+    public function findById(int $id): ?PackDimensionData
     {
         $item = PackDimension::query()->find($id);
 

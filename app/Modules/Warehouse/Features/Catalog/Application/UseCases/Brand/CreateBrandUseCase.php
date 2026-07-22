@@ -49,7 +49,7 @@ final readonly class CreateBrandUseCase implements CreateBrandUseCaseInterface
         }
 
         try {
-            if ($this->brands->firstByName($request->name) !== null) {
+            if ($this->brands->findByName($request->name) !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

@@ -48,7 +48,7 @@ final readonly class DeleteKitUseCase implements DeleteKitUseCaseInterface
         }
 
         try {
-            $kit = $this->kits->find($request->id);
+            $kit = $this->kits->findById($request->id);
             if ($kit === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

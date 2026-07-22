@@ -24,6 +24,7 @@ final readonly class ManufacturerDataFactory implements ManufacturerDataFactoryI
                 'mfa_id' => ['required', 'integer'],
                 'name' => ['required'],
                 'provider' => ['required', Rule::enum(ProviderEnum::class)],
+                'id' => ['nullable', 'integer'],
             ])->validate();
         } catch (ValidationException $e) {
             throw ImportRowValidationException::fromMessages($e->errors());
@@ -33,6 +34,7 @@ final readonly class ManufacturerDataFactory implements ManufacturerDataFactoryI
             mfaId: (int) $valid['mfa_id'],
             name: (string) $valid['name'],
             provider: ProviderEnum::from($valid['provider']),
+            id: isset($valid['id']) ? (int) $valid['id'] : null,
         );
     }
 }

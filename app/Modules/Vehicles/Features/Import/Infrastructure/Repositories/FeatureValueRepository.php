@@ -10,7 +10,7 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Models\FeatureValue;
 
 final readonly class FeatureValueRepository implements FeatureValueRepositoryInterface
 {
-    public function firstByName(string $name): ?FeatureValueData
+    public function findByName(string $name): ?FeatureValueData
     {
         return FeatureValueData::optional(FeatureValue::query()->where('name', $name)->first());
     }

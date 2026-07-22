@@ -89,7 +89,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
                 );
             }
 
-            $duplicate = $this->kits->firstByImportHash($properties->importHash);
+            $duplicate = $this->kits->findByImportHash($properties->importHash);
             if ($duplicate !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,

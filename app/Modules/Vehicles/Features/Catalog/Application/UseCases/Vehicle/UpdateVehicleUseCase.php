@@ -49,7 +49,7 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
         }
 
         try {
-            $existing = $this->vehicles->firstByMsId($request->msId);
+            $existing = $this->vehicles->findByMsId($request->msId);
             if ($existing === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

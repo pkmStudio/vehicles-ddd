@@ -20,7 +20,7 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
     /**
      * Возвращает номенклатуру по id или null.
      */
-    public function find(int $id): ?NomenclatureData
+    public function findById(int $id): ?NomenclatureData
     {
         $nomenclature = Nomenclature::query()
             ->with(['type', 'brand'])
@@ -32,7 +32,7 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
     /**
      * Возвращает первую номенклатуру по артикулу или null.
      */
-    public function firstByPartNumber(string $partNumber): ?NomenclatureData
+    public function findByPartNumber(string $partNumber): ?NomenclatureData
     {
         $nomenclature = Nomenclature::query()
             ->where('part_number', $partNumber)

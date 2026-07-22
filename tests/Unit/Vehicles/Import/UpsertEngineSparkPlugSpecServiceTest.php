@@ -25,8 +25,8 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
      * с правильным partable_id/partable_type/template.
      *
      * Шаги:
-     * 1. Мокает EngineRepositoryInterface::firstByEngId — возвращает EngineData с id=42.
-     * 2. Мокает PartSpecificationCommandInterface::upsert — ожидает данные с
+     * 1. Мокает EngineRepositoryInterface::findByEngId — возвращает EngineData с id=42.
+     * 2. Мокает PartSpecificationCommandInterface::create — ожидает данные с
      *    partableType=ENGINE, partableId=42, template=SPARK_PLUGS и переданными details.
      * 3. Зовёт upsertByEngine(101, $details).
      * 4. Проверяет, что вернулся именно ожидаемый результат Command.
@@ -45,16 +45,16 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
         );
 
         $engines = Mockery::mock(EngineRepositoryInterface::class);
-        $engines->shouldReceive('firstByEngId')->once()->with(101)->andReturn($engine);
+        $engines->shouldReceive('findByEngId')->once()->with(101)->andReturn($engine);
 
         $specifications = Mockery::mock(PartSpecificationRepositoryInterface::class);
-        $specifications->shouldReceive('firstByPartableTemplateAndFeatureValue')
+        $specifications->shouldReceive('findByPartableTemplateAndFeatureValue')
             ->once()
             ->with(PartableTypeEnum::ENGINE->value, 42, DetailTemplateEnum::SPARK_PLUGS, null)
             ->andReturnNull();
 
         $partSpecs = Mockery::mock(PartSpecificationCommandInterface::class);
-        $partSpecs->shouldReceive('upsert')
+        $partSpecs->shouldReceive('create')
             ->once()
             ->with(Mockery::on(function (PartSpecificationData $data) {
                 return $data->partableType === PartableTypeEnum::ENGINE->value
@@ -74,20 +74,21 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
      * Проверяет, что при отсутствии двигателя с таким eng_id запись вообще не происходит.
      *
      * Шаги:
-     * 1. Мокает Repository::firstByEngId — возвращает null.
-     * 2. Мокает Command — ожидает, что upsert НЕ вызовется.
+     * 1. Мокает Repository::findByEngId — возвращает null.
+     * 2. Мокает Command — ожидает, что запись НЕ вызовется.
      * 3. Зовёт upsertByEngine(999, ...) и проверяет, что результат null.
      */
     public function test_returns_null_when_engine_not_found(): void
     {
         $engines = Mockery::mock(EngineRepositoryInterface::class);
-        $engines->shouldReceive('firstByEngId')->once()->with(999)->andReturnNull();
+        $engines->shouldReceive('findByEngId')->once()->with(999)->andReturnNull();
 
         $partSpecs = Mockery::mock(PartSpecificationCommandInterface::class);
-        $partSpecs->shouldNotReceive('upsert');
+        $partSpecs->shouldNotReceive('create');
+        $partSpecs->shouldNotReceive('update');
 
         $specifications = Mockery::mock(PartSpecificationRepositoryInterface::class);
-        $specifications->shouldNotReceive('firstByPartableTemplateAndFeatureValue');
+        $specifications->shouldNotReceive('findByPartableTemplateAndFeatureValue');
 
         $service = new UpsertEngineSparkPlugSpecService($engines, $partSpecs, $specifications, new PartSpecificationDataFactory);
 

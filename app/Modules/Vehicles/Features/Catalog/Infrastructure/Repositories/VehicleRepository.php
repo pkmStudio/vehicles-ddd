@@ -21,7 +21,7 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
     /**
      * Возвращает первый Data-снимок автомобилей по внешнему идентификатору.
      */
-    public function firstByMsId(int $msId): ?VehicleData
+    public function findByMsId(int $msId): ?VehicleData
     {
         return VehicleData::optional(Vehicle::query()->where('ms_id', $msId)->first());
     }

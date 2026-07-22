@@ -44,7 +44,7 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
             return new ModificationSparkPlugResultDTO(found: false, notFoundReason: $reason);
         }
 
-        $modification = $this->modifications->firstByMsIdAndModIdWithEngines($resolvedMsId, $modId);
+        $modification = $this->modifications->findByMsIdAndModIdWithEngines($resolvedMsId, $modId);
         if (! $modification) {
             return new ModificationSparkPlugResultDTO(
                 found: false,
@@ -63,17 +63,19 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
             }
 
             $specification = $this->factory->make((int) $engine->id, $details);
-            $wasExisting = $this->specifications->firstByPartableTemplateAndFeatureValue(
+            $existing = $this->specifications->findByPartableTemplateAndFeatureValue(
                 partableType: $specification->partableType,
                 partableId: $specification->partableId,
                 template: $specification->template,
                 featureValueId: $specification->featureValueId,
-            ) !== null;
-            $specification = $this->partSpecs->upsert($specification);
+            );
+            $specification = $existing === null
+                ? $this->partSpecs->create($specification)
+                : $this->partSpecs->update($this->factory->make((int) $engine->id, $details, $existing->id));
 
-            event($wasExisting
-                ? new PartSpecificationUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray())
-                : new PartSpecificationCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray()));
+            event($existing === null
+                ? new PartSpecificationCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray())
+                : new PartSpecificationUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray()));
 
             $written++;
         }
@@ -90,7 +92,7 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
             return [$msId, null];
         }
 
-        $vehicle = $this->vehicles->firstByMsId($msId);
+        $vehicle = $this->vehicles->findByMsId($msId);
         if (! $vehicle) {
             return [null, "Модель (ms_id: {$msId}) не найдена."];
         }

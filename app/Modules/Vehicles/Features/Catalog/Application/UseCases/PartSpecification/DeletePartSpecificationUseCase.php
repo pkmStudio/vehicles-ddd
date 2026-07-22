@@ -48,7 +48,7 @@ final readonly class DeletePartSpecificationUseCase implements DeletePartSpecifi
         }
 
         try {
-            if ($this->specifications->firstById($request->id) === null) {
+            if ($this->specifications->findById($request->id) === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

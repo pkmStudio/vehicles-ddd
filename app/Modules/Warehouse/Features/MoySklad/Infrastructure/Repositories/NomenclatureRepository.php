@@ -17,7 +17,7 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
     /**
      * Возвращает номенклатуру с типом и брендом по id или null.
      */
-    public function find(int $id): ?NomenclatureData
+    public function findById(int $id): ?NomenclatureData
     {
         $nomenclature = Nomenclature::query()
             ->with(['type', 'brand'])

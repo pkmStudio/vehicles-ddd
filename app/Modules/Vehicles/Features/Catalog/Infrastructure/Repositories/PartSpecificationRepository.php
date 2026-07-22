@@ -16,7 +16,7 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
     /**
      * Возвращает первый Data-снимок спецификаций деталей по внешнему идентификатору.
      */
-    public function firstById(int $id): ?PartSpecificationData
+    public function findById(int $id): ?PartSpecificationData
     {
         return PartSpecificationData::optional(PartSpecification::query()->where('id', $id)->first());
     }

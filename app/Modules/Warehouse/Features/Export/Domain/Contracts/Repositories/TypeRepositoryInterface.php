@@ -22,5 +22,5 @@ interface TypeRepositoryInterface
     /**
      * Возвращает тип номенклатуры по id.
      */
-    public function find(int $id): ?TypeData;
+    public function findById(int $id): ?TypeData;
 }

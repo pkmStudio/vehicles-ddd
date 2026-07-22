@@ -41,12 +41,14 @@ final readonly class UpsertManufacturerFromRowService implements UpsertManufactu
             'provider' => ProviderEnum::TD->value,
         ]);
 
-        $wasExisting = $this->manufacturers->firstByMfaId($data->mfaId) !== null;
-        $manufacturer = $this->command->upsertByMfaId($data);
+        $existing = $this->manufacturers->findByMfaId($data->mfaId);
+        $manufacturer = $existing === null
+            ? $this->command->create($data)
+            : $this->command->updateByMfaId($data);
 
-        event($wasExisting
-            ? new ManufacturerUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $manufacturer->toArray())
-            : new ManufacturerCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $manufacturer->toArray()));
+        event($existing === null
+            ? new ManufacturerCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $manufacturer->toArray())
+            : new ManufacturerUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $manufacturer->toArray()));
 
         return $manufacturer;
     }

@@ -26,7 +26,7 @@ final readonly class AssignEngineGroupService implements AssignEngineGroupServic
 
     public function assignGroup(string $code, int $groupId): AssignEngineGroupResultDTO
     {
-        $engine = $this->engines->firstByCodeEngine($code);
+        $engine = $this->engines->findByCodeEngine($code);
 
         if (! $engine) {
             return new AssignEngineGroupResultDTO(found: false);

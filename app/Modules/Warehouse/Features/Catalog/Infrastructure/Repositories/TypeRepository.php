@@ -16,7 +16,7 @@ final readonly class TypeRepository implements TypeRepositoryInterface
     /**
      * Возвращает тип по id или null.
      */
-    public function find(int $id): ?TypeData
+    public function findById(int $id): ?TypeData
     {
         return TypeData::optional(Type::query()->find($id));
     }

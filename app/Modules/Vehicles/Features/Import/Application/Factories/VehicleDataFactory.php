@@ -40,6 +40,7 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
                 'generation_year_from' => ['nullable', 'integer'],
                 'generation_year_to' => ['nullable', 'integer'],
                 'is_allow' => ['nullable', 'boolean'],
+                'id' => ['nullable', 'integer'],
             ])->validate();
         } catch (ValidationException $e) {
             throw ImportRowValidationException::fromMessages($e->errors());
@@ -62,6 +63,7 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
             localizedName: isset($valid['localized_name']) ? (string) $valid['localized_name'] : null,
             generationShort: isset($valid['generation_short']) ? (string) $valid['generation_short'] : null,
             isAllow: (bool) ($valid['is_allow'] ?? false),
+            id: isset($valid['id']) ? (int) $valid['id'] : null,
         );
     }
 }

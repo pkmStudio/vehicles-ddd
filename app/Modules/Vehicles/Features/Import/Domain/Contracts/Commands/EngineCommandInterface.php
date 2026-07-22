@@ -8,8 +8,9 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 
 interface EngineCommandInterface
 {
-    /** Upsert по натуральному ключу eng_id. */
-    public function upsertByEngId(EngineData $data): EngineData;
+    public function create(EngineData $data): EngineData;
+
+    public function updateByEngId(EngineData $data): EngineData;
 
     /** Проставить группу двигателю. Принимает Data с обязательными id и groupId. */
     public function setGroupId(EngineData $data): EngineData;

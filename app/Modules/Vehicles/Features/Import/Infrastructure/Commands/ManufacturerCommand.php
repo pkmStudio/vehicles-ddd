@@ -13,13 +13,18 @@ final readonly class ManufacturerCommand implements ManufacturerCommandInterface
 {
     private const array NON_WRITABLE_FIELDS = ['id'];
 
-    public function upsertByMfaId(ManufacturerData $data): ManufacturerData
+    public function create(ManufacturerData $data): ManufacturerData
     {
         return ManufacturerData::from(
-            Manufacturer::query()->updateOrCreate(
-                ['mfa_id' => $data->mfaId],
-                Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS),
-            ),
+            Manufacturer::query()->create(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS)),
         );
+    }
+
+    public function updateByMfaId(ManufacturerData $data): ManufacturerData
+    {
+        $manufacturer = Manufacturer::query()->where('mfa_id', $data->mfaId)->firstOrFail();
+        $manufacturer->update(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS));
+
+        return ManufacturerData::from($manufacturer->refresh());
     }
 }

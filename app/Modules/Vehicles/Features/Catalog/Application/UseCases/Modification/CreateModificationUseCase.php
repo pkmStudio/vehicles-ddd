@@ -51,7 +51,7 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
         }
 
         try {
-            if ($this->modifications->firstByModIdAndType($request->modId, $request->type->value) !== null) {
+            if ($this->modifications->findByModIdAndType($request->modId, $request->type->value) !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

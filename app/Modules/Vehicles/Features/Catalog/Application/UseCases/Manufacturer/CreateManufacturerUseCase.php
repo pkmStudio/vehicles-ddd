@@ -49,7 +49,7 @@ final readonly class CreateManufacturerUseCase implements CreateManufacturerUseC
         }
 
         try {
-            if ($this->manufacturers->firstByMfaId($request->mfaId) !== null) {
+            if ($this->manufacturers->findByMfaId($request->mfaId) !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

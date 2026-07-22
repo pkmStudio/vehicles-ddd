@@ -14,5 +14,5 @@ interface TypeRepositoryInterface
     /**
      * Возвращает тип по id или null.
      */
-    public function find(int $id): ?TypeData;
+    public function findById(int $id): ?TypeData;
 }

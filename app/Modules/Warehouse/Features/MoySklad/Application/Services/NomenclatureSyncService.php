@@ -41,7 +41,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
             return;
         }
 
-        $nomenclature = $this->nomenclatures->find($nomenclatureId);
+        $nomenclature = $this->nomenclatures->findById($nomenclatureId);
 
         if ($nomenclature === null) {
             Log::warning('MoySklad: номенклатура для sync не найдена.', [

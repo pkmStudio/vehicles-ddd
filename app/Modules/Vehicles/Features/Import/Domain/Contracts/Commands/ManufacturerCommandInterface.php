@@ -12,8 +12,7 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
  */
 interface ManufacturerCommandInterface
 {
-    /**
-     * Upsert по натуральному ключу mfa_id.
-     */
-    public function upsertByMfaId(ManufacturerData $data): ManufacturerData;
+    public function create(ManufacturerData $data): ManufacturerData;
+
+    public function updateByMfaId(ManufacturerData $data): ManufacturerData;
 }

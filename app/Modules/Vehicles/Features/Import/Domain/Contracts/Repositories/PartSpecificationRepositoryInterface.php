@@ -16,7 +16,7 @@ interface PartSpecificationRepositoryInterface
     /**
      * Спецификация по натуральному ключу upsert-операции импорта.
      */
-    public function firstByPartableTemplateAndFeatureValue(
+    public function findByPartableTemplateAndFeatureValue(
         string $partableType,
         int $partableId,
         DetailTemplateEnum $template,
@@ -33,5 +33,5 @@ interface PartSpecificationRepositoryInterface
     /**
      * Точная спецификация ТС по шаблону, стороне и JSON details.
      */
-    public function firstByVehicleTemplateSideAndDetails(int $vehicleId, DetailTemplateEnum $template, string $side, array $details): ?PartSpecificationData;
+    public function findByVehicleTemplateSideAndDetails(int $vehicleId, DetailTemplateEnum $template, string $side, array $details): ?PartSpecificationData;
 }

@@ -8,7 +8,7 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 
 interface EngineRepositoryInterface
 {
-    public function firstByEngId(int $engId): ?EngineData;
+    public function findByEngId(int $engId): ?EngineData;
 
-    public function firstByCodeEngine(string $code): ?EngineData;
+    public function findByCodeEngine(string $code): ?EngineData;
 }

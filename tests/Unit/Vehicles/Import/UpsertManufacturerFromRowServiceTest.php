@@ -22,10 +22,10 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
     /**
      * Проверяет happy-path: строка маппится в ManufacturerData, provider всегда приводится к
      * TD (TecDoc — единственный реальный источник консольного каскада), и уходит в
-     * Command::upsertByMfaId.
+     * Command::create.
      *
      * Шаги:
-     * 1. Мокает Command::upsertByMfaId — ожидает данные с mfaId/name из строки и provider=TD.
+     * 1. Мокает Command::create — ожидает данные с mfaId/name из строки и provider=TD.
      * 2. Зовёт upsertFromRow() с валидным ManufacturerCommandRowDTO.
      * 3. Проверяет, что вернулся именно ожидаемый результат Command.
      */
@@ -36,10 +36,10 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
         $expected = new ManufacturerData(mfaId: 10, name: 'Skoda', provider: ProviderEnum::TD, id: 3);
 
         $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
-        $manufacturers->shouldReceive('firstByMfaId')->once()->with(10)->andReturnNull();
+        $manufacturers->shouldReceive('findByMfaId')->once()->with(10)->andReturnNull();
 
         $command = Mockery::mock(ManufacturerCommandInterface::class);
-        $command->shouldReceive('upsertByMfaId')
+        $command->shouldReceive('create')
             ->once()
             ->with(Mockery::on(fn (ManufacturerData $d) => $d->mfaId === 10 && $d->name === 'Skoda' && $d->provider === ProviderEnum::TD))
             ->andReturn($expected);
@@ -55,17 +55,17 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
      * Проверяет, что отсутствие обязательного name отклоняется валидацией до записи.
      *
      * Шаги:
-     * 1. Мокает Command — ожидает, что upsertByMfaId НЕ вызовется.
+     * 1. Мокает Command — ожидает, что create НЕ вызовется.
      * 2. Зовёт upsertFromRow() со строкой, где name=null.
      * 3. Ожидает ImportRowValidationException.
      */
     public function test_missing_name_throws_validation_exception(): void
     {
         $command = Mockery::mock(ManufacturerCommandInterface::class);
-        $command->shouldNotReceive('upsertByMfaId');
+        $command->shouldNotReceive('create');
 
         $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
-        $manufacturers->shouldNotReceive('firstByMfaId');
+        $manufacturers->shouldNotReceive('findByMfaId');
 
         $service = new UpsertManufacturerFromRowService($command, new ManufacturerDataFactory, $manufacturers);
 

@@ -49,7 +49,7 @@ final readonly class UpdateEngineUseCase implements UpdateEngineUseCaseInterface
         }
 
         try {
-            $existing = $this->engines->firstByEngId($request->engId);
+            $existing = $this->engines->findByEngId($request->engId);
             if ($existing === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

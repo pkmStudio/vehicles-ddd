@@ -17,7 +17,7 @@ use Illuminate\Support\Collection;
  */
 final readonly class PartSpecificationRepository implements PartSpecificationRepositoryInterface
 {
-    public function firstByPartableTemplateAndFeatureValue(
+    public function findByPartableTemplateAndFeatureValue(
         string $partableType,
         int $partableId,
         DetailTemplateEnum $template,
@@ -46,7 +46,7 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
         return PartSpecificationData::collect($specifications, Collection::class);
     }
 
-    public function firstByVehicleTemplateSideAndDetails(
+    public function findByVehicleTemplateSideAndDetails(
         int $vehicleId,
         DetailTemplateEnum $template,
         string $side,

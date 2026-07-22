@@ -11,5 +11,5 @@ interface PartSpecificationDataFactoryInterface
     /**
      * @param  array<string, mixed>  $details
      */
-    public function make(int $engineId, array $details): PartSpecificationData;
+    public function make(int $engineId, array $details, ?int $id = null): PartSpecificationData;
 }

@@ -28,8 +28,8 @@ final class UpsertModificationFromRowServiceTest extends TestCase
      * унаследованным type/vehicleId от найденного ТС и уходит в Command.
      *
      * Шаги:
-     * 1. Мокает VehicleRepositoryInterface::firstByMsId — возвращает VehicleData(id=9, type=PC).
-     * 2. Мокает Command::upsertByModIdAndType — ожидает данные с modId/msId из строки и
+     * 1. Мокает VehicleRepositoryInterface::findByMsId — возвращает VehicleData(id=9, type=PC).
+     * 2. Мокает Command::create — ожидает данные с modId/msId из строки и
      *    type/vehicleId, унаследованными от найденного ТС.
      * 3. Зовёт upsertFromRow() с валидным ModificationCommandRowDTO.
      * 4. Проверяет, что вернулся именно ожидаемый результат Command.
@@ -52,13 +52,13 @@ final class UpsertModificationFromRowServiceTest extends TestCase
         $expected = new ModificationData(modId: 50, type: VehicleTypeEnum::PC, vehicleId: 9, msId: 200);
 
         $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
-        $vehicles->shouldReceive('firstByMsId')->once()->with(200)->andReturn($vehicle);
+        $vehicles->shouldReceive('findByMsId')->once()->with(200)->andReturn($vehicle);
 
         $modifications = Mockery::mock(ModificationRepositoryInterface::class);
-        $modifications->shouldReceive('firstByModIdAndType')->once()->with(50, 'PC')->andReturnNull();
+        $modifications->shouldReceive('findByModIdAndType')->once()->with(50, 'PC')->andReturnNull();
 
         $command = Mockery::mock(ModificationCommandInterface::class);
-        $command->shouldReceive('upsertByModIdAndType')
+        $command->shouldReceive('create')
             ->once()
             ->with(Mockery::on(fn (ModificationData $d) => $d->modId === 50 && $d->msId === 200 && $d->type === VehicleTypeEnum::PC && $d->vehicleId === 9))
             ->andReturn($expected);
@@ -75,20 +75,20 @@ final class UpsertModificationFromRowServiceTest extends TestCase
      * нет смысла заводить модификацию-сироту без родителя.
      *
      * Шаги:
-     * 1. Мокает VehicleRepositoryInterface::firstByMsId — возвращает null.
-     * 2. Мокает Command — ожидает, что upsertByModIdAndType НЕ вызовется.
+     * 1. Мокает VehicleRepositoryInterface::findByMsId — возвращает null.
+     * 2. Мокает Command — ожидает, что create НЕ вызовется.
      * 3. Зовёт upsertFromRow() и проверяет, что результат null.
      */
     public function test_returns_null_when_vehicle_not_found(): void
     {
         $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
-        $vehicles->shouldReceive('firstByMsId')->once()->with(200)->andReturnNull();
+        $vehicles->shouldReceive('findByMsId')->once()->with(200)->andReturnNull();
 
         $command = Mockery::mock(ModificationCommandInterface::class);
-        $command->shouldNotReceive('upsertByModIdAndType');
+        $command->shouldNotReceive('create');
 
         $modifications = Mockery::mock(ModificationRepositoryInterface::class);
-        $modifications->shouldNotReceive('firstByModIdAndType');
+        $modifications->shouldNotReceive('findByModIdAndType');
 
         $service = new UpsertModificationFromRowService($command, new ModificationDataFactory, $vehicles, $modifications);
 

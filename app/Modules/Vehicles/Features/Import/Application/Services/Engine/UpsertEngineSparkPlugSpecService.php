@@ -36,24 +36,26 @@ final readonly class UpsertEngineSparkPlugSpecService implements UpsertEngineSpa
      */
     public function upsertByEngine(int $engId, array $details): ?PartSpecificationData
     {
-        $engine = $this->engines->firstByEngId($engId);
+        $engine = $this->engines->findByEngId($engId);
 
         if (! $engine) {
             return null;
         }
 
         $specification = $this->factory->make((int) $engine->id, $details);
-        $wasExisting = $this->specifications->firstByPartableTemplateAndFeatureValue(
+        $existing = $this->specifications->findByPartableTemplateAndFeatureValue(
             partableType: $specification->partableType,
             partableId: $specification->partableId,
             template: $specification->template,
             featureValueId: $specification->featureValueId,
-        ) !== null;
-        $specification = $this->partSpecs->upsert($specification);
+        );
+        $specification = $existing === null
+            ? $this->partSpecs->create($specification)
+            : $this->partSpecs->update($this->factory->make((int) $engine->id, $details, $existing->id));
 
-        event($wasExisting
-            ? new PartSpecificationUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray())
-            : new PartSpecificationCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray()));
+        event($existing === null
+            ? new PartSpecificationCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray())
+            : new PartSpecificationUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray()));
 
         return $specification;
     }

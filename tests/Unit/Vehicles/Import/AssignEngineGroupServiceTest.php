@@ -17,7 +17,7 @@ final class AssignEngineGroupServiceTest extends TestCase
      * Проверяет базовый сценарий: у двигателя ещё не было группы — назначаем новую.
      *
      * Шаги:
-     * 1. Мокает EngineRepositoryInterface::firstByCodeEngine — возвращает EngineData без group_id.
+     * 1. Мокает EngineRepositoryInterface::findByCodeEngine — возвращает EngineData без group_id.
      * 2. Мокает EngineCommandInterface::setGroupId — ожидает вызов с Data (engId/id того же
      *    двигателя, groupId новой группы 7).
      * 3. Зовёт assignGroup('M54B30', 7).
@@ -28,7 +28,7 @@ final class AssignEngineGroupServiceTest extends TestCase
         $engine = new EngineData(engId: 555, id: 1, groupId: null);
 
         $engines = Mockery::mock(EngineRepositoryInterface::class);
-        $engines->shouldReceive('firstByCodeEngine')->once()->with('M54B30')->andReturn($engine);
+        $engines->shouldReceive('findByCodeEngine')->once()->with('M54B30')->andReturn($engine);
 
         $command = Mockery::mock(EngineCommandInterface::class);
         $command->shouldReceive('setGroupId')
@@ -48,7 +48,7 @@ final class AssignEngineGroupServiceTest extends TestCase
      * пометить это как reassignment, а не тихо перезаписать.
      *
      * Шаги:
-     * 1. Мокает EngineRepositoryInterface::firstByCodeEngine — возвращает EngineData с group_id=3.
+     * 1. Мокает EngineRepositoryInterface::findByCodeEngine — возвращает EngineData с group_id=3.
      * 2. Мокает EngineCommandInterface::setGroupId — ожидает вызов с Data с новой группой 7.
      * 3. Зовёт assignGroup('M54B30', 7).
      * 4. Проверяет результат: found=true, reassigned=true, previousGroupId=3.
@@ -58,7 +58,7 @@ final class AssignEngineGroupServiceTest extends TestCase
         $engine = new EngineData(engId: 555, id: 1, groupId: 3);
 
         $engines = Mockery::mock(EngineRepositoryInterface::class);
-        $engines->shouldReceive('firstByCodeEngine')->once()->with('M54B30')->andReturn($engine);
+        $engines->shouldReceive('findByCodeEngine')->once()->with('M54B30')->andReturn($engine);
 
         $command = Mockery::mock(EngineCommandInterface::class);
         $command->shouldReceive('setGroupId')
@@ -78,7 +78,7 @@ final class AssignEngineGroupServiceTest extends TestCase
      * не бывает случайной записи по несуществующей сущности.
      *
      * Шаги:
-     * 1. Мокает EngineRepositoryInterface::firstByCodeEngine — возвращает null.
+     * 1. Мокает EngineRepositoryInterface::findByCodeEngine — возвращает null.
      * 2. Мокает EngineCommandInterface — ожидает, что setGroupId НЕ вызовется.
      * 3. Зовёт assignGroup('UNKNOWN', 7).
      * 4. Проверяет результат: found=false.
@@ -86,7 +86,7 @@ final class AssignEngineGroupServiceTest extends TestCase
     public function test_reports_not_found_and_skips_command(): void
     {
         $engines = Mockery::mock(EngineRepositoryInterface::class);
-        $engines->shouldReceive('firstByCodeEngine')->once()->with('UNKNOWN')->andReturnNull();
+        $engines->shouldReceive('findByCodeEngine')->once()->with('UNKNOWN')->andReturnNull();
 
         $command = Mockery::mock(EngineCommandInterface::class);
         $command->shouldNotReceive('setGroupId');

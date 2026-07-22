@@ -15,7 +15,7 @@ interface NomenclatureRepositoryInterface
     /**
      * Возвращает номенклатуру по id или null.
      */
-    public function find(int $id): ?NomenclatureData;
+    public function findById(int $id): ?NomenclatureData;
 
     /**
      * Итерирует номенклатуру чанками по id.

@@ -17,12 +17,12 @@ interface NomenclatureRepositoryInterface
     /**
      * Возвращает номенклатуру по id или null.
      */
-    public function find(int $id): ?NomenclatureData;
+    public function findById(int $id): ?NomenclatureData;
 
     /**
      * Возвращает первую номенклатуру по артикулу или null.
      */
-    public function firstByPartNumber(string $partNumber): ?NomenclatureData;
+    public function findByPartNumber(string $partNumber): ?NomenclatureData;
 
     /**
      * Проверяет, занят ли артикул другой номенклатурой.

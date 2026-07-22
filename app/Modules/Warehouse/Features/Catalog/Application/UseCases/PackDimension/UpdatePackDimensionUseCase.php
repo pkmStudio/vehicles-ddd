@@ -51,7 +51,7 @@ final readonly class UpdatePackDimensionUseCase implements UpdatePackDimensionUs
         }
 
         try {
-            if ($this->packDimensions->find($request->id) === null) {
+            if ($this->packDimensions->findById($request->id) === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -63,7 +63,7 @@ final readonly class UpdatePackDimensionUseCase implements UpdatePackDimensionUs
                 );
             }
 
-            if ($this->types->find($request->typeId) === null) {
+            if ($this->types->findById($request->typeId) === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

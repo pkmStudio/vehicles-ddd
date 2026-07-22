@@ -49,7 +49,7 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
         }
 
         try {
-            if ($this->vehicles->firstByMsId($request->msId) !== null) {
+            if ($this->vehicles->findByMsId($request->msId) !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

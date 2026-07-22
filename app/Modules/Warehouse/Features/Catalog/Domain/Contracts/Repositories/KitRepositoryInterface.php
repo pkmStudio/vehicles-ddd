@@ -14,10 +14,10 @@ interface KitRepositoryInterface
     /**
      * Возвращает набор по id или null.
      */
-    public function find(int $id): ?KitData;
+    public function findById(int $id): ?KitData;
 
     /**
      * Возвращает первый набор с таким import_hash или null.
      */
-    public function firstByImportHash(string $importHash): ?KitData;
+    public function findByImportHash(string $importHash): ?KitData;
 }

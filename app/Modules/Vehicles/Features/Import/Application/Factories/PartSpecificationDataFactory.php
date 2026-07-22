@@ -14,13 +14,14 @@ final readonly class PartSpecificationDataFactory implements PartSpecificationDa
     /**
      * @param  array<string, mixed>  $details
      */
-    public function make(int $engineId, array $details): PartSpecificationData
+    public function make(int $engineId, array $details, ?int $id = null): PartSpecificationData
     {
         return new PartSpecificationData(
             partableType: PartableTypeEnum::ENGINE->value,
             partableId: $engineId,
             template: DetailTemplateEnum::SPARK_PLUGS,
             details: $details,
+            id: $id,
         );
     }
 }

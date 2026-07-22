@@ -18,7 +18,7 @@ final readonly class BrandRepository implements BrandRepositoryInterface
     /**
      * Возвращает бренд по id или null.
      */
-    public function find(int $id): ?BrandData
+    public function findById(int $id): ?BrandData
     {
         return BrandData::optional(Brand::query()->find($id));
     }
@@ -26,7 +26,7 @@ final readonly class BrandRepository implements BrandRepositoryInterface
     /**
      * Возвращает первый бренд с таким именем без учёта регистра.
      */
-    public function firstByName(string $name): ?BrandData
+    public function findByName(string $name): ?BrandData
     {
         $brand = Brand::query()
             ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($name))])

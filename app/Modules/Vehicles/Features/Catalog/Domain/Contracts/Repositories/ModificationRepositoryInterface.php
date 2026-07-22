@@ -14,7 +14,7 @@ interface ModificationRepositoryInterface
     /**
      * Возвращает первый Data-снимок модификаций по внешнему идентификатору.
      */
-    public function firstByModIdAndType(int $modId, string $type): ?ModificationData;
+    public function findByModIdAndType(int $modId, string $type): ?ModificationData;
 
     /**
      * Возвращает количество связанных записей, блокирующих удаление.

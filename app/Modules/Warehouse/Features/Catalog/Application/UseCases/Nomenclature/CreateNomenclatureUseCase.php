@@ -53,7 +53,7 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
         }
 
         try {
-            if ($this->types->find($request->typeId) === null) {
+            if ($this->types->findById($request->typeId) === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -64,7 +64,7 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
                 );
             }
 
-            if ($this->brands->find($request->brandId) === null) {
+            if ($this->brands->findById($request->brandId) === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -75,7 +75,7 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
                 );
             }
 
-            if ($this->nomenclatures->firstByPartNumber($request->partNumber) !== null) {
+            if ($this->nomenclatures->findByPartNumber($request->partNumber) !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

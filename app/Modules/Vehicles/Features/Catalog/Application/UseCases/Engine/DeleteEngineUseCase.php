@@ -48,7 +48,7 @@ final readonly class DeleteEngineUseCase implements DeleteEngineUseCaseInterface
         }
 
         try {
-            $engine = $this->engines->firstByEngId($request->engId);
+            $engine = $this->engines->findByEngId($request->engId);
             if ($engine === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

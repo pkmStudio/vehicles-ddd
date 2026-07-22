@@ -35,7 +35,7 @@ final readonly class NomenclatureIntegrationRepository implements NomenclatureIn
     /**
      * Возвращает связь номенклатуры с МойСклад или null.
      */
-    public function firstForNomenclature(int $nomenclatureId): ?NomenclatureIntegrationData
+    public function findByNomenclatureId(int $nomenclatureId): ?NomenclatureIntegrationData
     {
         $integration = NomenclatureIntegration::query()
             ->where('provider', NomenclatureIntegration::PROVIDER)

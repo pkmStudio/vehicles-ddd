@@ -32,6 +32,8 @@ final readonly class EngineDataFactory implements EngineDataFactoryInterface
                 'cylinder_count' => ['nullable', 'integer'],
                 'eng_number_of_valves' => ['nullable', 'integer'],
                 'eng_fuel_type' => ['nullable', Rule::enum(EngineFuelTypeEnum::class)],
+                'id' => ['nullable', 'integer'],
+                'group_id' => ['nullable', 'integer'],
             ])->validate();
         } catch (ValidationException $e) {
             throw ImportRowValidationException::fromMessages($e->errors());
@@ -49,6 +51,8 @@ final readonly class EngineDataFactory implements EngineDataFactoryInterface
             cylinderCount: isset($valid['cylinder_count']) ? (int) $valid['cylinder_count'] : null,
             engNumberOfValves: isset($valid['eng_number_of_valves']) ? (int) $valid['eng_number_of_valves'] : null,
             engFuelType: isset($valid['eng_fuel_type']) ? EngineFuelTypeEnum::from($valid['eng_fuel_type']) : null,
+            id: isset($valid['id']) ? (int) $valid['id'] : null,
+            groupId: isset($valid['group_id']) ? (int) $valid['group_id'] : null,
         );
     }
 }

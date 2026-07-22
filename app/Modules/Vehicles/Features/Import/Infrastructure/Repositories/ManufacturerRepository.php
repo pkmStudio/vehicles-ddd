@@ -10,12 +10,12 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Manufacturer;
 
 final readonly class ManufacturerRepository implements ManufacturerRepositoryInterface
 {
-    public function firstByName(string $name): ?ManufacturerData
+    public function findByName(string $name): ?ManufacturerData
     {
         return ManufacturerData::optional(Manufacturer::query()->where('name', $name)->first());
     }
 
-    public function firstByMfaId(int $mfaId): ?ManufacturerData
+    public function findByMfaId(int $mfaId): ?ManufacturerData
     {
         return ManufacturerData::optional(Manufacturer::query()->where('mfa_id', $mfaId)->first());
     }

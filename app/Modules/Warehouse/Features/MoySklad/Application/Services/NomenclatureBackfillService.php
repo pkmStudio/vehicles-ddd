@@ -59,7 +59,7 @@ final readonly class NomenclatureBackfillService
     {
         $stats['processed']++;
 
-        $integration = $this->integrations->firstForNomenclature($nomenclature->id);
+        $integration = $this->integrations->findByNomenclatureId($nomenclature->id);
 
         if ($integration !== null && is_string($integration->externalId) && $integration->externalId !== '') {
             $stats['skipped']++;

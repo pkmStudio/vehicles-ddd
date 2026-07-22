@@ -14,13 +14,22 @@ final readonly class ModificationCommand implements ModificationCommandInterface
     /** Служебные поля ModificationData, не участвующие в этой операции записи. */
     private const array NON_WRITABLE_FIELDS = ['id', 'engines'];
 
-    public function upsertByModIdAndType(ModificationData $data): ModificationData
+    public function create(ModificationData $data): ModificationData
     {
         return ModificationData::from(
-            Modification::query()->updateOrCreate(
-                ['mod_id' => $data->modId, 'type' => $data->type],
-                Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS),
-            ),
+            Modification::query()->create(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS)),
         );
+    }
+
+    public function updateByModIdAndType(ModificationData $data): ModificationData
+    {
+        $modification = Modification::query()
+            ->where('mod_id', $data->modId)
+            ->where('type', $data->type->value)
+            ->firstOrFail();
+
+        $modification->update(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS));
+
+        return ModificationData::from($modification->refresh());
     }
 }

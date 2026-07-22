@@ -24,10 +24,10 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
 {
     /**
      * Проверяет happy-path: валидная строка маппится в EngineData (включая приведение
-     * eng_fuel_type к enum) и уходит в Command::upsertByEngId.
+     * eng_fuel_type к enum) и уходит в Command::create.
      *
      * Шаги:
-     * 1. Мокает EngineCommandInterface::upsertByEngId — перехватывает переданный EngineData
+     * 1. Мокает EngineCommandInterface::create — перехватывает переданный EngineData
      *    и возвращает заранее известный результат.
      * 2. Зовёт upsertFromRow() с валидным EngineSheetRowDTO.
      * 3. Проверяет, что вернулся именно ожидаемый результат Command.
@@ -41,10 +41,10 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
         $expected = new EngineData(engId: 101);
 
         $engines = Mockery::mock(EngineRepositoryInterface::class);
-        $engines->shouldReceive('firstByEngId')->once()->with(101)->andReturnNull();
+        $engines->shouldReceive('findByEngId')->once()->with(101)->andReturnNull();
 
         $command = Mockery::mock(EngineCommandInterface::class);
-        $command->shouldReceive('upsertByEngId')
+        $command->shouldReceive('create')
             ->once()
             ->with(Mockery::on(function (EngineData $data) use (&$captured) {
                 $captured = $data;
@@ -84,17 +84,17 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
      * 'плазма') должно валиться на валидации, а не тихо стать null через tryFrom.
      *
      * Шаги:
-     * 1. Мокает Command — ожидает, что upsertByEngId НЕ вызовется.
+     * 1. Мокает Command — ожидает, что create НЕ вызовется.
      * 2. Зовёт upsertFromRow() со строкой, где engFuelType='плазма'.
      * 3. Ожидает ImportRowValidationException (валидация сырого значения через Rule::enum).
      */
     public function test_invalid_enum_throws_validation_exception(): void
     {
         $command = Mockery::mock(EngineCommandInterface::class);
-        $command->shouldNotReceive('upsertByEngId');
+        $command->shouldNotReceive('create');
 
         $engines = Mockery::mock(EngineRepositoryInterface::class);
-        $engines->shouldNotReceive('firstByEngId');
+        $engines->shouldNotReceive('findByEngId');
 
         $service = new UpsertEngineFromSheetService($command, new EngineDataFactory, $engines);
 
@@ -120,17 +120,17 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
      * валидацией до вызова Command.
      *
      * Шаги:
-     * 1. Мокает Command — ожидает, что upsertByEngId НЕ вызовется.
+     * 1. Мокает Command — ожидает, что create НЕ вызовется.
      * 2. Зовёт upsertFromRow() со строкой, где engId=null.
      * 3. Ожидает ImportRowValidationException.
      */
     public function test_missing_eng_id_throws_validation_exception(): void
     {
         $command = Mockery::mock(EngineCommandInterface::class);
-        $command->shouldNotReceive('upsertByEngId');
+        $command->shouldNotReceive('create');
 
         $engines = Mockery::mock(EngineRepositoryInterface::class);
-        $engines->shouldNotReceive('firstByEngId');
+        $engines->shouldNotReceive('findByEngId');
 
         $service = new UpsertEngineFromSheetService($command, new EngineDataFactory, $engines);
 

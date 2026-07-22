@@ -15,12 +15,12 @@ interface BrandRepositoryInterface
     /**
      * Возвращает бренд по id или null.
      */
-    public function find(int $id): ?BrandData;
+    public function findById(int $id): ?BrandData;
 
     /**
      * Возвращает первый бренд с таким именем или null.
      */
-    public function firstByName(string $name): ?BrandData;
+    public function findByName(string $name): ?BrandData;
 
     /**
      * Проверяет, занято ли имя другим брендом.

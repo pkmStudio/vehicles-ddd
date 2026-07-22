@@ -17,7 +17,7 @@ final readonly class ManufacturerRepository implements ManufacturerRepositoryInt
     /**
      * Возвращает первый Data-снимок производителей по внешнему идентификатору.
      */
-    public function firstByMfaId(int $mfaId): ?ManufacturerData
+    public function findByMfaId(int $mfaId): ?ManufacturerData
     {
         return ManufacturerData::optional(Manufacturer::query()->where('mfa_id', $mfaId)->first());
     }

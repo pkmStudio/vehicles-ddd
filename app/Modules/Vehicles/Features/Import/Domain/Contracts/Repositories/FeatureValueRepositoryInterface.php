@@ -8,5 +8,5 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\FeatureValueData;
 
 interface FeatureValueRepositoryInterface
 {
-    public function firstByName(string $name): ?FeatureValueData;
+    public function findByName(string $name): ?FeatureValueData;
 }

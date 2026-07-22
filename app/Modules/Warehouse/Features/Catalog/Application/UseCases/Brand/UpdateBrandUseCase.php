@@ -49,7 +49,7 @@ final readonly class UpdateBrandUseCase implements UpdateBrandUseCaseInterface
         }
 
         try {
-            if ($this->brands->find($request->id) === null) {
+            if ($this->brands->findById($request->id) === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

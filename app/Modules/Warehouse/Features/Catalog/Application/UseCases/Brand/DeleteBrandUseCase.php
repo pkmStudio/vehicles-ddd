@@ -48,7 +48,7 @@ final readonly class DeleteBrandUseCase implements DeleteBrandUseCaseInterface
         }
 
         try {
-            $brand = $this->brands->find($request->id);
+            $brand = $this->brands->findById($request->id);
             if ($brand === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

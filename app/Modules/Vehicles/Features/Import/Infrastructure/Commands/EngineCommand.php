@@ -18,14 +18,19 @@ final readonly class EngineCommand implements EngineCommandInterface
      */
     private const array NON_WRITABLE_FIELDS = ['id', 'group_id'];
 
-    public function upsertByEngId(EngineData $data): EngineData
+    public function create(EngineData $data): EngineData
     {
         return EngineData::from(
-            Engine::query()->updateOrCreate(
-                ['eng_id' => $data->engId],
-                Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS),
-            ),
+            Engine::query()->create(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS)),
         );
+    }
+
+    public function updateByEngId(EngineData $data): EngineData
+    {
+        $engine = Engine::query()->where('eng_id', $data->engId)->firstOrFail();
+        $engine->update(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS));
+
+        return EngineData::from($engine->refresh());
     }
 
     public function setGroupId(EngineData $data): EngineData

@@ -49,7 +49,7 @@ final readonly class UpdateManufacturerUseCase implements UpdateManufacturerUseC
         }
 
         try {
-            $existing = $this->manufacturers->firstByMfaId($request->mfaId);
+            $existing = $this->manufacturers->findByMfaId($request->mfaId);
             if ($existing === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

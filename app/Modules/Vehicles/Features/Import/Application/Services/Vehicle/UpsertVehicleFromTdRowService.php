@@ -47,7 +47,7 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
             return null;
         }
 
-        $manufacturer = $this->manufacturers->firstByMfaId($row->mfaId);
+        $manufacturer = $this->manufacturers->findByMfaId($row->mfaId);
 
         if (! $manufacturer) {
             return null;
@@ -75,12 +75,14 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
             'provider' => ProviderEnum::TD->value,
         ]);
 
-        $wasExisting = $this->vehicles->firstByMsId($data->msId) !== null;
-        $vehicle = $this->command->upsertByMsId($data);
+        $existing = $this->vehicles->findByMsId($data->msId);
+        $vehicle = $existing === null
+            ? $this->command->create($data)
+            : $this->command->updateByMsId($data);
 
-        event($wasExisting
-            ? new VehicleUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $vehicle->toArray())
-            : new VehicleCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $vehicle->toArray()));
+        event($existing === null
+            ? new VehicleCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $vehicle->toArray())
+            : new VehicleUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $vehicle->toArray()));
 
         return $vehicle;
     }

@@ -40,6 +40,7 @@ final readonly class ModificationDataFactory implements ModificationDataFactoryI
                 'brake_system_type' => ['nullable', Rule::enum(BrakeSystemTypeEnum::class)],
                 'number_of_cylinders' => ['nullable', 'integer'],
                 'capacity_lt' => ['nullable', 'numeric'],
+                'id' => ['nullable', 'integer'],
             ])->validate();
         } catch (ValidationException $e) {
             throw ImportRowValidationException::fromMessages($e->errors());
@@ -61,6 +62,7 @@ final readonly class ModificationDataFactory implements ModificationDataFactoryI
             brakeSystemType: isset($valid['brake_system_type']) ? BrakeSystemTypeEnum::from($valid['brake_system_type']) : null,
             numberOfCylinders: isset($valid['number_of_cylinders']) ? (int) $valid['number_of_cylinders'] : null,
             capacityLt: isset($valid['capacity_lt']) ? (float) $valid['capacity_lt'] : null,
+            id: isset($valid['id']) ? (int) $valid['id'] : null,
         );
     }
 }

@@ -53,7 +53,7 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
         }
 
         try {
-            if ($this->nomenclatures->find($request->id) === null) {
+            if ($this->nomenclatures->findById($request->id) === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -65,7 +65,7 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
                 );
             }
 
-            if ($this->types->find($request->typeId) === null) {
+            if ($this->types->findById($request->typeId) === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -77,7 +77,7 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
                 );
             }
 
-            if ($this->brands->find($request->brandId) === null) {
+            if ($this->brands->findById($request->brandId) === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

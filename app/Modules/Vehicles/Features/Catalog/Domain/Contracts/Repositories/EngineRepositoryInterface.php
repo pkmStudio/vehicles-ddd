@@ -14,7 +14,7 @@ interface EngineRepositoryInterface
     /**
      * Возвращает первый Data-снимок двигателей по внешнему идентификатору.
      */
-    public function firstByEngId(int $engId): ?EngineData;
+    public function findByEngId(int $engId): ?EngineData;
 
     /**
      * @return array{engine_modifications_count: int, part_specifications_count: int}|null

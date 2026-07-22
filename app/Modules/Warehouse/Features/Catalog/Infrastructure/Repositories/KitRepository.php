@@ -16,7 +16,7 @@ final readonly class KitRepository implements KitRepositoryInterface
     /**
      * Возвращает набор по id или null.
      */
-    public function find(int $id): ?KitData
+    public function findById(int $id): ?KitData
     {
         return KitData::optional(Kit::query()->find($id));
     }
@@ -24,7 +24,7 @@ final readonly class KitRepository implements KitRepositoryInterface
     /**
      * Возвращает первый набор с таким import_hash или null.
      */
-    public function firstByImportHash(string $importHash): ?KitData
+    public function findByImportHash(string $importHash): ?KitData
     {
         $kit = Kit::query()
             ->where('import_hash', $importHash)

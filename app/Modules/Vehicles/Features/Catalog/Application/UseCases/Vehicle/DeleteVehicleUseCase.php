@@ -48,7 +48,7 @@ final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterfa
         }
 
         try {
-            $vehicle = $this->vehicles->firstByMsId($request->msId);
+            $vehicle = $this->vehicles->findByMsId($request->msId);
             if ($vehicle === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

@@ -19,7 +19,7 @@ final readonly class EngineRepository implements EngineRepositoryInterface
     /**
      * Возвращает первый Data-снимок двигателей по внешнему идентификатору.
      */
-    public function firstByEngId(int $engId): ?EngineData
+    public function findByEngId(int $engId): ?EngineData
     {
         return EngineData::optional(Engine::query()->where('eng_id', $engId)->first());
     }
