@@ -9,6 +9,7 @@ use App\Modules\Vehicles\Features\Import\Application\Factories\PartSpecification
 use App\Modules\Vehicles\Features\Import\Application\Services\Engine\UpsertSparkPlugSpecByModificationService;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ModificationRepositoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ModificationData;
@@ -20,7 +21,9 @@ use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
 
@@ -53,6 +56,8 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
      */
     public function test_writes_spec_only_for_engines_that_need_spark_plugs(): void
     {
+        Event::fake([PartSpecificationCreated::class]);
+
         $mod = $this->modification([
             $this->engine(1, 'PETROL-1', EngineFuelTypeEnum::PETROL),
             $this->engine(2, 'DIESEL-1', EngineFuelTypeEnum::DIESEL),
@@ -60,6 +65,12 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
 
         $modifications = Mockery::mock(ModificationRepositoryInterface::class);
         $modifications->shouldReceive('firstByMsIdAndModIdWithEngines')->once()->with(200, 50)->andReturn($mod);
+
+        $specifications = Mockery::mock(PartSpecificationRepositoryInterface::class);
+        $specifications->shouldReceive('firstByPartableTemplateAndFeatureValue')
+            ->once()
+            ->with(PartableTypeEnum::ENGINE->value, 1, DetailTemplateEnum::SPARK_PLUGS, null)
+            ->andReturnNull();
 
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
         $command->shouldReceive('upsert')->once()
@@ -70,6 +81,7 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
             Mockery::mock(VehicleRepositoryInterface::class),
             $modifications,
             $command,
+            $specifications,
             new PartSpecificationDataFactory,
         );
 
@@ -78,6 +90,7 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
         $this->assertTrue($result->found);
         $this->assertSame(1, $result->writtenCount);
         $this->assertSame([['code' => 'DIESEL-1', 'fuel' => EngineFuelTypeEnum::DIESEL->value]], $result->skippedEngines);
+        Event::assertDispatched(PartSpecificationCreated::class);
     }
 
     /**
@@ -98,10 +111,14 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
         $command->shouldNotReceive('upsert');
 
+        $specifications = Mockery::mock(PartSpecificationRepositoryInterface::class);
+        $specifications->shouldNotReceive('firstByPartableTemplateAndFeatureValue');
+
         $service = new UpsertSparkPlugSpecByModificationService(
             Mockery::mock(VehicleRepositoryInterface::class),
             $modifications,
             $command,
+            $specifications,
             new PartSpecificationDataFactory,
         );
 
@@ -148,7 +165,13 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
         $command->shouldReceive('upsert')->once()->andReturn(new PartSpecificationData(partableType: PartableTypeEnum::ENGINE->value, partableId: 1, template: DetailTemplateEnum::SPARK_PLUGS, details: []));
 
-        $service = new UpsertSparkPlugSpecByModificationService($vehicles, $modifications, $command, new PartSpecificationDataFactory);
+        $specifications = Mockery::mock(PartSpecificationRepositoryInterface::class);
+        $specifications->shouldReceive('firstByPartableTemplateAndFeatureValue')
+            ->once()
+            ->with(PartableTypeEnum::ENGINE->value, 1, DetailTemplateEnum::SPARK_PLUGS, null)
+            ->andReturnNull();
+
+        $service = new UpsertSparkPlugSpecByModificationService($vehicles, $modifications, $command, $specifications, new PartSpecificationDataFactory);
 
         $result = $service->upsertByModification(-5, 50, []);
 

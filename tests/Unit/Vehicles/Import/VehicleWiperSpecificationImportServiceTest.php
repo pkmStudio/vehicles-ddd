@@ -20,7 +20,10 @@ use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
+use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Event;
 use Mockery;
 use Psr\Log\NullLogger;
 use Tests\TestCase;
@@ -90,6 +93,8 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
      */
     public function test_creates_one_spec_per_side_when_none_exist(): void
     {
+        Event::fake([PartSpecificationCreated::class]);
+
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
         $specs->shouldReceive('firstByVehicleTemplateSideAndDetails')->once()
             ->with(77, DetailTemplateEnum::WIPER, 'front', ['front' => ['adapter_type_front' => ['A1'], 'count_wipers' => 2]])
@@ -123,6 +128,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         $this->service($specs, $command)->upsertFromRow($this->wiperRow($details));
 
         $this->assertSame(['front', 'back'], $created);
+        Event::assertDispatchedTimes(PartSpecificationCreated::class, 2);
     }
 
     /**
@@ -137,6 +143,8 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
      */
     public function test_updates_existing_side(): void
     {
+        Event::fake([PartSpecificationUpdated::class]);
+
         $existing = new PartSpecificationData(
             partableType: PartableTypeEnum::VEHICLE->value,
             partableId: 77,
@@ -162,6 +170,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
 
         $this->service($specs, $command)->upsertFromRow($this->wiperRow($details));
 
+        Event::assertDispatched(PartSpecificationUpdated::class);
         $this->addToAssertionCount(1);
     }
 

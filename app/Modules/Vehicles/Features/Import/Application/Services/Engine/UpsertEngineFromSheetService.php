@@ -6,10 +6,13 @@ namespace App\Modules\Vehicles\Features\Import\Application\Services\Engine;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\EngineDataFactoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
+use App\Modules\Vehicles\Shared\Domain\Events\Engine\EngineCreated;
+use App\Modules\Vehicles\Shared\Domain\Events\Engine\EngineUpdated;
 
 /**
  * Use-case: создать/обновить двигатель из строки листа импорта.
@@ -18,9 +21,14 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
  */
 final readonly class UpsertEngineFromSheetService implements UpsertEngineFromSheetServiceInterface
 {
+    private const int IMPORT_USER_ID = 0;
+
+    private const string OPERATION_ID = 'vehicles-engine-import';
+
     public function __construct(
         private EngineCommandInterface $command,
         private EngineDataFactoryInterface $factory,
+        private EngineRepositoryInterface $engines,
     ) {}
 
     /**
@@ -42,6 +50,13 @@ final readonly class UpsertEngineFromSheetService implements UpsertEngineFromShe
             'eng_fuel_type' => $row->engFuelType,
         ]);
 
-        return $this->command->upsertByEngId($data);
+        $wasExisting = $this->engines->firstByEngId($data->engId) !== null;
+        $engine = $this->command->upsertByEngId($data);
+
+        event($wasExisting
+            ? new EngineUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $engine->toArray())
+            : new EngineCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $engine->toArray()));
+
+        return $engine;
     }
 }

@@ -13,6 +13,8 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\Vehic
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
+use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -25,6 +27,10 @@ use RuntimeException;
  */
 final readonly class VehicleWiperSpecificationImportService implements VehicleWiperSpecificationImportServiceInterface
 {
+    private const int IMPORT_USER_ID = 0;
+
+    private const string OPERATION_ID = 'vehicles-part-specification-import';
+
     public function __construct(
         private FeatureValueRepositoryInterface $featureValues,
         private PartSpecificationRepositoryInterface $specifications,
@@ -108,12 +114,24 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
                     text: $data->text,
                     id: $existing->id,
                 );
-                $this->command->update($updatedData);
+                $specification = $this->command->update($updatedData);
+
+                event(new PartSpecificationUpdated(
+                    self::IMPORT_USER_ID,
+                    self::OPERATION_ID,
+                    $specification->toArray(),
+                ));
 
                 continue;
             }
 
-            $this->command->create($data);
+            $specification = $this->command->create($data);
+
+            event(new PartSpecificationCreated(
+                self::IMPORT_USER_ID,
+                self::OPERATION_ID,
+                $specification->toArray(),
+            ));
         }
     }
 

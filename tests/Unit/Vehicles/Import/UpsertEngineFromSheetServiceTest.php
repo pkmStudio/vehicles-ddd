@@ -7,10 +7,13 @@ namespace Tests\Unit\Vehicles\Import;
 use App\Modules\Vehicles\Features\Import\Application\Factories\EngineDataFactory;
 use App\Modules\Vehicles\Features\Import\Application\Services\Engine\UpsertEngineFromSheetService;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Events\Engine\EngineCreated;
+use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
 
@@ -32,8 +35,13 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
      */
     public function test_maps_row_and_upserts_via_command(): void
     {
+        Event::fake([EngineCreated::class]);
+
         $captured = null;
         $expected = new EngineData(engId: 101);
+
+        $engines = Mockery::mock(EngineRepositoryInterface::class);
+        $engines->shouldReceive('firstByEngId')->once()->with(101)->andReturnNull();
 
         $command = Mockery::mock(EngineCommandInterface::class);
         $command->shouldReceive('upsertByEngId')
@@ -45,7 +53,7 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
             }))
             ->andReturn($expected);
 
-        $service = new UpsertEngineFromSheetService($command, new EngineDataFactory);
+        $service = new UpsertEngineFromSheetService($command, new EngineDataFactory, $engines);
 
         // [eng_id, code_engine, kw_start, kw_upto, ps_start, ps_upto, capacity, cyl_diam, cyl_count, valves, fuel]
         $result = $service->upsertFromRow(new EngineSheetRowDTO(
@@ -68,6 +76,7 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
         $this->assertSame(170, $captured->engPowerKwStart);
         $this->assertSame(6, $captured->cylinderCount);
         $this->assertSame(EngineFuelTypeEnum::PETROL, $captured->engFuelType);
+        Event::assertDispatched(EngineCreated::class);
     }
 
     /**
@@ -84,7 +93,10 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
         $command = Mockery::mock(EngineCommandInterface::class);
         $command->shouldNotReceive('upsertByEngId');
 
-        $service = new UpsertEngineFromSheetService($command, new EngineDataFactory);
+        $engines = Mockery::mock(EngineRepositoryInterface::class);
+        $engines->shouldNotReceive('firstByEngId');
+
+        $service = new UpsertEngineFromSheetService($command, new EngineDataFactory, $engines);
 
         $this->expectException(ImportRowValidationException::class);
         // несуществующий вид топлива — фабрика валидирует сырое значение через Rule::enum
@@ -117,7 +129,10 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
         $command = Mockery::mock(EngineCommandInterface::class);
         $command->shouldNotReceive('upsertByEngId');
 
-        $service = new UpsertEngineFromSheetService($command, new EngineDataFactory);
+        $engines = Mockery::mock(EngineRepositoryInterface::class);
+        $engines->shouldNotReceive('firstByEngId');
+
+        $service = new UpsertEngineFromSheetService($command, new EngineDataFactory, $engines);
 
         $this->expectException(ImportRowValidationException::class);
         $service->upsertFromRow(new EngineSheetRowDTO(

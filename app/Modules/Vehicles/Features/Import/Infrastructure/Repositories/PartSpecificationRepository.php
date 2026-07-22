@@ -17,6 +17,22 @@ use Illuminate\Support\Collection;
  */
 final readonly class PartSpecificationRepository implements PartSpecificationRepositoryInterface
 {
+    public function firstByPartableTemplateAndFeatureValue(
+        string $partableType,
+        int $partableId,
+        DetailTemplateEnum $template,
+        ?int $featureValueId,
+    ): ?PartSpecificationData {
+        $specification = PartSpecification::query()
+            ->where('partable_type', $partableType)
+            ->where('partable_id', $partableId)
+            ->where('template', $template->value)
+            ->where('feature_value_id', $featureValueId)
+            ->first();
+
+        return PartSpecificationData::optional($specification);
+    }
+
     public function forVehicleTemplateAndSide(int $vehicleId, DetailTemplateEnum $template, string $side): Collection
     {
         $specifications = PartSpecification::query()

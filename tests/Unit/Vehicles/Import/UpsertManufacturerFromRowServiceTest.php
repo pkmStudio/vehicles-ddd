@@ -7,10 +7,13 @@ namespace Tests\Unit\Vehicles\Import;
 use App\Modules\Vehicles\Features\Import\Application\Factories\ManufacturerDataFactory;
 use App\Modules\Vehicles\Features\Import\Application\Services\Manufacturer\UpsertManufacturerFromRowService;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\ManufacturerCommandInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Modules\Vehicles\Shared\Domain\Events\Manufacturer\ManufacturerCreated;
+use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
 
@@ -28,7 +31,12 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
      */
     public function test_maps_row_and_upserts_with_td_provider(): void
     {
+        Event::fake([ManufacturerCreated::class]);
+
         $expected = new ManufacturerData(mfaId: 10, name: 'Skoda', provider: ProviderEnum::TD, id: 3);
+
+        $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
+        $manufacturers->shouldReceive('firstByMfaId')->once()->with(10)->andReturnNull();
 
         $command = Mockery::mock(ManufacturerCommandInterface::class);
         $command->shouldReceive('upsertByMfaId')
@@ -36,9 +44,11 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
             ->with(Mockery::on(fn (ManufacturerData $d) => $d->mfaId === 10 && $d->name === 'Skoda' && $d->provider === ProviderEnum::TD))
             ->andReturn($expected);
 
-        $service = new UpsertManufacturerFromRowService($command, new ManufacturerDataFactory);
+        $service = new UpsertManufacturerFromRowService($command, new ManufacturerDataFactory, $manufacturers);
 
         $this->assertSame($expected, $service->upsertFromRow(new ManufacturerCommandRowDTO(mfaId: 10, name: 'Skoda')));
+
+        Event::assertDispatched(ManufacturerCreated::class);
     }
 
     /**
@@ -54,7 +64,10 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
         $command = Mockery::mock(ManufacturerCommandInterface::class);
         $command->shouldNotReceive('upsertByMfaId');
 
-        $service = new UpsertManufacturerFromRowService($command, new ManufacturerDataFactory);
+        $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
+        $manufacturers->shouldNotReceive('firstByMfaId');
+
+        $service = new UpsertManufacturerFromRowService($command, new ManufacturerDataFactory, $manufacturers);
 
         $this->expectException(ImportRowValidationException::class);
         $service->upsertFromRow(new ManufacturerCommandRowDTO(mfaId: 10, name: null));

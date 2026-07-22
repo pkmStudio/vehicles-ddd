@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Import\Application\Factories\VehicleDataFactor
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleFromTdRowService;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
@@ -15,6 +16,8 @@ use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
+use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
 
@@ -33,6 +36,8 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
      */
     public function test_resolves_manufacturer_and_upserts_vehicle(): void
     {
+        Event::fake([VehicleCreated::class]);
+
         $manufacturer = new ManufacturerData(mfaId: 10, name: 'Skoda', provider: ProviderEnum::TD, id: 3);
         $expected = new VehicleData(
             msId: 200,
@@ -48,6 +53,9 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
         $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
         $manufacturers->shouldReceive('firstByMfaId')->once()->with(10)->andReturn($manufacturer);
 
+        $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
+        $vehicles->shouldReceive('firstByMsId')->once()->with(200)->andReturnNull();
+
         $command = Mockery::mock(VehicleCommandInterface::class);
         $command->shouldReceive('upsertByMsId')
             ->once()
@@ -60,9 +68,11 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
             }))
             ->andReturn($expected);
 
-        $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers);
+        $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers, $vehicles);
 
         $this->assertSame($expected, $service->upsertFromRow($this->validRow()));
+
+        Event::assertDispatched(VehicleCreated::class);
     }
 
     /**
@@ -82,7 +92,10 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
         $command = Mockery::mock(VehicleCommandInterface::class);
         $command->shouldNotReceive('upsertByMsId');
 
-        $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers);
+        $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
+        $vehicles->shouldNotReceive('firstByMsId');
+
+        $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers, $vehicles);
 
         $this->assertNull($service->upsertFromRow($this->validRow()));
     }
@@ -116,12 +129,15 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
         $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
         $manufacturers->shouldReceive('firstByMfaId')->once()->with(10)->andReturn($manufacturer);
 
+        $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
+        $vehicles->shouldReceive('firstByMsId')->once()->with(200)->andReturnNull();
+
         $command = Mockery::mock(VehicleCommandInterface::class);
         $command->shouldReceive('upsertByMsId')
             ->once()
             ->andReturnUsing(fn (VehicleData $data) => $data);
 
-        $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers);
+        $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers, $vehicles);
 
         $data = $service->upsertFromRow($row);
 

@@ -17,6 +17,9 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Events\Manufacturer\ManufacturerCreated;
+use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
+use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleUpdated;
 
 /**
  * Use-case: создать/обновить ТС из строки ручного листа.
@@ -25,6 +28,12 @@ use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
  */
 final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromSheetServiceInterface
 {
+    private const int IMPORT_USER_ID = 0;
+
+    private const string MANUFACTURER_OPERATION_ID = 'vehicles-manufacturer-import';
+
+    private const string VEHICLE_OPERATION_ID = 'vehicles-vehicle-import';
+
     public function __construct(
         private VehicleCommandInterface $command,
         private VehicleDataFactoryInterface $factory,
@@ -78,7 +87,14 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
             'parent_id' => $parentId,
         ]);
 
-        return $this->command->upsertByMsId($data);
+        $wasExisting = $this->vehicles->firstByMsId($data->msId) !== null;
+        $vehicle = $this->command->upsertByMsId($data);
+
+        event($wasExisting
+            ? new VehicleUpdated(self::IMPORT_USER_ID, self::VEHICLE_OPERATION_ID, $vehicle->toArray())
+            : new VehicleCreated(self::IMPORT_USER_ID, self::VEHICLE_OPERATION_ID, $vehicle->toArray()));
+
+        return $vehicle;
     }
 
     /**
@@ -100,6 +116,12 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
             ]);
 
             $manufacturer = $this->manufacturerCommand->upsertByMfaId($manufacturerData);
+
+            event(new ManufacturerCreated(
+                self::IMPORT_USER_ID,
+                self::MANUFACTURER_OPERATION_ID,
+                $manufacturer->toArray(),
+            ));
         }
 
         return [$manufacturer->mfaId, $manufacturer->id];

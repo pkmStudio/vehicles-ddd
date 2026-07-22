@@ -14,6 +14,16 @@ use Illuminate\Support\Collection;
 interface PartSpecificationRepositoryInterface
 {
     /**
+     * Спецификация по натуральному ключу upsert-операции импорта.
+     */
+    public function firstByPartableTemplateAndFeatureValue(
+        string $partableType,
+        int $partableId,
+        DetailTemplateEnum $template,
+        ?int $featureValueId,
+    ): ?PartSpecificationData;
+
+    /**
      * Все спецификации ТС по шаблону и стороне дворника.
      *
      * @return Collection<int, PartSpecificationData>

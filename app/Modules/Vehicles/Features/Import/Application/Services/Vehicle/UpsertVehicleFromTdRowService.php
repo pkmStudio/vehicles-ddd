@@ -7,6 +7,7 @@ namespace App\Modules\Vehicles\Features\Import\Application\Services\Vehicle;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\VehicleDataFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
@@ -14,6 +15,8 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
+use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleUpdated;
 
 /**
  * Use-case: создать/обновить ТС из строки авторитетного импорта (приведение к виду TD).
@@ -22,10 +25,15 @@ use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
  */
 final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromTdRowServiceInterface
 {
+    private const int IMPORT_USER_ID = 0;
+
+    private const string OPERATION_ID = 'vehicles-vehicle-import';
+
     public function __construct(
         private VehicleCommandInterface $command,
         private VehicleDataFactoryInterface $factory,
         private ManufacturerRepositoryInterface $manufacturers,
+        private VehicleRepositoryInterface $vehicles,
     ) {}
 
     /**
@@ -67,6 +75,13 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
             'provider' => ProviderEnum::TD->value,
         ]);
 
-        return $this->command->upsertByMsId($data);
+        $wasExisting = $this->vehicles->firstByMsId($data->msId) !== null;
+        $vehicle = $this->command->upsertByMsId($data);
+
+        event($wasExisting
+            ? new VehicleUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $vehicle->toArray())
+            : new VehicleCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $vehicle->toArray()));
+
+        return $vehicle;
     }
 }

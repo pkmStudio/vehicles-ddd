@@ -7,9 +7,12 @@ namespace App\Modules\Vehicles\Features\Import\Application\Services\Engine;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\PartSpecificationDataFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ModificationRepositoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\ModificationSparkPlugResultDTO;
+use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
+use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
 
 /**
  * Use-case: записать спецификацию «свечи зажигания» всем двигателям модификации.
@@ -19,10 +22,15 @@ use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\ModificationSparkPlu
  */
 final readonly class UpsertSparkPlugSpecByModificationService implements UpsertSparkPlugSpecByModificationServiceInterface
 {
+    private const int IMPORT_USER_ID = 0;
+
+    private const string OPERATION_ID = 'vehicles-part-specification-import';
+
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
         private ModificationRepositoryInterface $modifications,
         private PartSpecificationCommandInterface $partSpecs,
+        private PartSpecificationRepositoryInterface $specifications,
         private PartSpecificationDataFactoryInterface $factory,
     ) {}
 
@@ -55,7 +63,18 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
             }
 
             $specification = $this->factory->make((int) $engine->id, $details);
-            $this->partSpecs->upsert($specification);
+            $wasExisting = $this->specifications->firstByPartableTemplateAndFeatureValue(
+                partableType: $specification->partableType,
+                partableId: $specification->partableId,
+                template: $specification->template,
+                featureValueId: $specification->featureValueId,
+            ) !== null;
+            $specification = $this->partSpecs->upsert($specification);
+
+            event($wasExisting
+                ? new PartSpecificationUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray())
+                : new PartSpecificationCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray()));
+
             $written++;
         }
 

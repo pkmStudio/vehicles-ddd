@@ -6,11 +6,14 @@ namespace App\Modules\Vehicles\Features\Import\Application\Services\Modification
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\ModificationDataFactoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Modification\ModificationCommandRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ModificationData;
+use App\Modules\Vehicles\Shared\Domain\Events\Modification\ModificationCreated;
+use App\Modules\Vehicles\Shared\Domain\Events\Modification\ModificationUpdated;
 
 /**
  * Use-case: создать/обновить модификацию из строки импорта (приведение к виду TD).
@@ -19,10 +22,15 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\ModificationData;
  */
 final readonly class UpsertModificationFromRowService implements UpsertModificationFromRowServiceInterface
 {
+    private const int IMPORT_USER_ID = 0;
+
+    private const string OPERATION_ID = 'vehicles-modification-import';
+
     public function __construct(
         private ModificationCommandInterface $command,
         private ModificationDataFactoryInterface $factory,
         private VehicleRepositoryInterface $vehicles,
+        private ModificationRepositoryInterface $modifications,
     ) {}
 
     /**
@@ -60,6 +68,13 @@ final readonly class UpsertModificationFromRowService implements UpsertModificat
             'vehicle_id' => $vehicle->id,
         ]);
 
-        return $this->command->upsertByModIdAndType($data);
+        $wasExisting = $this->modifications->firstByModIdAndType($data->modId, $data->type->value) !== null;
+        $modification = $this->command->upsertByModIdAndType($data);
+
+        event($wasExisting
+            ? new ModificationUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $modification->toArray())
+            : new ModificationCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $modification->toArray()));
+
+        return $modification;
     }
 }
