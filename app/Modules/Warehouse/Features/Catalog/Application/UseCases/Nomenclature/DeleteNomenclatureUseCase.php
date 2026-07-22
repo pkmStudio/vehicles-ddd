@@ -37,7 +37,9 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
      */
     public function execute(DeleteNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
@@ -54,9 +56,11 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
                 );
             }
 
+            $toContextArray = fn ($context): array => $context->toArray();
+
             $integrationContexts = $this->nomenclatures
                 ->deletionIntegrationContexts($request->id)
-                ->map(fn ($context): array => $context->toArray())
+                ->map($toContextArray)
                 ->values()
                 ->all();
 

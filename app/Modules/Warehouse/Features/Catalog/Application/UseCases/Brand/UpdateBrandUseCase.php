@@ -44,12 +44,16 @@ final readonly class UpdateBrandUseCase implements UpdateBrandUseCaseInterface
      */
     public function execute(UpdateBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->brands->findById($request->id) === null) {
+            $existingBrand = $this->brands->findById($request->id);
+
+            if ($existingBrand === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

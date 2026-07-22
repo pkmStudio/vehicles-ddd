@@ -46,7 +46,9 @@ final readonly class UpdateModificationUseCase implements UpdateModificationUseC
      */
     public function execute(UpdateModificationRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 

@@ -43,7 +43,9 @@ final readonly class DeleteEngineUseCase implements DeleteEngineUseCaseInterface
      */
     public function execute(DeleteEngineRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 

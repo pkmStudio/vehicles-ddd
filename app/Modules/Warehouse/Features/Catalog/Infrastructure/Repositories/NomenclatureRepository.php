@@ -63,14 +63,16 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
      */
     public function deletionIntegrationContexts(int $id): Collection
     {
+        $toDeletionContext = fn (object $row): NomenclatureIntegrationDeletionContextDTO => new NomenclatureIntegrationDeletionContextDTO(
+            id: (int) $row->id,
+            provider: (string) $row->provider,
+            externalId: is_string($row->external_id) ? $row->external_id : null,
+            externalCode: is_string($row->external_code) ? $row->external_code : null,
+        );
+
         return DB::table('nomenclature_integrations')
             ->where('nomenclature_id', $id)
             ->get(['id', 'provider', 'external_id', 'external_code'])
-            ->map(fn (object $row): NomenclatureIntegrationDeletionContextDTO => new NomenclatureIntegrationDeletionContextDTO(
-                id: (int) $row->id,
-                provider: (string) $row->provider,
-                externalId: is_string($row->external_id) ? $row->external_id : null,
-                externalCode: is_string($row->external_code) ? $row->external_code : null,
-            ));
+            ->map($toDeletionContext);
     }
 }

@@ -46,12 +46,16 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
      */
     public function execute(CreateModificationRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->modifications->findByModIdAndType($request->modId, $request->type->value) !== null) {
+            $existingModification = $this->modifications->findByModIdAndType($request->modId, $request->type->value);
+
+            if ($existingModification !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

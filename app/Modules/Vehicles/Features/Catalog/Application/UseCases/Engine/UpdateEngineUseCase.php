@@ -44,7 +44,9 @@ final readonly class UpdateEngineUseCase implements UpdateEngineUseCaseInterface
      */
     public function execute(UpdateEngineRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 

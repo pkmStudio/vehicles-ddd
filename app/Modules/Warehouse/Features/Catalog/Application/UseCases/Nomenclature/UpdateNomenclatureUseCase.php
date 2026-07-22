@@ -48,12 +48,16 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
      */
     public function execute(UpdateNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->nomenclatures->findById($request->id) === null) {
+            $existingNomenclature = $this->nomenclatures->findById($request->id);
+
+            if ($existingNomenclature === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -65,7 +69,9 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
                 );
             }
 
-            if ($this->types->findById($request->typeId) === null) {
+            $type = $this->types->findById($request->typeId);
+
+            if ($type === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -77,7 +83,9 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
                 );
             }
 
-            if ($this->brands->findById($request->brandId) === null) {
+            $brand = $this->brands->findById($request->brandId);
+
+            if ($brand === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

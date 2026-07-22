@@ -43,7 +43,9 @@ final readonly class DeleteKitUseCase implements DeleteKitUseCaseInterface
      */
     public function execute(DeleteKitRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 

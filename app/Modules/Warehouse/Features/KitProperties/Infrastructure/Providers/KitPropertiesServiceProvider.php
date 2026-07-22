@@ -53,8 +53,10 @@ final class KitPropertiesServiceProvider extends ServiceProvider
             ->when(concrete: KitPropertiesService::class)
             ->needs(abstract: '$strategies')
             ->give(implementation: function (Application $app): array {
+                $makeStrategy = fn (string $strategy): KitCompositionStrategyInterface => $app->make($strategy);
+
                 return array_map(
-                    fn (string $strategy): KitCompositionStrategyInterface => $app->make($strategy),
+                    $makeStrategy,
                     self::COMPOSITION_STRATEGY_CLASSES,
                 );
             });

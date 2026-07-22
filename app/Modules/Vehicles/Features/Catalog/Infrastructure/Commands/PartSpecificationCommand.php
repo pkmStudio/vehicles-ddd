@@ -23,11 +23,11 @@ final readonly class PartSpecificationCommand implements PartSpecificationComman
      */
     public function create(PartSpecificationData $data): PartSpecificationData
     {
-        return DB::transaction(
-            fn (): PartSpecificationData => PartSpecificationData::from(
-                PartSpecification::query()->create($data->toArray()),
-            ),
+        $createPartSpecification = fn (): PartSpecificationData => PartSpecificationData::from(
+            PartSpecification::query()->create($data->toArray()),
         );
+
+        return DB::transaction($createPartSpecification);
     }
 
     /**

@@ -26,12 +26,14 @@ final readonly class FailuresExport implements FailuresExportInterface, FromColl
      */
     public function collection(): Collection
     {
-        return collect($this->failures)->map(fn (array $failure): array => [
+        $toFailureRow = fn (array $failure): array => [
             $failure['row'],
             $failure['attribute'],
             implode('; ', $failure['errors']),
             json_encode($failure['values'], JSON_UNESCAPED_UNICODE),
-        ]);
+        ];
+
+        return collect($this->failures)->map($toFailureRow);
     }
 
     /**

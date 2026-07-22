@@ -19,8 +19,10 @@ final readonly class KitPropertiesClient implements KitPropertiesClientInterface
 
     public function build(array $nomenclatures): KitPropertiesDTO
     {
+        $toKitPropertiesNomenclature = fn (NomenclatureData $nomenclature): KitPropertiesNomenclatureData => $this->toKitPropertiesNomenclature($nomenclature);
+
         $properties = $this->kitProperties->build(array_map(
-            fn (NomenclatureData $nomenclature): KitPropertiesNomenclatureData => $this->toKitPropertiesNomenclature($nomenclature),
+            $toKitPropertiesNomenclature,
             $nomenclatures,
         ));
 

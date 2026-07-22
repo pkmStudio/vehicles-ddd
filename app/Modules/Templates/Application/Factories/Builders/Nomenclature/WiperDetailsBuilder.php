@@ -50,6 +50,8 @@ final readonly class WiperDetailsBuilder
      */
     private function namesOf(array $cases): array
     {
-        return array_map(static fn ($case) => $case->name, $cases);
+        $toName = static fn ($case) => $case->name;
+
+        return array_map($toName, $cases);
     }
 }

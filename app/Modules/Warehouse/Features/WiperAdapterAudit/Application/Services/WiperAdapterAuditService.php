@@ -94,7 +94,10 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
         $adapters = [];
 
         foreach ($kit->nomenclatures ?? [] as $nomenclature) {
-            if ($this->template($nomenclature->type) !== NomenclatureDetailTemplateEnum::WIPER_ADAPTER) {
+            $template = $this->template($nomenclature->type);
+            $isWiperAdapter = $template === NomenclatureDetailTemplateEnum::WIPER_ADAPTER;
+
+            if (! $isWiperAdapter) {
                 continue;
             }
 
@@ -117,7 +120,10 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
         $adapters = [];
 
         foreach ($kit->nomenclatures ?? [] as $nomenclature) {
-            if ($this->template($nomenclature->type) !== NomenclatureDetailTemplateEnum::WIPER) {
+            $template = $this->template($nomenclature->type);
+            $isWiper = $template === NomenclatureDetailTemplateEnum::WIPER;
+
+            if (! $isWiper) {
                 continue;
             }
 
@@ -193,14 +199,17 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
     private function adapterList(mixed $value): array
     {
         $value = is_array($value) ? $value : [];
+        $trimAdapter = fn (mixed $adapter): string => trim((string) $adapter);
+        $isFilledAdapter = fn (string $adapter): bool => $adapter !== '';
+
         $value = array_map(
-            fn (mixed $adapter): string => trim((string) $adapter),
+            $trimAdapter,
             $value,
         );
 
         return array_values(array_filter(
             array: $value,
-            callback: fn (string $adapter): bool => $adapter !== '',
+            callback: $isFilledAdapter,
         ));
     }
 

@@ -53,7 +53,9 @@ final readonly class ManufacturerMutationPayloadValidator
      */
     private function operations(): array
     {
-        return array_map(fn (CatalogMutationOperationEnum $operation): string => $operation->value, CatalogMutationOperationEnum::cases());
+        $toOperationValue = fn (CatalogMutationOperationEnum $operation): string => $operation->value;
+
+        return array_map($toOperationValue, CatalogMutationOperationEnum::cases());
     }
 
     /**
@@ -61,6 +63,8 @@ final readonly class ManufacturerMutationPayloadValidator
      */
     private function enumValues(array $cases): array
     {
-        return array_map(fn (object $case): string => $case->value, $cases);
+        $toEnumValue = fn (object $case): string => $case->value;
+
+        return array_map($toEnumValue, $cases);
     }
 }

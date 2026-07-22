@@ -73,7 +73,9 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
             $side = (string) $part['side'];
             $partDetails = (array) $part['details'];
             $sideDetails = $this->templates->vehicleWiperSideData($partDetails, $side);
-            if (! $this->hasUsableSideDetails($sideDetails)) {
+            $hasUsableSideDetails = $this->hasUsableSideDetails($sideDetails);
+
+            if (! $hasUsableSideDetails) {
                 $this->logger->warning('Импорт дворников: пустые данные стороны пропущены', [
                     'vehicle_id' => $vehicle->id,
                     'template' => $template->value,
@@ -159,12 +161,16 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
             return null;
         }
 
+        $matchesSide = fn (PartSpecificationData $candidate): bool => $this->templates->detectVehicleWiperSide($candidate->details) === $side;
+
         $candidates = $this->specifications
             ->forVehicleTemplateAndSide($vehicleId, $template, $side)
-            ->filter(fn (PartSpecificationData $candidate): bool => $this->templates->detectVehicleWiperSide($candidate->details) === $side)
+            ->filter($matchesSide)
             ->values();
 
-        if ($candidates->count() === 1) {
+        $hasSingleCandidate = $candidates->count() === 1;
+
+        if ($hasSingleCandidate) {
             return $candidates->first();
         }
 
@@ -218,7 +224,9 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
                     continue;
                 }
 
-                if ($this->hasUsableSideDetails($value)) {
+                $hasUsableSideDetails = $this->hasUsableSideDetails($value);
+
+                if ($hasUsableSideDetails) {
                     return true;
                 }
 

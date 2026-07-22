@@ -48,9 +48,11 @@ final readonly class WiperPackagingStrategy implements PackagingStrategyInterfac
             $maxLength = max($maxLength, $lengthMain, $lengthSecond);
         }
 
+        $boxLongEnough = fn (PackDimensionData $box): bool => $box->length >= $maxLength;
+
         $suitableBox = $packDimensions
             ->sortBy('length')
-            ->first(fn (PackDimensionData $box): bool => $box->length >= $maxLength);
+            ->first($boxLongEnough);
 
         return $suitableBox ?? $packDimensions->sortByDesc('length')->first();
     }

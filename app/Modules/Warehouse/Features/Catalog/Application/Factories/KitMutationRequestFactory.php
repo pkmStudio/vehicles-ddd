@@ -90,8 +90,10 @@ final readonly class KitMutationRequestFactory implements KitMutationRequestFact
      */
     private function ids(array $ids): array
     {
+        $toIntegerId = fn (mixed $id): int => (int) $id;
+
         return array_values(array_map(
-            fn (mixed $id): int => (int) $id,
+            $toIntegerId,
             $ids,
         ));
     }

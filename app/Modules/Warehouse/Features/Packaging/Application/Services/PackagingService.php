@@ -47,7 +47,9 @@ final readonly class PackagingService implements PackagingServiceInterface
         $packDimensions = $this->repository->byType($type);
 
         foreach ($this->strategies as $strategy) {
-            if (! $strategy->supports($template)) {
+            $strategySupportsTemplate = $strategy->supports($template);
+
+            if (! $strategySupportsTemplate) {
                 continue;
             }
 

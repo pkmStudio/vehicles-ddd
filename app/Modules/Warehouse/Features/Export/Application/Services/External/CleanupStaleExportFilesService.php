@@ -51,11 +51,15 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
         $deleted = 0;
 
         foreach ($storage->files($directory) as $path) {
-            if (! $this->matchesExportFilePattern($path)) {
+            $matchesExportFilePattern = $this->matchesExportFilePattern($path);
+
+            if (! $matchesExportFilePattern) {
                 continue;
             }
 
-            if ($storage->lastModified($path) > $threshold) {
+            $lastModified = $storage->lastModified($path);
+
+            if ($lastModified > $threshold) {
                 continue;
             }
 

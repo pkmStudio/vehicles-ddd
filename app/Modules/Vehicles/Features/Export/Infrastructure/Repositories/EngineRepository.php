@@ -19,9 +19,11 @@ final readonly class EngineRepository implements EngineRepositoryInterface
 
     public function forSparkPlugSheet(): Collection
     {
+        $sparkPlugSpecifications = fn ($query) => $query->where('template', DetailTemplateEnum::SPARK_PLUGS);
+
         $engines = Engine::query()
             ->with([
-                'partSpecifications' => fn ($q) => $q->where('template', DetailTemplateEnum::SPARK_PLUGS),
+                'partSpecifications' => $sparkPlugSpecifications,
             ])
             ->get();
 

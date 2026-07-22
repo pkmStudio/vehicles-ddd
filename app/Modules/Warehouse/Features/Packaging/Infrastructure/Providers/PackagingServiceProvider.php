@@ -66,8 +66,10 @@ final class PackagingServiceProvider extends ServiceProvider
             ->when(concrete: PackagingService::class)
             ->needs(abstract: '$strategies')
             ->give(implementation: function (Application $app): array {
+                $makeStrategy = fn (string $strategy): PackagingStrategyInterface => $app->make($strategy);
+
                 return array_map(
-                    fn (string $strategy): PackagingStrategyInterface => $app->make($strategy),
+                    $makeStrategy,
                     self::STRATEGY_CLASSES,
                 );
             });

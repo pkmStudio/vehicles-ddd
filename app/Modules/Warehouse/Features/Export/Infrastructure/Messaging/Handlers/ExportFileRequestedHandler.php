@@ -39,8 +39,9 @@ final readonly class ExportFileRequestedHandler
     public function handle(array $data): void
     {
         $validator = $this->validator->make($data);
+        $validationFailed = $validator->fails();
 
-        if ($validator->fails()) {
+        if ($validationFailed) {
             Log::error(
                 message: 'RabbitMQ: Warehouse export file request payload validation failed',
                 context: [
@@ -127,9 +128,10 @@ final readonly class ExportFileRequestedHandler
     private function intList(mixed $values): array
     {
         $values = is_array($values) ? $values : [];
+        $toInteger = fn (mixed $value): int => (int) $value;
 
         return array_values(array_map(
-            fn (mixed $value): int => (int) $value,
+            $toInteger,
             $values,
         ));
     }
@@ -142,14 +144,17 @@ final readonly class ExportFileRequestedHandler
     private function stringList(mixed $values): array
     {
         $values = is_array($values) ? $values : [];
+        $trimValue = fn (mixed $value): string => trim((string) $value);
+        $isFilledValue = fn (string $value): bool => $value !== '';
+
         $values = array_map(
-            fn (mixed $value): string => trim((string) $value),
+            $trimValue,
             $values,
         );
 
         return array_values(array_filter(
             array: $values,
-            callback: fn (string $value): bool => $value !== '',
+            callback: $isFilledValue,
         ));
     }
 

@@ -81,7 +81,9 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
     private function resolveStrategy(Collection $nomenclatures): KitCompositionStrategyInterface
     {
         foreach ($this->strategies as $strategy) {
-            if ($strategy->supports($nomenclatures)) {
+            $strategySupportsNomenclatures = $strategy->supports($nomenclatures);
+
+            if ($strategySupportsNomenclatures) {
                 return $strategy;
             }
         }
@@ -128,7 +130,8 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
      */
     private function resolveWeight(Collection $nomenclatures, ?PackDimensionDTO $packDimension): float
     {
-        $itemsWeight = $nomenclatures->sum(fn (NomenclatureData $n): int => $n->weight);
+        $toWeight = fn (NomenclatureData $nomenclature): int => $nomenclature->weight;
+        $itemsWeight = $nomenclatures->sum($toWeight);
 
         return $itemsWeight + ($packDimension?->weight ?? 0);
     }
@@ -145,8 +148,10 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
      */
     private function resolveComplectation(Collection $primary, int $quantity, TypeData $type): string
     {
+        $matchesType = fn (NomenclatureData $nomenclature): bool => $nomenclature->typeId === $type->id;
+
         /** @var NomenclatureData|null $matching */
-        $matching = $primary->first(fn (NomenclatureData $n): bool => $n->typeId === $type->id);
+        $matching = $primary->first($matchesType);
         $typeName = $matching?->type?->name;
 
         if ($typeName === null) {
@@ -160,7 +165,10 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
             return '';
         }
 
-        $material = $primary->map(fn (NomenclatureData $n): array => $n->material)->first(fn (array $m): bool => $m !== []) ?? [];
+        $toMaterial = fn (NomenclatureData $nomenclature): array => $nomenclature->material;
+        $isFilledMaterial = fn (array $material): bool => $material !== [];
+        $materials = $primary->map($toMaterial);
+        $material = $materials->first($isFilledMaterial) ?? [];
 
         if ($quantity <= 0) {
             Log::warning(

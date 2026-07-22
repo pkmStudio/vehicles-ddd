@@ -81,8 +81,11 @@ final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclat
      */
     public function upsertFromRow(array $row, Collection $types, Collection $brands): NomenclatureData
     {
-        $typesByName = $types->keyBy(fn (TypeData $type): string => mb_strtoupper(trim($type->name)));
-        $brandsByName = $brands->keyBy(fn (BrandData $brand): string => mb_strtoupper(trim($brand->name)));
+        $typeNameKey = fn (TypeData $type): string => mb_strtoupper(trim($type->name));
+        $brandNameKey = fn (BrandData $brand): string => mb_strtoupper(trim($brand->name));
+
+        $typesByName = $types->keyBy($typeNameKey);
+        $brandsByName = $brands->keyBy($brandNameKey);
 
         $id = isset($row[0]) && trim((string) $row[0]) !== '' ? (int) trim((string) $row[0]) : null;
 

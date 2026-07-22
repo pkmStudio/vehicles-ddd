@@ -71,8 +71,10 @@ final readonly class VehicleMutationPayloadValidator
      */
     private function operations(): array
     {
+        $toOperationValue = fn (CatalogMutationOperationEnum $operation): string => $operation->value;
+
         return array_map(
-            fn (CatalogMutationOperationEnum $operation): string => $operation->value,
+            $toOperationValue,
             CatalogMutationOperationEnum::cases(),
         );
     }
@@ -83,8 +85,10 @@ final readonly class VehicleMutationPayloadValidator
      */
     private function enumValues(array $cases): array
     {
+        $toEnumValue = fn (object $case): string => $case->value;
+
         return array_map(
-            fn (object $case): string => $case->value,
+            $toEnumValue,
             $cases,
         );
     }

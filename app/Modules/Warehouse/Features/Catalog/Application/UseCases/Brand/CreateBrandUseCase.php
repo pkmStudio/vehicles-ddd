@@ -44,12 +44,16 @@ final readonly class CreateBrandUseCase implements CreateBrandUseCaseInterface
      */
     public function execute(CreateBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->brands->findByName($request->name) !== null) {
+            $existingBrand = $this->brands->findByName($request->name);
+
+            if ($existingBrand !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

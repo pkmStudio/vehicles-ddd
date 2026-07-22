@@ -87,8 +87,10 @@ final readonly class KitComplectationService implements KitComplectationServiceI
             return $base;
         }
 
+        $toMaterialLabel = fn (string $key): string => self::MATERIAL_LABELS[mb_strtoupper($key)] ?? $key;
+
         $labels = array_map(
-            fn (string $key): string => self::MATERIAL_LABELS[mb_strtoupper($key)] ?? $key,
+            $toMaterialLabel,
             $material,
         );
 

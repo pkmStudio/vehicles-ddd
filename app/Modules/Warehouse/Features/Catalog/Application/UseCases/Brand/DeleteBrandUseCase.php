@@ -37,7 +37,9 @@ final readonly class DeleteBrandUseCase implements DeleteBrandUseCaseInterface
      */
     public function execute(DeleteBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 

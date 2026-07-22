@@ -34,11 +34,11 @@ final readonly class EngineCommand implements EngineCommandInterface
      */
     public function create(EngineData $data): EngineData
     {
-        return DB::transaction(
-            fn (): EngineData => EngineData::from(
-                Engine::query()->create(Arr::except($data->toArray(), ['id'])),
-            ),
+        $createEngine = fn (): EngineData => EngineData::from(
+            Engine::query()->create(Arr::except($data->toArray(), ['id'])),
         );
+
+        return DB::transaction($createEngine);
     }
 
     /**
@@ -75,16 +75,18 @@ final readonly class EngineCommand implements EngineCommandInterface
                 return;
             }
 
+            $toIntegerId = fn (mixed $id): int => (int) $id;
+
             $engineModificationIds = EngineModification::query()
                 ->where('engine_id', $engine->id)
                 ->pluck('id')
-                ->map(fn (mixed $id): int => (int) $id)
+                ->map($toIntegerId)
                 ->all();
             $partSpecificationIds = PartSpecification::query()
                 ->where('partable_type', PartableTypeEnum::ENGINE->value)
                 ->where('partable_id', $engine->id)
                 ->pluck('id')
-                ->map(fn (mixed $id): int => (int) $id)
+                ->map($toIntegerId)
                 ->all();
 
             $this->engineModifications->deleteByIds($engineModificationIds);

@@ -30,11 +30,11 @@ final readonly class ModificationCommand implements ModificationCommandInterface
      */
     public function create(ModificationData $data): ModificationData
     {
-        return DB::transaction(
-            fn (): ModificationData => ModificationData::from(
-                Modification::query()->create(Arr::except($data->toArray(), ['id'])),
-            ),
+        $createModification = fn (): ModificationData => ModificationData::from(
+            Modification::query()->create(Arr::except($data->toArray(), ['id'])),
         );
+
+        return DB::transaction($createModification);
     }
 
     /**
@@ -92,10 +92,12 @@ final readonly class ModificationCommand implements ModificationCommandInterface
         }
 
         DB::transaction(function () use ($ids): void {
+            $toIntegerId = fn (mixed $id): int => (int) $id;
+
             $engineModificationIds = EngineModification::query()
                 ->whereIn('modification_id', $ids)
                 ->pluck('id')
-                ->map(fn (mixed $id): int => (int) $id)
+                ->map($toIntegerId)
                 ->all();
 
             $this->engineModifications->deleteByIds($engineModificationIds);

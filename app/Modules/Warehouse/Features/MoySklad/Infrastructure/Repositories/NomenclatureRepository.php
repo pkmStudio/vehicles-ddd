@@ -8,7 +8,6 @@ use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Repositories\Nomenc
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\Nomenclature;
 use Generator;
-use Illuminate\Support\Collection;
 
 /**
  * Eloquent-реализация чтения Warehouse-номенклатуры для MoySklad-фичи.
@@ -34,26 +33,12 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
      */
     public function cursorById(int $chunk): Generator
     {
-        $lastId = 0;
-        $chunk = max(1, $chunk);
+        $nomenclatures = Nomenclature::query()
+            ->with(['type', 'brand'])
+            ->lazyById(max(1, $chunk));
 
-        while (true) {
-            $nomenclatures = Nomenclature::query()
-                ->with(['type', 'brand'])
-                ->where('id', '>', $lastId)
-                ->orderBy('id')
-                ->limit($chunk)
-                ->get();
-
-            if ($nomenclatures->isEmpty()) {
-                return;
-            }
-
-            foreach (NomenclatureData::collect($nomenclatures, Collection::class) as $nomenclature) {
-                yield $nomenclature;
-            }
-
-            $lastId = (int) $nomenclatures->last()->id;
+        foreach ($nomenclatures as $nomenclature) {
+            yield NomenclatureData::from($nomenclature);
         }
     }
 }

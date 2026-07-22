@@ -23,8 +23,9 @@ final class BackfillNomenclatureCommand extends Command
     public function handle(NomenclatureBackfillService $service, NomenclatureSyncDispatcherInterface $dispatcher): int
     {
         $chunk = max(1, (int) $this->option('chunk'));
+        $queueRequested = (bool) $this->option('queue');
 
-        if ((bool) $this->option('queue')) {
+        if ($queueRequested) {
             $dispatcher->dispatchBackfill($chunk);
             $this->info('Планировщик backfill МойСклад поставлен в очередь.');
 

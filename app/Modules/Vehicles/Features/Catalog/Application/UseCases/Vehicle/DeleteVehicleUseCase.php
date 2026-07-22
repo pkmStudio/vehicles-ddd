@@ -43,7 +43,9 @@ final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterfa
      */
     public function execute(DeleteVehicleRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 

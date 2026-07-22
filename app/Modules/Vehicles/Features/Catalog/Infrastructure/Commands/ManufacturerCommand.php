@@ -30,11 +30,11 @@ final readonly class ManufacturerCommand implements ManufacturerCommandInterface
      */
     public function create(ManufacturerData $data): ManufacturerData
     {
-        return DB::transaction(
-            fn (): ManufacturerData => ManufacturerData::from(
-                Manufacturer::query()->create(Arr::except($data->toArray(), ['id'])),
-            ),
+        $createManufacturer = fn (): ManufacturerData => ManufacturerData::from(
+            Manufacturer::query()->create(Arr::except($data->toArray(), ['id'])),
         );
+
+        return DB::transaction($createManufacturer);
     }
 
     /**
@@ -71,10 +71,12 @@ final readonly class ManufacturerCommand implements ManufacturerCommandInterface
                 return;
             }
 
+            $toIntegerId = fn (mixed $id): int => (int) $id;
+
             $vehicleIds = Vehicle::query()
                 ->where('manufacturer_id', $manufacturer->id)
                 ->pluck('id')
-                ->map(fn (mixed $id): int => (int) $id)
+                ->map($toIntegerId)
                 ->all();
 
             $this->vehicles->deleteByIds($vehicleIds);

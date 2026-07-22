@@ -37,13 +37,17 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
      */
     public function collection(Collection $collection): void
     {
+        $trimString = fn ($value) => is_string($value) ? trim($value) : $value;
+
         foreach ($collection as $indexRow => $row) {
-            $row = $row->map(fn ($value) => is_string($value) ? trim($value) : $value);
+            $row = $row->map($trimString);
             $rowValues = $row->toArray();
             try {
                 $vehicleRow = $this->rowMapper->map($rowValues);
 
-                DB::transaction(fn () => $this->upsertWiperSpec->upsertFromRow($vehicleRow));
+                $upsertWiperSpec = fn () => $this->upsertWiperSpec->upsertFromRow($vehicleRow);
+
+                DB::transaction($upsertWiperSpec);
             } catch (\Throwable $e) {
                 $this->onFailure(
                     new Failure(

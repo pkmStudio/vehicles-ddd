@@ -37,7 +37,9 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
      */
     public function execute(ExternalImportFileRequestDTO $request): void
     {
-        if (! $this->cache->accept($request->runId)) {
+        $runAccepted = $this->cache->accept($request->runId);
+
+        if (! $runAccepted) {
             return;
         }
 

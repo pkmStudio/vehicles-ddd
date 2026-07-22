@@ -46,12 +46,16 @@ final readonly class UpdatePackDimensionUseCase implements UpdatePackDimensionUs
      */
     public function execute(UpdatePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->packDimensions->findById($request->id) === null) {
+            $existingPackDimension = $this->packDimensions->findById($request->id);
+
+            if ($existingPackDimension === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -63,7 +67,9 @@ final readonly class UpdatePackDimensionUseCase implements UpdatePackDimensionUs
                 );
             }
 
-            if ($this->types->findById($request->typeId) === null) {
+            $type = $this->types->findById($request->typeId);
+
+            if ($type === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

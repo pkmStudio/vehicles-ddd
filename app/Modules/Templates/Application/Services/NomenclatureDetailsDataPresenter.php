@@ -204,8 +204,10 @@ final readonly class NomenclatureDetailsDataPresenter implements NomenclatureDet
      */
     private function labels(string $enumClass): array
     {
+        $toValue = fn (EnumHelperInterface $case): string => $case->value;
+
         return array_map(
-            fn (EnumHelperInterface $case): string => $case->value,
+            $toValue,
             $enumClass::cases(),
         );
     }

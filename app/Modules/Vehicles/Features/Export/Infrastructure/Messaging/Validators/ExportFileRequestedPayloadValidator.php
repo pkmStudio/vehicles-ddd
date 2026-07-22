@@ -40,8 +40,10 @@ final readonly class ExportFileRequestedPayloadValidator
      */
     private function exportTypes(): array
     {
+        $toExportTypeValue = fn (ExportTypeEnum $type): string => $type->value;
+
         return array_map(
-            fn (ExportTypeEnum $type): string => $type->value,
+            $toExportTypeValue,
             ExportTypeEnum::cases(),
         );
     }

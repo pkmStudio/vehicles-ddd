@@ -23,21 +23,22 @@ final readonly class PackagingClient implements PackagingClientInterface
     public function selectOrCreate(TypeData $type, array $nomenclatures): PackDimensionDTO
     {
         try {
+            $packagingType = new PackagingTypeData(
+                name: $type->name,
+                char: $type->char,
+                id: $type->id,
+            );
+            $toPackagingNomenclature = fn (NomenclatureData $nomenclature): PackagingNomenclatureData => new PackagingNomenclatureData(
+                partNumber: $nomenclature->partNumber,
+                quantityInPak: $nomenclature->quantityInPak,
+                details: $nomenclature->details,
+                id: $nomenclature->id,
+            );
+            $packagingNomenclatures = array_map($toPackagingNomenclature, $nomenclatures);
+
             $packDimension = $this->packaging->selectOrCreate(
-                type: new PackagingTypeData(
-                    name: $type->name,
-                    char: $type->char,
-                    id: $type->id,
-                ),
-                nomenclatures: array_map(
-                    fn (NomenclatureData $nomenclature): PackagingNomenclatureData => new PackagingNomenclatureData(
-                        partNumber: $nomenclature->partNumber,
-                        quantityInPak: $nomenclature->quantityInPak,
-                        details: $nomenclature->details,
-                        id: $nomenclature->id,
-                    ),
-                    $nomenclatures,
-                ),
+                type: $packagingType,
+                nomenclatures: $packagingNomenclatures,
             );
         } catch (PackagingPackDimensionNotResolvableException $exception) {
             throw new PackDimensionNotResolvableException($exception->getMessage(), previous: $exception);

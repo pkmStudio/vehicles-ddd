@@ -107,8 +107,10 @@ final readonly class BrakePadsPackagingStrategy extends AbstractPackagingStrateg
             return null;
         }
 
+        $matchesPartNumber = static fn (PackDimensionData $box): bool => mb_strtolower(trim($box->name)) === $partNumber;
+
         $matched = $packDimensions->first(
-            static fn (PackDimensionData $box): bool => mb_strtolower(trim($box->name)) === $partNumber,
+            $matchesPartNumber,
         );
 
         if ($matched === null) {

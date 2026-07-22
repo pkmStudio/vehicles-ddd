@@ -37,7 +37,9 @@ final readonly class DeletePackDimensionUseCase implements DeletePackDimensionUs
      */
     public function execute(DeletePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 

@@ -26,11 +26,11 @@ final readonly class BrandCommand implements BrandCommandInterface
      */
     public function create(BrandData $data): BrandData
     {
-        return DB::transaction(
-            fn (): BrandData => BrandData::from(
-                Brand::query()->create(Arr::except($data->toArray(), ['id'])),
-            ),
+        $createBrand = fn (): BrandData => BrandData::from(
+            Brand::query()->create(Arr::except($data->toArray(), ['id'])),
         );
+
+        return DB::transaction($createBrand);
     }
 
     /**
@@ -53,10 +53,12 @@ final readonly class BrandCommand implements BrandCommandInterface
     public function deleteById(int $id): void
     {
         DB::transaction(function () use ($id): void {
+            $toIntegerId = fn (mixed $id): int => (int) $id;
+
             $nomenclatureIds = Nomenclature::query()
                 ->where('brand_id', $id)
                 ->pluck('id')
-                ->map(fn (mixed $id): int => (int) $id)
+                ->map($toIntegerId)
                 ->all();
 
             $this->nomenclatures->deleteByIds($nomenclatureIds);

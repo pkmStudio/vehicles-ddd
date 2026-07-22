@@ -33,8 +33,9 @@ final readonly class ExportFileRequestedHandler
     public function handle(array $data): void
     {
         $validator = $this->validator->make($data);
+        $validationFailed = $validator->fails();
 
-        if ($validator->fails()) {
+        if ($validationFailed) {
             Log::error('RabbitMQ: Export file request payload validation failed', [
                 'invalid_keys' => array_keys($validator->errors()->toArray()),
             ]);

@@ -26,11 +26,11 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
      */
     public function create(PackDimensionData $data): PackDimensionData
     {
-        return DB::transaction(
-            fn (): PackDimensionData => PackDimensionData::from(
-                PackDimension::query()->create(Arr::except($data->toArray(), ['id', 'type'])),
-            ),
+        $createPackDimension = fn (): PackDimensionData => PackDimensionData::from(
+            PackDimension::query()->create(Arr::except($data->toArray(), ['id', 'type'])),
         );
+
+        return DB::transaction($createPackDimension);
     }
 
     /**
@@ -53,10 +53,12 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
     public function deleteById(int $id): void
     {
         DB::transaction(function () use ($id): void {
+            $toIntegerId = fn (mixed $id): int => (int) $id;
+
             $kitIds = Kit::query()
                 ->where('pack_dimension_id', $id)
                 ->pluck('id')
-                ->map(fn (mixed $id): int => (int) $id)
+                ->map($toIntegerId)
                 ->all();
 
             $this->kits->deleteByIds($kitIds);

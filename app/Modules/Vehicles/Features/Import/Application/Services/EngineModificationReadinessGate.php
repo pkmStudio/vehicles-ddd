@@ -49,7 +49,10 @@ final readonly class EngineModificationReadinessGate implements EngineModificati
 
     private function dispatchWhenReady(): void
     {
-        if ($this->cache->get(self::FLAG_ENGINES) && $this->cache->get(self::FLAG_MODIFICATIONS)) {
+        $enginesImported = (bool) $this->cache->get(self::FLAG_ENGINES);
+        $modificationsImported = (bool) $this->cache->get(self::FLAG_MODIFICATIONS);
+
+        if ($enginesImported && $modificationsImported) {
             $this->reset();
             $this->events->dispatch(new EnginesAndModificationsReady);
         }

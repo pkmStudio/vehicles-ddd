@@ -40,14 +40,18 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
             disk: $disk,
             directory: $directory,
         ) as $path) {
-            if (! $this->matchesExportFilePattern($path)) {
+            $matchesExportFilePattern = $this->matchesExportFilePattern($path);
+
+            if (! $matchesExportFilePattern) {
                 continue;
             }
 
-            if ($this->files->lastModified(
+            $lastModified = $this->files->lastModified(
                 disk: $disk,
                 path: $path,
-            ) > $threshold) {
+            );
+
+            if ($lastModified > $threshold) {
                 continue;
             }
 
@@ -82,8 +86,10 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
      */
     private function filePatterns(): array
     {
+        $toFilePattern = static fn (ExportTypeEnum $type): string => $type->filePrefix().'-*.xlsx';
+
         return array_map(
-            static fn (ExportTypeEnum $type): string => $type->filePrefix().'-*.xlsx',
+            $toFilePattern,
             ExportTypeEnum::cases(),
         );
     }

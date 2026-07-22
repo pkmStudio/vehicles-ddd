@@ -64,8 +64,10 @@ final readonly class KitMutationPayloadValidator
      */
     private function operations(): array
     {
+        $toOperationValue = fn (WarehouseCatalogMutationOperationEnum $operation): string => $operation->value;
+
         return array_map(
-            fn (WarehouseCatalogMutationOperationEnum $operation): string => $operation->value,
+            $toOperationValue,
             WarehouseCatalogMutationOperationEnum::cases(),
         );
     }

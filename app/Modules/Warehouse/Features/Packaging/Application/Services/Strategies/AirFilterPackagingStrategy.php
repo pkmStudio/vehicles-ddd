@@ -62,13 +62,15 @@ final readonly class AirFilterPackagingStrategy extends AbstractPackagingStrateg
             }
 
             $itemDimensions = [$dto->length, $dto->width, $dto->height];
+            $boxVolume = fn (PackDimensionData $box): int => $box->length * $box->width * $box->height;
+            $boxCanFit = fn (PackDimensionData $box): bool => $this->canFit(
+                item: $itemDimensions,
+                box: [$box->length, $box->width, $box->height],
+            );
 
             $suitableBox = $packDimensions
-                ->sortBy(fn (PackDimensionData $box): int => $box->length * $box->width * $box->height)
-                ->first(fn (PackDimensionData $box): bool => $this->canFit(
-                    item: $itemDimensions,
-                    box: [$box->length, $box->width, $box->height],
-                ));
+                ->sortBy($boxVolume)
+                ->first($boxCanFit);
 
             return $suitableBox ?? $this->calculatePackDimension(
                 type: $type,

@@ -40,8 +40,10 @@ final readonly class ImportFileRequestedPayloadValidator
      */
     private function importTypes(): array
     {
+        $toImportTypeValue = fn (ExternalImportTypeEnum $type): string => $type->value;
+
         return array_map(
-            fn (ExternalImportTypeEnum $type): string => $type->value,
+            $toImportTypeValue,
             ExternalImportTypeEnum::cases(),
         );
     }

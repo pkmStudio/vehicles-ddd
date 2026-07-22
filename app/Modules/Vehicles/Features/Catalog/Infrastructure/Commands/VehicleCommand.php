@@ -34,11 +34,11 @@ final readonly class VehicleCommand implements VehicleCommandInterface
      */
     public function create(VehicleData $data): VehicleData
     {
-        return DB::transaction(
-            fn (): VehicleData => VehicleData::from(
-                Vehicle::query()->create(Arr::except($data->toArray(), ['id'])),
-            ),
+        $createVehicle = fn (): VehicleData => VehicleData::from(
+            Vehicle::query()->create(Arr::except($data->toArray(), ['id'])),
         );
+
+        return DB::transaction($createVehicle);
     }
 
     /**
@@ -89,24 +89,26 @@ final readonly class VehicleCommand implements VehicleCommandInterface
         }
 
         DB::transaction(function () use ($ids): void {
+            $toIntegerId = fn (mixed $id): int => (int) $id;
+
             $childIds = Vehicle::query()
                 ->whereIn('parent_id', $ids)
                 ->pluck('id')
-                ->map(fn (mixed $id): int => (int) $id)
+                ->map($toIntegerId)
                 ->all();
             $childIds = array_values(array_diff($childIds, $ids));
 
             $modificationIds = Modification::query()
                 ->whereIn('vehicle_id', $ids)
                 ->pluck('id')
-                ->map(fn (mixed $id): int => (int) $id)
+                ->map($toIntegerId)
                 ->all();
 
             $partSpecificationIds = PartSpecification::query()
                 ->where('partable_type', PartableTypeEnum::VEHICLE->value)
                 ->whereIn('partable_id', $ids)
                 ->pluck('id')
-                ->map(fn (mixed $id): int => (int) $id)
+                ->map($toIntegerId)
                 ->all();
 
             $this->deleteByIds($childIds);

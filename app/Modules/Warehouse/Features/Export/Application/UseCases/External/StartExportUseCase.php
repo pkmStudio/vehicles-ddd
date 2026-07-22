@@ -39,7 +39,9 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
      */
     public function execute(ExportFileRequestDTO $request): void
     {
-        if (! $this->cache->accept($request->runId)) {
+        $runAccepted = $this->cache->accept($request->runId);
+
+        if (! $runAccepted) {
             return;
         }
 

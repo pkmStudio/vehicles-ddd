@@ -53,7 +53,10 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
 
             $rowValues = $row->toArray();
             $specValues = array_slice($rowValues, self::SPEC_START_COLUMN);
-            if (empty(array_filter($specValues, fn ($v) => $v !== null && $v !== ''))) {
+            $isFilledSpecValue = fn ($value) => $value !== null && $value !== '';
+            $filledSpecValues = array_filter($specValues, $isFilledSpecValue);
+
+            if (empty($filledSpecValues)) {
                 continue;
             }
 

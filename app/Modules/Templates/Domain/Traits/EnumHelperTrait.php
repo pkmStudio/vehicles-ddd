@@ -24,8 +24,9 @@ trait EnumHelperTrait
             return null;
         }
 
-        return array_find(self::cases(),
-            fn($case) => mb_strtolower(trim($case->value)) === mb_strtolower(trim($label)));
+        $matchesLabel = fn ($case): bool => mb_strtolower(trim($case->value)) === mb_strtolower(trim($label));
+
+        return array_find(self::cases(), $matchesLabel);
     }
 
     /**
@@ -43,6 +44,8 @@ trait EnumHelperTrait
             return null;
         }
 
-        return array_find(self::cases(), fn($case) => $case->name === $name);
+        $matchesName = fn ($case): bool => $case->name === $name;
+
+        return array_find(self::cases(), $matchesName);
     }
 }

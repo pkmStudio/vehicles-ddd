@@ -236,7 +236,7 @@ Application фичи-потребителя зависит только от с�
 | Папка | Что лежит | Правила |
 |---|---|---|
 | `Models/` | **Eloquent-модели фичи** (своя копия набора сущностей) | **АНЕМИЧНЫЕ**: связи, `$casts`, `$timestamps`. Без бизнес-логики. Наследуют `AbstractModel` (`guarded = []`; запись идёт через Command+`Data`, фиксированный набор полей → mass-assignment безопасен). Deдуп по фичам: Import — все 8 сущностей (Command пишет во все), Export — только 5 читаемых, Maintenance — только 4. Relation-методы на **недублированные** сущности убираем (иначе мина: `Class::class` на несуществующий класс падает при первом вызове связи). |
-| `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` реализует `Contracts/Repositories/<Entity>RepositoryInterface`. Внутри `<Entity>Data::from($model)` — отдаёт **`Data`**, не модель. Скалярные read-агрегаты (`minMsId(): int`) легитимны (`plan.md §12`). Только запросы, без записи. (У Export есть, у Maintenance нет.) |
+| `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` реализует `Contracts/Repositories/<Entity>RepositoryInterface`. Внутри `<Entity>Data::from($model)` — отдаёт **`Data`**, не модель. Возврат из Repository: `?<Entity>Data`, `Illuminate\Support\Collection<int, <Entity>Data>` или, для больших потоковых выборок, `Generator<int, <Entity>Data>`. Под `Collection` в портах/сервисах всегда понимается **Support Collection**, не `Illuminate\Database\Eloquent\Collection`; результат Eloquent `get()` сразу конвертируется через `<Entity>Data::collect($items, Collection::class)`. Скалярные read-агрегаты (`minMsId(): int`, `countBy...(): int`) не возвращаем: если значение нужно сценарию, кладём его в `Data` или возвращаем минимальный `Data`-снимок. Потоковые методы инкапсулируют чанковое чтение внутри репозитория (`lazyById`, ручной цикл `chunkById`/`where id > lastId`) и наружу делают `yield` по `Data`, чтобы не грузить всю таблицу и не отдавать Eloquent. Только запросы, без записи. (У Export есть, у Maintenance нет.) |
 | `Commands/` | **Запись** (CQRS-lite) — только в фичах, где запись является частью сценария | `<Entity>Command` реализует `Contracts/Commands/<Entity>CommandInterface`. Принимают **`<Entity>Data`**. `save`/`upsert`/`delete`. `update`/`delete` принимают `Data` с обязательным `id` (identity вместо живого объекта). Из payload на запись исключают поля, которые не колонки (`Arr::except` для `engines`/`groupId` и т.п.). У read-only фич (`Export`) `Command` не заводим. |
 | `Imports/<Entity>/` | Адаптеры импорта (`maatwebsite/excel`) — **только Import** | Механика чтения: `Excel::import`, чанки, `onFailure`. На каждую строку зовёт построчный **Service** (Application). Точка входа реализует порт `Contracts/Imports/<X>Interface`. Sub-sheet'ы — внутренние, создаём `app()->makeWith(...)`, не `new`. |
 | `Exports/<Entity>/` | Адаптеры экспорта — Export + `ImportFailureReporter`/`FailuresExport` в Import (отчёт об ошибках) | Источник — Repository; сборка строк — `Application/Services/Rows|Expanders`. Точка входа реализует порт `Contracts/Exports/<X>Interface`. |
@@ -335,7 +335,8 @@ Application-сервис напрямую, если этот сервис не �
 > любой класс подменяем/мокаем единообразно, DI однороден.
 
 ### Application × модели
-- Application **не видит Eloquent-модель вообще**: Repository отдаёт `<Entity>Data`, Command
+- Application **не видит Eloquent-модель вообще**: Repository отдаёт `<Entity>Data`,
+  `Illuminate\Support\Collection<int, <Entity>Data>` или `Generator<int, <Entity>Data>`, Command
   принимает `<Entity>Data`. Живой модели, которую можно случайно `->save()` в обход Command, в
   Application не существует — это гарантируется типами, а не соглашением (`spatie/laravel-data`).
 - Никакого инлайн `Model::query()`/`where`/`updateOrCreate`/`->save()` в Application/Domain.
@@ -429,10 +430,10 @@ final readonly class DetailsDataFactory implements DetailsDataFactoryInterface
 public function buildFromRow(DetailTemplateEnum $template, array $row, int &$index): AbstractDetailsData
 ```
 
-### Запрет `new` прямо внутри вызова метода
+### Запрет вычислений прямо внутри вызова/условия
 Нельзя писать `$this->class->method(new SomeClass())` — создание объекта аргументом прямо в
-вызове. **Исключение — `event(new SomeEvent(...))`.** Во всех остальных случаях `new SomeClass()`
-выносится в отдельную переменную перед вызовом:
+вызове. **Исключения — `event(new SomeEvent(...))` и `$this->onFailure(new Failure(...))`.**
+Во всех остальных случаях `new SomeClass()` выносится в отдельную переменную перед вызовом:
 
 ```php
 // плохо
@@ -442,8 +443,35 @@ $this->service->handle(new SomeClass($a, $b));
 $someClass = new SomeClass($a, $b);
 $this->service->handle($someClass);
 
-// исключение — event() допускает new inline
+// исключения
 event(new VehicleImportCompleted($runId));
+$this->onFailure(new Failure($row, 'ТС', $errors, $values));
+```
+
+То же правило действует для вычисляемых условий и коротких callbacks: результат вызова метода,
+сложный предикат, mapper/filter callback или стрелочный callback сначала получает имя в локальной
+переменной, затем передаётся в `if`, `map`, `array_map`, `filter`, `first`, `Cache::remember` и т.п.
+Блоковые closures, которые задают scope (`DB::transaction(function (...) { ... })`,
+`where(function (...) { ... })`, provider `implementation: function (...) { ... }`), допустимы inline,
+если внутри них несколько действий и отдельное имя не улучшает читаемость.
+
+```php
+// плохо
+if ($validator->fails()) {
+    return;
+}
+
+$names = array_map(fn (ItemData $item): string => $item->name, $items);
+
+// хорошо
+$validationFailed = $validator->fails();
+
+if ($validationFailed) {
+    return;
+}
+
+$toName = fn (ItemData $item): string => $item->name;
+$names = array_map($toName, $items);
 ```
 
 ### Вызов с несколькими параметрами — всегда многострочно, именованными аргументами
@@ -472,7 +500,7 @@ $this->service->execute(
 | Валидацию + сборку `<Entity>Data` | `<Feature>/Application/Factories/` (плоско, `make(array $row)`) + порт `Contracts/Factories/` |
 | Выбор реализации по enum/типу входящего запроса | `<Feature>/Application/Factories/` (selector-фабрика, `make(Enum): Interface`) + порт `Contracts/Factories/` |
 | Реакцию на доменное событие | `<Feature>/Application/Listeners/` (тонко, **без порта**) |
-| Новый запрос к БД | порт → `Domain/Contracts/Repositories/`, адаптер → `Infrastructure/Repositories/` (отдаёт `Data`) |
+| Новый запрос к БД | порт → `Domain/Contracts/Repositories/`, адаптер → `Infrastructure/Repositories/` (отдаёт `Data`, `Collection<Data>` или `Generator<Data>` для потокового чтения) |
 | Новую запись в БД | если запись является ответственностью фичи: порт → `Domain/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход `Data`); в read-only фичах `Command` не заводим |
 | Снимок строки / транспорт | `Domain/ModelData/` (`extends Data`) или `Domain/DTOs/` (транспорт сценария) |
 | Доменное событие | `Domain/Events/` (обычно плоский `final readonly`, факт в прошедшем времени); для CRUD-наборов допустимо `Domain/Events/<Entity>/` |

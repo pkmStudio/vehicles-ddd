@@ -78,8 +78,10 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
             id: $id,
         );
 
+        $toNomenclatureId = fn (NomenclatureData $nomenclature): int => $this->nomenclatureId($nomenclature);
+
         $nomenclatureIds = array_map(
-            fn (NomenclatureData $n): int => $this->nomenclatureId($n),
+            $toNomenclatureId,
             $ordered,
         );
 

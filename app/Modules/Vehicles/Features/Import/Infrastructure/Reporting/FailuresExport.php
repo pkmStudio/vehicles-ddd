@@ -27,13 +27,15 @@ final readonly class FailuresExport implements FromCollection, WithHeadings, Fai
 
     public function collection(): Collection
     {
-        return collect($this->failures)->map(function ($failure) {
+        $toFailureRow = function ($failure) {
             return [
                 'row' => $failure['row'],
                 'attribute' => $failure['attribute'],
                 'error' => is_array($failure['errors']) ? implode('; ', $failure['errors']) : $failure['errors'],
                 'value' => json_encode($failure['values'], JSON_UNESCAPED_UNICODE),
             ];
-        });
+        };
+
+        return collect($this->failures)->map($toFailureRow);
     }
 }

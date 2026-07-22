@@ -53,7 +53,9 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
      */
     public function execute(CreateKitRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 

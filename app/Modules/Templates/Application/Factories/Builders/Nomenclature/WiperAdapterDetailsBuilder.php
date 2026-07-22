@@ -22,11 +22,13 @@ final readonly class WiperAdapterDetailsBuilder
 
     public function build(DetailsRowCursor $cursor): WiperAdapterDetailsData
     {
+        $toName = static fn ($case) => $case->name;
+
         return new WiperAdapterDetailsData(
             position: $cursor->pullLabel(PositionEnum::class)?->name,
             construction: $cursor->pullLabel(ConstructionEnum::class)?->name,
             adapterTypeFront: array_map(
-                static fn ($case) => $case->name,
+                $toName,
                 $cursor->pullMultiLabel(FrontAdapterTypeEnum::class),
             ),
             metrics: $this->buildMetrics($cursor),

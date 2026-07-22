@@ -29,8 +29,9 @@ final readonly class EngineMutationRequestedHandler
     public function handle(array $data): void
     {
         $validator = $this->validator->make($data);
+        $validationFailed = $validator->fails();
 
-        if ($validator->fails()) {
+        if ($validationFailed) {
             Log::error('RabbitMQ: Engine mutation payload validation failed', [
                 'invalid_keys' => array_keys($validator->errors()->toArray()),
             ]);

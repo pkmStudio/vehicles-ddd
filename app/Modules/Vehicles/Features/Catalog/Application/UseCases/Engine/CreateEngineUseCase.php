@@ -44,12 +44,16 @@ final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
      */
     public function execute(CreateEngineRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->engines->findByEngId($request->engId) !== null) {
+            $existingEngine = $this->engines->findByEngId($request->engId);
+
+            if ($existingEngine !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

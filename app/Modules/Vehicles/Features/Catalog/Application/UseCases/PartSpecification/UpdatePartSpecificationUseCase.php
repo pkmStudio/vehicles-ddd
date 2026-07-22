@@ -46,12 +46,16 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
      */
     public function execute(UpdatePartSpecificationRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->specifications->findById($request->id) === null) {
+            $existingSpecification = $this->specifications->findById($request->id);
+
+            if ($existingSpecification === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

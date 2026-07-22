@@ -46,7 +46,9 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
      */
     public function sideData(array $details, string $side): array
     {
-        if (WiperSideEnum::tryFrom($side) === null) {
+        $sideEnum = WiperSideEnum::tryFrom($side);
+
+        if ($sideEnum === null) {
             return [];
         }
 
@@ -63,9 +65,12 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
     private function normalizeAdapters(mixed $value): array
     {
         if (is_array($value)) {
-            $adapters = array_filter($value, static fn ($item) => $item !== null && $item !== '');
+            $isFilledAdapter = static fn ($item) => $item !== null && $item !== '';
+            $toAdapterString = static fn ($item) => (string) $item;
 
-            return array_values(array_unique(array_map(static fn ($item) => (string) $item, $adapters)));
+            $adapters = array_filter($value, $isFilledAdapter);
+
+            return array_values(array_unique(array_map($toAdapterString, $adapters)));
         }
 
         if (is_string($value)) {
@@ -159,7 +164,9 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
      */
     public function sanitizeDetailsForSide(array $details, ?string $side): array
     {
-        if ($side === null || WiperSideEnum::tryFrom($side) === null) {
+        $sideEnum = $side === null ? null : WiperSideEnum::tryFrom($side);
+
+        if ($sideEnum === null) {
             return $details;
         }
 
@@ -261,9 +268,8 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
             return [array_merge($sideDetails, [$adapterField => $adapters])];
         }
 
-        return array_map(
-            static fn (string $adapter) => array_merge($sideDetails, [$adapterField => [$adapter]]),
-            $adapters,
-        );
+        $toAdapterSideDetails = static fn (string $adapter) => array_merge($sideDetails, [$adapterField => [$adapter]]);
+
+        return array_map($toAdapterSideDetails, $adapters);
     }
 }

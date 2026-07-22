@@ -43,7 +43,9 @@ final readonly class DeleteModificationUseCase implements DeleteModificationUseC
      */
     public function execute(DeleteModificationRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 

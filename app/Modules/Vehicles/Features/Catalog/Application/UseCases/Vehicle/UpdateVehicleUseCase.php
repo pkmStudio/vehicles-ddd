@@ -46,7 +46,9 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
      */
     public function execute(UpdateVehicleRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 

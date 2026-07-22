@@ -37,8 +37,9 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
 
         foreach ($vehicles as $vehicle) {
             $specs = $vehicle->partSpecifications;
+            $specsEmpty = $specs->isEmpty();
 
-            if ($specs->isEmpty()) {
+            if ($specsEmpty) {
                 $rows->push($this->row(
                     vehicle: $vehicle,
                     frontSpec: null,
@@ -62,9 +63,12 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
                 $added++;
             }
 
-            if ($front->isNotEmpty() || $back->isNotEmpty()) {
-                $frontRows = $front->isNotEmpty() ? $front : collect([null]);
-                $backRows = $back->isNotEmpty() ? $back : collect([null]);
+            $frontNotEmpty = $front->isNotEmpty();
+            $backNotEmpty = $back->isNotEmpty();
+
+            if ($frontNotEmpty || $backNotEmpty) {
+                $frontRows = $frontNotEmpty ? $front : collect([null]);
+                $backRows = $backNotEmpty ? $back : collect([null]);
 
                 foreach ($frontRows as $frontSpec) {
                     foreach ($backRows as $backSpec) {
@@ -118,12 +122,15 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
             ? WiperSideEnum::BACK->value
             : WiperSideEnum::FRONT->value;
 
-        return $specifications->filter(function ($spec) use ($side, $other) {
+        $hasSingleSide = function ($spec) use ($side, $other): bool {
             $details = (array) $spec->details;
+            $sideData = $this->templates->vehicleWiperSideData($details, $side);
+            $otherSideData = $this->templates->vehicleWiperSideData($details, $other);
 
-            return $this->templates->vehicleWiperSideData($details, $side) !== []
-                && $this->templates->vehicleWiperSideData($details, $other) === [];
-        })->values();
+            return $sideData !== [] && $otherSideData === [];
+        };
+
+        return $specifications->filter($hasSingleSide)->values();
     }
 
     /**
@@ -134,11 +141,14 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
      */
     private function bothSides(Collection $specifications): Collection
     {
-        return $specifications->filter(function ($spec) {
+        $hasBothSides = function ($spec): bool {
             $details = (array) $spec->details;
+            $frontData = $this->templates->vehicleWiperSideData($details, WiperSideEnum::FRONT->value);
+            $backData = $this->templates->vehicleWiperSideData($details, WiperSideEnum::BACK->value);
 
-            return $this->templates->vehicleWiperSideData($details, WiperSideEnum::FRONT->value) !== []
-                && $this->templates->vehicleWiperSideData($details, WiperSideEnum::BACK->value) !== [];
-        })->values();
+            return $frontData !== [] && $backData !== [];
+        };
+
+        return $specifications->filter($hasBothSides)->values();
     }
 }

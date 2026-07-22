@@ -14,9 +14,11 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
 {
     public function forMainSheet(bool $onlyAllowed): Collection
     {
+        $onlyAllowedFilter = fn ($query) => $query->where('is_allow', true);
+
         $vehicles = Vehicle::query()
             ->with(['manufacturer', 'parent'])
-            ->when($onlyAllowed, fn ($q) => $q->where('is_allow', true))
+            ->when($onlyAllowed, $onlyAllowedFilter)
             ->get();
 
         return VehicleData::collect($vehicles, Collection::class);
@@ -24,15 +26,18 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
 
     public function forWiperSheet(bool $onlyAllowed): Collection
     {
+        $wiperSpecifications = fn ($query) => $query
+            ->where('template', DetailTemplateEnum::WIPER)
+            ->with('featureValue');
+        $onlyAllowedFilter = fn ($query) => $query->where('is_allow', true);
+
         $vehicles = Vehicle::query()
             ->with([
                 'manufacturer',
                 'parent',
-                'partSpecifications' => fn ($q) => $q
-                    ->where('template', DetailTemplateEnum::WIPER)
-                    ->with('featureValue'),
+                'partSpecifications' => $wiperSpecifications,
             ])
-            ->when($onlyAllowed, fn ($q) => $q->where('is_allow', true))
+            ->when($onlyAllowed, $onlyAllowedFilter)
             ->get();
 
         return VehicleData::collect($vehicles, Collection::class);

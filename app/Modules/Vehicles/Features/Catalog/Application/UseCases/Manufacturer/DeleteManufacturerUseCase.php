@@ -43,7 +43,9 @@ final readonly class DeleteManufacturerUseCase implements DeleteManufacturerUseC
      */
     public function execute(DeleteManufacturerRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 

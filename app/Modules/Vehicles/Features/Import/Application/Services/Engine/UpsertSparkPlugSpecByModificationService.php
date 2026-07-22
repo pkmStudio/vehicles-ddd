@@ -56,7 +56,10 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
         $skipped = [];
 
         foreach ($modification->engines ?? [] as $engine) {
-            if ($engine->engFuelType === null || ! $engine->engFuelType->needsSparkPlugs()) {
+            $fuelTypeMissing = $engine->engFuelType === null;
+            $needsSparkPlugs = $engine->engFuelType?->needsSparkPlugs() ?? false;
+
+            if ($fuelTypeMissing || ! $needsSparkPlugs) {
                 $skipped[] = ['code' => $engine->codeEngine, 'fuel' => $engine->engFuelType?->value];
 
                 continue;

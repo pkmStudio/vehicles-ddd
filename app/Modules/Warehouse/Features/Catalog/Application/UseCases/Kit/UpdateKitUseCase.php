@@ -53,12 +53,16 @@ final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
      */
     public function execute(UpdateKitRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->kits->findById($request->id) === null) {
+            $existingKit = $this->kits->findById($request->id);
+
+            if ($existingKit === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

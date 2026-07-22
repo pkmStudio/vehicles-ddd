@@ -20,11 +20,11 @@ final readonly class NomenclatureCommand implements NomenclatureCommandInterface
      */
     public function create(NomenclatureData $data): NomenclatureData
     {
-        return DB::transaction(
-            fn (): NomenclatureData => NomenclatureData::from(
-                Nomenclature::query()->create(Arr::except($data->toArray(), ['id', 'type', 'brand'])),
-            ),
+        $createNomenclature = fn (): NomenclatureData => NomenclatureData::from(
+            Nomenclature::query()->create(Arr::except($data->toArray(), ['id', 'type', 'brand'])),
         );
+
+        return DB::transaction($createNomenclature);
     }
 
     /**

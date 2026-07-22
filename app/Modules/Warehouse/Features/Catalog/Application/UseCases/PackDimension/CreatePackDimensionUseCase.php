@@ -44,12 +44,16 @@ final readonly class CreatePackDimensionUseCase implements CreatePackDimensionUs
      */
     public function execute(CreatePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->types->findById($request->typeId) === null) {
+            $type = $this->types->findById($request->typeId);
+
+            if ($type === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

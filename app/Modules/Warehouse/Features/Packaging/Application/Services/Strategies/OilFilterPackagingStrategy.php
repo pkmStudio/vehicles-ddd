@@ -45,13 +45,15 @@ final readonly class OilFilterPackagingStrategy extends AbstractPackagingStrateg
             $this->getMaxValue($metrics['width'] ?? [0]),
             $this->getMaxValue($metrics['height'] ?? [0]),
         ];
+        $boxVolume = fn (PackDimensionData $box): int => $box->length * $box->width * $box->height;
+        $boxCanFit = fn (PackDimensionData $box): bool => $this->canFit(
+            item: $itemDimensions,
+            box: [$box->length, $box->width, $box->height],
+        );
 
         $suitableBox = $packDimensions
-            ->sortBy(fn (PackDimensionData $box): int => $box->length * $box->width * $box->height)
-            ->first(fn (PackDimensionData $box): bool => $this->canFit(
-                item: $itemDimensions,
-                box: [$box->length, $box->width, $box->height],
-            ));
+            ->sortBy($boxVolume)
+            ->first($boxCanFit);
 
         if ($suitableBox === null) {
             throw new PackDimensionNotResolvableException(sprintf(

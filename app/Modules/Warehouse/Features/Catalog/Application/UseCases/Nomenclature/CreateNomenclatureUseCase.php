@@ -48,12 +48,16 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
      */
     public function execute(CreateNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->types->findById($request->typeId) === null) {
+            $type = $this->types->findById($request->typeId);
+
+            if ($type === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -64,7 +68,9 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
                 );
             }
 
-            if ($this->brands->findById($request->brandId) === null) {
+            $brand = $this->brands->findById($request->brandId);
+
+            if ($brand === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -75,7 +81,9 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
                 );
             }
 
-            if ($this->nomenclatures->findByPartNumber($request->partNumber) !== null) {
+            $existingNomenclature = $this->nomenclatures->findByPartNumber($request->partNumber);
+
+            if ($existingNomenclature !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

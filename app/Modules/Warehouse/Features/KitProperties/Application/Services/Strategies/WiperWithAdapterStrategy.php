@@ -44,8 +44,10 @@ final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyI
      */
     public function resolveType(Collection $nomenclatures): TypeData
     {
+        $isWiper = fn (NomenclatureData $nomenclature): bool => $this->template($nomenclature) === NomenclatureDetailTemplateEnum::WIPER;
+
         /** @var NomenclatureData|null $wiper */
-        $wiper = $nomenclatures->first(fn (NomenclatureData $n): bool => $this->template($n) === NomenclatureDetailTemplateEnum::WIPER);
+        $wiper = $nomenclatures->first($isWiper);
 
         if ($wiper === null || $wiper->type === null) {
             throw new UnexpectedValueException(
@@ -61,8 +63,10 @@ final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyI
      */
     public function primaryNomenclatures(Collection $nomenclatures): Collection
     {
+        $isPrimaryNomenclature = fn (NomenclatureData $nomenclature): bool => $this->template($nomenclature) !== NomenclatureDetailTemplateEnum::WIPER_ADAPTER;
+
         return $nomenclatures
-            ->filter(fn (NomenclatureData $n): bool => $this->template($n) !== NomenclatureDetailTemplateEnum::WIPER_ADAPTER)
+            ->filter($isPrimaryNomenclature)
             ->values();
     }
 
@@ -80,8 +84,10 @@ final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyI
      */
     private function distinctTemplates(Collection $nomenclatures): array
     {
+        $toTemplate = fn (NomenclatureData $nomenclature): ?NomenclatureDetailTemplateEnum => $this->template($nomenclature);
+
         return $nomenclatures
-            ->map(fn (NomenclatureData $n): ?NomenclatureDetailTemplateEnum => $this->template($n))
+            ->map($toTemplate)
             ->filter()
             ->unique()
             ->values()

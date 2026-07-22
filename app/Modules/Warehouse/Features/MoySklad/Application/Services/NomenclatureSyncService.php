@@ -37,7 +37,9 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
      */
     public function sync(int $nomenclatureId): void
     {
-        if (! $this->enabled()) {
+        $syncEnabled = $this->enabled();
+
+        if (! $syncEnabled) {
             return;
         }
 
@@ -56,8 +58,9 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         $productFolderMeta = $this->resolveProductFolderMeta($nomenclature);
         $payload = $this->mapper->map($nomenclature, $productFolderMeta);
         $payloadHash = $this->payloadHash($payload);
+        $shouldSkipUpdate = $this->shouldSkipUpdate($integration, $payloadHash);
 
-        if ($this->shouldSkipUpdate($integration, $payloadHash)) {
+        if ($shouldSkipUpdate) {
             return;
         }
 
@@ -83,7 +86,9 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
      */
     public function delete(int $nomenclatureId, string $partNumber, ?string $externalId = null, ?int $integrationId = null): void
     {
-        if (! $this->enabled()) {
+        $syncEnabled = $this->enabled();
+
+        if (! $syncEnabled) {
             return;
         }
 
@@ -147,10 +152,12 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
             return [];
         }
 
+        $resolveProductFolderMeta = fn (): array => $this->client->ensureProductFolderMetaByName($typeName);
+
         return Cache::remember(
             'warehouse:moysklad:product_folder_meta:'.md5($typeName),
             (int) config('warehouse.moysklad.nomenclature_sync.product_folders.cache_ttl_seconds', 3600),
-            fn (): array => $this->client->ensureProductFolderMetaByName($typeName),
+            $resolveProductFolderMeta,
         );
     }
 
@@ -193,7 +200,9 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         $folderId = $this->resolveFolderId($productFolderMeta);
 
         $existing = $this->client->findByArticle($nomenclature->partNumber);
-        if ($existing !== null && $this->matchesFolder($existing, $folderId)) {
+        $existingMatchesFolder = $existing !== null && $this->matchesFolder($existing, $folderId);
+
+        if ($existingMatchesFolder) {
             return $updateExisting
                 ? $this->client->updateById((string) $existing['id'], $payload)
                 : $existing;

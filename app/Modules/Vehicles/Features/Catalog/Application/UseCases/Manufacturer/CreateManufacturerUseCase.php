@@ -44,12 +44,16 @@ final readonly class CreateManufacturerUseCase implements CreateManufacturerUseC
      */
     public function execute(CreateManufacturerRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->manufacturers->findByMfaId($request->mfaId) !== null) {
+            $existingManufacturer = $this->manufacturers->findByMfaId($request->mfaId);
+
+            if ($existingManufacturer !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

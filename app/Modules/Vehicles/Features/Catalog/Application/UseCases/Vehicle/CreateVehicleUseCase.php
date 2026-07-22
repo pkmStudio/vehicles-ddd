@@ -46,12 +46,16 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
      */
     public function execute(CreateVehicleRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
         try {
-            if ($this->vehicles->findByMsId($request->msId) !== null) {
+            $existingVehicle = $this->vehicles->findByMsId($request->msId);
+
+            if ($existingVehicle !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

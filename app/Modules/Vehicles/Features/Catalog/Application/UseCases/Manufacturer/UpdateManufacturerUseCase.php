@@ -44,7 +44,9 @@ final readonly class UpdateManufacturerUseCase implements UpdateManufacturerUseC
      */
     public function execute(UpdateManufacturerRequestDTO $request): ?CatalogMutationResultDTO
     {
-        if (! $this->cache->accept($request->operationId)) {
+        $operationAccepted = $this->cache->accept($request->operationId);
+
+        if (! $operationAccepted) {
             return null;
         }
 
