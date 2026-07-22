@@ -38,4 +38,9 @@ interface ModificationCommandInterface
      * 2) Удалить запись внутри транзакции без каскада.
      */
     public function deleteByModIdAndType(int $modId, string $type): void;
+
+    /**
+     * @param  array<int, int>  $ids
+     */
+    public function deleteByIds(array $ids): void;
 }

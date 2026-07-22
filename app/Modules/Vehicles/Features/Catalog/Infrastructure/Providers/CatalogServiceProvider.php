@@ -34,6 +34,7 @@ use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\DeleteVeh
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\StartVehicleMutationUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\UpdateVehicleUseCase;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ManufacturerCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\PartSpecificationCommandInterface;
@@ -75,6 +76,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\Dele
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\StartVehicleMutationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\UpdateVehicleUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\EngineCommand;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\EngineModificationCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\ManufacturerCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\ModificationCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\PartSpecificationCommand;
@@ -129,6 +131,7 @@ final class CatalogServiceProvider extends ServiceProvider
         VehicleCommandInterface::class => VehicleCommand::class,
         ManufacturerCommandInterface::class => ManufacturerCommand::class,
         EngineCommandInterface::class => EngineCommand::class,
+        EngineModificationCommandInterface::class => EngineModificationCommand::class,
         ModificationCommandInterface::class => ModificationCommand::class,
         PartSpecificationCommandInterface::class => PartSpecificationCommand::class,
     ];

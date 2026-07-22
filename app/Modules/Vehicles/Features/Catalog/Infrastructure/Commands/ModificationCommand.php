@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ModificationCommandInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\EngineModification;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Modification;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +17,10 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class ModificationCommand implements ModificationCommandInterface
 {
+    public function __construct(
+        private EngineModificationCommandInterface $engineModifications,
+    ) {}
+
     /**
      * Создает запись модификаций.
      *
@@ -58,15 +64,42 @@ final readonly class ModificationCommand implements ModificationCommandInterface
      *
      * Шаги:
      * 1) Найти целевую запись по идентификатору.
-     * 2) Удалить запись внутри транзакции без каскада.
+     * 2) Удалить запись и зависимые записи внутри транзакции.
      */
     public function deleteByModIdAndType(int $modId, string $type): void
     {
         DB::transaction(function () use ($modId, $type): void {
-            Modification::query()
+            $modification = Modification::query()
                 ->where('mod_id', $modId)
                 ->where('type', $type)
-                ->delete();
+                ->first();
+
+            if ($modification === null) {
+                return;
+            }
+
+            $this->deleteByIds([(int) $modification->id]);
+        });
+    }
+
+    /**
+     * @param  array<int, int>  $ids
+     */
+    public function deleteByIds(array $ids): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        DB::transaction(function () use ($ids): void {
+            $engineModificationIds = EngineModification::query()
+                ->whereIn('modification_id', $ids)
+                ->pluck('id')
+                ->map(fn (mixed $id): int => (int) $id)
+                ->all();
+
+            $this->engineModifications->deleteByIds($engineModificationIds);
+            Modification::query()->whereIn('id', $ids)->delete();
         });
     }
 }

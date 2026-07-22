@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ManufacturerCommandInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ManufacturerData;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +17,10 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class ManufacturerCommand implements ManufacturerCommandInterface
 {
+    public function __construct(
+        private VehicleCommandInterface $vehicles,
+    ) {}
+
     /**
      * Создает запись производителей.
      *
@@ -55,12 +61,24 @@ final readonly class ManufacturerCommand implements ManufacturerCommandInterface
      *
      * Шаги:
      * 1) Найти целевую запись по идентификатору.
-     * 2) Удалить запись внутри транзакции без каскада.
+     * 2) Удалить запись и зависимые записи внутри транзакции.
      */
     public function deleteByMfaId(int $mfaId): void
     {
         DB::transaction(function () use ($mfaId): void {
-            Manufacturer::query()->where('mfa_id', $mfaId)->delete();
+            $manufacturer = Manufacturer::query()->where('mfa_id', $mfaId)->first();
+            if ($manufacturer === null) {
+                return;
+            }
+
+            $vehicleIds = Vehicle::query()
+                ->where('manufacturer_id', $manufacturer->id)
+                ->pluck('id')
+                ->map(fn (mixed $id): int => (int) $id)
+                ->all();
+
+            $this->vehicles->deleteByIds($vehicleIds);
+            $manufacturer->delete();
         });
     }
 }

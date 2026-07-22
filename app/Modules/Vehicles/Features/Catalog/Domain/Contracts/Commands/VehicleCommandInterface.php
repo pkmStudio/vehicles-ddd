@@ -38,4 +38,9 @@ interface VehicleCommandInterface
      * 2) Удалить запись внутри транзакции без каскада.
      */
     public function deleteByMsId(int $msId): void;
+
+    /**
+     * @param  array<int, int>  $ids
+     */
+    public function deleteByIds(array $ids): void;
 }

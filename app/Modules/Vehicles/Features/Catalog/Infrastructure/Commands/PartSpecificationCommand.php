@@ -58,8 +58,20 @@ final readonly class PartSpecificationCommand implements PartSpecificationComman
      */
     public function deleteById(int $id): void
     {
-        DB::transaction(function () use ($id): void {
-            PartSpecification::query()->where('id', $id)->delete();
+        $this->deleteByIds([$id]);
+    }
+
+    /**
+     * @param  array<int, int>  $ids
+     */
+    public function deleteByIds(array $ids): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        DB::transaction(function () use ($ids): void {
+            PartSpecification::query()->whereIn('id', $ids)->delete();
         });
     }
 }

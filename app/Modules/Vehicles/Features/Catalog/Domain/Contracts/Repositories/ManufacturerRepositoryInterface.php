@@ -16,8 +16,4 @@ interface ManufacturerRepositoryInterface
      */
     public function findByMfaId(int $mfaId): ?ManufacturerData;
 
-    /**
-     * Возвращает количество связанных записей, блокирующих удаление.
-     */
-    public function vehicleCountByMfaId(int $mfaId): ?int;
 }

@@ -25,4 +25,9 @@ interface PartSpecificationCommandInterface
      * Удаляет запись спецификации детали по id.
      */
     public function deleteById(int $id): void;
+
+    /**
+     * @param  array<int, int>  $ids
+     */
+    public function deleteByIds(array $ids): void;
 }

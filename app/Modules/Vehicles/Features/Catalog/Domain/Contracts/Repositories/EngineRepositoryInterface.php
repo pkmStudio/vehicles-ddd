@@ -16,8 +16,4 @@ interface EngineRepositoryInterface
      */
     public function findByEngId(int $engId): ?EngineData;
 
-    /**
-     * @return array{engine_modifications_count: int, part_specifications_count: int}|null
-     */
-    public function deletionBlockersByEngId(int $engId): ?array;
 }

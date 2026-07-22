@@ -63,34 +63,6 @@ final readonly class DeleteModificationUseCase implements DeleteModificationUseC
                 );
             }
 
-            $engineModificationCount = $this->modifications->engineModificationCountByModIdAndType(
-                modId: $request->modId,
-                type: $request->type->value,
-            );
-            if ($engineModificationCount === null) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: CatalogEntityEnum::Modification,
-                    operation: CatalogMutationOperationEnum::Delete,
-                    externalId: $request->modId,
-                    reason: CatalogMutationRejectReasonEnum::NotFound,
-                );
-            }
-
-            if ($engineModificationCount > 0) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: CatalogEntityEnum::Modification,
-                    operation: CatalogMutationOperationEnum::Delete,
-                    externalId: $request->modId,
-                    reason: CatalogMutationRejectReasonEnum::DeleteBlocked,
-                    errors: ['engine_modifications_count' => $engineModificationCount],
-                    recordId: $modification->id,
-                );
-            }
-
             $this->command->deleteByModIdAndType(
                 modId: $request->modId,
                 type: $request->type->value,

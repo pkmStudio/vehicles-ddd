@@ -6,7 +6,6 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\EngineModification;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Modification;
 
 /**
@@ -27,20 +26,4 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
         );
     }
 
-    /**
-     * Возвращает количество связанных записей, блокирующих удаление.
-     */
-    public function engineModificationCountByModIdAndType(int $modId, string $type): ?int
-    {
-        $modification = Modification::query()
-            ->where('mod_id', $modId)
-            ->where('type', $type)
-            ->first();
-
-        if ($modification === null) {
-            return null;
-        }
-
-        return EngineModification::query()->where('modification_id', $modification->id)->count();
-    }
 }

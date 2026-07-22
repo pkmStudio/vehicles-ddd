@@ -8,7 +8,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutat
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
-use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationStatusEnum;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
@@ -144,13 +143,13 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
         ]);
     }
 
-    public function test_delete_vehicle_message_is_rejected_when_vehicle_has_related_records(): void
+    public function test_delete_vehicle_message_cascades_related_records(): void
     {
         $manufacturer = $this->createManufacturer();
         $vehicle = $this->createVehicle(msId: 504, manufacturer: $manufacturer);
-        $this->createVehicle(msId: 505, manufacturer: $manufacturer, parentId: $vehicle->id);
+        $child = $this->createVehicle(msId: 505, manufacturer: $manufacturer, parentId: $vehicle->id);
 
-        DB::table('modifications')->insert([
+        $modificationId = DB::table('modifications')->insertGetId([
             'vehicle_id' => $vehicle->id,
             'ms_id' => $vehicle->ms_id,
             'mod_id' => 7001,
@@ -174,25 +173,25 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
             ->with(Mockery::on(function (CatalogMutationResultDTO $result) use ($vehicle): bool {
                 return $result->entity === CatalogEntityEnum::Vehicle
                     && $result->operation === CatalogMutationOperationEnum::Delete
-                    && $result->status === CatalogMutationStatusEnum::Rejected
-                    && $result->reason === CatalogMutationRejectReasonEnum::DeleteBlocked->value
-                    && $result->recordId === $vehicle->id
-                    && ($result->errors['children_count'] ?? null) === 1
-                    && ($result->errors['modifications_count'] ?? null) === 1
-                    && ($result->errors['part_specifications_count'] ?? null) === 1;
+                    && $result->status === CatalogMutationStatusEnum::Completed
+                    && $result->recordId === $vehicle->id;
             }));
 
         app(VehicleMutationRequestedHandler::class)->handle([
             'user_id' => 42,
-            'operation_id' => 'vehicle-delete-blocked-1',
+            'operation_id' => 'vehicle-delete-cascade-1',
             'operation' => 'delete',
             'vehicle' => [
                 'ms_id' => 504,
             ],
         ]);
 
-        $this->assertDatabaseHas('vehicles', [
-            'ms_id' => 504,
+        $this->assertDatabaseMissing('vehicles', ['id' => $vehicle->id]);
+        $this->assertDatabaseMissing('vehicles', ['id' => $child->id]);
+        $this->assertDatabaseMissing('modifications', ['id' => $modificationId]);
+        $this->assertDatabaseMissing('part_specifications', [
+            'partable_type' => PartableTypeEnum::VEHICLE->value,
+            'partable_id' => $vehicle->id,
         ]);
     }
 

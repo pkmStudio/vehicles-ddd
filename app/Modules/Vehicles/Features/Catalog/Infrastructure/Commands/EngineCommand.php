@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineModificationCommandInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Engine;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\EngineModification;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\PartSpecification;
+use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +20,11 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class EngineCommand implements EngineCommandInterface
 {
+    public function __construct(
+        private EngineModificationCommandInterface $engineModifications,
+        private PartSpecificationCommandInterface $partSpecifications,
+    ) {}
+
     /**
      * Создает запись двигателей.
      *
@@ -55,12 +65,31 @@ final readonly class EngineCommand implements EngineCommandInterface
      *
      * Шаги:
      * 1) Найти целевую запись по идентификатору.
-     * 2) Удалить запись внутри транзакции без каскада.
+     * 2) Удалить запись и зависимые записи внутри транзакции.
      */
     public function deleteByEngId(int $engId): void
     {
         DB::transaction(function () use ($engId): void {
-            Engine::query()->where('eng_id', $engId)->delete();
+            $engine = Engine::query()->where('eng_id', $engId)->first();
+            if ($engine === null) {
+                return;
+            }
+
+            $engineModificationIds = EngineModification::query()
+                ->where('engine_id', $engine->id)
+                ->pluck('id')
+                ->map(fn (mixed $id): int => (int) $id)
+                ->all();
+            $partSpecificationIds = PartSpecification::query()
+                ->where('partable_type', PartableTypeEnum::ENGINE->value)
+                ->where('partable_id', $engine->id)
+                ->pluck('id')
+                ->map(fn (mixed $id): int => (int) $id)
+                ->all();
+
+            $this->engineModifications->deleteByIds($engineModificationIds);
+            $this->partSpecifications->deleteByIds($partSpecificationIds);
+            $engine->delete();
         });
     }
 }

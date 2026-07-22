@@ -8,7 +8,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutat
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
-use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationStatusEnum;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\EngineMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\ManufacturerMutationRequestedHandler;
@@ -87,30 +86,30 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseMissing('manufacturers', ['mfa_id' => 100]);
     }
 
-    public function test_manufacturer_delete_is_rejected_when_vehicles_exist(): void
+    public function test_manufacturer_delete_cascades_related_vehicles(): void
     {
         $manufacturer = $this->createManufacturer(101);
-        $this->createVehicle(601, $manufacturer);
+        $vehicle = $this->createVehicle(601, $manufacturer);
 
         $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
         $notifier->shouldReceive('notify')
             ->once()
             ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Manufacturer
                 && $result->operation === CatalogMutationOperationEnum::Delete
-                && $result->status === CatalogMutationStatusEnum::Rejected
-                && $result->reason === CatalogMutationRejectReasonEnum::DeleteBlocked->value
-                && ($result->errors['vehicles_count'] ?? null) === 1));
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->recordId === $manufacturer->id));
 
         app(ManufacturerMutationRequestedHandler::class)->handle([
             'user_id' => 42,
-            'operation_id' => 'manufacturer-delete-blocked-1',
+            'operation_id' => 'manufacturer-delete-cascade-1',
             'operation' => 'delete',
             'manufacturer' => [
                 'mfa_id' => 101,
             ],
         ]);
 
-        $this->assertDatabaseHas('manufacturers', ['mfa_id' => 101]);
+        $this->assertDatabaseMissing('vehicles', ['id' => $vehicle->id]);
+        $this->assertDatabaseMissing('manufacturers', ['mfa_id' => 101]);
     }
 
     public function test_engine_create_update_and_delete_messages(): void
@@ -155,7 +154,7 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseMissing('engines', ['eng_id' => 200]);
     }
 
-    public function test_engine_delete_is_rejected_when_engine_modification_exists(): void
+    public function test_engine_delete_cascades_engine_modifications(): void
     {
         $manufacturer = $this->createManufacturer(102);
         $vehicle = $this->createVehicle(602, $manufacturer);
@@ -179,20 +178,21 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             ->once()
             ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Engine
                 && $result->operation === CatalogMutationOperationEnum::Delete
-                && $result->status === CatalogMutationStatusEnum::Rejected
-                && $result->reason === CatalogMutationRejectReasonEnum::DeleteBlocked->value
-                && ($result->errors['engine_modifications_count'] ?? null) === 1));
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->recordId === $engine->id));
 
         app(EngineMutationRequestedHandler::class)->handle([
             'user_id' => 42,
-            'operation_id' => 'engine-delete-blocked-1',
+            'operation_id' => 'engine-delete-cascade-1',
             'operation' => 'delete',
             'engine' => [
                 'eng_id' => 201,
             ],
         ]);
 
-        $this->assertDatabaseHas('engines', ['eng_id' => 201]);
+        $this->assertDatabaseMissing('engine_modification', ['engine_id' => $engine->id]);
+        $this->assertDatabaseMissing('engines', ['eng_id' => 201]);
+        $this->assertDatabaseHas('modifications', ['id' => $modificationId]);
     }
 
     public function test_modification_create_update_and_delete_messages(): void
@@ -235,7 +235,7 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseMissing('modifications', ['mod_id' => 4001]);
     }
 
-    public function test_modification_delete_is_rejected_when_engine_modification_exists(): void
+    public function test_modification_delete_cascades_engine_modifications(): void
     {
         $manufacturer = $this->createManufacturer(104);
         $vehicle = $this->createVehicle(604, $manufacturer);
@@ -259,13 +259,12 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             ->once()
             ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Modification
                 && $result->operation === CatalogMutationOperationEnum::Delete
-                && $result->status === CatalogMutationStatusEnum::Rejected
-                && $result->reason === CatalogMutationRejectReasonEnum::DeleteBlocked->value
-                && ($result->errors['engine_modifications_count'] ?? null) === 1));
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->recordId === $modification->id));
 
         app(ModificationMutationRequestedHandler::class)->handle([
             'user_id' => 42,
-            'operation_id' => 'modification-delete-blocked-1',
+            'operation_id' => 'modification-delete-cascade-1',
             'operation' => 'delete',
             'modification' => [
                 'mod_id' => 4002,
@@ -273,7 +272,9 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             ],
         ]);
 
-        $this->assertDatabaseHas('modifications', ['mod_id' => 4002]);
+        $this->assertDatabaseMissing('engine_modification', ['modification_id' => $modification->id]);
+        $this->assertDatabaseMissing('modifications', ['mod_id' => 4002]);
+        $this->assertDatabaseHas('engines', ['id' => $engine->id]);
     }
 
     public function test_catalog_mutation_events_have_unique_names_and_handlers(): void

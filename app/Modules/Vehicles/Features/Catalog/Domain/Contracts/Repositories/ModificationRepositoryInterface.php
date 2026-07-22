@@ -16,8 +16,4 @@ interface ModificationRepositoryInterface
      */
     public function findByModIdAndType(int $modId, string $type): ?ModificationData;
 
-    /**
-     * Возвращает количество связанных записей, блокирующих удаление.
-     */
-    public function engineModificationCountByModIdAndType(int $modId, string $type): ?int;
 }

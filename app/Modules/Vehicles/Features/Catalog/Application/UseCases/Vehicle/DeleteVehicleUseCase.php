@@ -60,31 +60,6 @@ final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterfa
                 );
             }
 
-            $blockers = $this->vehicles->deletionBlockersByMsId($request->msId);
-            if ($blockers === null) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: CatalogEntityEnum::Vehicle,
-                    operation: CatalogMutationOperationEnum::Delete,
-                    externalId: $request->msId,
-                    reason: CatalogMutationRejectReasonEnum::NotFound,
-                );
-            }
-
-            if ($blockers->hasBlockers()) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: CatalogEntityEnum::Vehicle,
-                    operation: CatalogMutationOperationEnum::Delete,
-                    externalId: $request->msId,
-                    reason: CatalogMutationRejectReasonEnum::DeleteBlocked,
-                    errors: $blockers->toArray(),
-                    recordId: $vehicle->id,
-                );
-            }
-
             $this->command->deleteByMsId($request->msId);
             event(new VehicleDeleted(
                 userId: $request->userId,

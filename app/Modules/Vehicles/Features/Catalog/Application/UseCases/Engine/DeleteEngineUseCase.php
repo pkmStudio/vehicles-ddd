@@ -60,31 +60,6 @@ final readonly class DeleteEngineUseCase implements DeleteEngineUseCaseInterface
                 );
             }
 
-            $blockers = $this->engines->deletionBlockersByEngId($request->engId);
-            if ($blockers === null) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: CatalogEntityEnum::Engine,
-                    operation: CatalogMutationOperationEnum::Delete,
-                    externalId: $request->engId,
-                    reason: CatalogMutationRejectReasonEnum::NotFound,
-                );
-            }
-
-            if (($blockers['engine_modifications_count'] > 0) || ($blockers['part_specifications_count'] > 0)) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: CatalogEntityEnum::Engine,
-                    operation: CatalogMutationOperationEnum::Delete,
-                    externalId: $request->engId,
-                    reason: CatalogMutationRejectReasonEnum::DeleteBlocked,
-                    errors: $blockers,
-                    recordId: $engine->id,
-                );
-            }
-
             $this->command->deleteByEngId($request->engId);
             event(new EngineDeleted(
                 userId: $request->userId,

@@ -60,31 +60,6 @@ final readonly class DeleteManufacturerUseCase implements DeleteManufacturerUseC
                 );
             }
 
-            $vehicleCount = $this->manufacturers->vehicleCountByMfaId($request->mfaId);
-            if ($vehicleCount === null) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: CatalogEntityEnum::Manufacturer,
-                    operation: CatalogMutationOperationEnum::Delete,
-                    externalId: $request->mfaId,
-                    reason: CatalogMutationRejectReasonEnum::NotFound,
-                );
-            }
-
-            if ($vehicleCount > 0) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: CatalogEntityEnum::Manufacturer,
-                    operation: CatalogMutationOperationEnum::Delete,
-                    externalId: $request->mfaId,
-                    reason: CatalogMutationRejectReasonEnum::DeleteBlocked,
-                    errors: ['vehicles_count' => $vehicleCount],
-                    recordId: $manufacturer->id,
-                );
-            }
-
             $this->command->deleteByMfaId($request->mfaId);
             event(new ManufacturerDeleted(
                 userId: $request->userId,
