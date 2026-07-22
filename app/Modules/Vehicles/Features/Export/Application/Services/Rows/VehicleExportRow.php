@@ -7,6 +7,9 @@ namespace App\Modules\Vehicles\Features\Export\Application\Services\Rows;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\VehicleData;
 
+/**
+ * Формирует базовые Excel-ячейки автомобиля без шаблонных details.
+ */
 final readonly class VehicleExportRow implements VehicleExportRowInterface
 {
     /**

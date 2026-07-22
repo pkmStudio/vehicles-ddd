@@ -18,6 +18,9 @@ use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
  */
 final readonly class ExportFileFactory implements ExportFileFactoryInterface
 {
+    /**
+     * Выбирает Excel-адаптер экспорта по типу каталога.
+     */
     public function make(ExportTypeEnum $type, bool $isAllow = false): FileExportInterface
     {
         return match ($type) {

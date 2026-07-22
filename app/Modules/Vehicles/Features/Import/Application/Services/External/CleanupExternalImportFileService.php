@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Storage;
  */
 final readonly class CleanupExternalImportFileService implements CleanupExternalImportFileServiceInterface
 {
+    /**
+     * Инициализирует cache-порт с инструкциями отложенной очистки.
+     */
     public function __construct(
         private ExternalImportCacheServiceInterface $cache,
     ) {}

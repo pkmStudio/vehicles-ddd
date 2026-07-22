@@ -8,6 +8,9 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\Clea
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Удаляет устаревшие файлы экспорта каталога с настроенного storage-диска.
+ */
 final readonly class CleanupStaleExportFilesService implements CleanupStaleExportFilesServiceInterface
 {
     /**
@@ -43,6 +46,9 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
         return $deleted;
     }
 
+    /**
+     * Проверяет, похож ли файл на сгенерированный экспорт Vehicles.
+     */
     private function matchesExportFilePattern(string $path): bool
     {
         $fileName = basename($path);

@@ -7,13 +7,22 @@ namespace App\Modules\Vehicles\Features\Export\Application\Services\External;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * Управляет cache-идемпотентностью внешнего запуска экспорта.
+ */
 final readonly class ExportRunCacheService implements ExportRunCacheServiceInterface
 {
+    /**
+     * Атомарно принимает runId для идемпотентного запуска экспорта.
+     */
     public function accept(string $runId): bool
     {
         return Cache::add($this->acceptedCacheKey($runId), true, now()->addSeconds($this->cacheTtlSeconds()));
     }
 
+    /**
+     * Снимает отметку принятого runId после сбоя экспорта.
+     */
     public function forgetAccepted(string $runId): void
     {
         Cache::forget($this->acceptedCacheKey($runId));

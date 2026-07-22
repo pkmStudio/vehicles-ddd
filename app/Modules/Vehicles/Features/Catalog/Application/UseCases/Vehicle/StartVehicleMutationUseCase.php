@@ -13,7 +13,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\CreateVehicleReque
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\DeleteVehicleRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\UpdateVehicleRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleMutationRequestDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\Enums\VehicleMutationOperationEnum;
+use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 
 /**
  * Оркестрирует сценарий мутации автомобилей из внешнего сообщения.
@@ -40,9 +40,9 @@ final readonly class StartVehicleMutationUseCase implements StartVehicleMutation
     public function execute(VehicleMutationRequestDTO $request): ?CatalogMutationResultDTO
     {
         return match ($request->operation) {
-            VehicleMutationOperationEnum::Create => $this->create($request),
-            VehicleMutationOperationEnum::Update => $this->update($request),
-            VehicleMutationOperationEnum::Delete => $this->delete($request),
+            CatalogMutationOperationEnum::Create => $this->create($request),
+            CatalogMutationOperationEnum::Update => $this->update($request),
+            CatalogMutationOperationEnum::Delete => $this->delete($request),
         };
     }
 

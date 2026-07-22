@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validators;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Enums\VehicleMutationOperationEnum;
+use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
@@ -40,8 +40,8 @@ final readonly class VehicleMutationPayloadValidator
             'vehicle.ms_id' => ['required', 'integer'],
         ];
 
-        if ($operation === VehicleMutationOperationEnum::Create->value
-            || $operation === VehicleMutationOperationEnum::Update->value) {
+        if ($operation === CatalogMutationOperationEnum::Create->value
+            || $operation === CatalogMutationOperationEnum::Update->value) {
             $rules += [
                 'vehicle.mfa_id' => ['required', 'integer'],
                 'vehicle.parent_ms_id' => ['nullable', 'integer'],
@@ -72,8 +72,8 @@ final readonly class VehicleMutationPayloadValidator
     private function operations(): array
     {
         return array_map(
-            fn (VehicleMutationOperationEnum $operation): string => $operation->value,
-            VehicleMutationOperationEnum::cases(),
+            fn (CatalogMutationOperationEnum $operation): string => $operation->value,
+            CatalogMutationOperationEnum::cases(),
         );
     }
 

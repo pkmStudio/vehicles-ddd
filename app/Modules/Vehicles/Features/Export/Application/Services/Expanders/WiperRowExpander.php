@@ -20,6 +20,9 @@ use Illuminate\Support\Collection;
  */
 final readonly class WiperRowExpander implements WiperRowExpanderInterface
 {
+    /**
+     * Инициализирует client шаблонов для чтения сторон дворников.
+     */
     public function __construct(
         private TemplatesClientInterface $templates,
     ) {}
@@ -36,7 +39,11 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
             $specs = $vehicle->partSpecifications;
 
             if ($specs->isEmpty()) {
-                $rows->push($this->row($vehicle, null, null));
+                $rows->push($this->row(
+                    vehicle: $vehicle,
+                    frontSpec: null,
+                    backSpec: null,
+                ));
 
                 continue;
             }
@@ -47,7 +54,11 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
             $added = 0;
 
             foreach ($both as $spec) {
-                $rows->push($this->row($vehicle, $spec, $spec));
+                $rows->push($this->row(
+                    vehicle: $vehicle,
+                    frontSpec: $spec,
+                    backSpec: $spec,
+                ));
                 $added++;
             }
 
@@ -57,23 +68,42 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
 
                 foreach ($frontRows as $frontSpec) {
                     foreach ($backRows as $backSpec) {
-                        $rows->push($this->row($vehicle, $frontSpec, $backSpec));
+                        $rows->push($this->row(
+                            vehicle: $vehicle,
+                            frontSpec: $frontSpec,
+                            backSpec: $backSpec,
+                        ));
                         $added++;
                     }
                 }
             }
 
             if ($added === 0) {
-                $rows->push($this->row($vehicle, null, null));
+                $rows->push($this->row(
+                    vehicle: $vehicle,
+                    frontSpec: null,
+                    backSpec: null,
+                ));
             }
         }
 
         return $rows;
     }
 
-    private function row(VehicleData $vehicle, ?PartSpecificationData $frontSpec, ?PartSpecificationData $backSpec): WiperExportRowDTO
+    /**
+     * Собирает DTO строки экспорта дворников.
+     */
+    private function row(
+        VehicleData $vehicle,
+        ?PartSpecificationData $frontSpec,
+        ?PartSpecificationData $backSpec,
+    ): WiperExportRowDTO
     {
-        return new WiperExportRowDTO(vehicle: $vehicle, frontSpec: $frontSpec, backSpec: $backSpec);
+        return new WiperExportRowDTO(
+            vehicle: $vehicle,
+            frontSpec: $frontSpec,
+            backSpec: $backSpec,
+        );
     }
 
     /**

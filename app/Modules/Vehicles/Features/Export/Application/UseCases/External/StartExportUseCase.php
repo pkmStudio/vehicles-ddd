@@ -21,6 +21,9 @@ use Throwable;
  */
 final readonly class StartExportUseCase implements StartExportUseCaseInterface
 {
+    /**
+     * Инициализирует зависимости сценария внешнего запуска экспорта.
+     */
     public function __construct(
         private ExportRunCacheServiceInterface $cache,
         private ExportFileFactoryInterface $exportFactory,

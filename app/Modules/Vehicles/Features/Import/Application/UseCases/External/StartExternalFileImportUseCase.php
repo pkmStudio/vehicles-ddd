@@ -16,6 +16,9 @@ use Throwable;
  */
 final readonly class StartExternalFileImportUseCase implements StartExternalFileImportUseCaseInterface
 {
+    /**
+     * Инициализирует зависимости сценария внешнего запуска импорта.
+     */
     public function __construct(
         private ExternalImportCacheServiceInterface $cache,
         private ExternalFileImportFactoryInterface $importFactory,

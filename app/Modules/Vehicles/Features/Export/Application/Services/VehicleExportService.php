@@ -15,10 +15,16 @@ use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
 use Illuminate\Support\Collection;
 
+/**
+ * Готовит строки и заголовки Excel-экспорта автомобилей.
+ */
 final readonly class VehicleExportService implements VehicleExportServiceInterface
 {
     private array $fieldHeadings;
 
+    /**
+     * Инициализирует зависимости и заголовки шаблона дворников.
+     */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
         private VehicleExportRowInterface $vehicleRow,
@@ -28,26 +34,41 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
         $this->fieldHeadings = $this->templates->vehicleDetailHeadings(DetailTemplateEnum::WIPER);
     }
 
+    /**
+     * Возвращает строки основного листа автомобилей.
+     */
     public function getMainRows(bool $isAllow): Collection
     {
         return $this->vehicles->forMainSheet($isAllow);
     }
 
+    /**
+     * Возвращает заголовки основного листа автомобилей.
+     */
     public function getMainHeadings(): array
     {
         return $this->vehicleRow->getBaseHeadings();
     }
 
+    /**
+     * Преобразует Data-снимок автомобиля в строку основного листа.
+     */
     public function mapMainRow(VehicleData $row): array
     {
         return $this->vehicleRow->getBaseData($row);
     }
 
+    /**
+     * Возвращает развернутые строки листа дворников.
+     */
     public function getWiperRows(bool $isAllow): Collection
     {
         return $this->expander->expand($this->vehicles->forWiperSheet($isAllow));
     }
 
+    /**
+     * Возвращает заголовки листа дворников.
+     */
     public function getWiperHeadings(): array
     {
         $specHeadings = [
@@ -60,6 +81,9 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
         return array_merge($this->vehicleRow->getBaseHeadings(), $specHeadings, $this->fieldHeadings);
     }
 
+    /**
+     * Преобразует пару спецификаций дворников в плоский набор Excel-ячеек.
+     */
     public function mapWiperRow(WiperExportRowDTO $row): array
     {
         $baseData = $this->vehicleRow->getBaseData($row->vehicle);

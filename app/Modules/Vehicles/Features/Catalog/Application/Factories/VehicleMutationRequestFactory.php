@@ -9,7 +9,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\CreateVehicleReque
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\DeleteVehicleRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\UpdateVehicleRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleMutationRequestDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\Enums\VehicleMutationOperationEnum;
+use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
@@ -30,19 +30,21 @@ final readonly class VehicleMutationRequestFactory implements VehicleMutationReq
      */
     public function make(array $payload): VehicleMutationRequestDTO
     {
-        $operation = VehicleMutationOperationEnum::from((string) $payload['operation']);
+        $operation = CatalogMutationOperationEnum::from((string) $payload['operation']);
 
         return new VehicleMutationRequestDTO(
             operation: $operation,
             request: match ($operation) {
-                VehicleMutationOperationEnum::Create => $this->createRequest($payload),
-                VehicleMutationOperationEnum::Update => $this->updateRequest($payload),
-                VehicleMutationOperationEnum::Delete => $this->deleteRequest($payload),
+                CatalogMutationOperationEnum::Create => $this->createRequest($payload),
+                CatalogMutationOperationEnum::Update => $this->updateRequest($payload),
+                CatalogMutationOperationEnum::Delete => $this->deleteRequest($payload),
             },
         );
     }
 
     /**
+     * Собирает DTO создания автомобиля из валидированного payload.
+     *
      * @param  array<string, mixed>  $payload
      */
     private function createRequest(array $payload): CreateVehicleRequestDTO
@@ -73,6 +75,8 @@ final readonly class VehicleMutationRequestFactory implements VehicleMutationReq
     }
 
     /**
+     * Собирает DTO обновления автомобиля из валидированного payload.
+     *
      * @param  array<string, mixed>  $payload
      */
     private function updateRequest(array $payload): UpdateVehicleRequestDTO
@@ -103,6 +107,8 @@ final readonly class VehicleMutationRequestFactory implements VehicleMutationReq
     }
 
     /**
+     * Собирает DTO удаления автомобиля из валидированного payload.
+     *
      * @param  array<string, mixed>  $payload
      */
     private function deleteRequest(array $payload): DeleteVehicleRequestDTO
