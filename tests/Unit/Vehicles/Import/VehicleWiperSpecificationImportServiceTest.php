@@ -22,6 +22,7 @@ use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Support\Collection;
 use Mockery;
+use Psr\Log\NullLogger;
 use Tests\TestCase;
 
 final class VehicleWiperSpecificationImportServiceTest extends TestCase
@@ -44,6 +45,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
             $command,
             app(TemplatesClientInterface::class),
             $vehicles,
+            new NullLogger,
         );
     }
 

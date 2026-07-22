@@ -7,13 +7,12 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EngineCommandImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineCommandImported;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Mappers\EngineSheetRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use InvalidArgumentException;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -52,8 +51,8 @@ final class EngineCommandImport implements EngineCommandImportInterface, ShouldQ
                 $engineRow = $this->rowMapper->map($rowValues);
 
                 $this->service->upsertFromRow($engineRow);
-            } catch (ValidationException $e) {
-                $this->onFailure(new Failure($index + $this->startRow(), 'Двигатель', Arr::flatten($e->errors()), $rowValues));
+            } catch (ImportRowValidationException $e) {
+                $this->onFailure(new Failure($index + $this->startRow(), 'Двигатель', $e->errors(), $rowValues));
             } catch (InvalidArgumentException $e) {
                 $this->onFailure(new Failure($index + $this->startRow(), 'Двигатель', [$e->getMessage()], $rowValues));
             }

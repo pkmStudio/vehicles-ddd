@@ -6,13 +6,12 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\EngineModi
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\EngineModification\LinkEngineModificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EngineModificationImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\EngineModification\Mappers\EngineModificationCommandRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use InvalidArgumentException;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -49,8 +48,8 @@ final class EngineModificationImport implements EngineModificationImportInterfac
                 $engineModificationRow = $this->rowMapper->map($rowValues);
 
                 $this->service->linkFromRow($engineModificationRow);
-            } catch (ValidationException $e) {
-                $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', Arr::flatten($e->errors()), $rowValues));
+            } catch (ImportRowValidationException $e) {
+                $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', $e->errors(), $rowValues));
             } catch (InvalidArgumentException $e) {
                 $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', [$e->getMessage()], $rowValues));
             }

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Vehicles\Features\Catalog\Application\Services;
+namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Cache;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Управляет cache-идемпотентностью входящих мутаций каталога.
+ * Laravel Cache-адаптер идемпотентности входящих мутаций каталога.
  */
-final readonly class CatalogMutationCacheService implements CatalogMutationCacheServiceInterface
+final readonly class LaravelCatalogMutationCacheService implements CatalogMutationCacheServiceInterface
 {
     /**
      * Атомарно принимает operationId для идемпотентной обработки.

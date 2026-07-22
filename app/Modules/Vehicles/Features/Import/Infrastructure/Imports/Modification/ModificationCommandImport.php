@@ -7,13 +7,12 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Modificati
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\ModificationCommandImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Modification\ModificationCommandImported;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Modification\Mappers\ModificationCommandRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use InvalidArgumentException;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -56,8 +55,8 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
                 if (! $modification) {
                     $this->fail($line, "ТС ms_id={$modificationRow->msId} не найдено", $rowValues);
                 }
-            } catch (ValidationException $e) {
-                $this->fail($line, Arr::flatten($e->errors()), $rowValues);
+            } catch (ImportRowValidationException $e) {
+                $this->fail($line, $e->errors(), $rowValues);
             } catch (InvalidArgumentException $e) {
                 $this->fail($line, $e->getMessage(), $rowValues);
             }

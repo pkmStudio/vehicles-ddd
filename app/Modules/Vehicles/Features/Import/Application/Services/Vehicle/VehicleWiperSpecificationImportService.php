@@ -14,8 +14,8 @@ use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRo
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Сервис импорта спецификаций «дворники» для ТС.
@@ -31,6 +31,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
         private PartSpecificationCommandInterface $command,
         private TemplatesClientInterface $templates,
         private VehicleRepositoryInterface $vehicles,
+        private LoggerInterface $logger,
     ) {}
 
     public function upsertFromRow(VehicleWiperSheetRowDTO $row): void
@@ -67,7 +68,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
             $partDetails = (array) $part['details'];
             $sideDetails = $this->templates->vehicleWiperSideData($partDetails, $side);
             if (! $this->hasUsableSideDetails($sideDetails)) {
-                Log::warning('Импорт дворников: пустые данные стороны пропущены', [
+                $this->logger->warning('Импорт дворников: пустые данные стороны пропущены', [
                     'vehicle_id' => $vehicle->id,
                     'template' => $template->value,
                     'side' => $side,
@@ -174,7 +175,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
             return;
         }
 
-        Log::warning('Конфликт feature_value_id при импорте дворников по стороне', [
+        $this->logger->warning('Конфликт feature_value_id при импорте дворников по стороне', [
             'vehicle_id' => $vehicleId,
             'part_specification_id' => $specification->id,
             'current_feature_value_id' => $specification->featureValueId,
@@ -213,5 +214,4 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
 
         return false;
     }
-
 }

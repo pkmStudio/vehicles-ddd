@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Vehicles\Features\Import\Application\Services\External;
+namespace App\Modules\Vehicles\Features\Import\Infrastructure\Cache;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ExternalImportFileCleanupDTO;
@@ -10,9 +10,9 @@ use App\Modules\Vehicles\Features\Import\Domain\DTOs\ExternalImportFileRequestDT
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Управляет cache-состоянием внешнего импорта: идемпотентность и отложенная очистка файла.
+ * Laravel Cache-адаптер состояния внешнего импорта: идемпотентность и отложенная очистка файла.
  */
-final readonly class ExternalImportCacheService implements ExternalImportCacheServiceInterface
+final readonly class LaravelExternalImportCacheService implements ExternalImportCacheServiceInterface
 {
     public function accept(ExternalImportFileRequestDTO $request): bool
     {

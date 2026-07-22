@@ -8,9 +8,9 @@ use App\Modules\Vehicles\Features\Import\Application\Factories\ManufacturerDataF
 use App\Modules\Vehicles\Features\Import\Application\Services\Manufacturer\UpsertManufacturerFromRowService;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\ManufacturerCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
-use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;
 
@@ -47,7 +47,7 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
      * Шаги:
      * 1. Мокает Command — ожидает, что upsertByMfaId НЕ вызовется.
      * 2. Зовёт upsertFromRow() со строкой, где name=null.
-     * 3. Ожидает ValidationException.
+     * 3. Ожидает ImportRowValidationException.
      */
     public function test_missing_name_throws_validation_exception(): void
     {
@@ -56,7 +56,7 @@ final class UpsertManufacturerFromRowServiceTest extends TestCase
 
         $service = new UpsertManufacturerFromRowService($command, new ManufacturerDataFactory);
 
-        $this->expectException(ValidationException::class);
+        $this->expectException(ImportRowValidationException::class);
         $service->upsertFromRow(new ManufacturerCommandRowDTO(mfaId: 10, name: null));
     }
 

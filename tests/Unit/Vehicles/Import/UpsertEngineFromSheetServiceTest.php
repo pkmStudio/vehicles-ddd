@@ -8,9 +8,9 @@ use App\Modules\Vehicles\Features\Import\Application\Factories\EngineDataFactory
 use App\Modules\Vehicles\Features\Import\Application\Services\Engine\UpsertEngineFromSheetService;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
-use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
-use Illuminate\Validation\ValidationException;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use Mockery;
 use Tests\TestCase;
 
@@ -77,7 +77,7 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
      * Шаги:
      * 1. Мокает Command — ожидает, что upsertByEngId НЕ вызовется.
      * 2. Зовёт upsertFromRow() со строкой, где engFuelType='плазма'.
-     * 3. Ожидает ValidationException (валидация сырого значения через Rule::enum).
+     * 3. Ожидает ImportRowValidationException (валидация сырого значения через Rule::enum).
      */
     public function test_invalid_enum_throws_validation_exception(): void
     {
@@ -86,7 +86,7 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
 
         $service = new UpsertEngineFromSheetService($command, new EngineDataFactory);
 
-        $this->expectException(ValidationException::class);
+        $this->expectException(ImportRowValidationException::class);
         // несуществующий вид топлива — фабрика валидирует сырое значение через Rule::enum
         $service->upsertFromRow(new EngineSheetRowDTO(
             engId: 101,
@@ -110,7 +110,7 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
      * Шаги:
      * 1. Мокает Command — ожидает, что upsertByEngId НЕ вызовется.
      * 2. Зовёт upsertFromRow() со строкой, где engId=null.
-     * 3. Ожидает ValidationException.
+     * 3. Ожидает ImportRowValidationException.
      */
     public function test_missing_eng_id_throws_validation_exception(): void
     {
@@ -119,7 +119,7 @@ final class UpsertEngineFromSheetServiceTest extends TestCase
 
         $service = new UpsertEngineFromSheetService($command, new EngineDataFactory);
 
-        $this->expectException(ValidationException::class);
+        $this->expectException(ImportRowValidationException::class);
         $service->upsertFromRow(new EngineSheetRowDTO(
             engId: null,
             codeEngine: 'M54B30',

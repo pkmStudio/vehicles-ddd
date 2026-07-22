@@ -8,9 +8,9 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\ManufacturerC
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\ManufacturerDataFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Use-case: создать/обновить производителя из строки импорта (приведение к виду TD).
@@ -23,7 +23,7 @@ final readonly class UpsertManufacturerFromRowService implements UpsertManufactu
     ) {}
 
     /**
-     * @throws ValidationException
+     * @throws ImportRowValidationException
      */
     public function upsertFromRow(ManufacturerCommandRowDTO $row): ManufacturerData
     {

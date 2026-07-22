@@ -9,8 +9,8 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\Modification
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Modification\ModificationCommandRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ModificationData;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Use-case: создать/обновить модификацию из строки импорта (приведение к виду TD).
@@ -28,7 +28,7 @@ final readonly class UpsertModificationFromRowService implements UpsertModificat
     /**
      * @return ModificationData|null null, если ТС с таким ms_id не найдено
      *
-     * @throws ValidationException
+     * @throws ImportRowValidationException
      */
     public function upsertFromRow(ModificationCommandRowDTO $row): ?ModificationData
     {

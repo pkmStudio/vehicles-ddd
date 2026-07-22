@@ -10,7 +10,6 @@ use App\Modules\Vehicles\Features\Catalog\Application\Factories\ModificationMuta
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\PartSpecificationMutationRequestFactory;
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\PartSpecificationOwnerResolverFactory;
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\VehicleMutationRequestFactory;
-use App\Modules\Vehicles\Features\Catalog\Application\Services\CatalogMutationCacheService;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\CatalogMutationResultService;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification\EnginePartSpecificationOwnerResolver;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification\VehiclePartSpecificationOwnerResolver;
@@ -80,6 +79,7 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\ManufacturerCo
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\ModificationCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\PartSpecificationCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\VehicleCommand;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Cache\LaravelCatalogMutationCacheService;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Notifications\RabbitMqCatalogMutationNotificationService;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\EngineRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\ManufacturerRepository;
@@ -142,7 +142,7 @@ final class CatalogServiceProvider extends ServiceProvider
     ];
 
     private const array SERVICE_BINDINGS = [
-        CatalogMutationCacheServiceInterface::class => CatalogMutationCacheService::class,
+        CatalogMutationCacheServiceInterface::class => LaravelCatalogMutationCacheService::class,
         CatalogMutationNotificationServiceInterface::class => RabbitMqCatalogMutationNotificationService::class,
         CatalogMutationResultServiceInterface::class => CatalogMutationResultService::class,
         VehiclePartSpecificationOwnerResolverInterface::class => VehiclePartSpecificationOwnerResolver::class,

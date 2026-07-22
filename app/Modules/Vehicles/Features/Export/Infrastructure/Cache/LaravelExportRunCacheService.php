@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Vehicles\Features\Export\Application\Services\External;
+namespace App\Modules\Vehicles\Features\Export\Infrastructure\Cache;
 
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Управляет cache-идемпотентностью внешнего запуска экспорта.
+ * Laravel Cache-адаптер идемпотентности внешнего запуска экспорта.
  */
-final readonly class ExportRunCacheService implements ExportRunCacheServiceInterface
+final readonly class LaravelExportRunCacheService implements ExportRunCacheServiceInterface
 {
     /**
      * Атомарно принимает runId для идемпотентного запуска экспорта.

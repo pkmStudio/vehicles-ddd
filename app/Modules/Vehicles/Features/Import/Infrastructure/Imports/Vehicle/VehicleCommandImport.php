@@ -7,13 +7,12 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\VehicleCommandImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Vehicle\VehicleCommandImported;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleTdRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use InvalidArgumentException;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -56,8 +55,8 @@ final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToColle
                 if (! $vehicle) {
                     $this->fail($line, "Производитель mfa_id={$vehicleRow->mfaId} не найден", $rowValues);
                 }
-            } catch (ValidationException $e) {
-                $this->fail($line, Arr::flatten($e->errors()), $rowValues);
+            } catch (ImportRowValidationException $e) {
+                $this->fail($line, $e->errors(), $rowValues);
             } catch (InvalidArgumentException $e) {
                 $this->fail($line, $e->getMessage(), $rowValues);
             }

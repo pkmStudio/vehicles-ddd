@@ -9,11 +9,11 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\VehicleDataF
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleTdRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Use-case: создать/обновить ТС из строки авторитетного импорта (приведение к виду TD).
@@ -31,7 +31,7 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
     /**
      * @return VehicleData|null null, если производитель с таким mfa_id не найден
      *
-     * @throws ValidationException
+     * @throws ImportRowValidationException
      */
     public function upsertFromRow(VehicleTdRowDTO $row): ?VehicleData
     {

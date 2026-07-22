@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Providers;
 
+use App\Modules\Vehicles\Features\Import\Application\Factories\ExternalFileImportFactory;
 use App\Modules\Vehicles\Features\Import\Application\Factories\EngineDataFactory;
 use App\Modules\Vehicles\Features\Import\Application\Factories\EngineModificationDataFactory;
-use App\Modules\Vehicles\Features\Import\Application\Factories\ExternalFileImportFactory;
 use App\Modules\Vehicles\Features\Import\Application\Factories\ManufacturerDataFactory;
 use App\Modules\Vehicles\Features\Import\Application\Factories\ModificationDataFactory;
 use App\Modules\Vehicles\Features\Import\Application\Factories\PartSpecificationDataFactory;
@@ -18,7 +18,6 @@ use App\Modules\Vehicles\Features\Import\Application\Services\Engine\UpsertSpark
 use App\Modules\Vehicles\Features\Import\Application\Services\EngineModification\LinkEngineModificationFromRowService;
 use App\Modules\Vehicles\Features\Import\Application\Services\EngineModificationReadinessGate;
 use App\Modules\Vehicles\Features\Import\Application\Services\External\CleanupExternalImportFileService;
-use App\Modules\Vehicles\Features\Import\Application\Services\External\ExternalImportCacheService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Manufacturer\UpsertManufacturerFromRowService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Modification\UpsertModificationFromRowService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Reporting\ReportImportResultService;
@@ -54,6 +53,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\Engin
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\VehicleMultiSheetImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\FailuresExportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailureStoreInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
@@ -77,6 +77,8 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\Upser
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\Command\StartTecDocImportUseCaseInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Cache\LaravelExternalImportCacheService;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Cache\LaravelImportFailureStore;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Commands\EngineCommand;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Commands\EngineModificationCommand;
@@ -155,6 +157,7 @@ final class ImportServiceProvider extends ServiceProvider
 
     private const array IMPORT_SHEET_BINDINGS = [
         FailuresExportInterface::class => FailuresExport::class,
+        ImportFailureStoreInterface::class => LaravelImportFailureStore::class,
     ];
 
     private const array FACTORY_BINDINGS = [
@@ -169,7 +172,7 @@ final class ImportServiceProvider extends ServiceProvider
 
     private const array SERVICE_BINDINGS = [
         CleanupExternalImportFileServiceInterface::class => CleanupExternalImportFileService::class,
-        ExternalImportCacheServiceInterface::class => ExternalImportCacheService::class,
+        ExternalImportCacheServiceInterface::class => LaravelExternalImportCacheService::class,
         EngineModificationReadinessGateInterface::class => EngineModificationReadinessGate::class,
         ReportImportResultServiceInterface::class => ReportImportResultService::class,
         UpsertEngineFromSheetServiceInterface::class => UpsertEngineFromSheetService::class,

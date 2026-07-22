@@ -10,7 +10,6 @@ use App\Modules\Vehicles\Features\Export\Application\Services\Rows\EngineExportR
 use App\Modules\Vehicles\Features\Export\Application\Services\Expanders\PartSpecificationRowExpander;
 use App\Modules\Vehicles\Features\Export\Application\Services\Rows\VehicleExportRow;
 use App\Modules\Vehicles\Features\Export\Application\Services\Expanders\WiperRowExpander;
-use App\Modules\Vehicles\Features\Export\Application\Services\External\ExportRunCacheService;
 use App\Modules\Vehicles\Features\Export\Application\Services\External\CleanupStaleExportFilesService;
 use App\Modules\Vehicles\Features\Export\Application\Factories\ExportFileFactory;
 use App\Modules\Vehicles\Features\Export\Application\UseCases\External\StartExportUseCase;
@@ -31,6 +30,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Notifications\ExportNo
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Cache\LaravelExportRunCacheService;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\EngineMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\VehicleMultiSheetExport;
@@ -65,7 +65,7 @@ final class ExportServiceProvider extends ServiceProvider
         WiperRowExpanderInterface::class => WiperRowExpander::class,
         EngineExportServiceInterface::class => EngineExportService::class,
         VehicleExportServiceInterface::class => VehicleExportService::class,
-        ExportRunCacheServiceInterface::class => ExportRunCacheService::class,
+        ExportRunCacheServiceInterface::class => LaravelExportRunCacheService::class,
         CleanupStaleExportFilesServiceInterface::class => CleanupStaleExportFilesService::class,
     ];
 

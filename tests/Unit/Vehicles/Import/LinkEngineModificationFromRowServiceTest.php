@@ -8,9 +8,9 @@ use App\Modules\Vehicles\Features\Import\Application\Factories\EngineModificatio
 use App\Modules\Vehicles\Features\Import\Application\Services\EngineModification\LinkEngineModificationFromRowService;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\EngineModification\EngineModificationCommandRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineModificationData;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
-use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;
 
@@ -40,12 +40,12 @@ final class LinkEngineModificationFromRowServiceTest extends TestCase
 
     /**
      * Проверяет, что невалидное значение type (не входит в допустимый набор) валится
-     * ValidationException'ом до записи, а не уходит в Command как есть.
+     * ImportRowValidationException'ом до записи, а не уходит в Command как есть.
      *
      * Шаги:
      * 1. Мокает Command — ожидает, что syncWithoutDetaching НЕ вызовется.
      * 2. Зовёт linkFromRow() со строкой, где type='НЕВЕРНО'.
-     * 3. Ожидает ValidationException.
+     * 3. Ожидает ImportRowValidationException.
      */
     public function test_invalid_type_throws_validation_exception(): void
     {
@@ -54,7 +54,7 @@ final class LinkEngineModificationFromRowServiceTest extends TestCase
 
         $service = new LinkEngineModificationFromRowService($command, new EngineModificationDataFactory);
 
-        $this->expectException(ValidationException::class);
+        $this->expectException(ImportRowValidationException::class);
         $service->linkFromRow(new EngineModificationCommandRowDTO(engId: 1, modId: 2, type: 'НЕВЕРНО'));
     }
 

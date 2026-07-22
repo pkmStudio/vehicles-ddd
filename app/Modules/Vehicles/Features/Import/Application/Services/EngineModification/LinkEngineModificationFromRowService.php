@@ -8,7 +8,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineModific
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\EngineModificationDataFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\EngineModification\LinkEngineModificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\EngineModification\EngineModificationCommandRowDTO;
-use Illuminate\Validation\ValidationException;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 
 /**
  * Use-case: связать двигатель с модификацией из строки импорта (пивот engine_modification).
@@ -21,7 +21,7 @@ final readonly class LinkEngineModificationFromRowService implements LinkEngineM
     ) {}
 
     /**
-     * @throws ValidationException
+     * @throws ImportRowValidationException
      */
     public function linkFromRow(EngineModificationCommandRowDTO $row): void
     {

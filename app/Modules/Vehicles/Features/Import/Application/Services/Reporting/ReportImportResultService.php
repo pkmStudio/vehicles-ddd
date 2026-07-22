@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Application\Services\Reporting;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Reporting\ReportImportResultServiceInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Enums\ImportCompletionStatusEnum;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailureStoreInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Reporting\ReportImportResultServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportCompletionNotificationDTO;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
+use App\Modules\Vehicles\Features\Import\Domain\Enums\ImportCompletionStatusEnum;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -21,13 +21,15 @@ final readonly class ReportImportResultService implements ReportImportResultServ
 {
     public function __construct(
         private ImportFailureReporterInterface $reporter,
+        private ImportFailureStoreInterface $failureStore,
         private FileNotificationServiceInterface $notifier,
+        private LoggerInterface $logger,
     ) {}
 
     public function report(int $userId, string $cacheKey, ?string $runId = null): void
     {
-        $failures = Cache::get($cacheKey, []);
-        $errorsCount = is_array($failures) ? count($failures) : 0;
+        $failures = $this->failureStore->get($cacheKey);
+        $errorsCount = count($failures);
 
         try {
             $path = $this->reporter->store($failures);
@@ -52,7 +54,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
                 $this->notifier->notifyImportCompleted($notification);
             }
         } catch (Throwable $e) {
-            Log::error('Import reporting failed', ['exception' => $e]);
+            $this->logger->error('Import reporting failed', ['exception' => $e]);
 
             $failedNotification = new ImportCompletionNotificationDTO(
                 userId: $userId,
@@ -62,7 +64,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
             );
             $this->notifier->notifyImportCompleted($failedNotification);
         } finally {
-            Cache::forget($cacheKey);
+            $this->failureStore->forget($cacheKey);
         }
     }
 }

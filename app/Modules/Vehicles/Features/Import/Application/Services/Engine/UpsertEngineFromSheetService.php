@@ -8,8 +8,8 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineCommand
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\EngineDataFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Use-case: создать/обновить двигатель из строки листа импорта.
@@ -24,7 +24,7 @@ final readonly class UpsertEngineFromSheetService implements UpsertEngineFromShe
     ) {}
 
     /**
-     * @throws ValidationException
+     * @throws ImportRowValidationException
      */
     public function upsertFromRow(EngineSheetRowDTO $row): EngineData
     {

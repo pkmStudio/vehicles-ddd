@@ -7,13 +7,12 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufactur
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\ManufacturerCommandImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Manufacturer\ManufacturerCommandImported;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\Mappers\ManufacturerCommandRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use InvalidArgumentException;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -52,11 +51,11 @@ final class ManufacturerCommandImport implements ManufacturerCommandImportInterf
                 $manufacturerRow = $this->rowMapper->map($rowValues);
 
                 $this->service->upsertFromRow($manufacturerRow);
-            } catch (ValidationException $e) {
+            } catch (ImportRowValidationException $e) {
                 $this->onFailure(new Failure(
                     $index + $this->startRow(),
                     'Производитель',
-                    Arr::flatten($e->errors()),
+                    $e->errors(),
                     $rowValues,
                 ));
             } catch (InvalidArgumentException $e) {

@@ -12,11 +12,11 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\Manufactu
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Use-case: создать/обновить ТС из строки ручного листа.
@@ -35,7 +35,7 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
     ) {}
 
     /**
-     * @throws ValidationException
+     * @throws ImportRowValidationException
      */
     public function upsertFromRow(VehicleSheetRowDTO $row): VehicleData
     {
