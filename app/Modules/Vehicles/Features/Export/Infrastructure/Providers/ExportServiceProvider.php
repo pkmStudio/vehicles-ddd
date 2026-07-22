@@ -24,6 +24,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\Expo
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\CleanupStaleExportFilesServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Files\ExportFileStorageInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
@@ -33,6 +34,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\UseCases\External\Star
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\EngineMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\VehicleMultiSheetExport;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Files\LaravelExportFileStorage;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\EngineRepository;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\VehicleRepository;
@@ -79,6 +81,10 @@ final class ExportServiceProvider extends ServiceProvider
         TemplatesClientInterface::class => TemplatesClient::class,
     ];
 
+    private const array FILE_BINDINGS = [
+        ExportFileStorageInterface::class => LaravelExportFileStorage::class,
+    ];
+
     public function register(): void
     {
         // Уведомление о готовом файле экспорта уходит в RabbitMQ (FILE_EXPORTED).
@@ -105,6 +111,10 @@ final class ExportServiceProvider extends ServiceProvider
         }
 
         foreach (self::CLIENT_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
+        }
+
+        foreach (self::FILE_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
     }

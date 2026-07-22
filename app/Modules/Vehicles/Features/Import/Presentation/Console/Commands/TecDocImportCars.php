@@ -4,40 +4,27 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Presentation\Console\Commands;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\EngineModificationReadinessGateInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\ManufacturerCommandImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\Command\StartTecDocImportUseCaseInterface;
 use Illuminate\Console\Command;
 
-class TecDocImportCars extends Command
+/**
+ * Консольная точка входа для запуска каскадного импорта TecDoc.
+ */
+final class TecDocImportCars extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'app:tecDoc-import-cars';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Приводит данные ТС к виду ТекДок';
 
     /**
-     * 1. Сбрасываем флаги синхронизации на случай прерванного предыдущего запуска
-     * 2. Импортирует производителей
-     * 3. По завершении вызывает событие
-     * 4. Слушатели StartVehicleImport и StartEngineImport запускают импорт ТС и двигателей
-     * 5. По готовности ТС импортируются модификации
-     * 6. По готовности модификаций и двигателей по событию запускается импорт связи между модификацией и двигателями
+     * Запускает Application-сценарий импорта TecDoc.
      */
-    public function handle(EngineModificationReadinessGateInterface $gate): void
+    public function handle(StartTecDocImportUseCaseInterface $useCase): int
     {
-        $gate->reset();
+        $useCase->execute();
 
-        $path = storage_path('vehicles/manufacturers.csv');
-        app(ManufacturerCommandImportInterface::class)->import($path);
         $this->info('Команда запустилась и отправило исполнение в очередь');
+
+        return self::SUCCESS;
     }
 }

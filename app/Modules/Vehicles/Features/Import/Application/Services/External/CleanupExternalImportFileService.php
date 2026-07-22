@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Application\Services\External;
 
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Files\ImportFileStorageInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\External\CleanupExternalImportFileServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Выполняет отложенную очистку файлов, когда импорт уже завершился.
@@ -18,6 +18,7 @@ final readonly class CleanupExternalImportFileService implements CleanupExternal
      */
     public function __construct(
         private ExternalImportCacheServiceInterface $cache,
+        private ImportFileStorageInterface $files,
     ) {}
 
     /**
@@ -34,6 +35,9 @@ final readonly class CleanupExternalImportFileService implements CleanupExternal
             return;
         }
 
-        Storage::disk($cleanup->disk)->delete($cleanup->path);
+        $this->files->delete(
+            disk: $cleanup->disk,
+            path: $cleanup->path,
+        );
     }
 }

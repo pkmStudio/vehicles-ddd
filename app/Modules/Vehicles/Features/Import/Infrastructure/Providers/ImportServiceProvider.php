@@ -25,6 +25,7 @@ use App\Modules\Vehicles\Features\Import\Application\Services\Reporting\ReportIm
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleFromSheetService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleFromTdRowService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\VehicleWiperSpecificationImportService;
+use App\Modules\Vehicles\Features\Import\Application\UseCases\Command\StartTecDocImportUseCase;
 use App\Modules\Vehicles\Features\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineCommandInterface;
@@ -40,6 +41,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\Manufacturer
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\ModificationDataFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\PartSpecificationDataFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\VehicleDataFactoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Files\ImportFileStorageInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EngineCommandImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EngineModificationImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EnginesCodeImportInterface;
@@ -73,6 +75,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Reporting\Rep
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\Command\StartTecDocImportUseCaseInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Commands\EngineCommand;
@@ -81,6 +84,7 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Commands\ManufacturerCom
 use App\Modules\Vehicles\Features\Import\Infrastructure\Commands\ModificationCommand;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Commands\PartSpecificationCommand;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Commands\VehicleCommand;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Files\LaravelImportFileStorage;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\EngineCommandImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\EngineCrossImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\EngineMultiSheetImport;
@@ -111,6 +115,7 @@ use Illuminate\Support\ServiceProvider;
 final class ImportServiceProvider extends ServiceProvider
 {
     private const array USE_CASE_BINDINGS = [
+        StartTecDocImportUseCaseInterface::class => StartTecDocImportUseCase::class,
         StartExternalFileImportUseCaseInterface::class => StartExternalFileImportUseCase::class,
     ];
 
@@ -183,6 +188,10 @@ final class ImportServiceProvider extends ServiceProvider
         TemplatesClientInterface::class => TemplatesClient::class,
     ];
 
+    private const array FILE_BINDINGS = [
+        ImportFileStorageInterface::class => LaravelImportFileStorage::class,
+    ];
+
     public function register(): void
     {
         // Уведомление о готовом файле уходит в RabbitMQ (сервису с Filament).
@@ -220,6 +229,10 @@ final class ImportServiceProvider extends ServiceProvider
         }
 
         foreach (self::CLIENT_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
+        }
+
+        foreach (self::FILE_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
     }

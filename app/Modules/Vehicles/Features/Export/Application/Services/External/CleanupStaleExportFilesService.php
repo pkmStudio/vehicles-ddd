@@ -4,15 +4,22 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Export\Application\Services\External;
 
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Files\ExportFileStorageInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\CleanupStaleExportFilesServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Удаляет устаревшие файлы экспорта каталога с настроенного storage-диска.
  */
 final readonly class CleanupStaleExportFilesService implements CleanupStaleExportFilesServiceInterface
 {
+    /**
+     * Инициализирует файловый порт экспорта.
+     */
+    public function __construct(
+        private ExportFileStorageInterface $files,
+    ) {}
+
     /**
      * Ограничение по enum-префиксам и по подпапке — намеренно, а не «весь диск»:
      * 'output.directory' на этом диске делят с другим
@@ -27,19 +34,27 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
         $retentionHours = (int) config('vehicles.export.output.retention_hours', 24);
         $threshold = now()->subHours($retentionHours)->getTimestamp();
 
-        $storage = Storage::disk($disk);
         $deleted = 0;
 
-        foreach ($storage->files($directory) as $path) {
+        foreach ($this->files->files(
+            disk: $disk,
+            directory: $directory,
+        ) as $path) {
             if (! $this->matchesExportFilePattern($path)) {
                 continue;
             }
 
-            if ($storage->lastModified($path) > $threshold) {
+            if ($this->files->lastModified(
+                disk: $disk,
+                path: $path,
+            ) > $threshold) {
                 continue;
             }
 
-            $storage->delete($path);
+            $this->files->delete(
+                disk: $disk,
+                path: $path,
+            );
             $deleted++;
         }
 
