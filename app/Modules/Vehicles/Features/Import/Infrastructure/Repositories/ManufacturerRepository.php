@@ -20,8 +20,12 @@ final readonly class ManufacturerRepository implements ManufacturerRepositoryInt
         return ManufacturerData::optional(Manufacturer::query()->where('mfa_id', $mfaId)->first());
     }
 
-    public function minMfaId(): int
+    public function findMinMfaId(): ?ManufacturerData
     {
-        return (int) Manufacturer::query()->min('mfa_id');
+        return ManufacturerData::optional(
+            Manufacturer::query()
+                ->orderBy('mfa_id')
+                ->first(),
+        );
     }
 }

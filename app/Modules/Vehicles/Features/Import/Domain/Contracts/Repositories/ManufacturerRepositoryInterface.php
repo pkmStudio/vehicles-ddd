@@ -12,6 +12,6 @@ interface ManufacturerRepositoryInterface
 
     public function findByMfaId(int $mfaId): ?ManufacturerData;
 
-    /** Минимальный mfa_id (для генерации отрицательных id новых марок). 0 если таблица пуста. */
-    public function minMfaId(): int;
+    /** Производитель с минимальным mfa_id (для генерации отрицательных id новых марок). */
+    public function findMinMfaId(): ?ManufacturerData;
 }

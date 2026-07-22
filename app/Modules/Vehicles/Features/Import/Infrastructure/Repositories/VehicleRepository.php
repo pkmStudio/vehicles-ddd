@@ -15,9 +15,13 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
         return VehicleData::optional(Vehicle::query()->where('ms_id', $msId)->first());
     }
 
-    public function minMsId(): int
+    public function findMinMsId(): ?VehicleData
     {
-        return (int) Vehicle::query()->min('ms_id');
+        return VehicleData::optional(
+            Vehicle::query()
+                ->orderBy('ms_id')
+                ->first(),
+        );
     }
 
     public function parentMsId(int $msId): ?int

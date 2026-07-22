@@ -48,8 +48,8 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
      */
     public function upsertFromRow(VehicleSheetRowDTO $row): VehicleData
     {
-        $minMfaId = min($this->manufacturers->minMfaId(), 0);
-        $minMsId = min($this->vehicles->minMsId(), 0);
+        $minMfaId = min($this->manufacturers->findMinMfaId()?->mfaId ?? 0, 0);
+        $minMsId = min($this->vehicles->findMinMsId()?->msId ?? 0, 0);
 
         $parentId = $row->parentMsId !== null
             ? $this->vehicles->findByMsId($row->parentMsId)?->id
