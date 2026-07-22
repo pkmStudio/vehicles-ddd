@@ -34,5 +34,12 @@
   кросс-доменную задачу (`NomenclatureUpdated`/`KitUpdated` со стороны Warehouse + аналог со стороны
   Vehicles), а не решать по частям в каждом домене отдельно. Не блокер — сама MpCard-интеграция/
   транспорт в CRM ещё не подключены (см. §1 выше).
+- **Typed DTO для Warehouse MoySklad client** — сейчас
+  `Warehouse/Features/MoySklad/Domain/Contracts/Clients/MoySkladProductClientInterface` работает с
+  сырыми `array<string, mixed>` payload'ами МойСклад, а `NomenclatureSyncService` знает про поля
+  внешнего API (`id`, `externalCode`, `meta.href`). Нужно ввести DTO на границе клиента
+  (`MoySkladProductData`, `MoySkladProductFolderData` или аналог) и перенести парсинг/сравнение
+  внешнего payload в infrastructure client. Отложено, чтобы не смешивать с текущим выравниванием
+  Cache/Storage/Repository/Command.
 
 ---

@@ -15,8 +15,10 @@ use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCo
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Warehouse\Features\KitProperties\Infrastructure\Clients\PackagingClient;
+use App\Modules\Warehouse\Shared\Infrastructure\Logging\LaravelLoggerProxy;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
+use Psr\Log\LoggerInterface;
 
 /**
  * Регистрирует DI-биндинги вертикального среза Warehouse KitProperties. `KitPropertiesService`
@@ -60,6 +62,11 @@ final class KitPropertiesServiceProvider extends ServiceProvider
                     self::COMPOSITION_STRATEGY_CLASSES,
                 );
             });
+
+        $this->app
+            ->when(concrete: KitPropertiesService::class)
+            ->needs(abstract: LoggerInterface::class)
+            ->give(implementation: LaravelLoggerProxy::class);
 
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
             $this->app->bind(

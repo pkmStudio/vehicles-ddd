@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Kit;
 
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\KitImportInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit\UpsertKitFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit\ImportKitFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\KitImportCompleted;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Traits\CachesImportFailures;
@@ -38,7 +38,7 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
      * Получает построчный сервис импорта наборов.
      */
     public function __construct(
-        private readonly UpsertKitFromRowServiceInterface $service,
+        private readonly ImportKitFromRowServiceInterface $service,
     ) {}
 
     /**
@@ -80,7 +80,7 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
             $rowValues = $row->toArray();
 
             try {
-                $this->service->upsertFromRow($rowValues);
+                $this->service->importFromRow($rowValues);
             } catch (InvalidArgumentException $e) {
                 $failure = new Failure(
                     row: $indexRow + $this->startRow(),

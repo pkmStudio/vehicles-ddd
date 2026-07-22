@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Warehouse\Features\Import\Application\Services\External;
+namespace App\Modules\Warehouse\Features\Import\Infrastructure\Services\External;
 
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ExternalImportFileCleanupDTO;
@@ -10,13 +10,12 @@ use App\Modules\Warehouse\Features\Import\Domain\DTOs\ExternalImportFileRequestD
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Идемпотентность и отложенная очистка файла внешних запусков Warehouse-импорта — через cache,
- * не БД (см. ARCHITECTURE.md, аналогичный паттерн у Vehicles/Import).
+ * Laravel cache-реализация идемпотентности и отложенной очистки файла внешних импортов.
  */
 final readonly class ExternalImportCacheService implements ExternalImportCacheServiceInterface
 {
     /**
-     * Принимает runId только один раз в пределах cache TTL — атомарный Cache::add.
+     * Принимает runId только один раз в пределах cache TTL.
      */
     public function accept(string $runId): bool
     {
@@ -37,11 +36,6 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
 
     /**
      * Запоминает disk+path исходного файла, чтобы удалить его после завершения импорта.
-     *
-     * Хранит как plain-массив, не объект DTO: Redis-кэш (`Illuminate\Cache\RedisStore`) в этом
-     * проекте не переживает round-trip кастомных классов через сериализацию (объект на выходе
-     * оказывается `__PHP_Incomplete_Class` — проверено вручную), тогда как массивы сериализуются
-     * и восстанавливаются корректно (тот же cache используется для failures-массивов и работает).
      */
     public function rememberCleanup(ExternalImportFileRequestDTO $request): void
     {

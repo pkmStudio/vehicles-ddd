@@ -8,12 +8,20 @@ use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
 use Illuminate\Support\Collection;
 
 /**
- * Порт чтения уже сохранённой Warehouse-номенклатуры — нужен только сборке Kit (резолв состава
- * набора по артикулам). Сам построчный импорт номенклатуры этот порт не использует — он только
- * пишет (см. `Contracts\Commands\NomenclatureCommandInterface`).
+ * Порт чтения уже сохранённой Warehouse-номенклатуры для Import-фичи.
  */
 interface NomenclatureRepositoryInterface
 {
+    /**
+     * Возвращает номенклатуру по id или null.
+     */
+    public function findById(int $id): ?NomenclatureData;
+
+    /**
+     * Возвращает номенклатуру по артикулу или null.
+     */
+    public function findByPartNumber(string $partNumber): ?NomenclatureData;
+
     /**
      * Возвращает найденные номенклатуры, индексированные по part_number. Отсутствующие в БД
      * артикулы просто не попадут в результат — вызывающий сам решает, как на это реагировать.

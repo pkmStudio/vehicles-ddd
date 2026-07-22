@@ -22,8 +22,10 @@ use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Repositories\Nomencla
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureDeleted;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
+use App\Modules\Warehouse\Shared\Infrastructure\Logging\LaravelLoggerProxy;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Psr\Log\LoggerInterface;
 
 /**
  * Регистрирует DI и event listeners фичи Warehouse/MoySklad.
@@ -64,6 +66,11 @@ final class MoySkladServiceProvider extends ServiceProvider
             abstract: NomenclatureSyncServiceInterface::class,
             concrete: NomenclatureSyncService::class,
         );
+
+        $this->app
+            ->when(concrete: NomenclatureSyncService::class)
+            ->needs(abstract: LoggerInterface::class)
+            ->give(implementation: LaravelLoggerProxy::class);
     }
 
     /**

@@ -12,11 +12,6 @@ use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureIntegra
 interface NomenclatureIntegrationRepositoryInterface
 {
     /**
-     * Возвращает существующую связь или создаёт pending-связь для номенклатуры.
-     */
-    public function firstOrCreateForNomenclature(int $nomenclatureId): NomenclatureIntegrationData;
-
-    /**
      * Возвращает связь номенклатуры с МойСклад или null.
      */
     public function findByNomenclatureId(int $nomenclatureId): ?NomenclatureIntegrationData;

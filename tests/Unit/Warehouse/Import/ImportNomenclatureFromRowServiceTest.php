@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Warehouse\Import;
 
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
-use App\Modules\Warehouse\Features\Import\Application\Services\Nomenclature\UpsertNomenclatureFromRowService;
+use App\Modules\Warehouse\Features\Import\Application\Services\Nomenclature\ImportNomenclatureFromRowService;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\NomenclatureCommandInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
@@ -17,7 +18,7 @@ use InvalidArgumentException;
 use Mockery;
 use Tests\TestCase;
 
-final class UpsertNomenclatureFromRowServiceTest extends TestCase
+final class ImportNomenclatureFromRowServiceTest extends TestCase
 {
     private function validRow(): array
     {
@@ -37,10 +38,10 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
 
     /**
      * Проверяет happy-path: type/brand резолвятся по имени, шаблон — через resolver, details —
-     * через локальный Templates-клиент, материал/вид техники переводятся в ключи, запись без id уходит в
-     * upsertByPartNumber.
+     * через локальный Templates-клиент, материал/вид техники переводятся в ключи, новая запись
+     * уходит в create.
      */
-    public function test_resolves_type_brand_and_upserts_by_part_number(): void
+    public function test_resolves_type_brand_and_creates_when_part_number_is_new(): void
     {
         $expected = $this->dummyNomenclatureData();
 
@@ -58,7 +59,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
 
         $command = Mockery::mock(NomenclatureCommandInterface::class);
         $command->shouldNotReceive('updateById');
-        $command->shouldReceive('upsertByPartNumber')
+        $command->shouldReceive('create')
             ->once()
             ->with(Mockery::on(function (NomenclatureData $data): bool {
                 return $data->id === null
@@ -74,14 +75,20 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
             }))
             ->andReturn($expected);
 
-        $service = new UpsertNomenclatureFromRowService($command, $templateResolver, $templates);
+        $repository = Mockery::mock(NomenclatureRepositoryInterface::class);
+        $repository->shouldReceive('findByPartNumber')
+            ->once()
+            ->with('VB-ART-001')
+            ->andReturnNull();
 
-        $this->assertSame($expected, $service->upsertFromRow($this->validRow(), $this->types(), $this->brands()));
+        $service = new ImportNomenclatureFromRowService($repository, $command, $templateResolver, $templates);
+
+        $this->assertSame($expected, $service->importFromRow($this->validRow(), $this->types(), $this->brands()));
     }
 
     /**
      * Проверяет ветку update: если в строке указан id, запись уходит в updateById, а не в
-     * upsertByPartNumber.
+     * create.
      */
     public function test_updates_by_id_when_id_present_in_row(): void
     {
@@ -99,20 +106,24 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
         $row[0] = '99';
 
         $command = Mockery::mock(NomenclatureCommandInterface::class);
-        $command->shouldNotReceive('upsertByPartNumber');
+        $command->shouldNotReceive('create');
         $command->shouldReceive('updateById')
             ->once()
             ->with(Mockery::on(fn (NomenclatureData $data) => $data->id === 99))
             ->andReturn($expected);
 
-        $service = new UpsertNomenclatureFromRowService($command, $templateResolver, $templates);
+        $repository = Mockery::mock(NomenclatureRepositoryInterface::class);
+        $repository->shouldNotReceive('findByPartNumber');
 
-        $this->assertSame($expected, $service->upsertFromRow($row, $this->types(), $this->brands()));
+        $service = new ImportNomenclatureFromRowService($repository, $command, $templateResolver, $templates);
+
+        $this->assertSame($expected, $service->importFromRow($row, $this->types(), $this->brands()));
     }
 
     public function test_throws_when_type_not_found(): void
     {
-        $service = new UpsertNomenclatureFromRowService(
+        $service = new ImportNomenclatureFromRowService(
+            Mockery::mock(NomenclatureRepositoryInterface::class),
             Mockery::mock(NomenclatureCommandInterface::class),
             Mockery::mock(TypeTemplateResolverInterface::class),
             Mockery::mock(TemplatesClientInterface::class),
@@ -123,12 +134,13 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
 
-        $service->upsertFromRow($row, $this->types(), $this->brands());
+        $service->importFromRow($row, $this->types(), $this->brands());
     }
 
     public function test_throws_when_brand_not_found(): void
     {
-        $service = new UpsertNomenclatureFromRowService(
+        $service = new ImportNomenclatureFromRowService(
+            Mockery::mock(NomenclatureRepositoryInterface::class),
             Mockery::mock(NomenclatureCommandInterface::class),
             Mockery::mock(TypeTemplateResolverInterface::class),
             Mockery::mock(TemplatesClientInterface::class),
@@ -139,7 +151,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
 
-        $service->upsertFromRow($row, $this->types(), $this->brands());
+        $service->importFromRow($row, $this->types(), $this->brands());
     }
 
     public function test_throws_when_template_not_resolved(): void
@@ -147,7 +159,8 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
         $templateResolver = Mockery::mock(TypeTemplateResolverInterface::class);
         $templateResolver->shouldReceive('resolve')->once()->andReturnNull();
 
-        $service = new UpsertNomenclatureFromRowService(
+        $service = new ImportNomenclatureFromRowService(
+            Mockery::mock(NomenclatureRepositoryInterface::class),
             Mockery::mock(NomenclatureCommandInterface::class),
             $templateResolver,
             Mockery::mock(TemplatesClientInterface::class),
@@ -155,7 +168,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
 
-        $service->upsertFromRow($this->validRow(), $this->types(), $this->brands());
+        $service->importFromRow($this->validRow(), $this->types(), $this->brands());
     }
 
     public function test_throws_when_weight_is_not_positive_integer(): void
@@ -167,10 +180,10 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
         $templates->shouldReceive('buildNomenclatureDetails')->once()->andReturn([]);
 
         $command = Mockery::mock(NomenclatureCommandInterface::class);
-        $command->shouldNotReceive('upsertByPartNumber');
+        $command->shouldNotReceive('create');
         $command->shouldNotReceive('updateById');
 
-        $service = new UpsertNomenclatureFromRowService($command, $templateResolver, $templates);
+        $service = new ImportNomenclatureFromRowService(Mockery::mock(NomenclatureRepositoryInterface::class), $command, $templateResolver, $templates);
 
         $row = $this->validRow();
         $row[7] = '0';
@@ -178,7 +191,7 @@ final class UpsertNomenclatureFromRowServiceTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Вес должен быть положительным целым числом в граммах');
 
-        $service->upsertFromRow($row, $this->types(), $this->brands());
+        $service->importFromRow($row, $this->types(), $this->brands());
     }
 
     private function dummyNomenclatureData(): NomenclatureData

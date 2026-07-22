@@ -22,6 +22,7 @@ use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\PackDimensionData;
 use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
 use Mockery;
+use Psr\Log\NullLogger;
 use Tests\TestCase;
 
 /**
@@ -42,7 +43,7 @@ final class PackagingServiceTest extends TestCase
             repository: $repository,
             templateResolver: $templateResolver,
             strategies: [
-                new BrakePadsPackagingStrategy($command),
+                new BrakePadsPackagingStrategy($command, new NullLogger),
                 new WiperPackagingStrategy,
                 new CabinFilterPackagingStrategy($command),
                 new OilFilterPackagingStrategy($command),

@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Import\Infrastructure\Providers;
 
 use App\Modules\Warehouse\Features\Import\Application\Factories\ImportFileFactory;
-use App\Modules\Warehouse\Features\Import\Application\Services\External\ExternalImportCacheService;
-use App\Modules\Warehouse\Features\Import\Application\Services\Kit\UpsertKitFromRowService;
-use App\Modules\Warehouse\Features\Import\Application\Services\Nomenclature\UpsertNomenclatureFromRowService;
-use App\Modules\Warehouse\Features\Import\Application\Services\PackDimension\UpsertPackDimensionFromRowService;
+use App\Modules\Warehouse\Features\Import\Application\Services\Kit\ImportKitFromRowService;
+use App\Modules\Warehouse\Features\Import\Application\Services\Nomenclature\ImportNomenclatureFromRowService;
+use App\Modules\Warehouse\Features\Import\Application\Services\PackDimension\ImportPackDimensionFromRowService;
 use App\Modules\Warehouse\Features\Import\Application\Services\TypeTemplateResolver;
 use App\Modules\Warehouse\Features\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\KitCommandInterface;
@@ -23,14 +22,18 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\PackDimension
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Notifications\ImportNotificationServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Reporting\FailuresExportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Reporting\ImportFailureStoreInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\BrandRepositoryInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit\UpsertKitFromRowServiceInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature\UpsertNomenclatureFromRowServiceInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimension\UpsertPackDimensionFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit\ImportKitFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature\ImportNomenclatureFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimension\ImportPackDimensionFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Storage\ExternalImportFileStorageInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Commands\KitCommand;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Commands\NomenclatureCommand;
@@ -42,10 +45,15 @@ use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Nomenclature\No
 use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\PackDimension\PackDimensionImport;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Notifications\RabbitMqImportNotificationService;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Reporting\FailuresExport;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Reporting\CacheImportFailureStore;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Reporting\ImportFailureReporter;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Repositories\BrandRepository;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Repositories\KitRepository;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Repositories\NomenclatureRepository;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Repositories\PackDimensionRepository;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Repositories\TypeRepository;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Services\External\ExternalImportCacheService;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Storage\LaravelExternalImportFileStorage;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -69,14 +77,17 @@ final class ImportServiceProvider extends ServiceProvider
         TypeRepositoryInterface::class => TypeRepository::class,
         BrandRepositoryInterface::class => BrandRepository::class,
         NomenclatureRepositoryInterface::class => NomenclatureRepository::class,
+        PackDimensionRepositoryInterface::class => PackDimensionRepository::class,
+        KitRepositoryInterface::class => KitRepository::class,
     ];
 
     private const array SERVICE_BINDINGS = [
         TypeTemplateResolverInterface::class => TypeTemplateResolver::class,
-        UpsertNomenclatureFromRowServiceInterface::class => UpsertNomenclatureFromRowService::class,
-        UpsertPackDimensionFromRowServiceInterface::class => UpsertPackDimensionFromRowService::class,
-        UpsertKitFromRowServiceInterface::class => UpsertKitFromRowService::class,
+        ImportNomenclatureFromRowServiceInterface::class => ImportNomenclatureFromRowService::class,
+        ImportPackDimensionFromRowServiceInterface::class => ImportPackDimensionFromRowService::class,
+        ImportKitFromRowServiceInterface::class => ImportKitFromRowService::class,
         ExternalImportCacheServiceInterface::class => ExternalImportCacheService::class,
+        ExternalImportFileStorageInterface::class => LaravelExternalImportFileStorage::class,
     ];
 
     private const array FACTORY_BINDINGS = [
@@ -89,6 +100,7 @@ final class ImportServiceProvider extends ServiceProvider
 
     private const array REPORTING_BINDINGS = [
         ImportFailureReporterInterface::class => ImportFailureReporter::class,
+        ImportFailureStoreInterface::class => CacheImportFailureStore::class,
         FailuresExportInterface::class => FailuresExport::class,
     ];
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\MoySklad\Infrastructure\Repositories;
 
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Repositories\NomenclatureIntegrationRepositoryInterface;
-use App\Modules\Warehouse\Features\MoySklad\Domain\Enums\MoySkladIntegrationStatusEnum;
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureIntegrationData;
 use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\NomenclatureIntegration;
 
@@ -14,24 +13,6 @@ use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\NomenclatureIn
  */
 final readonly class NomenclatureIntegrationRepository implements NomenclatureIntegrationRepositoryInterface
 {
-    /**
-     * Возвращает существующую связь или создаёт pending-связь для номенклатуры.
-     */
-    public function firstOrCreateForNomenclature(int $nomenclatureId): NomenclatureIntegrationData
-    {
-        $integration = NomenclatureIntegration::query()->firstOrCreate(
-            attributes: [
-                'provider' => NomenclatureIntegration::PROVIDER,
-                'nomenclature_id' => $nomenclatureId,
-            ],
-            values: [
-                'sync_status' => MoySkladIntegrationStatusEnum::Pending->value,
-            ],
-        );
-
-        return NomenclatureIntegrationData::from($integration);
-    }
-
     /**
      * Возвращает связь номенклатуры с МойСклад или null.
      */

@@ -12,7 +12,12 @@ use App\Modules\Warehouse\Features\Import\Domain\ModelData\PackDimensionData;
 interface PackDimensionCommandInterface
 {
     /**
-     * Обновляет запись по id, если она существует, иначе создаёт новую.
+     * Обновляет упаковочный размер по id.
      */
-    public function upsertById(PackDimensionData $data): PackDimensionData;
+    public function updateById(PackDimensionData $data): PackDimensionData;
+
+    /**
+     * Создаёт новый упаковочный размер.
+     */
+    public function create(PackDimensionData $data): PackDimensionData;
 }

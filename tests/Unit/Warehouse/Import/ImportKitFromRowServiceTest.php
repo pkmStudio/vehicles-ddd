@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\Import;
 
-use App\Modules\Warehouse\Features\Import\Application\Services\Kit\UpsertKitFromRowService;
+use App\Modules\Warehouse\Features\Import\Application\Services\Kit\ImportKitFromRowService;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\KitProperties\KitPropertiesDTO;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\KitData;
@@ -17,7 +18,7 @@ use InvalidArgumentException;
 use Mockery;
 use Tests\TestCase;
 
-final class UpsertKitFromRowServiceTest extends TestCase
+final class ImportKitFromRowServiceTest extends TestCase
 {
     private function nomenclature(int $id, string $partNumber): NomenclatureData
     {
@@ -39,7 +40,7 @@ final class UpsertKitFromRowServiceTest extends TestCase
         );
     }
 
-    public function test_upserts_kit_from_valid_row(): void
+    public function test_creates_kit_from_valid_row_when_import_hash_is_new(): void
     {
         $n1 = $this->nomenclature(11, 'A-1');
         $n2 = $this->nomenclature(12, 'A-2');
@@ -82,7 +83,7 @@ final class UpsertKitFromRowServiceTest extends TestCase
         );
 
         $command = Mockery::mock(KitCommandInterface::class);
-        $command->shouldReceive('upsert')
+        $command->shouldReceive('create')
             ->once()
             ->with(
                 Mockery::on(function (KitData $data): bool {
@@ -95,14 +96,19 @@ final class UpsertKitFromRowServiceTest extends TestCase
                         && $data->isSaleSeparately === true
                         && $data->isActive === false;
                 }),
-                null,
                 [11, 12],
             )
             ->andReturn($expected);
 
-        $service = new UpsertKitFromRowService($repository, $kitProperties, $command);
+        $kits = Mockery::mock(KitRepositoryInterface::class);
+        $kits->shouldReceive('findByImportHash')
+            ->once()
+            ->with('hash-1')
+            ->andReturnNull();
 
-        $result = $service->upsertFromRow(['', 'A-1;A-2', 'Да', 'Нет']);
+        $service = new ImportKitFromRowService($repository, $kits, $kitProperties, $command);
+
+        $result = $service->importFromRow(['', 'A-1;A-2', 'Да', 'Нет']);
 
         $this->assertSame($expected, $result);
     }
@@ -120,12 +126,13 @@ final class UpsertKitFromRowServiceTest extends TestCase
         $kitProperties->shouldNotReceive('build');
 
         $command = Mockery::mock(KitCommandInterface::class);
-        $command->shouldNotReceive('upsert');
+        $command->shouldNotReceive('create');
+        $command->shouldNotReceive('updateById');
 
-        $service = new UpsertKitFromRowService($repository, $kitProperties, $command);
+        $service = new ImportKitFromRowService($repository, Mockery::mock(KitRepositoryInterface::class), $kitProperties, $command);
 
         $this->expectException(InvalidArgumentException::class);
-        $service->upsertFromRow(['', 'A-1;A-MISSING', 'Нет', 'Да']);
+        $service->importFromRow(['', 'A-1;A-MISSING', 'Нет', 'Да']);
     }
 
     public function test_throws_when_pack_dimension_not_resolved(): void
@@ -149,12 +156,13 @@ final class UpsertKitFromRowServiceTest extends TestCase
         $kitProperties->shouldReceive('build')->once()->andReturn($properties);
 
         $command = Mockery::mock(KitCommandInterface::class);
-        $command->shouldNotReceive('upsert');
+        $command->shouldNotReceive('create');
+        $command->shouldNotReceive('updateById');
 
-        $service = new UpsertKitFromRowService($repository, $kitProperties, $command);
+        $service = new ImportKitFromRowService($repository, Mockery::mock(KitRepositoryInterface::class), $kitProperties, $command);
 
         $this->expectException(InvalidArgumentException::class);
-        $service->upsertFromRow(['', 'A-1', 'Нет', 'Да']);
+        $service->importFromRow(['', 'A-1', 'Нет', 'Да']);
     }
 
     public function test_throws_when_part_number_list_is_empty(): void
@@ -162,14 +170,15 @@ final class UpsertKitFromRowServiceTest extends TestCase
         $repository = Mockery::mock(NomenclatureRepositoryInterface::class);
         $repository->shouldNotReceive('findByPartNumbers');
 
-        $service = new UpsertKitFromRowService(
+        $service = new ImportKitFromRowService(
             $repository,
+            Mockery::mock(KitRepositoryInterface::class),
             Mockery::mock(KitPropertiesClientInterface::class),
             Mockery::mock(KitCommandInterface::class),
         );
 
         $this->expectException(InvalidArgumentException::class);
-        $service->upsertFromRow(['', '', 'Нет', 'Да']);
+        $service->importFromRow(['', '', 'Нет', 'Да']);
     }
 
     protected function tearDown(): void

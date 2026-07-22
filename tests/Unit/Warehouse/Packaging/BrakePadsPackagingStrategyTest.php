@@ -11,6 +11,7 @@ use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\PackDimensionData;
 use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
 use Mockery;
+use Psr\Log\NullLogger;
 use Tests\TestCase;
 
 final class BrakePadsPackagingStrategyTest extends TestCase
@@ -20,7 +21,7 @@ final class BrakePadsPackagingStrategyTest extends TestCase
         $command = Mockery::mock(PackDimensionCommandInterface::class);
         $command->shouldNotReceive('create');
 
-        $strategy = new BrakePadsPackagingStrategy($command);
+        $strategy = new BrakePadsPackagingStrategy($command, new NullLogger);
 
         $nomenclature = new NomenclatureData(partNumber: ' bp-001 ', quantityInPak: 2, details: []);
         $matchingBox = new PackDimensionData(name: 'BP-001', weight: 5, width: 100, height: 30, length: 200, price: 5, typeId: 1, id: 9);
@@ -36,7 +37,7 @@ final class BrakePadsPackagingStrategyTest extends TestCase
         $command = Mockery::mock(PackDimensionCommandInterface::class);
         $command->shouldNotReceive('create');
 
-        $strategy = new BrakePadsPackagingStrategy($command);
+        $strategy = new BrakePadsPackagingStrategy($command, new NullLogger);
 
         $nomenclature = new NomenclatureData(
             partNumber: 'BP-999',

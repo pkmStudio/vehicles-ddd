@@ -8,7 +8,6 @@ use App\Modules\Warehouse\Features\Catalog\Application\Factories\BrandMutationRe
 use App\Modules\Warehouse\Features\Catalog\Application\Factories\KitMutationRequestFactory;
 use App\Modules\Warehouse\Features\Catalog\Application\Factories\NomenclatureMutationRequestFactory;
 use App\Modules\Warehouse\Features\Catalog\Application\Factories\PackDimensionMutationRequestFactory;
-use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogMutationCacheService;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogMutationResultService;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\CreateBrandUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\DeleteBrandUseCase;
@@ -70,6 +69,7 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\KitReposi
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\PackDimensionRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\TypeRepository;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Services\WarehouseCatalogMutationCacheService;
 use Illuminate\Support\ServiceProvider;
 
 /**

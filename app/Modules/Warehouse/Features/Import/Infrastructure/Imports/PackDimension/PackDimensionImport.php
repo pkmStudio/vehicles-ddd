@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Import\Infrastructure\Imports\PackDimension;
 
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\PackDimensionImportInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimension\UpsertPackDimensionFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimension\ImportPackDimensionFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\PackDimensionImportCompleted;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Traits\CachesImportFailures;
@@ -38,7 +38,7 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
      * Получает построчный сервис импорта упаковочных размеров.
      */
     public function __construct(
-        private readonly UpsertPackDimensionFromRowServiceInterface $service,
+        private readonly ImportPackDimensionFromRowServiceInterface $service,
     ) {}
 
     /**
@@ -80,7 +80,7 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
             $rowValues = $row->toArray();
 
             try {
-                $this->service->upsertFromRow($rowValues);
+                $this->service->importFromRow($rowValues);
             } catch (InvalidArgumentException $e) {
                 $failure = new Failure(
                     row: $indexRow + $this->startRow(),

@@ -15,6 +15,20 @@ use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\NomenclatureIn
 final readonly class NomenclatureIntegrationCommand implements NomenclatureIntegrationCommandInterface
 {
     /**
+     * Создаёт pending-связь для номенклатуры.
+     */
+    public function createPendingForNomenclature(int $nomenclatureId): NomenclatureIntegrationData
+    {
+        $integration = NomenclatureIntegration::query()->create([
+            'provider' => NomenclatureIntegration::PROVIDER,
+            'nomenclature_id' => $nomenclatureId,
+            'sync_status' => MoySkladIntegrationStatusEnum::Pending->value,
+        ]);
+
+        return NomenclatureIntegrationData::from($integration);
+    }
+
+    /**
      * Отмечает successful sync и сохраняет external ids/hash.
      */
     public function markSynced(

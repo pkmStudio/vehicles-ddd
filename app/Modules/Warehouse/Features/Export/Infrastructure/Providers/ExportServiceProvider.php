@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Export\Infrastructure\Providers;
 
 use App\Modules\Warehouse\Features\Export\Application\Factories\ExportFileFactory;
-use App\Modules\Warehouse\Features\Export\Application\Services\External\CleanupStaleExportFilesService;
-use App\Modules\Warehouse\Features\Export\Application\Services\External\ExportRunCacheService;
 use App\Modules\Warehouse\Features\Export\Application\Services\KitExportService;
 use App\Modules\Warehouse\Features\Export\Application\Services\NomenclatureExportService;
 use App\Modules\Warehouse\Features\Export\Application\Services\Rows\KitExportRow;
@@ -14,6 +12,7 @@ use App\Modules\Warehouse\Features\Export\Application\Services\Rows\Nomenclature
 use App\Modules\Warehouse\Features\Export\Application\Services\TypeTemplateResolver;
 use App\Modules\Warehouse\Features\Export\Application\UseCases\External\StartExportUseCase;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\Clients\WiperAdapterAuditClientInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\KitExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\NomenclatureByTypeExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\WiperAdapterAuditExportInterface;
@@ -34,10 +33,13 @@ use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Kit\KitExport;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Nomenclature\NomenclatureByTypeExport;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\WiperAdapterAudit\WiperAdapterAuditExport;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Clients\TemplatesClient;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Clients\WiperAdapterAuditClient;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Repositories\KitRepository;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Repositories\NomenclatureRepository;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Repositories\TypeRepository;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Services\External\CleanupStaleExportFilesService;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Services\External\ExportRunCacheService;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -77,6 +79,7 @@ final class ExportServiceProvider extends ServiceProvider
 
     private const array CLIENT_BINDINGS = [
         TemplatesClientInterface::class => TemplatesClient::class,
+        WiperAdapterAuditClientInterface::class => WiperAdapterAuditClient::class,
     ];
 
     /**

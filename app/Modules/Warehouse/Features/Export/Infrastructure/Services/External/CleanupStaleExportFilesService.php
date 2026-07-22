@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Warehouse\Features\Export\Application\Services\External;
+namespace App\Modules\Warehouse\Features\Export\Infrastructure\Services\External;
 
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\External\CleanupStaleExportFilesServiceInterface;
 use Illuminate\Support\Facades\Storage;
@@ -23,11 +23,6 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
 
     /**
      * Удаляет сгенерированные файлы старше retention-порога.
-     *
-     * Шаги:
-     * 1) Прочитать disk, директорию и retention из конфига экспорта.
-     * 2) Оставить только файлы, похожие на Warehouse-экспорт.
-     * 3) Удалить устаревшие файлы и вернуть их количество.
      */
     public function cleanup(): int
     {

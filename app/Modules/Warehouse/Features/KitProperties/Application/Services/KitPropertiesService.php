@@ -14,8 +14,8 @@ use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\PackDimension
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
+use Psr\Log\LoggerInterface;
 use UnexpectedValueException;
 
 /**
@@ -30,6 +30,7 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
     public function __construct(
         private PackagingClientInterface $packaging,
         private KitComplectationServiceInterface $complectationService,
+        private LoggerInterface $logger,
         private array $strategies,
     ) {}
 
@@ -104,9 +105,7 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
                 nomenclatures: $primary->all(),
             );
         } catch (PackDimensionNotResolvableException $e) {
-            Log::warning(
-                message: "Не удалось рассчитать упаковку для типа {$type->name}: {$e->getMessage()}",
-            );
+            $this->logger->warning("Не удалось рассчитать упаковку для типа {$type->name}: {$e->getMessage()}");
 
             return null;
         }
@@ -155,9 +154,9 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
         $typeName = $matching?->type?->name;
 
         if ($typeName === null) {
-            Log::warning(
-                message: 'KitPropertiesService: не удалось сформировать комплектацию',
-                context: [
+            $this->logger->warning(
+                'KitPropertiesService: не удалось сформировать комплектацию',
+                [
                     'part_numbers' => $primary->pluck('partNumber')->all(),
                 ],
             );
@@ -171,9 +170,9 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
         $material = $materials->first($isFilledMaterial) ?? [];
 
         if ($quantity <= 0) {
-            Log::warning(
-                message: 'KitPropertiesService: quantity <= 0, forcing 1',
-                context: [
+            $this->logger->warning(
+                'KitPropertiesService: quantity <= 0, forcing 1',
+                [
                     'part_numbers' => $primary->pluck('partNumber')->all(),
                 ],
             );

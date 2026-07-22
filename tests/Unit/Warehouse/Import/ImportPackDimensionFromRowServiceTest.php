@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Warehouse\Import;
 
-use App\Modules\Warehouse\Features\Import\Application\Services\PackDimension\UpsertPackDimensionFromRowService;
+use App\Modules\Warehouse\Features\Import\Application\Services\PackDimension\ImportPackDimensionFromRowService;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\PackDimensionCommandInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\PackDimensionData;
 use InvalidArgumentException;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
-final class UpsertPackDimensionFromRowServiceTest extends TestCase
+final class ImportPackDimensionFromRowServiceTest extends TestCase
 {
     /** [id, name, weight, width, height, length, price, type_id] */
     private function validRow(): array
@@ -20,12 +21,12 @@ final class UpsertPackDimensionFromRowServiceTest extends TestCase
         return ['', 'Test Box', '150', '20', '30', '40', '500', '5'];
     }
 
-    public function test_upserts_valid_row(): void
+    public function test_creates_valid_row_without_existing_id(): void
     {
         $expected = new PackDimensionData(name: 'Test Box', weight: 150, width: 20, height: 30, length: 40, price: 500, typeId: 5);
 
         $command = Mockery::mock(PackDimensionCommandInterface::class);
-        $command->shouldReceive('upsertById')
+        $command->shouldReceive('create')
             ->once()
             ->with(Mockery::on(function (PackDimensionData $data): bool {
                 return $data->id === null
@@ -39,25 +40,34 @@ final class UpsertPackDimensionFromRowServiceTest extends TestCase
             }))
             ->andReturn($expected);
 
-        $service = new UpsertPackDimensionFromRowService($command);
+        $repository = Mockery::mock(PackDimensionRepositoryInterface::class);
+        $repository->shouldNotReceive('findById');
 
-        $this->assertSame($expected, $service->upsertFromRow($this->validRow()));
+        $service = new ImportPackDimensionFromRowService($repository, $command);
+
+        $this->assertSame($expected, $service->importFromRow($this->validRow()));
     }
 
-    public function test_parses_id_when_present(): void
+    public function test_updates_when_id_exists(): void
     {
         $row = $this->validRow();
         $row[0] = '42';
 
         $command = Mockery::mock(PackDimensionCommandInterface::class);
-        $command->shouldReceive('upsertById')
+        $command->shouldReceive('updateById')
             ->once()
             ->with(Mockery::on(fn (PackDimensionData $data) => $data->id === 42))
             ->andReturn(new PackDimensionData(name: 'Test Box', weight: 150, width: 20, height: 30, length: 40, price: 500, typeId: 5, id: 42));
 
-        $service = new UpsertPackDimensionFromRowService($command);
+        $repository = Mockery::mock(PackDimensionRepositoryInterface::class);
+        $repository->shouldReceive('findById')
+            ->once()
+            ->with(42)
+            ->andReturn(new PackDimensionData(name: 'Old Box', weight: 100, width: 10, height: 10, length: 10, price: 100, typeId: 5, id: 42));
 
-        $this->assertSame(42, $service->upsertFromRow($row)->id);
+        $service = new ImportPackDimensionFromRowService($repository, $command);
+
+        $this->assertSame(42, $service->importFromRow($row)->id);
     }
 
     public function test_throws_when_name_empty(): void
@@ -65,10 +75,10 @@ final class UpsertPackDimensionFromRowServiceTest extends TestCase
         $row = $this->validRow();
         $row[1] = '';
 
-        $service = new UpsertPackDimensionFromRowService(Mockery::mock(PackDimensionCommandInterface::class));
+        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
 
         $this->expectException(InvalidArgumentException::class);
-        $service->upsertFromRow($row);
+        $service->importFromRow($row);
     }
 
     #[DataProvider('nonPositiveDimensionProvider')]
@@ -77,10 +87,10 @@ final class UpsertPackDimensionFromRowServiceTest extends TestCase
         $row = $this->validRow();
         $row[$column] = '0';
 
-        $service = new UpsertPackDimensionFromRowService(Mockery::mock(PackDimensionCommandInterface::class));
+        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
 
         $this->expectException(InvalidArgumentException::class);
-        $service->upsertFromRow($row);
+        $service->importFromRow($row);
     }
 
     /**
@@ -101,10 +111,10 @@ final class UpsertPackDimensionFromRowServiceTest extends TestCase
         $row = $this->validRow();
         $row[6] = '-1';
 
-        $service = new UpsertPackDimensionFromRowService(Mockery::mock(PackDimensionCommandInterface::class));
+        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
 
         $this->expectException(InvalidArgumentException::class);
-        $service->upsertFromRow($row);
+        $service->importFromRow($row);
     }
 
     public function test_throws_when_type_id_not_positive(): void
@@ -112,10 +122,10 @@ final class UpsertPackDimensionFromRowServiceTest extends TestCase
         $row = $this->validRow();
         $row[7] = '0';
 
-        $service = new UpsertPackDimensionFromRowService(Mockery::mock(PackDimensionCommandInterface::class));
+        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
 
         $this->expectException(InvalidArgumentException::class);
-        $service->upsertFromRow($row);
+        $service->importFromRow($row);
     }
 
     protected function tearDown(): void

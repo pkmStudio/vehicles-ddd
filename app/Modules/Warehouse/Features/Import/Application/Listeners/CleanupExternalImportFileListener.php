@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Import\Application\Listeners;
 
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Storage\ExternalImportFileStorageInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Events\AbstractImportCompleted;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Удаляет исходный файл внешнего Warehouse-импорта после того, как импорт реально завершился.
@@ -20,6 +20,7 @@ final readonly class CleanupExternalImportFileListener
      */
     public function __construct(
         private ExternalImportCacheServiceInterface $cache,
+        private ExternalImportFileStorageInterface $storage,
     ) {}
 
     /**
@@ -37,6 +38,6 @@ final readonly class CleanupExternalImportFileListener
             return;
         }
 
-        Storage::disk($cleanup->disk)->delete($cleanup->path);
+        $this->storage->delete($cleanup->disk, $cleanup->path);
     }
 }

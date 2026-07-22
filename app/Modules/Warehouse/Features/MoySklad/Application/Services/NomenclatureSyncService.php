@@ -12,8 +12,7 @@ use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Services\Nomenclatu
 use App\Modules\Warehouse\Features\MoySklad\Domain\Enums\MoySkladIntegrationStatusEnum;
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureIntegrationData;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -30,10 +29,11 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         private NomenclatureIntegrationRepositoryInterface $integrations,
         private NomenclatureIntegrationCommandInterface $integrationCommand,
         private NomenclatureProductMapper $mapper,
+        private LoggerInterface $logger,
     ) {}
 
     /**
-     * Синхронизирует одну номенклатуру: грузит модель, создаёт integration и делает upsert товара.
+     * Синхронизирует одну номенклатуру: грузит модель, создаёт integration и отправляет товар.
      */
     public function sync(int $nomenclatureId): void
     {
@@ -46,14 +46,15 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         $nomenclature = $this->nomenclatures->findById($nomenclatureId);
 
         if ($nomenclature === null) {
-            Log::warning('MoySklad: номенклатура для sync не найдена.', [
+            $this->logger->warning('MoySklad: номенклатура для sync не найдена.', [
                 'nomenclature_id' => $nomenclatureId,
             ]);
 
             return;
         }
 
-        $integration = $this->integrations->firstOrCreateForNomenclature($nomenclature->id);
+        $integration = $this->integrations->findByNomenclatureId($nomenclature->id)
+            ?? $this->integrationCommand->createPendingForNomenclature($nomenclature->id);
 
         $productFolderMeta = $this->resolveProductFolderMeta($nomenclature);
         $payload = $this->mapper->map($nomenclature, $productFolderMeta);
@@ -65,12 +66,12 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         }
 
         try {
-            $product = $this->upsertProduct($integration, $nomenclature, $payload, $productFolderMeta);
+            $product = $this->saveProduct($integration, $nomenclature, $payload, $productFolderMeta);
             $this->markSyncSuccess($integration, $product, $payload, $payloadHash);
         } catch (Throwable $e) {
             $this->markSyncFailure($integration, $e);
 
-            Log::error('MoySklad: ошибка синхронизации номенклатуры.', [
+            $this->logger->error('MoySklad: ошибка синхронизации номенклатуры.', [
                 'nomenclature_id' => $nomenclature->id,
                 'part_number' => $nomenclature->partNumber,
                 'error' => $e->getMessage(),
@@ -97,7 +98,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         $productId = $this->resolveDeleteProductId($nomenclatureId, $partNumber, $externalId, $integration);
 
         if ($productId === null) {
-            Log::warning('MoySklad: товар для удаления не найден, операция пропущена.', [
+            $this->logger->warning('MoySklad: товар для удаления не найден, операция пропущена.', [
                 'nomenclature_id' => $nomenclatureId,
                 'part_number' => $partNumber,
             ]);
@@ -116,7 +117,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
                 $this->integrationCommand->markFailed($integration, $e->getMessage());
             }
 
-            Log::error('MoySklad: ошибка удаления номенклатуры.', [
+            $this->logger->error('MoySklad: ошибка удаления номенклатуры.', [
                 'nomenclature_id' => $nomenclatureId,
                 'part_number' => $partNumber,
                 'moysklad_product_id' => $productId,
@@ -152,13 +153,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
             return [];
         }
 
-        $resolveProductFolderMeta = fn (): array => $this->client->ensureProductFolderMetaByName($typeName);
-
-        return Cache::remember(
-            'warehouse:moysklad:product_folder_meta:'.md5($typeName),
-            (int) config('warehouse.moysklad.nomenclature_sync.product_folders.cache_ttl_seconds', 3600),
-            $resolveProductFolderMeta,
-        );
+        return $this->client->ensureProductFolderMetaByName($typeName);
     }
 
     /**
@@ -179,7 +174,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
      * @param  array<string, mixed>  $productFolderMeta
      * @return array<string, mixed>
      */
-    private function upsertProduct(NomenclatureIntegrationData $integration, NomenclatureData $nomenclature, array $payload, array $productFolderMeta): array
+    private function saveProduct(NomenclatureIntegrationData $integration, NomenclatureData $nomenclature, array $payload, array $productFolderMeta): array
     {
         if (is_string($integration->externalId) && $integration->externalId !== '') {
             return $this->client->updateById($integration->externalId, $payload);

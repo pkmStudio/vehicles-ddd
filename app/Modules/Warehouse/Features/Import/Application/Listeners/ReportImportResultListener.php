@@ -6,6 +6,7 @@ namespace App\Modules\Warehouse\Features\Import\Application\Listeners;
 
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Notifications\ImportNotificationServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Reporting\ImportFailureStoreInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportCompletionNotificationDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportCompletionStatusEnum;
 use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportTypeEnum;
@@ -13,7 +14,6 @@ use App\Modules\Warehouse\Features\Import\Domain\Events\AbstractImportCompleted;
 use App\Modules\Warehouse\Features\Import\Domain\Events\KitImportCompleted;
 use App\Modules\Warehouse\Features\Import\Domain\Events\NomenclatureImportCompleted;
 use App\Modules\Warehouse\Features\Import\Domain\Events\PackDimensionImportCompleted;
-use Illuminate\Support\Facades\Cache;
 use RuntimeException;
 
 /**
@@ -29,6 +29,7 @@ final readonly class ReportImportResultListener
      */
     public function __construct(
         private ImportFailureReporterInterface $reporter,
+        private ImportFailureStoreInterface $failures,
         private ImportNotificationServiceInterface $notifier,
     ) {}
 
@@ -43,8 +44,7 @@ final readonly class ReportImportResultListener
      */
     public function handle(AbstractImportCompleted $event): void
     {
-        $failures = Cache::get($event->cacheKey, []);
-        Cache::forget($event->cacheKey);
+        $failures = $this->failures->pull($event->cacheKey);
 
         $reportPath = $this->reporter->store($failures);
 

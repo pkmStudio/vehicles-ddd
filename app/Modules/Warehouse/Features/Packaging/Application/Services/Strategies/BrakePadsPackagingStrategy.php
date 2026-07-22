@@ -10,8 +10,9 @@ use App\Modules\Warehouse\Features\Packaging\Domain\DTOs\PackagingBoxRequirement
 use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\PackDimensionData;
 use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\TypeData;
+use App\Modules\Warehouse\Features\Packaging\Domain\Contracts\Commands\PackDimensionCommandInterface;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
+use Psr\Log\LoggerInterface;
 
 /**
  * Подбирает упаковку для тормозных колодок. Сперва пробует точное совпадение по артикулу (в
@@ -21,6 +22,16 @@ use Illuminate\Support\Facades\Log;
  */
 final readonly class BrakePadsPackagingStrategy extends AbstractPackagingStrategy implements PackagingStrategyInterface
 {
+    /**
+     * Получает команду создания упаковки и logger fallback-сценариев.
+     */
+    public function __construct(
+        PackDimensionCommandInterface $command,
+        private LoggerInterface $logger,
+    ) {
+        parent::__construct($command);
+    }
+
     /**
      * Проверяет, что стратегия применима к detail-шаблону тормозных колодок.
      */
@@ -89,9 +100,9 @@ final readonly class BrakePadsPackagingStrategy extends AbstractPackagingStrateg
     private function resolveByPartNumber(array $nomenclatures, Collection $packDimensions): ?PackDimensionData
     {
         if (count($nomenclatures) !== 1) {
-            Log::warning(
-                message: 'BrakePadsPackagingStrategy: fallback to dimensions for multi-nomenclature kit',
-                context: [
+            $this->logger->warning(
+                'BrakePadsPackagingStrategy: fallback to dimensions for multi-nomenclature kit',
+                [
                     'nomenclatures_count' => count($nomenclatures),
                 ],
             );
@@ -102,7 +113,7 @@ final readonly class BrakePadsPackagingStrategy extends AbstractPackagingStrateg
         $partNumber = mb_strtolower(trim($nomenclatures[array_key_first($nomenclatures)]->partNumber));
 
         if ($partNumber === '') {
-            Log::warning('BrakePadsPackagingStrategy: fallback to dimensions because part number is empty');
+            $this->logger->warning('BrakePadsPackagingStrategy: fallback to dimensions because part number is empty');
 
             return null;
         }
@@ -114,9 +125,9 @@ final readonly class BrakePadsPackagingStrategy extends AbstractPackagingStrateg
         );
 
         if ($matched === null) {
-            Log::warning(
-                message: 'BrakePadsPackagingStrategy: fallback to dimensions because box not found by part number',
-                context: [
+            $this->logger->warning(
+                'BrakePadsPackagingStrategy: fallback to dimensions because box not found by part number',
+                [
                     'part_number' => $partNumber,
                 ],
             );

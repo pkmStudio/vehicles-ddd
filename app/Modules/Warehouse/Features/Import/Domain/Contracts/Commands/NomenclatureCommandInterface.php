@@ -17,7 +17,7 @@ interface NomenclatureCommandInterface
     public function updateById(NomenclatureData $data): NomenclatureData;
 
     /**
-     * Создаёт запись либо обновляет существующую по уникальному part_number.
+     * Создаёт новую номенклатуру.
      */
-    public function upsertByPartNumber(NomenclatureData $data): NomenclatureData;
+    public function create(NomenclatureData $data): NomenclatureData;
 }

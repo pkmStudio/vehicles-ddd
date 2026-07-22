@@ -49,14 +49,11 @@ final readonly class NomenclatureCommand implements NomenclatureCommandInterface
     }
 
     /**
-     * Создаёт запись либо обновляет существующую по уникальному part_number.
+     * Создаёт новую номенклатуру.
      */
-    public function upsertByPartNumber(NomenclatureData $data): NomenclatureData
+    public function create(NomenclatureData $data): NomenclatureData
     {
-        $nomenclature = Nomenclature::query()->updateOrCreate(
-            attributes: ['part_number' => $data->partNumber],
-            values: $this->payload($data),
-        );
+        $nomenclature = Nomenclature::query()->create($this->payload($data));
 
         return NomenclatureData::from($nomenclature);
     }

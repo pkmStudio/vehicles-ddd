@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Export\Infrastructure\Exports\WiperAdapterAudit;
 
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\WiperAdapterAuditExportInterface;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\Clients\WiperAdapterAuditClientInterface;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportRunContextDTO;
-use App\Modules\Warehouse\Features\WiperAdapterAudit\Domain\Contracts\Services\WiperAdapterAuditServiceInterface;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -24,7 +24,7 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
      * Получает сервис расчёта готовых строк отчёта.
      */
     public function __construct(
-        private WiperAdapterAuditServiceInterface $audit,
+        private WiperAdapterAuditClientInterface $audit,
     ) {}
 
     /**

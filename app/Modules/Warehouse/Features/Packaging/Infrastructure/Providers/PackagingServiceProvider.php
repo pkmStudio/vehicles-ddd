@@ -21,8 +21,10 @@ use App\Modules\Warehouse\Features\Packaging\Domain\Contracts\Services\Strategie
 use App\Modules\Warehouse\Features\Packaging\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Warehouse\Features\Packaging\Infrastructure\Commands\PackDimensionCommand;
 use App\Modules\Warehouse\Features\Packaging\Infrastructure\Repositories\PackDimensionRepository;
+use App\Modules\Warehouse\Shared\Infrastructure\Logging\LaravelLoggerProxy;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
+use Psr\Log\LoggerInterface;
 
 /**
  * Регистрирует DI-биндинги вертикального среза Warehouse Packaging.
@@ -73,6 +75,11 @@ final class PackagingServiceProvider extends ServiceProvider
                     self::STRATEGY_CLASSES,
                 );
             });
+
+        $this->app
+            ->when(concrete: BrakePadsPackagingStrategy::class)
+            ->needs(abstract: LoggerInterface::class)
+            ->give(implementation: LaravelLoggerProxy::class);
 
         foreach (self::REPOSITORY_BINDINGS as $interface => $implementation) {
             $this->app->bind(

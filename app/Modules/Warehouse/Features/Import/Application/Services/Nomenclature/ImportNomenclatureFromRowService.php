@@ -6,7 +6,8 @@ namespace App\Modules\Warehouse\Features\Import\Application\Services\Nomenclatur
 
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\NomenclatureCommandInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature\UpsertNomenclatureFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature\ImportNomenclatureFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
@@ -15,16 +16,10 @@ use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
 /**
- * Резолвит type_id/brand_id и detail-шаблон по предзагруженным справочникам, собирает `details`
- * через локальный Templates-клиент и пишет Warehouse-номенклатуру через Command.
+ * Резолвит type_id/brand_id и detail-шаблон по справочникам, собирает details и пишет номенклатуру.
  */
-final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclatureFromRowServiceInterface
+final readonly class ImportNomenclatureFromRowService implements ImportNomenclatureFromRowServiceInterface
 {
-    /**
-     * Русские Excel-лейблы материала → внутренний ключ. Обратная сторона констант
-     * `Warehouse\Export\Application\Services\Rows\NomenclatureExportRow::MATERIAL_LABELS` —
-     * значения должны совпадать 1:1, чтобы Import понимал то, что выгружает Export.
-     */
     private const array MATERIAL_KEYS_BY_LABEL = [
         'НИКЕЛЬ' => 'NICKEL',
         'ПЛАТИНА' => 'PLATINUM',
@@ -40,10 +35,6 @@ final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclat
         'ПЛАСТИК' => 'PLASTIC',
     ];
 
-    /**
-     * Русские Excel-лейблы вида техники → внутренний ключ. Обратная сторона
-     * `NomenclatureExportRow::VEHICLE_TYPE_LABELS`.
-     */
     private const array VEHICLE_TYPE_KEYS_BY_LABEL = [
         'ЛЕГКОВЫЕ АВТОМОБИЛИ' => 'CAR',
         'КОММЕРЧЕСКИЙ ТРАНСПОРТ' => 'TRUCK',
@@ -51,35 +42,26 @@ final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclat
         'ГРУЗОВЫЕ АВТОМОБИЛИ И АВТОБУСЫ' => 'BUS',
     ];
 
-    /**
-     * Позиция первой detail-колонки в строке — совпадает с базовыми заголовками Export
-     * (12 базовых колонок, индексы 0-11).
-     */
     private const int DETAILS_START_INDEX = 12;
 
     /**
-     * Получает команду записи, resolver шаблона и фабрику сборки details.
+     * Получает чтение номенклатуры, команду записи, resolver шаблона и фабрику details.
      */
     public function __construct(
+        private NomenclatureRepositoryInterface $nomenclatures,
         private NomenclatureCommandInterface $command,
         private TypeTemplateResolverInterface $templateResolver,
         private TemplatesClientInterface $templates,
     ) {}
 
     /**
-     * Этот метод резолвит type/brand/шаблон по строке, собирает details и пишет запись.
-     *
-     * Шаги:
-     * 1) Проиндексировать справочники типов/брендов по верхнему регистру имени.
-     * 2) Резолвить type_id и brand_id, бросить исключение, если не найдены.
-     * 3) Резолвить detail-шаблон типа и собрать details через Templates.
-     * 4) Собрать NomenclatureData и записать через Command (update по id либо upsert по артикулу).
+     * Валидирует строку и пишет номенклатуру через явные create/update команды.
      *
      * @param  array<int, mixed>  $row
      * @param  Collection<int, TypeData>  $types
      * @param  Collection<int, BrandData>  $brands
      */
-    public function upsertFromRow(array $row, Collection $types, Collection $brands): NomenclatureData
+    public function importFromRow(array $row, Collection $types, Collection $brands): NomenclatureData
     {
         $typeNameKey = fn (TypeData $type): string => mb_strtoupper(trim($type->name));
         $brandNameKey = fn (BrandData $brand): string => mb_strtoupper(trim($brand->name));
@@ -135,9 +117,39 @@ final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclat
             id: $id,
         );
 
-        return $id !== null
-            ? $this->command->updateById($data)
-            : $this->command->upsertByPartNumber($data);
+        if ($id !== null) {
+            return $this->command->updateById($data);
+        }
+
+        $existing = $this->nomenclatures->findByPartNumber($data->partNumber);
+        if ($existing !== null) {
+            return $this->command->updateById($this->withId($data, $existing->id));
+        }
+
+        return $this->command->create($data);
+    }
+
+    /**
+     * Возвращает копию data с id найденной записи.
+     */
+    private function withId(NomenclatureData $data, ?int $id): NomenclatureData
+    {
+        return new NomenclatureData(
+            typeId: $data->typeId,
+            brandId: $data->brandId,
+            name: $data->name,
+            country: $data->country,
+            partNumber: $data->partNumber,
+            color: $data->color,
+            weight: $data->weight,
+            material: $data->material,
+            vehicleType: $data->vehicleType,
+            quantityPak: $data->quantityPak,
+            quantityInPak: $data->quantityInPak,
+            details: $data->details,
+            id: $id,
+            type: $data->type,
+        );
     }
 
     /**
@@ -166,12 +178,7 @@ final readonly class UpsertNomenclatureFromRowService implements UpsertNomenclat
     }
 
     /**
-     * Этот метод переводит `;`-джойн русских лейблов в массив внутренних ключей.
-     * Шаги:
-     * 1) Пустая ячейка — вернуть пустой массив.
-     * 2) Разбить по `;`, обрезать пробелы, привести к верхнему регистру.
-     * 3) Лейблы без совпадения в словаре молча пропустить (то же поведение, что было у
-     *    `BuildDetails::getVarKeys()` в dan-center — не бросать исключение на мультиселекте).
+     * Переводит `;`-джойн русских лейблов в массив внутренних ключей.
      *
      * @param  array<string, string>  $keysByLabel
      * @return array<int, string>

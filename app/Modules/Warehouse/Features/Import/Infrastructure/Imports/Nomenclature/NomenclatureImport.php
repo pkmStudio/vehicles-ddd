@@ -6,11 +6,11 @@ namespace App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Nomenclat
 
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\BrandRepositoryInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\TypeRepositoryInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature\UpsertNomenclatureFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature\ImportNomenclatureFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\NomenclatureImportCompleted;
-use App\Modules\Warehouse\Features\Import\Infrastructure\Models\Nomenclature;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
@@ -44,9 +44,10 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
      * Получает построчный сервис импорта и справочники типов/брендов.
      */
     public function __construct(
-        private readonly UpsertNomenclatureFromRowServiceInterface $service,
+        private readonly ImportNomenclatureFromRowServiceInterface $service,
         private readonly TypeRepositoryInterface $types,
         private readonly BrandRepositoryInterface $brands,
+        private readonly NomenclatureRepositoryInterface $nomenclatures,
     ) {}
 
     /**
@@ -95,10 +96,10 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
             $id = isset($rowValues[0]) && trim((string) $rowValues[0]) !== '' ? (int) trim((string) $rowValues[0]) : null;
             $partNumber = trim((string) ($rowValues[5] ?? ''));
             $wasExisting = $id !== null
-                || ($partNumber !== '' && Nomenclature::query()->where('part_number', $partNumber)->exists());
+                || ($partNumber !== '' && $this->nomenclatures->findByPartNumber($partNumber) !== null);
 
             try {
-                $nomenclature = $this->service->upsertFromRow($rowValues, $types, $brands);
+                $nomenclature = $this->service->importFromRow($rowValues, $types, $brands);
                 $this->dispatchNomenclatureMutationEvent($nomenclature->toArray(), $wasExisting);
             } catch (InvalidArgumentException|RuntimeException $e) {
                 $failure = new Failure(

@@ -16,6 +16,7 @@ use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\PackDimension
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use Mockery;
+use Psr\Log\NullLogger;
 use Tests\TestCase;
 use UnexpectedValueException;
 
@@ -33,6 +34,7 @@ final class KitPropertiesServiceTest extends TestCase
         return new KitPropertiesService(
             packaging: $packaging,
             complectationService: $complectation,
+            logger: new NullLogger,
             strategies: [new WiperWithAdapterStrategy($wiperResolver), new SingleTypeStrategy],
         );
     }

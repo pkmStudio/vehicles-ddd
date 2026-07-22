@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\MoySklad\Infrastructure\Clients;
 
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Clients\MoySkladProductClientInterface;
+use Illuminate\Support\Facades\Cache;
 use PkmStudio\MoySkladClient\Endpoints\ProductEndpoint;
 use PkmStudio\MoySkladClient\Endpoints\ProductFolderEndpoint;
 
@@ -65,6 +66,20 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
      * Создаёт/находит папку товара по имени и возвращает её meta-блок.
      */
     public function ensureProductFolderMetaByName(string $name): array
+    {
+        $resolveProductFolderMeta = fn (): array => $this->resolveProductFolderMetaByName($name);
+
+        return Cache::remember(
+            'warehouse:moysklad:product_folder_meta:'.md5($name),
+            (int) config('warehouse.moysklad.nomenclature_sync.product_folders.cache_ttl_seconds', 3600),
+            $resolveProductFolderMeta,
+        );
+    }
+
+    /**
+     * Создаёт/находит папку товара по имени и возвращает её meta-блок без cache.
+     */
+    private function resolveProductFolderMetaByName(string $name): array
     {
         $folder = $this->productFolders->ensureByName($name);
         if (! is_array($folder) || empty($folder['id'])) {

@@ -12,6 +12,11 @@ use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureIntegra
 interface NomenclatureIntegrationCommandInterface
 {
     /**
+     * Создаёт pending-связь для номенклатуры.
+     */
+    public function createPendingForNomenclature(int $nomenclatureId): NomenclatureIntegrationData;
+
+    /**
      * Отмечает успешную синхронизацию связи.
      */
     public function markSynced(

@@ -4,46 +4,38 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Import\Application\Services\Kit;
 
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\KitCommandInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit\UpsertKitFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit\ImportKitFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
 use InvalidArgumentException;
 
 /**
- * Резолвит состав Warehouse-набора по артикулам, считает его свойства через `KitProperties`
- * (межфичевый вызов внутри домена — через порт, с явным переводом Data-объектов на границе, как и
- * `KitProperties → Packaging`) и пишет запись через Command.
+ * Резолвит состав Warehouse-набора, считает свойства через KitProperties и пишет набор.
  */
-final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceInterface
+final readonly class ImportKitFromRowService implements ImportKitFromRowServiceInterface
 {
     private const int GUARANTEE_MONTHS = 12;
 
     /**
-     * Получает чтение номенклатуры, расчёт свойств набора и команду записи Kit.
+     * Получает чтение номенклатуры/наборов, расчёт свойств набора и команду записи Kit.
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
+        private KitRepositoryInterface $kits,
         private KitPropertiesClientInterface $kitProperties,
         private KitCommandInterface $command,
     ) {}
 
     /**
-     * Этот метод резолвит артикулы, считает свойства набора и записывает его.
-     *
-     * Шаги:
-     * 1) Распарсить id и `;`-список артикулов.
-     * 2) Резолвить номенклатуры по артикулам, сохраняя исходный порядок — бросить исключение,
-     *    если хоть один артикул не найден.
-     * 3) Перевести номенклатуры в KitProperties-шные типы и посчитать свойства набора.
-     * 4) Если упаковка не определилась (смешанный комплект) — бросить исключение.
-     * 5) Собрать KitData и записать через Command (состав — в порядке артикулов строки).
+     * Валидирует строку и пишет набор.
      *
      * @param  array<int, mixed>  $row
      */
-    public function upsertFromRow(array $row): KitData
+    public function importFromRow(array $row): KitData
     {
         $idCell = isset($row[0]) ? trim((string) $row[0]) : '';
         $id = $idCell !== '' ? (int) $idCell : null;
@@ -54,7 +46,6 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
         }
 
         $ordered = $this->resolveOrderedNomenclatures($partNumbers);
-
         $properties = $this->kitProperties->build($ordered);
 
         if ($properties->packDimensionId === null) {
@@ -79,21 +70,62 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
         );
 
         $toNomenclatureId = fn (NomenclatureData $nomenclature): int => $this->nomenclatureId($nomenclature);
-
         $nomenclatureIds = array_map(
             $toNomenclatureId,
             $ordered,
         );
 
-        return $this->command->upsert(
-            data: $data,
-            kitId: $id,
-            nomenclatureIds: $nomenclatureIds,
+        $existing = $this->findExistingKit($data);
+        if ($existing === null) {
+            return $this->command->create($data, $nomenclatureIds);
+        }
+
+        return $this->command->updateById($this->withId($data, $existing->id), $nomenclatureIds);
+    }
+
+    /**
+     * Находит существующий набор по id или import hash.
+     */
+    private function findExistingKit(KitData $data): ?KitData
+    {
+        if ($data->id !== null) {
+            $kit = $this->kits->findById($data->id);
+
+            if ($kit !== null) {
+                return $kit;
+            }
+        }
+
+        if ($data->importHash === null) {
+            return null;
+        }
+
+        return $this->kits->findByImportHash($data->importHash);
+    }
+
+    /**
+     * Возвращает копию data с id найденной записи.
+     */
+    private function withId(KitData $data, ?int $id): KitData
+    {
+        return new KitData(
+            complectation: $data->complectation,
+            guarantee: $data->guarantee,
+            quantityInPackage: $data->quantityInPackage,
+            quantityPackage: $data->quantityPackage,
+            complement: $data->complement,
+            weight: $data->weight,
+            packDimensionId: $data->packDimensionId,
+            typeId: $data->typeId,
+            importHash: $data->importHash,
+            isSaleSeparately: $data->isSaleSeparately,
+            isActive: $data->isActive,
+            id: $id,
         );
     }
 
     /**
-     * Этот метод разбирает `;`-список артикулов, обрезая пробелы и отбрасывая пустые куски.
+     * Разбирает `;`-список артикулов, обрезая пробелы и отбрасывая пустые куски.
      *
      * @return array<int, string>
      */
@@ -103,8 +135,7 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
     }
 
     /**
-     * Этот метод резолвит номенклатуры по артикулам, сохраняя исходный порядок строки — он
-     * становится `sort` в pivot-таблице.
+     * Резолвит номенклатуры по артикулам, сохраняя исходный порядок строки.
      *
      * @param  array<int, string>  $partNumbers
      * @return array<int, NomenclatureData>
@@ -146,5 +177,4 @@ final readonly class UpsertKitFromRowService implements UpsertKitFromRowServiceI
 
         return $nomenclature->id;
     }
-
 }

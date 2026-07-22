@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Warehouse\Features\Catalog\Application\Services;
+namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Services;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Управляет cache-идемпотентностью входящих мутаций Warehouse-каталога.
+ * Laravel cache-реализация идемпотентности входящих мутаций Warehouse-каталога.
  */
 final readonly class WarehouseCatalogMutationCacheService implements WarehouseCatalogMutationCacheServiceInterface
 {

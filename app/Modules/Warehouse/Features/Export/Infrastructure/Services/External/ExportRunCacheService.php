@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Warehouse\Features\Export\Application\Services\External;
+namespace App\Modules\Warehouse\Features\Export\Infrastructure\Services\External;
 
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Хранит cache-флаг принятого внешнего запроса Warehouse-экспорта по runId.
+ * Laravel cache-реализация флага принятого внешнего запроса Warehouse-экспорта по runId.
  */
 final readonly class ExportRunCacheService implements ExportRunCacheServiceInterface
 {
