@@ -16,14 +16,4 @@ interface VehicleRepositoryInterface
      */
     public function findByMsId(int $msId): ?VehicleData;
 
-    /**
-     * Возвращает внутренний id записи по внешнему идентификатору.
-     */
-    public function vehicleIdByMsId(int $msId): ?int;
-
-    /**
-     * Возвращает внутренний id записи по внешнему идентификатору.
-     */
-    public function manufacturerIdByMfaId(int $mfaId): ?int;
-
 }

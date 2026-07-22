@@ -22,7 +22,7 @@ interface BrandCommandInterface
     public function update(BrandData $data): BrandData;
 
     /**
-     * Удаляет бренд по id без каскада.
+     * Удаляет бренд по id.
      */
     public function deleteById(int $id): void;
 }

@@ -97,7 +97,7 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
             return [null, "Модель (ms_id: {$msId}) не найдена."];
         }
 
-        $parentMsId = $this->vehicles->parentMsId($msId);
+        $parentMsId = $vehicle->parentMsId;
         if (! $parentMsId) {
             return [null, "Модель (ms_id: {$msId}) должна иметь родителя."];
         }

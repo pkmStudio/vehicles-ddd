@@ -22,7 +22,7 @@ interface PackDimensionCommandInterface
     public function update(PackDimensionData $data): PackDimensionData;
 
     /**
-     * Удаляет упаковочный размер по id без каскада.
+     * Удаляет упаковочный размер по id.
      */
     public function deleteById(int $id): void;
 }

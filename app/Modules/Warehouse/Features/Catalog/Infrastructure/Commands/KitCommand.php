@@ -52,9 +52,23 @@ final readonly class KitCommand implements KitCommandInterface
      */
     public function deleteById(int $id): void
     {
-        DB::transaction(function () use ($id): void {
-            DB::table('kit_nomenclature')->where('kit_id', $id)->delete();
-            Kit::query()->whereKey($id)->delete();
+        $this->deleteByIds([$id]);
+    }
+
+    /**
+     * Удаляет наборы и вручную очищает pivot-состав внутри транзакции.
+     *
+     * @param  array<int, int>  $ids
+     */
+    public function deleteByIds(array $ids): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        DB::transaction(function () use ($ids): void {
+            DB::table('kit_nomenclature')->whereIn('kit_id', $ids)->delete();
+            Kit::query()->whereIn('id', $ids)->delete();
         });
     }
 

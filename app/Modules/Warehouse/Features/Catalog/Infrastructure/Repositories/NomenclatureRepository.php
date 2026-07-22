@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureDeletionBlockersDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureIntegrationDeletionContextDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
@@ -42,17 +41,6 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
     }
 
     /**
-     * Проверяет, занят ли артикул другой номенклатурой.
-     */
-    public function partNumberExistsForAnother(string $partNumber, int $id): bool
-    {
-        return Nomenclature::query()
-            ->where('part_number', $partNumber)
-            ->where('id', '!=', $id)
-            ->exists();
-    }
-
-    /**
      * Возвращает найденные номенклатуры по id с загруженным типом, индексированные по id.
      *
      * @param  array<int, int>  $ids
@@ -66,24 +54,6 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
             ->get();
 
         return NomenclatureData::collect($items, Collection::class)->keyBy('id');
-    }
-
-    /**
-     * Собирает зависимости, блокирующие удаление номенклатуры.
-     */
-    public function deletionBlockers(int $id): ?NomenclatureDeletionBlockersDTO
-    {
-        if (! Nomenclature::query()->whereKey($id)->exists()) {
-            return null;
-        }
-
-        return new NomenclatureDeletionBlockersDTO(
-            kitsCount: DB::table('kit_nomenclature')->where('nomenclature_id', $id)->count(),
-            integrationsCount: DB::table('nomenclature_integrations')
-                ->where('nomenclature_id', $id)
-                ->where('provider', '!=', 'moysklad')
-                ->count(),
-        );
     }
 
     /**

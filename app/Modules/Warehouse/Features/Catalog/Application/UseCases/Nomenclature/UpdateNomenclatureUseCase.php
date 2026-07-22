@@ -89,7 +89,8 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
                 );
             }
 
-            if ($this->nomenclatures->partNumberExistsForAnother($request->partNumber, $request->id)) {
+            $samePartNumberNomenclature = $this->nomenclatures->findByPartNumber($request->partNumber);
+            if ($samePartNumberNomenclature !== null && $samePartNumberNomenclature->id !== $request->id) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

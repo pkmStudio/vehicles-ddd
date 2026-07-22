@@ -99,31 +99,30 @@ final class PackDimensionMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseMissing('pack_dimensions', ['name' => 'Missing Type Box']);
     }
 
-    public function test_pack_dimension_delete_is_rejected_when_kits_exist(): void
+    public function test_pack_dimension_delete_cascades_related_kits(): void
     {
         $type = Type::query()->create(['name' => 'V-Belt', 'char' => 'VB']);
         $packDimension = PackDimension::query()->create($this->packDimensionAttributes($type->id, 'Box Blocked'));
-        Kit::query()->create($this->kitAttributes($type->id, $packDimension->id));
+        $kit = Kit::query()->create($this->kitAttributes($type->id, $packDimension->id));
 
         $notifier = $this->mock(WarehouseCatalogMutationNotificationServiceInterface::class);
         $notifier->shouldReceive('notify')
             ->once()
             ->with(Mockery::on(fn (WarehouseCatalogMutationResultDTO $result): bool => $result->entity === WarehouseCatalogEntityEnum::PackDimension
                 && $result->operation === WarehouseCatalogMutationOperationEnum::Delete
-                && $result->status === WarehouseCatalogMutationStatusEnum::Rejected
-                && $result->reason === WarehouseCatalogMutationRejectReasonEnum::DeleteBlocked->value
-                && ($result->errors['kits_count'] ?? null) === 1));
+                && $result->status === WarehouseCatalogMutationStatusEnum::Completed));
 
         app(PackDimensionMutationRequestedHandler::class)->handle([
             'user_id' => 42,
-            'operation_id' => 'warehouse-pack-dimension-delete-blocked-1',
+            'operation_id' => 'warehouse-pack-dimension-delete-cascade-1',
             'operation' => 'delete',
             'pack_dimension' => [
                 'id' => $packDimension->id,
             ],
         ]);
 
-        $this->assertDatabaseHas('pack_dimensions', ['id' => $packDimension->id]);
+        $this->assertDatabaseMissing('pack_dimensions', ['id' => $packDimension->id]);
+        $this->assertDatabaseMissing('kits', ['id' => $kit->id]);
     }
 
     /**

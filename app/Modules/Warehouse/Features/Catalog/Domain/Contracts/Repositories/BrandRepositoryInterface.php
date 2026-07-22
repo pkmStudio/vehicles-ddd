@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandDeletionBlockersDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
 
 /**
@@ -22,13 +21,4 @@ interface BrandRepositoryInterface
      */
     public function findByName(string $name): ?BrandData;
 
-    /**
-     * Проверяет, занято ли имя другим брендом.
-     */
-    public function nameExistsForAnother(string $name, int $id): bool;
-
-    /**
-     * Собирает зависимости, блокирующие удаление бренда.
-     */
-    public function deletionBlockers(int $id): ?BrandDeletionBlockersDTO;
 }

@@ -29,4 +29,11 @@ interface KitCommandInterface
      * Удаляет набор и его pivot-состав вручную.
      */
     public function deleteById(int $id): void;
+
+    /**
+     * Удаляет наборы и их pivot-состав вручную.
+     *
+     * @param  array<int, int>  $ids
+     */
+    public function deleteByIds(array $ids): void;
 }

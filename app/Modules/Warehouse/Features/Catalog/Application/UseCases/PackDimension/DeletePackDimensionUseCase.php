@@ -33,13 +33,7 @@ final readonly class DeletePackDimensionUseCase implements DeletePackDimensionUs
     ) {}
 
     /**
-     * Удаляет упаковочный размер вручную, если его не используют наборы.
-     *
-     * Шаги:
-     * 1) Принять operationId через cache, чтобы повтор брокера не выполнил удаление дважды.
-     * 2) Проверить существование упаковочного размера и отсутствие наборов, которые на него ссылаются.
-     * 3) Удалить упаковочный размер через Command и отправить доменный факт.
-     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
+     * Удаляет упаковочный размер вручную вместе со связанными наборами.
      */
     public function execute(DeletePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -57,31 +51,6 @@ final readonly class DeletePackDimensionUseCase implements DeletePackDimensionUs
                     operation: WarehouseCatalogMutationOperationEnum::Delete,
                     reason: WarehouseCatalogMutationRejectReasonEnum::NotFound,
                     recordId: $request->id,
-                );
-            }
-
-            $blockers = $this->packDimensions->deletionBlockers($request->id);
-            if ($blockers === null) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: WarehouseCatalogEntityEnum::PackDimension,
-                    operation: WarehouseCatalogMutationOperationEnum::Delete,
-                    reason: WarehouseCatalogMutationRejectReasonEnum::NotFound,
-                    recordId: $request->id,
-                );
-            }
-
-            if ($blockers->hasBlockers()) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: WarehouseCatalogEntityEnum::PackDimension,
-                    operation: WarehouseCatalogMutationOperationEnum::Delete,
-                    reason: WarehouseCatalogMutationRejectReasonEnum::DeleteBlocked,
-                    errors: $blockers->toArray(),
-                    recordId: $request->id,
-                    businessKey: $packDimension->name,
                 );
             }
 

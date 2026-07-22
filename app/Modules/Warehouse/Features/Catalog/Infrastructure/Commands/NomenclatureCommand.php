@@ -42,20 +42,34 @@ final readonly class NomenclatureCommand implements NomenclatureCommandInterface
     }
 
     /**
-     * Удаляет номенклатуру без каскада внутри транзакции.
+     * Удаляет номенклатуру внутри транзакции.
      */
     public function deleteById(int $id): void
     {
-        DB::transaction(function () use ($id): void {
+        $this->deleteByIds([$id]);
+    }
+
+    /**
+     * Удаляет номенклатуру и её связи внутри транзакции.
+     *
+     * @param  array<int, int>  $ids
+     */
+    public function deleteByIds(array $ids): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        DB::transaction(function () use ($ids): void {
+            DB::table('kit_nomenclature')->whereIn('nomenclature_id', $ids)->delete();
             DB::table('nomenclature_integrations')
-                ->where('provider', 'moysklad')
-                ->where('nomenclature_id', $id)
+                ->whereIn('nomenclature_id', $ids)
                 ->update([
                     'nomenclature_id' => null,
                     'updated_at' => now(),
                 ]);
 
-            Nomenclature::query()->whereKey($id)->delete();
+            Nomenclature::query()->whereIn('id', $ids)->delete();
         });
     }
 }

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\BrandCommandInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +17,10 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class BrandCommand implements BrandCommandInterface
 {
+    public function __construct(
+        private NomenclatureCommandInterface $nomenclatures,
+    ) {}
+
     /**
      * Создаёт бренд внутри транзакции.
      */
@@ -42,11 +48,18 @@ final readonly class BrandCommand implements BrandCommandInterface
     }
 
     /**
-     * Удаляет бренд без каскада внутри транзакции.
+     * Удаляет бренд и связанные номенклатуры внутри транзакции.
      */
     public function deleteById(int $id): void
     {
         DB::transaction(function () use ($id): void {
+            $nomenclatureIds = Nomenclature::query()
+                ->where('brand_id', $id)
+                ->pluck('id')
+                ->map(fn (mixed $id): int => (int) $id)
+                ->all();
+
+            $this->nomenclatures->deleteByIds($nomenclatureIds);
             Brand::query()->whereKey($id)->delete();
         });
     }

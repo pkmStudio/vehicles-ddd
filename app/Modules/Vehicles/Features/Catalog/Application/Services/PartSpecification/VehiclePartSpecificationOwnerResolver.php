@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\VehicleCommandInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\PartSpecification\VehiclePartSpecificationOwnerResolverInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpecificationOwnerDTO;
@@ -25,6 +26,7 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
      */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
+        private ManufacturerRepositoryInterface $manufacturers,
         private VehicleCommandInterface $command,
     ) {}
 
@@ -122,23 +124,24 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
         PartSpecificationOwnerVehicleDTO $payload,
         ?int $id = null,
     ): VehicleData|CatalogMutationRejectReasonEnum {
-        $manufacturerId = $this->vehicles->manufacturerIdByMfaId($payload->mfaId);
-        if ($manufacturerId === null) {
+        $manufacturer = $this->manufacturers->findByMfaId($payload->mfaId);
+        if ($manufacturer === null) {
             return CatalogMutationRejectReasonEnum::ManufacturerNotFound;
         }
 
         $parentId = null;
         if ($payload->parentMsId !== null) {
-            $parentId = $this->vehicles->vehicleIdByMsId($payload->parentMsId);
-            if ($parentId === null) {
+            $parent = $this->vehicles->findByMsId($payload->parentMsId);
+            if ($parent === null) {
                 return CatalogMutationRejectReasonEnum::ParentVehicleNotFound;
             }
+            $parentId = $parent->id;
         }
 
         return new VehicleData(
             msId: $msId,
             mfaId: $payload->mfaId,
-            manufacturerId: $manufacturerId,
+            manufacturerId: (int) $manufacturer->id,
             name: $payload->name,
             type: $payload->type,
             steeringType: $payload->steeringType,

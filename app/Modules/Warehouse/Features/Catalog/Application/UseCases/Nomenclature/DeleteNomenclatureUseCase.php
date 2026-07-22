@@ -33,13 +33,7 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
     ) {}
 
     /**
-     * Удаляет номенклатуру вручную, если нет kit_nomenclature и integrations.
-     *
-     * Шаги:
-     * 1) Принять operationId через cache, чтобы повтор брокера не выполнил удаление дважды.
-     * 2) Проверить существование записи и отсутствие блокирующих связей.
-     * 3) Удалить номенклатуру через Command и отправить доменный факт.
-     * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
+     * Удаляет номенклатуру вручную вместе со связанными данными.
      */
     public function execute(DeleteNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -57,31 +51,6 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
                     operation: WarehouseCatalogMutationOperationEnum::Delete,
                     reason: WarehouseCatalogMutationRejectReasonEnum::NotFound,
                     recordId: $request->id,
-                );
-            }
-
-            $blockers = $this->nomenclatures->deletionBlockers($request->id);
-            if ($blockers === null) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: WarehouseCatalogEntityEnum::Nomenclature,
-                    operation: WarehouseCatalogMutationOperationEnum::Delete,
-                    reason: WarehouseCatalogMutationRejectReasonEnum::NotFound,
-                    recordId: $request->id,
-                );
-            }
-
-            if ($blockers->hasBlockers()) {
-                return $this->results->rejected(
-                    userId: $request->userId,
-                    operationId: $request->operationId,
-                    entity: WarehouseCatalogEntityEnum::Nomenclature,
-                    operation: WarehouseCatalogMutationOperationEnum::Delete,
-                    reason: WarehouseCatalogMutationRejectReasonEnum::DeleteBlocked,
-                    errors: $blockers->toArray(),
-                    recordId: $request->id,
-                    businessKey: $nomenclature->partNumber,
                 );
             }
 

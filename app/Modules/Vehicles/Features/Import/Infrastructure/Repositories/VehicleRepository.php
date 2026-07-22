@@ -12,7 +12,19 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
 {
     public function findByMsId(int $msId): ?VehicleData
     {
-        return VehicleData::optional(Vehicle::query()->where('ms_id', $msId)->first());
+        $vehicle = Vehicle::query()
+            ->with('parent')
+            ->where('ms_id', $msId)
+            ->first();
+
+        if ($vehicle === null) {
+            return null;
+        }
+
+        return VehicleData::from([
+            ...$vehicle->toArray(),
+            'parent_ms_id' => $vehicle->parent?->ms_id,
+        ]);
     }
 
     public function findMinMsId(): ?VehicleData
@@ -24,10 +36,4 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
         );
     }
 
-    public function parentMsId(int $msId): ?int
-    {
-        $vehicle = Vehicle::query()->where('ms_id', $msId)->with('parent')->first();
-
-        return $vehicle?->parent?->ms_id;
-    }
 }

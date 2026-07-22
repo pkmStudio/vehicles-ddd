@@ -61,7 +61,8 @@ final readonly class UpdateBrandUseCase implements UpdateBrandUseCaseInterface
                 );
             }
 
-            if ($this->brands->nameExistsForAnother($request->name, $request->id)) {
+            $sameNameBrand = $this->brands->findByName($request->name);
+            if ($sameNameBrand !== null && $sameNameBrand->id !== $request->id) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,

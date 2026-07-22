@@ -62,8 +62,8 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
                 );
             }
 
-            $vehicleId = $this->vehicles->vehicleIdByMsId($request->msId);
-            if ($vehicleId === null) {
+            $vehicle = $this->vehicles->findByMsId($request->msId);
+            if ($vehicle === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -77,7 +77,7 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
             $modificationData = new ModificationData(
                 modId: $request->modId,
                 type: $request->type,
-                vehicleId: $vehicleId,
+                vehicleId: (int) $vehicle->id,
                 msId: $request->msId,
                 yearFrom: $request->yearFrom,
                 yearTo: $request->yearTo,

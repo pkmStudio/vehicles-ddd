@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\VehicleCommandInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
@@ -28,6 +29,7 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
      */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
+        private ManufacturerRepositoryInterface $manufacturers,
         private VehicleCommandInterface $command,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
@@ -60,8 +62,8 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
                 );
             }
 
-            $manufacturerId = $this->vehicles->manufacturerIdByMfaId($request->mfaId);
-            if ($manufacturerId === null) {
+            $manufacturer = $this->manufacturers->findByMfaId($request->mfaId);
+            if ($manufacturer === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
@@ -74,8 +76,8 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
 
             $parentId = null;
             if ($request->parentMsId !== null) {
-                $parentId = $this->vehicles->vehicleIdByMsId($request->parentMsId);
-                if ($parentId === null) {
+                $parent = $this->vehicles->findByMsId($request->parentMsId);
+                if ($parent === null) {
                     return $this->results->rejected(
                         userId: $request->userId,
                         operationId: $request->operationId,
@@ -85,12 +87,13 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
                         reason: CatalogMutationRejectReasonEnum::ParentVehicleNotFound,
                     );
                 }
+                $parentId = $parent->id;
             }
 
             $vehicleData = new VehicleData(
                 msId: $request->msId,
                 mfaId: $request->mfaId,
-                manufacturerId: $manufacturerId,
+                manufacturerId: (int) $manufacturer->id,
                 name: $request->name,
                 type: $request->type,
                 steeringType: $request->steeringType,

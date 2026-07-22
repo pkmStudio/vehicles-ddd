@@ -135,8 +135,8 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
      * родителя, а не по самому отрицательному значению.
      *
      * Шаги:
-     * 1. Мокает VehicleRepositoryInterface: findByMsId(-5) возвращает дочернее ТС,
-     *    parentMsId(-5) возвращает 200 (ms_id родителя).
+     * 1. Мокает VehicleRepositoryInterface: findByMsId(-5) возвращает дочернее ТС
+     *    с parentMsId=200.
      * 2. Мокает ModificationRepositoryInterface::findByMsIdAndModIdWithEngines — ожидает
      *    вызов именно с (200, 50), не (-5, 50).
      * 3. Зовёт upsertByModification(-5, 50, []).
@@ -153,11 +153,11 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
             steeringType: SteeringTypeEnum::LEFT,
             typeCarcase: CarcaseTypeEnum::HATCHBACK,
             provider: ProviderEnum::TD,
+            parentMsId: 200,
         );
 
         $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
         $vehicles->shouldReceive('findByMsId')->once()->with(-5)->andReturn($child);
-        $vehicles->shouldReceive('parentMsId')->once()->with(-5)->andReturn(200);
 
         $mod = $this->modification([$this->engine(1, 'PETROL-1', EngineFuelTypeEnum::PETROL)]);
         $modifications = Mockery::mock(ModificationRepositoryInterface::class);

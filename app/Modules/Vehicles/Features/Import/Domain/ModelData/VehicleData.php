@@ -28,6 +28,7 @@ final class VehicleData extends Data
         public readonly ?int $generationYearFrom = null,
         public readonly ?int $generationYearTo = null,
         public readonly ?int $parentId = null,
+        public readonly ?int $parentMsId = null,
         public readonly ?string $excelTableId = null,
         public readonly ?string $localizedName = null,
         public readonly ?string $generationShort = null,

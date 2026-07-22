@@ -22,7 +22,14 @@ interface NomenclatureCommandInterface
     public function update(NomenclatureData $data): NomenclatureData;
 
     /**
-     * Удаляет номенклатуру по id без каскада.
+     * Удаляет номенклатуру по id.
      */
     public function deleteById(int $id): void;
+
+    /**
+     * Удаляет номенклатуру по ids.
+     *
+     * @param  array<int, int>  $ids
+     */
+    public function deleteByIds(array $ids): void;
 }

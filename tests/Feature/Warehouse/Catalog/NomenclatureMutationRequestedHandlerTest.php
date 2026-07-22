@@ -156,7 +156,7 @@ final class NomenclatureMutationRequestedHandlerTest extends TestCase
         $this->assertSame(1, Nomenclature::query()->where('part_number', 'VB-DUP')->count());
     }
 
-    public function test_nomenclature_delete_is_rejected_when_dependencies_exist(): void
+    public function test_nomenclature_delete_detaches_dependencies(): void
     {
         $type = Type::query()->create(['name' => 'V-Belt', 'char' => 'VB']);
         $brand = Brand::query()->create($this->brandAttributes());
@@ -184,21 +184,24 @@ final class NomenclatureMutationRequestedHandlerTest extends TestCase
             ->once()
             ->with(Mockery::on(fn (WarehouseCatalogMutationResultDTO $result): bool => $result->entity === WarehouseCatalogEntityEnum::Nomenclature
                 && $result->operation === WarehouseCatalogMutationOperationEnum::Delete
-                && $result->status === WarehouseCatalogMutationStatusEnum::Rejected
-                && $result->reason === WarehouseCatalogMutationRejectReasonEnum::DeleteBlocked->value
-                && ($result->errors['kits_count'] ?? null) === 1
-                && ($result->errors['integrations_count'] ?? null) === 1));
+                && $result->status === WarehouseCatalogMutationStatusEnum::Completed));
 
         app(NomenclatureMutationRequestedHandler::class)->handle([
             'user_id' => 42,
-            'operation_id' => 'warehouse-nomenclature-delete-blocked-1',
+            'operation_id' => 'warehouse-nomenclature-delete-detach-1',
             'operation' => 'delete',
             'nomenclature' => [
                 'id' => $nomenclature->id,
             ],
         ]);
 
-        $this->assertDatabaseHas('nomenclatures', ['id' => $nomenclature->id]);
+        $this->assertDatabaseMissing('nomenclatures', ['id' => $nomenclature->id]);
+        $this->assertDatabaseMissing('kit_nomenclature', ['nomenclature_id' => $nomenclature->id]);
+        $this->assertDatabaseHas('kits', ['id' => $kit->id]);
+        $this->assertDatabaseHas('nomenclature_integrations', [
+            'provider' => 'test',
+            'nomenclature_id' => null,
+        ]);
     }
 
     public function test_nomenclature_delete_allows_moysklad_integration_and_detaches_it(): void

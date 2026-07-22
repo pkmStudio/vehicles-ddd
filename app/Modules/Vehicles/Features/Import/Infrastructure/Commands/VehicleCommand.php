@@ -11,7 +11,7 @@ use Illuminate\Support\Arr;
 
 final readonly class VehicleCommand implements VehicleCommandInterface
 {
-    private const array NON_WRITABLE_FIELDS = ['id'];
+    private const array NON_WRITABLE_FIELDS = ['id', 'parent_ms_id'];
 
     public function create(VehicleData $data): VehicleData
     {

@@ -96,7 +96,7 @@ final class BrandMutationRequestedHandlerTest extends TestCase
         $this->assertSame(1, Brand::query()->where('name', 'Bosch')->count());
     }
 
-    public function test_brand_delete_is_rejected_when_nomenclatures_exist(): void
+    public function test_brand_delete_cascades_related_nomenclatures(): void
     {
         $type = Type::query()->create(['name' => 'V-Belt', 'char' => 'VB']);
         $brand = Brand::query()->create($this->brandAttributes('Bosch'));
@@ -111,20 +111,19 @@ final class BrandMutationRequestedHandlerTest extends TestCase
             ->once()
             ->with(Mockery::on(fn (WarehouseCatalogMutationResultDTO $result): bool => $result->entity === WarehouseCatalogEntityEnum::Brand
                 && $result->operation === WarehouseCatalogMutationOperationEnum::Delete
-                && $result->status === WarehouseCatalogMutationStatusEnum::Rejected
-                && $result->reason === WarehouseCatalogMutationRejectReasonEnum::DeleteBlocked->value
-                && ($result->errors['nomenclatures_count'] ?? null) === 1));
+                && $result->status === WarehouseCatalogMutationStatusEnum::Completed));
 
         app(BrandMutationRequestedHandler::class)->handle([
             'user_id' => 42,
-            'operation_id' => 'warehouse-brand-delete-blocked-1',
+            'operation_id' => 'warehouse-brand-delete-cascade-1',
             'operation' => 'delete',
             'brand' => [
                 'id' => $brand->id,
             ],
         ]);
 
-        $this->assertDatabaseHas('brands', ['id' => $brand->id]);
+        $this->assertDatabaseMissing('brands', ['id' => $brand->id]);
+        $this->assertDatabaseMissing('nomenclatures', ['brand_id' => $brand->id]);
     }
 
     /**
