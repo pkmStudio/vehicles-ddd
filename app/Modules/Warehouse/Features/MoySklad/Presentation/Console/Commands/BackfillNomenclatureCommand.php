@@ -15,7 +15,7 @@ final class BackfillNomenclatureCommand extends Command
 {
     protected $signature = 'warehouse:moysklad-backfill-nomenclature {--chunk=100} {--queue}';
 
-    protected $description = 'Восстанавливает связи Warehouse-номенклатуры с товарами МойСклад';
+    protected $description = 'Ставит задачи синхронизации Warehouse-номенклатуры с товарами МойСклад';
 
     /**
      * Запускает backfill синхронно или ставит его в очередь по опции `--queue`.
@@ -26,20 +26,14 @@ final class BackfillNomenclatureCommand extends Command
 
         if ((bool) $this->option('queue')) {
             $dispatcher->dispatchBackfill($chunk);
-            $this->info('Backfill МойСклад поставлен в очередь.');
+            $this->info('Планировщик backfill МойСклад поставлен в очередь.');
 
             return self::SUCCESS;
         }
 
-        $stats = $service->execute($chunk);
+        $service->execute($chunk);
 
-        $this->info(sprintf(
-            'Готово. processed=%d synced=%d failed=%d skipped=%d',
-            $stats['processed'],
-            $stats['synced'],
-            $stats['failed'],
-            $stats['skipped'],
-        ));
+        $this->info('Задачи backfill МойСклад поставлены в очередь.');
 
         return self::SUCCESS;
     }

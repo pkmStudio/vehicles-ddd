@@ -70,22 +70,4 @@ final readonly class NomenclatureIntegrationCommand implements NomenclatureInteg
                 'updated_at' => now(),
             ]);
     }
-
-    /**
-     * Создаёт/обновляет failed-связь при ошибке backfill.
-     */
-    public function markBackfillFailed(int $nomenclatureId, string $externalCode, string $error): void
-    {
-        NomenclatureIntegration::query()->updateOrCreate(
-            attributes: [
-                'provider' => NomenclatureIntegration::PROVIDER,
-                'nomenclature_id' => $nomenclatureId,
-            ],
-            values: [
-                'external_code' => $externalCode,
-                'sync_status' => MoySkladIntegrationStatusEnum::Failed->value,
-                'last_error' => $error,
-            ],
-        );
-    }
 }

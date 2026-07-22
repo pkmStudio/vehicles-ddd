@@ -124,28 +124,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
     }
 
     /**
-     * Находит/создаёт товар для backfill и возвращает true, если связь обновлена.
-     */
-    public function backfillItem(NomenclatureData $nomenclature): bool
-    {
-        $integration = $this->integrations->firstOrCreateForNomenclature($nomenclature->id);
-
-        if (is_string($integration->externalId) && $integration->externalId !== '') {
-            return false;
-        }
-
-        $productFolderMeta = $this->resolveProductFolderMeta($nomenclature);
-        $payload = $this->mapper->map($nomenclature, $productFolderMeta);
-        $payloadHash = $this->payloadHash($payload);
-        $product = $this->findOrCreateProduct($nomenclature, $payload, $productFolderMeta);
-
-        $this->markSyncSuccess($integration, $product, $payload, $payloadHash);
-
-        return true;
-    }
-
-    /**
-     * Рассчитывает hash payload для тестов и backfill.
+     * Рассчитывает hash payload для тестов.
      */
     public function payloadHash(array $payload): string
     {

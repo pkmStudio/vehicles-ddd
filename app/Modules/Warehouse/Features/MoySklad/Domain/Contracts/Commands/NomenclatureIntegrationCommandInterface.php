@@ -30,9 +30,4 @@ interface NomenclatureIntegrationCommandInterface
      * Отмечает связь удалённой в МойСклад.
      */
     public function markDeleted(?NomenclatureIntegrationData $integration, ?string $externalId = null): void;
-
-    /**
-     * Создаёт/обновляет failed-связь для backfill.
-     */
-    public function markBackfillFailed(int $nomenclatureId, string $externalCode, string $error): void;
 }

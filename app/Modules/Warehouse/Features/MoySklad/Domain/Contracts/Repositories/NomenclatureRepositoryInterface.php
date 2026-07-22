@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Repositories;
 
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureData;
-use Illuminate\Support\Collection;
+use Generator;
 
 /**
  * Порт чтения Warehouse-номенклатуры для MoySklad-фичи.
@@ -18,9 +18,9 @@ interface NomenclatureRepositoryInterface
     public function findById(int $id): ?NomenclatureData;
 
     /**
-     * Итерирует номенклатуру чанками по id.
+     * Итерирует номенклатуру курсором по id.
      *
-     * @param  callable(Collection<int, NomenclatureData>): void  $callback
+     * @return Generator<int, NomenclatureData>
      */
-    public function chunkById(int $chunk, callable $callback): void;
+    public function cursorById(int $chunk): Generator;
 }
