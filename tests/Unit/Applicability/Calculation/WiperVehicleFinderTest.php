@@ -9,6 +9,7 @@ use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\Temp
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperAdaptersDTO;
 use Mockery;
+use Psr\Log\NullLogger;
 use Tests\TestCase;
 
 final class WiperVehicleFinderTest extends TestCase
@@ -48,6 +49,7 @@ final class WiperVehicleFinderTest extends TestCase
         return new WiperVehicleFinder(
             vehicles: Mockery::mock(VehiclesApplicabilityClientInterface::class),
             templates: Mockery::mock(TemplatesClientInterface::class),
+            logger: new NullLogger,
         );
     }
 

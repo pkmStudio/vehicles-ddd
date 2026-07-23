@@ -9,6 +9,7 @@ use App\Modules\Applicability\Features\Import\Domain\Contracts\Services\ImportKi
 use App\Modules\Applicability\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Applicability\Features\Import\Domain\Events\KitApplicabilityImportCompleted;
 use App\Modules\Applicability\Features\Import\Infrastructure\Traits\CachesImportFailures;
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -34,6 +35,7 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
 
     public function __construct(
         private readonly ImportKitApplicabilityRowServiceInterface $service,
+        private readonly CacheFactory $cache,
     ) {}
 
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
@@ -116,5 +118,13 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
         return trim((string) ($row[0] ?? '')) === ''
             && trim((string) ($row[1] ?? '')) === ''
             && trim((string) ($row[2] ?? '')) === '';
+    }
+
+    /**
+     * Возвращает cache factory для trait CachesImportFailures.
+     */
+    protected function cache(): CacheFactory
+    {
+        return $this->cache;
     }
 }

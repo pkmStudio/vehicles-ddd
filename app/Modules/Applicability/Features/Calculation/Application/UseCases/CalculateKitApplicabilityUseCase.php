@@ -9,7 +9,7 @@ use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Commands\Kit
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\KitApplicabilityCalculatorInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\UseCases\CalculateKitApplicabilityUseCaseInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\KitApplicabilityCalculationResultDTO;
-use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabilityRecalculated;
+use App\Modules\Applicability\Features\Calculation\Domain\Events\KitApplicabilityRecalculated;
 use Illuminate\Support\Str;
 use Throwable;
 

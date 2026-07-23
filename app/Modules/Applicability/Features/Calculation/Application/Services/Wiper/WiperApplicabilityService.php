@@ -8,7 +8,7 @@ use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wip
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperDataExtractorInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperVehicleFinderInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\KitApplicabilityKitResultDTO;
-use App\Modules\Applicability\Features\Calculation\Domain\Enums\KitApplicabilityAlgorithmEnum;
+use App\Modules\Applicability\Shared\Domain\Enums\KitApplicabilityAlgorithmEnum;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\KitData;
 use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilityTargetTypeEnum;
 

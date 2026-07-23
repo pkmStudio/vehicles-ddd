@@ -7,8 +7,9 @@ namespace Tests\Unit\Applicability\Calculation;
 use App\Modules\Applicability\Features\Calculation\Application\Listeners\ReportCalculationResultListener;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Reporting\CalculationFailureReporterInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\KitApplicabilityCalculationResultDTO;
-use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabilityRecalculated;
+use App\Modules\Applicability\Features\Calculation\Domain\Events\KitApplicabilityRecalculated;
 use Mockery;
+use Psr\Log\NullLogger;
 use Tests\TestCase;
 
 final class ReportCalculationResultListenerTest extends TestCase
@@ -29,7 +30,7 @@ final class ReportCalculationResultListenerTest extends TestCase
             ->with($result)
             ->andReturn('exports/applicability-calculation-failures-run-1.csv');
 
-        (new ReportCalculationResultListener($reporter))->handle(
+        (new ReportCalculationResultListener($reporter, new NullLogger))->handle(
             new KitApplicabilityRecalculated('run-1', $result),
         );
 

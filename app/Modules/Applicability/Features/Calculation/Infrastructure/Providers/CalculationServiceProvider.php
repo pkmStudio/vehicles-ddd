@@ -12,6 +12,7 @@ use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\Wi
 use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\WiperLengthExtractor;
 use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\WiperVehicleFinder;
 use App\Modules\Applicability\Features\Calculation\Application\UseCases\CalculateKitApplicabilityUseCase;
+use App\Modules\Applicability\Features\Calculation\Application\Listeners\ReportCalculationResultListener;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\WarehouseKitClientInterface;
@@ -30,7 +31,9 @@ use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\Vehicl
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\WarehouseKitClient;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Commands\KitApplicabilityCommand;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Reporting\CalculationFailureReporter;
+use App\Modules\Applicability\Shared\Infrastructure\Logging\LaravelLoggerProxy;
 use Illuminate\Support\ServiceProvider;
+use Psr\Log\LoggerInterface;
 
 final class CalculationServiceProvider extends ServiceProvider
 {
@@ -83,5 +86,13 @@ final class CalculationServiceProvider extends ServiceProvider
         foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
+
+        $this->app
+            ->when([
+                WiperVehicleFinder::class,
+                ReportCalculationResultListener::class,
+            ])
+            ->needs(LoggerInterface::class)
+            ->give(LaravelLoggerProxy::class);
     }
 }

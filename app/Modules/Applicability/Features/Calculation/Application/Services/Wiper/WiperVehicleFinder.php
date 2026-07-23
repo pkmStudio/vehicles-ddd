@@ -12,15 +12,22 @@ use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperLength
 use App\Modules\Applicability\Features\Calculation\Domain\Enums\WiperKitPositionEnum;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\VehiclePartSpecificationData;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
+use Psr\Log\LoggerInterface;
 
+/**
+ * Находит vehicle part specifications, совместимые с рассчитанными параметрами дворников.
+ */
 final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
 {
     public function __construct(
         private VehiclesApplicabilityClientInterface $vehicles,
         private TemplatesClientInterface $templates,
+        private LoggerInterface $logger,
     ) {}
 
+    /**
+     * Возвращает совместимые спецификации по позиции комплекта дворников.
+     */
     public function find(WiperLengthDTO $wipers, WiperAdaptersDTO $adapters, WiperKitPositionEnum $position): Collection
     {
         return match ($position) {
@@ -63,7 +70,7 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
             ->filter(function (VehiclePartSpecificationData $specification) use ($adapters, $side): bool {
                 $detectedSide = $this->templates->detectVehicleWiperSide($specification->details);
                 if ($detectedSide !== $side) {
-                    Log::warning('Wiper applicability skipped specification with unexpected side', [
+                    $this->logger->warning('Wiper applicability skipped specification with unexpected side', [
                         'part_specification_id' => $specification->id,
                         'expected_side' => $side,
                         'detected_side' => $detectedSide,
