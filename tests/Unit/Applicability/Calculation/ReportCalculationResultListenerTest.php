@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Tests\Unit\Applicability\Calculation;
 
 use App\Modules\Applicability\Features\Calculation\Application\Listeners\ReportCalculationResultListener;
+use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Notifications\CalculationNotificationServiceInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Reporting\CalculationFailureReporterInterface;
+use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\CalculationCompletionNotificationDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\KitApplicabilityCalculationResultDTO;
+use App\Modules\Applicability\Features\Calculation\Domain\Enums\CalculationCompletionStatusEnum;
 use App\Modules\Applicability\Features\Calculation\Domain\Events\KitApplicabilityRecalculated;
 use Mockery;
 use Psr\Log\NullLogger;
@@ -30,7 +33,18 @@ final class ReportCalculationResultListenerTest extends TestCase
             ->with($result)
             ->andReturn('exports/applicability-calculation-failures-run-1.csv');
 
-        (new ReportCalculationResultListener($reporter, new NullLogger))->handle(
+        $notifications = Mockery::mock(CalculationNotificationServiceInterface::class);
+        $notifications
+            ->shouldReceive('notifyCalculationCompleted')
+            ->once()
+            ->with(Mockery::on(static fn (CalculationCompletionNotificationDTO $payload): bool => $payload->status === CalculationCompletionStatusEnum::COMPLETED_WITH_FAILURES
+                && $payload->runId === 'run-1'
+                && $payload->processedKits === 2
+                && $payload->failedKits === 1
+                && $payload->failuresReportPath === 'exports/applicability-calculation-failures-run-1.csv'
+                && $payload->failuresReportDisk === 'local'));
+
+        (new ReportCalculationResultListener($reporter, $notifications, new NullLogger))->handle(
             new KitApplicabilityRecalculated('run-1', $result),
         );
 

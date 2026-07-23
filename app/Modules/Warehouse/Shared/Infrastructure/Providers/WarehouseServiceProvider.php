@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Shared\Infrastructure\Providers;
 
+use App\Modules\Warehouse\Shared\Domain\Contracts\Clients\WarehouseApplicabilityClientInterface;
+use App\Modules\Warehouse\Shared\Infrastructure\Clients\WarehouseApplicabilityClient;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -12,6 +14,11 @@ use Illuminate\Support\ServiceProvider;
  */
 final class WarehouseServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->bind(WarehouseApplicabilityClientInterface::class, WarehouseApplicabilityClient::class);
+    }
+
     /**
      * Подключает миграции Warehouse из доменной инфраструктуры.
      */

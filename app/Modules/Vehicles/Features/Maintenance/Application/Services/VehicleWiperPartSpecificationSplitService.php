@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Maintenance\Application\Services;
 
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
 use App\Modules\Vehicles\Features\Maintenance\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Maintenance\Infrastructure\Models\PartSpecification;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
@@ -38,8 +39,8 @@ final readonly class VehicleWiperPartSpecificationSplitService
             ->where('template', DetailTemplateEnum::WIPER->value)
             ->where(function ($query): void {
                 $query
-                    ->whereRaw("jsonb_exists(details, 'front')")
-                    ->orWhereRaw("jsonb_exists(details, 'back')");
+                    ->whereRaw(sprintf("jsonb_exists(details, '%s')", WiperSideEnum::FRONT->value))
+                    ->orWhereRaw(sprintf("jsonb_exists(details, '%s')", WiperSideEnum::BACK->value));
             })
             ->orderBy('id')
             ->chunkById(max(1, $chunk), function ($specifications) use (&$summary, $dryRun): void {
@@ -164,15 +165,17 @@ final readonly class VehicleWiperPartSpecificationSplitService
     private function cleanupEmptySides(PartSpecification $specification, bool $dryRun, array &$summary): bool
     {
         $details = (array) ($specification->details ?? []);
-        $hasFront = array_key_exists('front', $details);
-        $hasBack = array_key_exists('back', $details);
+        $frontSide = WiperSideEnum::FRONT->value;
+        $backSide = WiperSideEnum::BACK->value;
+        $hasFront = array_key_exists($frontSide, $details);
+        $hasBack = array_key_exists($backSide, $details);
 
         if (! $hasFront && ! $hasBack) {
             return false;
         }
 
-        $frontEmpty = $hasFront && $this->isDetailsEmpty($details['front']);
-        $backEmpty = $hasBack && $this->isDetailsEmpty($details['back']);
+        $frontEmpty = $hasFront && $this->isDetailsEmpty($details[$frontSide]);
+        $backEmpty = $hasBack && $this->isDetailsEmpty($details[$backSide]);
 
         if (($hasFront xor $hasBack) && ($frontEmpty || $backEmpty)) {
             $summary['processed']++;
@@ -202,7 +205,7 @@ final readonly class VehicleWiperPartSpecificationSplitService
         }
 
         if ($hasFront && $hasBack && $frontEmpty !== $backEmpty) {
-            unset($details[$frontEmpty ? 'front' : 'back']);
+            unset($details[$frontEmpty ? $frontSide : $backSide]);
             $specification->details = $details;
 
             if (! $dryRun) {

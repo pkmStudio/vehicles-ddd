@@ -18,6 +18,7 @@ use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\Temp
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\WarehouseKitClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Commands\KitApplicabilityCommandInterface;
+use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Notifications\CalculationNotificationServiceInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Reporting\CalculationFailureReporterInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\ApplicabilityServiceFactoryInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\KitApplicabilityCalculatorInterface;
@@ -32,6 +33,7 @@ use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\Templa
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\VehiclesApplicabilityClient;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\WarehouseKitClient;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Commands\KitApplicabilityCommand;
+use App\Modules\Applicability\Features\Calculation\Infrastructure\Notifications\RabbitMqCalculationNotificationService;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Reporting\CalculationFailureReporter;
 use App\Modules\Applicability\Shared\Infrastructure\Logging\LaravelLoggerProxy;
 use Illuminate\Support\ServiceProvider;
@@ -64,6 +66,10 @@ final class CalculationServiceProvider extends ServiceProvider
         CalculationFailureReporterInterface::class => CalculationFailureReporter::class,
     ];
 
+    private const array NOTIFICATION_BINDINGS = [
+        CalculationNotificationServiceInterface::class => RabbitMqCalculationNotificationService::class,
+    ];
+
     private const array USE_CASE_BINDINGS = [
         CalculateKitApplicabilityUseCaseInterface::class => CalculateKitApplicabilityUseCase::class,
     ];
@@ -83,6 +89,10 @@ final class CalculationServiceProvider extends ServiceProvider
         }
 
         foreach (self::REPORTING_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
+        }
+
+        foreach (self::NOTIFICATION_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
 

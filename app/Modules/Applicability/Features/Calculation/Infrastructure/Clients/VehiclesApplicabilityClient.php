@@ -7,63 +7,49 @@ namespace App\Modules\Applicability\Features\Calculation\Infrastructure\Clients;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperLengthDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\VehiclePartSpecificationData;
-use App\Modules\Applicability\Features\Calculation\Infrastructure\Models\PartSpecification;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use Illuminate\Database\Eloquent\Builder;
+use App\Modules\Vehicles\Shared\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface as PublicVehiclesApplicabilityClientInterface;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Applicability\VehiclePartSpecificationForApplicabilityDTO;
 use Illuminate\Support\Collection;
 
+/**
+ * Адаптер публичного Vehicles API к локальному calculation-порту Applicability.
+ */
 final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilityClientInterface
 {
+    public function __construct(
+        private PublicVehiclesApplicabilityClientInterface $vehicles,
+    ) {}
+
     public function frontWiperSpecifications(WiperLengthDTO $length): Collection
     {
-        $query = $this->baseWiperQuery()
-            ->whereRaw("jsonb_exists(details, 'front')")
-            ->whereRaw("NOT jsonb_exists(details, 'back')")
-            ->where('details->front->length_main->min', '<=', $length->lengthMain)
-            ->where('details->front->length_main->max', '>=', $length->lengthMain)
-            ->where('details->front->count_wipers', $length->countWipers);
-
-        if ($length->lengthSecond !== null) {
-            $query
-                ->where('details->front->length_second->min', '<=', $length->lengthSecond)
-                ->where('details->front->length_second->max', '>=', $length->lengthSecond);
-        }
-
-        return $this->mapSpecifications($query->get());
+        return $this->mapSpecifications($this->vehicles->frontWiperSpecifications(
+            lengthMain: $length->lengthMain,
+            lengthSecond: $length->lengthSecond,
+            countWipers: $length->countWipers,
+        ));
     }
 
     public function rearWiperSpecifications(WiperLengthDTO $length): Collection
     {
-        $query = $this->baseWiperQuery()
-            ->whereRaw("jsonb_exists(details, 'back')")
-            ->whereRaw("NOT jsonb_exists(details, 'front')")
-            ->where('details->back->length_rear->min', '<=', $length->lengthMain)
-            ->where('details->back->length_rear->max', '>=', $length->lengthMain)
-            ->where('details->back->count_wipers', $length->countWipers);
-
-        return $this->mapSpecifications($query->get());
-    }
-
-    private function baseWiperQuery(): Builder
-    {
-        return PartSpecification::query()
-            ->where('partable_type', PartableTypeEnum::VEHICLE)
-            ->where('template', DetailTemplateEnum::WIPER);
+        return $this->mapSpecifications($this->vehicles->rearWiperSpecifications(
+            lengthMain: $length->lengthMain,
+            countWipers: $length->countWipers,
+        ));
     }
 
     /**
-     * @param  Collection<int, PartSpecification>  $specifications
+     * @param  Collection<int, VehiclePartSpecificationForApplicabilityDTO>  $specifications
      * @return Collection<int, VehiclePartSpecificationData>
      */
     private function mapSpecifications(Collection $specifications): Collection
     {
         return $specifications
-            ->map(static fn (PartSpecification $specification): VehiclePartSpecificationData => new VehiclePartSpecificationData(
-                id: (int) $specification->id,
-                vehicleId: (int) $specification->partable_id,
+            ->map(static fn (VehiclePartSpecificationForApplicabilityDTO $specification): VehiclePartSpecificationData => new VehiclePartSpecificationData(
+                id: $specification->id,
+                vehicleId: $specification->vehicleId,
                 template: DetailTemplateEnum::WIPER,
-                details: (array) ($specification->details ?? []),
+                details: $specification->details,
             ))
             ->values();
     }

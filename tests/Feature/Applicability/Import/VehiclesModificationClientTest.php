@@ -26,7 +26,7 @@ final class VehiclesModificationClientTest extends TestCase
             'type' => 'PC',
         ]);
 
-        $resolvedId = (new VehiclesModificationClient)->resolveByMsAndModId(100, 50);
+        $resolvedId = app(VehiclesModificationClient::class)->resolveByMsAndModId(100, 50);
 
         $this->assertSame((int) $modification->id, $resolvedId);
     }
@@ -42,7 +42,7 @@ final class VehiclesModificationClientTest extends TestCase
             'type' => 'PC',
         ]);
 
-        $resolvedId = (new VehiclesModificationClient)->resolveByMsAndModId((int) $child->ms_id, 70);
+        $resolvedId = app(VehiclesModificationClient::class)->resolveByMsAndModId((int) $child->ms_id, 70);
 
         $this->assertSame((int) $modification->id, $resolvedId);
     }
@@ -55,7 +55,7 @@ final class VehiclesModificationClientTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('не найдена ни у модели, ни у родителя');
 
-        (new VehiclesModificationClient)->resolveByMsAndModId((int) $child->ms_id, 90);
+        app(VehiclesModificationClient::class)->resolveByMsAndModId((int) $child->ms_id, 90);
     }
 
     private function createVehicle(int $msId, ?int $parentId = null): Vehicle

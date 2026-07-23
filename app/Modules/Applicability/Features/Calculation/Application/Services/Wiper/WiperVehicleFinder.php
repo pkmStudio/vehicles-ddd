@@ -11,6 +11,7 @@ use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperAdapte
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperLengthDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\Enums\WiperKitPositionEnum;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\VehiclePartSpecificationData;
+use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
 use Illuminate\Support\Collection;
 use Psr\Log\LoggerInterface;
 
@@ -46,7 +47,7 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
         return $this->filterByAdapters(
             specifications: $this->vehicles->frontWiperSpecifications($wipers),
             adapters: $adapters,
-            side: 'front',
+            side: WiperSideEnum::FRONT,
         );
     }
 
@@ -56,7 +57,7 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
         return $this->filterByAdapters(
             specifications: $this->vehicles->rearWiperSpecifications($wipers),
             adapters: $adapters,
-            side: 'back',
+            side: WiperSideEnum::BACK,
         );
     }
 
@@ -64,25 +65,24 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
      * @param  Collection<int, VehiclePartSpecificationData>  $specifications
      * @return Collection<int, VehiclePartSpecificationData>
      */
-    private function filterByAdapters(Collection $specifications, WiperAdaptersDTO $adapters, string $side): Collection
+    private function filterByAdapters(Collection $specifications, WiperAdaptersDTO $adapters, WiperSideEnum $side): Collection
     {
         return $specifications
             ->filter(function (VehiclePartSpecificationData $specification) use ($adapters, $side): bool {
                 $detectedSide = $this->templates->detectVehicleWiperSide($specification->details);
-                if ($detectedSide !== $side) {
+                if ($detectedSide !== $side->value) {
                     $this->logger->warning('Wiper applicability skipped specification with unexpected side', [
                         'part_specification_id' => $specification->id,
-                        'expected_side' => $side,
+                        'expected_side' => $side->value,
                         'detected_side' => $detectedSide,
                     ]);
 
                     return false;
                 }
 
-                $sideData = $this->templates->vehicleWiperSideData($specification->details, $side);
-                $field = $side === 'front' ? 'adapter_type_front' : 'adapter_type_rear';
+                $sideData = $this->templates->vehicleWiperSideData($specification->details, $side->value);
 
-                return $this->checkAdapters($this->adapterList($sideData[$field] ?? []), $adapters);
+                return $this->checkAdapters($this->adapterList($sideData[$side->adapterField()] ?? []), $adapters);
             })
             ->values();
     }

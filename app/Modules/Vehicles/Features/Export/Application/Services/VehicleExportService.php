@@ -12,7 +12,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\VehicleRe
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\WiperExportRowDTO;
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\VehicleData;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
+use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
 use Illuminate\Support\Collection;
 
 /**

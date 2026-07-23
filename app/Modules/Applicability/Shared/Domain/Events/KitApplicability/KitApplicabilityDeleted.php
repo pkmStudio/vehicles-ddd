@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Shared\Domain\Events\KitApplicability;
 
+use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilitySourceEnum;
 use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilityTargetTypeEnum;
+use App\Modules\Applicability\Shared\Domain\Enums\KitApplicabilityAlgorithmEnum;
 
 /**
  * Фиксирует доменный факт удаления связи применяемости набора.
@@ -18,5 +20,7 @@ final readonly class KitApplicabilityDeleted
         public int $kitId,
         public ApplicabilityTargetTypeEnum $targetType,
         public int $targetId,
+        public ?ApplicabilitySourceEnum $source = null,
+        public ?KitApplicabilityAlgorithmEnum $algorithm = null,
     ) {}
 }

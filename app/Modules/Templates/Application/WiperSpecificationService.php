@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Templates\Application;
 
 use App\Modules\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
+use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
  * Дворники хранятся как ОДНА PartSpecification на сторону: `details` содержит ровно один
  * корневой ключ — `front` ИЛИ `back`. Сервис чистый (только массивы): определяет сторону,
  * извлекает/нормализует данные стороны, разбивает legacy-структуру `{front,back}` на стороны
- * и склеивает обратно для экспорта. Источник значений сторон — WiperSideEnum (Domain).
+ * и склеивает обратно для экспорта. Источник значений сторон — WiperSideEnum.
  */
 final readonly class WiperSpecificationService implements WiperSpecificationServiceInterface
 {

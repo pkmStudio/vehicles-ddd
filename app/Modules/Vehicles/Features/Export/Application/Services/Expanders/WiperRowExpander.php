@@ -9,7 +9,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\Wip
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\WiperExportRowDTO;
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\VehicleData;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\WiperSideEnum;
+use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
 use Illuminate\Support\Collection;
 
 /**

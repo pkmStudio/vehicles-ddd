@@ -12,6 +12,9 @@ use App\Modules\Applicability\Shared\Domain\Enums\KitApplicabilityAlgorithmEnum;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\KitData;
 use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilityTargetTypeEnum;
 
+/**
+ * Собирает результат расчета применяемости набора дворников.
+ */
 final readonly class WiperApplicabilityService implements WiperApplicabilityServiceInterface
 {
     public function __construct(
@@ -26,11 +29,16 @@ final readonly class WiperApplicabilityService implements WiperApplicabilityServ
         $adapters = $this->extractor->extractAdapters($kit, $position);
         $specifications = $this->finder->find($wipers, $adapters, $position);
 
+        $targetIds = $specifications
+            ->pluck('id')
+            ->map(static fn ($id): int => (int) $id)
+            ->all();
+
         return new KitApplicabilityKitResultDTO(
             kitId: $kit->id,
             algorithm: KitApplicabilityAlgorithmEnum::WIPER,
             targetType: ApplicabilityTargetTypeEnum::PART_SPECIFICATION,
-            targetIds: $specifications->pluck('id')->map(static fn ($id): int => (int) $id)->all(),
+            targetIds: $targetIds,
         );
     }
 }

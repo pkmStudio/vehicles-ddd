@@ -52,6 +52,8 @@ final readonly class KitApplicabilityCommand implements KitApplicabilityCommandI
                     kitId: $kitId,
                     targetType: ApplicabilityTargetTypeEnum::MODIFICATION,
                     targetId: $modificationId,
+                    source: ApplicabilitySourceEnum::IMPORTED,
+                    algorithm: KitApplicabilityAlgorithmEnum::MANUAL_XLSX,
                 ));
             }
 
@@ -62,6 +64,8 @@ final readonly class KitApplicabilityCommand implements KitApplicabilityCommandI
             kitId: $kitId,
             targetType: ApplicabilityTargetTypeEnum::MODIFICATION,
             targetId: $modificationId,
+            source: ApplicabilitySourceEnum::IMPORTED,
+            algorithm: KitApplicabilityAlgorithmEnum::MANUAL_XLSX,
         ));
     }
 }

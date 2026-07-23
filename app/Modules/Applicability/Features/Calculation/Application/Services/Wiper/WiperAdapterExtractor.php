@@ -9,22 +9,26 @@ use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperAdapte
 use App\Modules\Applicability\Features\Calculation\Domain\Enums\WiperKitPositionEnum;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\KitData;
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
 
+/**
+ * Извлекает адаптеры дворников из состава Warehouse-набора.
+ */
 final readonly class WiperAdapterExtractor implements WiperAdapterExtractorInterface
 {
     public function extract(KitData $kit, WiperKitPositionEnum $position): WiperAdaptersDTO
     {
         return match ($position) {
-            WiperKitPositionEnum::FRONT => $this->extractByField($kit, 'adapter_type_front'),
-            WiperKitPositionEnum::BACK => $this->extractByField($kit, 'adapter_type_rear'),
+            WiperKitPositionEnum::FRONT => $this->extractByField($kit, WiperSideEnum::FRONT->adapterField()),
+            WiperKitPositionEnum::BACK => $this->extractByField($kit, WiperSideEnum::BACK->adapterField()),
             WiperKitPositionEnum::UNIVERSAL => $this->extractUniversalAdapters($kit),
         };
     }
 
     private function extractUniversalAdapters(KitData $kit): WiperAdaptersDTO
     {
-        $front = $this->rawAdapters($kit, 'adapter_type_front');
-        $rear = $this->rawAdapters($kit, 'adapter_type_rear');
+        $front = $this->rawAdapters($kit, WiperSideEnum::FRONT->adapterField());
+        $rear = $this->rawAdapters($kit, WiperSideEnum::BACK->adapterField());
 
         return $this->mapAdapters(
             kit: $kit,
@@ -58,7 +62,7 @@ final readonly class WiperAdapterExtractor implements WiperAdapterExtractorInter
             }
 
             if ($nomenclature->template === NomenclatureDetailTemplateEnum::WIPER_ADAPTER) {
-                $adapters = $this->adapterList($nomenclature->details['adapter_type_front'] ?? []);
+                $adapters = $this->adapterList($nomenclature->details[WiperSideEnum::FRONT->adapterField()] ?? []);
                 $allAdapters[] = $adapters;
                 $putAdapters[] = $adapters;
             }

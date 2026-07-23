@@ -329,6 +329,7 @@ return [
         'WAREHOUSE_IMPORT_COMPLETED' => 'warehouse.import.completed',
         'APPLICABILITY_IMPORT_COMPLETED' => 'applicability.import.completed',
         'APPLICABILITY_FILE_EXPORTED' => 'applicability.file.exported',
+        'APPLICABILITY_CALCULATION_COMPLETED' => 'applicability.calculation.completed',
         'CATALOG_MUTATION_COMPLETED' => 'vehicles.catalog.mutation.completed',
         'WAREHOUSE_CATALOG_MUTATION_COMPLETED' => 'warehouse.catalog.mutation.completed',
     ],

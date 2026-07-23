@@ -59,6 +59,8 @@ final readonly class KitApplicabilityCommand implements KitApplicabilityCommandI
                     kitId: $kitId,
                     targetType: $targetType,
                     targetId: $targetId,
+                    source: ApplicabilitySourceEnum::CALCULATED,
+                    algorithm: $algorithm,
                 ));
             }
 
@@ -96,6 +98,8 @@ final readonly class KitApplicabilityCommand implements KitApplicabilityCommandI
                         kitId: $kitId,
                         targetType: $targetType,
                         targetId: $targetId,
+                        source: ApplicabilitySourceEnum::CALCULATED,
+                        algorithm: $algorithm,
                     ));
                 }
 
@@ -104,6 +108,8 @@ final readonly class KitApplicabilityCommand implements KitApplicabilityCommandI
                         kitId: $kitId,
                         targetType: $targetType,
                         targetId: $targetId,
+                        source: ApplicabilitySourceEnum::CALCULATED,
+                        algorithm: $algorithm,
                     ));
                 }
             }

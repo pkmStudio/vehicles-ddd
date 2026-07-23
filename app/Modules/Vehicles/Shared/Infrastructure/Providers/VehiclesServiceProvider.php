@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Shared\Infrastructure\Providers;
 
+use App\Modules\Vehicles\Shared\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
+use App\Modules\Vehicles\Shared\Infrastructure\Clients\VehiclesApplicabilityClient;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -12,6 +14,11 @@ use Illuminate\Support\ServiceProvider;
  */
 final class VehiclesServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->bind(VehiclesApplicabilityClientInterface::class, VehiclesApplicabilityClient::class);
+    }
+
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');

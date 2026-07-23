@@ -13,8 +13,8 @@ use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabi
 use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabilityDeleted;
 use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabilityUpdated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Tests\Concerns\Applicability\CreatesWarehouseKit;
 use Tests\TestCase;
 
 /**
@@ -23,11 +23,12 @@ use Tests\TestCase;
 final class KitApplicabilityCommandTest extends TestCase
 {
     use RefreshDatabase;
+    use CreatesWarehouseKit;
 
     public function test_creates_calculated_targets_and_dispatches_created(): void
     {
         Event::fake();
-        $kitId = $this->createKit();
+        $kitId = $this->createWarehouseKit();
 
         (new KitApplicabilityCommand)->syncCalculatedTargets(
             kitId: $kitId,
@@ -48,14 +49,16 @@ final class KitApplicabilityCommandTest extends TestCase
             KitApplicabilityCreated::class,
             fn (KitApplicabilityCreated $event): bool => $event->kitId === $kitId
                 && $event->targetType === ApplicabilityTargetTypeEnum::PART_SPECIFICATION
-                && $event->targetId === 10,
+                && $event->targetId === 10
+                && $event->source === ApplicabilitySourceEnum::CALCULATED
+                && $event->algorithm === KitApplicabilityAlgorithmEnum::WIPER,
         );
     }
 
     public function test_deletes_stale_calculated_targets_and_dispatches_deleted(): void
     {
         Event::fake();
-        $kitId = $this->createKit();
+        $kitId = $this->createWarehouseKit();
         $this->createApplicability(
             kitId: $kitId,
             targetId: 10,
@@ -80,14 +83,16 @@ final class KitApplicabilityCommandTest extends TestCase
             KitApplicabilityDeleted::class,
             fn (KitApplicabilityDeleted $event): bool => $event->kitId === $kitId
                 && $event->targetType === ApplicabilityTargetTypeEnum::PART_SPECIFICATION
-                && $event->targetId === 10,
+                && $event->targetId === 10
+                && $event->source === ApplicabilitySourceEnum::CALCULATED
+                && $event->algorithm === KitApplicabilityAlgorithmEnum::WIPER,
         );
     }
 
     public function test_updates_existing_calculated_target_algorithm_and_dispatches_updated(): void
     {
         Event::fake();
-        $kitId = $this->createKit();
+        $kitId = $this->createWarehouseKit();
         $this->createApplicability(
             kitId: $kitId,
             targetId: 10,
@@ -114,14 +119,16 @@ final class KitApplicabilityCommandTest extends TestCase
             KitApplicabilityUpdated::class,
             fn (KitApplicabilityUpdated $event): bool => $event->kitId === $kitId
                 && $event->targetType === ApplicabilityTargetTypeEnum::PART_SPECIFICATION
-                && $event->targetId === 10,
+                && $event->targetId === 10
+                && $event->source === ApplicabilitySourceEnum::CALCULATED
+                && $event->algorithm === KitApplicabilityAlgorithmEnum::WIPER,
         );
     }
 
     public function test_does_not_touch_imported_targets(): void
     {
         Event::fake();
-        $kitId = $this->createKit();
+        $kitId = $this->createWarehouseKit();
         $this->createApplicability(
             kitId: $kitId,
             targetId: 10,
@@ -159,41 +166,6 @@ final class KitApplicabilityCommandTest extends TestCase
             'target_id' => $targetId,
             'source' => $source,
             'algorithm' => $algorithm,
-        ]);
-    }
-
-    private function createKit(): int
-    {
-        $typeId = DB::table('types')->insertGetId([
-            'name' => 'ЩЕТКИ СТЕКЛООЧИСТИТЕЛЯ',
-            'char' => 'WB',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        $packDimensionId = DB::table('pack_dimensions')->insertGetId([
-            'name' => 'Box',
-            'weight' => 1,
-            'width' => 1,
-            'height' => 1,
-            'length' => 1,
-            'price' => 1,
-            'generated' => false,
-            'type_id' => $typeId,
-        ]);
-
-        return DB::table('kits')->insertGetId([
-            'complectation' => 'Kit',
-            'guarantee' => 12,
-            'quantity_in_package' => 1,
-            'quantity_package' => 1,
-            'complement' => true,
-            'weight' => 1,
-            'is_sale_separately' => false,
-            'is_active' => true,
-            'pack_dimension_id' => $packDimensionId,
-            'type_id' => $typeId,
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
     }
 }
