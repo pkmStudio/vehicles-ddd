@@ -2,6 +2,7 @@
 
 use App\Providers\AuthServiceProvider;
 use App\Providers\HorizonServiceProvider;
+use App\Modules\Applicability\Shared\Infrastructure\Providers\ApplicabilityServiceProvider;
 use App\Modules\Templates\Infrastructure\Providers\TemplatesServiceProvider;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Providers\CatalogServiceProvider;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Providers\ExportServiceProvider;
@@ -25,6 +26,7 @@ return [
     HorizonServiceProvider::class,
     VehiclesServiceProvider::class,
     WarehouseServiceProvider::class,
+    ApplicabilityServiceProvider::class,
     WarehouseCatalogServiceProvider::class,
     TemplatesServiceProvider::class,
     ImportServiceProvider::class,

@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__.'/../app/Modules/Warehouse/Features/Import/Presentation/Console/Commands',
         __DIR__.'/../app/Modules/Warehouse/Features/Maintenance/Presentation/Console/Commands',
         __DIR__.'/../app/Modules/Warehouse/Features/MoySklad/Presentation/Console/Commands',
+        __DIR__.'/../app/Modules/Applicability/Features/Calculation/Presentation/Console/Commands',
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         //
