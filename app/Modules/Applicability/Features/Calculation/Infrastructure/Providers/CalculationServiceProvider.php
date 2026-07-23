@@ -16,6 +16,7 @@ use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\Temp
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\WarehouseKitClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Commands\KitApplicabilityCommandInterface;
+use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Reporting\CalculationFailureReporterInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\ApplicabilityServiceFactoryInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\KitApplicabilityCalculatorInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperAdapterExtractorInterface;
@@ -28,6 +29,7 @@ use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\Templa
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\VehiclesApplicabilityClient;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\WarehouseKitClient;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Commands\KitApplicabilityCommand;
+use App\Modules\Applicability\Features\Calculation\Infrastructure\Reporting\CalculationFailureReporter;
 use Illuminate\Support\ServiceProvider;
 
 final class CalculationServiceProvider extends ServiceProvider
@@ -52,6 +54,10 @@ final class CalculationServiceProvider extends ServiceProvider
         WiperVehicleFinderInterface::class => WiperVehicleFinder::class,
     ];
 
+    private const array REPORTING_BINDINGS = [
+        CalculationFailureReporterInterface::class => CalculationFailureReporter::class,
+    ];
+
     private const array USE_CASE_BINDINGS = [
         CalculateKitApplicabilityUseCaseInterface::class => CalculateKitApplicabilityUseCase::class,
     ];
@@ -67,6 +73,10 @@ final class CalculationServiceProvider extends ServiceProvider
         }
 
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
+        }
+
+        foreach (self::REPORTING_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
 

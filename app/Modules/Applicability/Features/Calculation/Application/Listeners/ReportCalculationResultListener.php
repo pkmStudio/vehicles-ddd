@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Applicability\Features\Calculation\Application\Listeners;
+
+use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Reporting\CalculationFailureReporterInterface;
+use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabilityRecalculated;
+use Illuminate\Support\Facades\Log;
+
+final readonly class ReportCalculationResultListener
+{
+    public function __construct(
+        private CalculationFailureReporterInterface $reporter,
+    ) {}
+
+    public function handle(KitApplicabilityRecalculated $event): void
+    {
+        $reportPath = $this->reporter->store($event->result);
+
+        if ($reportPath === null) {
+            Log::info('Applicability calculation completed', [
+                'run_id' => $event->runId,
+                'processed_kits' => $event->result->processedKits,
+                'calculated_kits' => $event->result->calculatedKits,
+                'skipped_kits' => $event->result->skippedKits,
+                'failed_kits' => $event->result->failedKits,
+            ]);
+
+            return;
+        }
+
+        Log::warning('Applicability calculation completed with failures', [
+            'run_id' => $event->runId,
+            'processed_kits' => $event->result->processedKits,
+            'calculated_kits' => $event->result->calculatedKits,
+            'skipped_kits' => $event->result->skippedKits,
+            'failed_kits' => $event->result->failedKits,
+            'failures_report_path' => $reportPath,
+            'failures_report_disk' => (string) config('applicability.calculation.failures.disk', 'local'),
+        ]);
+    }
+}
