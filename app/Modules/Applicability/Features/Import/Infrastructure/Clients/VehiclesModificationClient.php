@@ -13,31 +13,40 @@ final readonly class VehiclesModificationClient implements VehiclesModificationC
 {
     public function resolveByMsAndModId(int $msId, int $modId): int
     {
-        if ($msId < 0) {
-            $vehicle = Vehicle::query()
-                ->with('parent')
-                ->where('ms_id', $msId)
-                ->first();
+        $vehicle = Vehicle::query()
+            ->with('parent')
+            ->where('ms_id', $msId)
+            ->first();
 
-            if ($vehicle === null) {
-                throw new RuntimeException("Модель (ms_id: {$msId}) не найдена.");
-            }
-
-            $msId = $vehicle->parent?->ms_id;
-            if ($msId === null) {
-                throw new RuntimeException("Модель (ms_id: {$vehicle->ms_id}) должна иметь родителя.");
-            }
+        if ($vehicle === null) {
+            throw new RuntimeException("Модель (ms_id: {$msId}) не найдена.");
         }
 
-        $modification = Modification::query()
+        $modification = $this->findModification((int) $vehicle->ms_id, $modId);
+        if ($modification !== null) {
+            return (int) $modification->id;
+        }
+
+        $parentMsId = $vehicle->parent?->ms_id;
+        if ($parentMsId !== null) {
+            $modification = $this->findModification((int) $parentMsId, $modId);
+            if ($modification !== null) {
+                return (int) $modification->id;
+            }
+
+            throw new RuntimeException(
+                "Модификация (ms_id: {$vehicle->ms_id}, mod_id: {$modId}) не найдена ни у модели, ни у родителя (parent_ms_id: {$parentMsId}).",
+            );
+        }
+
+        throw new RuntimeException("Модификация (ms_id: {$vehicle->ms_id}, mod_id: {$modId}) не найдена.");
+    }
+
+    private function findModification(int $msId, int $modId): ?Modification
+    {
+        return Modification::query()
             ->where('ms_id', $msId)
             ->where('mod_id', $modId)
             ->first();
-
-        if ($modification === null) {
-            throw new RuntimeException("Модификация (ms_id: {$msId}, mod_id: {$modId}) не найдена.");
-        }
-
-        return (int) $modification->id;
     }
 }
