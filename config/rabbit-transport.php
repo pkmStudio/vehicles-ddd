@@ -42,6 +42,8 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\Part
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
+use App\Modules\Applicability\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as ApplicabilityExportFileRequestedHandler;
+use App\Modules\Applicability\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler as ApplicabilityImportFileRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\BrandMutationRequestedHandler as WarehouseBrandMutationRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\KitMutationRequestedHandler as WarehouseKitMutationRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\NomenclatureMutationRequestedHandler as WarehouseNomenclatureMutationRequestedHandler;
@@ -189,6 +191,14 @@ return [
             WarehouseImportFileRequestedHandler::class,
             'handle',
         ],
+        'APPLICABILITY_IMPORT_FILE_REQUESTED' => [
+            ApplicabilityImportFileRequestedHandler::class,
+            'handle',
+        ],
+        'APPLICABILITY_EXPORT_FILE_REQUESTED' => [
+            ApplicabilityExportFileRequestedHandler::class,
+            'handle',
+        ],
 
         'WAREHOUSE_BRAND_CREATE_REQUESTED' => [
             WarehouseBrandMutationRequestedHandler::class,
@@ -317,6 +327,8 @@ return [
         'WAREHOUSE_FILE_EXPORTED' => 'warehouse.file.exported',
         'IMPORT_COMPLETED' => 'vehicles.import.completed',
         'WAREHOUSE_IMPORT_COMPLETED' => 'warehouse.import.completed',
+        'APPLICABILITY_IMPORT_COMPLETED' => 'applicability.import.completed',
+        'APPLICABILITY_FILE_EXPORTED' => 'applicability.file.exported',
         'CATALOG_MUTATION_COMPLETED' => 'vehicles.catalog.mutation.completed',
         'WAREHOUSE_CATALOG_MUTATION_COMPLETED' => 'warehouse.catalog.mutation.completed',
     ],
@@ -361,6 +373,8 @@ return [
             'crm.warehouse.nomenclatures.import',
             'crm.warehouse.pack-dimensions.import',
             'crm.warehouse.kits.import',
+            'crm.applicability.import',
+            'crm.applicability.export',
             'crm.warehouse.brands.create',
             'crm.warehouse.brands.update',
             'crm.warehouse.brands.delete',

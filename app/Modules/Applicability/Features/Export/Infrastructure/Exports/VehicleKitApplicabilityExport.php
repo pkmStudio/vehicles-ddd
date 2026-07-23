@@ -22,8 +22,9 @@ final readonly class VehicleKitApplicabilityExport implements FromCollection, Ve
 
     public function export(ExportRunContextDTO $context, ?string $disk = null): string
     {
-        $disk ??= 'local';
-        $path = "exports/applicability-vehicles-{$context->runId}.xlsx";
+        $disk ??= (string) config('applicability.export.output.disk', 'local');
+        $directory = (string) config('applicability.export.output.directory', 'exports');
+        $path = "{$directory}/applicability-vehicles-{$context->runId}.xlsx";
 
         ExcelFacade::store(
             export: $this,

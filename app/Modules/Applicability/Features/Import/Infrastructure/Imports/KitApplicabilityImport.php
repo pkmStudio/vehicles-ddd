@@ -8,6 +8,7 @@ use App\Modules\Applicability\Features\Import\Domain\Contracts\Imports\KitApplic
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Services\ImportKitApplicabilityRowServiceInterface;
 use App\Modules\Applicability\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Applicability\Features\Import\Domain\Events\KitApplicabilityImportCompleted;
+use App\Modules\Applicability\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -21,18 +22,15 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\Failure;
-use Throwable;
+use RuntimeException;
 
 final class KitApplicabilityImport implements KitApplicabilityImportInterface, ShouldQueue, SkipsEmptyRows, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithMultipleSheets, WithStartRow
 {
+    use CachesImportFailures;
+
     private ?int $userId = null;
 
     private ?string $runId = null;
-
-    private ?string $cacheKey = null;
-
-    /** @var array<int, Failure> */
-    private array $failures = [];
 
     public function __construct(
         private readonly ImportKitApplicabilityRowServiceInterface $service,
@@ -42,7 +40,14 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
     {
         $this->userId = $context->userId;
         $this->runId = $context->runId;
-        $this->cacheKey = "kit_applicability_import_failures_{$context->runId}";
+        $this->cacheKey = sprintf(
+            (string) config('applicability.import.failures.cache.keys.kit_applicability_import_failures'),
+            $context->runId,
+        );
+        $this->lockKey = sprintf(
+            (string) config('applicability.import.failures.cache.keys.kit_applicability_import_failures_lock'),
+            $context->runId,
+        );
 
         Excel::import(
             import: $this,
@@ -62,7 +67,7 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
 
             try {
                 $this->service->importFromRow($rowValues);
-            } catch (InvalidArgumentException|Throwable $exception) {
+            } catch (InvalidArgumentException|RuntimeException $exception) {
                 $this->onFailure(new Failure(
                     row: $indexRow + $this->startRow(),
                     attribute: 'kit_id',
@@ -101,11 +106,6 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
                 runId: $this->runId,
             )),
         ];
-    }
-
-    public function onFailure(Failure ...$failures): void
-    {
-        array_push($this->failures, ...$failures);
     }
 
     /**
