@@ -22,20 +22,52 @@ use Illuminate\Support\ServiceProvider;
 
 final class ExportServiceProvider extends ServiceProvider
 {
-    private const array BINDINGS = [
+    private const array EXPORT_BINDINGS = [
         VehicleKitApplicabilityExportInterface::class => VehicleKitApplicabilityExport::class,
+    ];
+
+    private const array REPOSITORY_BINDINGS = [
         KitApplicabilityExportRepositoryInterface::class => KitApplicabilityExportRepository::class,
+    ];
+
+    private const array SERVICE_BINDINGS = [
         VehicleKitApplicabilityExportServiceInterface::class => VehicleKitApplicabilityExportService::class,
-        ExportFileFactoryInterface::class => ExportFileFactory::class,
-        StartExportUseCaseInterface::class => StartExportUseCase::class,
         ExportRunCacheServiceInterface::class => ExportRunCacheService::class,
+    ];
+
+    private const array FACTORY_BINDINGS = [
+        ExportFileFactoryInterface::class => ExportFileFactory::class,
+    ];
+
+    private const array USE_CASE_BINDINGS = [
+        StartExportUseCaseInterface::class => StartExportUseCase::class,
+    ];
+
+    private const array NOTIFICATION_BINDINGS = [
         ExportNotificationServiceInterface::class => RabbitMqExportNotificationService::class,
     ];
 
     public function register(): void
     {
-        foreach (self::BINDINGS as $interface => $implementation) {
-            $this->app->bind($interface, $implementation);
+        foreach ($this->bindings() as $bindings) {
+            foreach ($bindings as $interface => $implementation) {
+                $this->app->bind($interface, $implementation);
+            }
         }
+    }
+
+    /**
+     * Возвращает сгруппированные DI bindings фичи Export.
+     */
+    private function bindings(): array
+    {
+        return [
+            self::EXPORT_BINDINGS,
+            self::REPOSITORY_BINDINGS,
+            self::SERVICE_BINDINGS,
+            self::FACTORY_BINDINGS,
+            self::USE_CASE_BINDINGS,
+            self::NOTIFICATION_BINDINGS,
+        ];
     }
 }

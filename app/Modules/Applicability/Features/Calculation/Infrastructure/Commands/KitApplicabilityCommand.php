@@ -11,6 +11,7 @@ use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilityTargetTypeEnum;
 use App\Modules\Applicability\Shared\Domain\Enums\KitApplicabilityAlgorithmEnum;
 use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabilityCreated;
 use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabilityDeleted;
+use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabilityUpdated;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class KitApplicabilityCommand implements KitApplicabilityCommandInterface
 {
     /**
-     * Обновляет calculated-связи набора и публикует факты создания/удаления.
+     * Обновляет calculated-связи набора и публикует факты создания/изменения/удаления.
      *
      * Шаги:
      * 1) Нормализовать target ids.
@@ -46,7 +47,7 @@ final readonly class KitApplicabilityCommand implements KitApplicabilityCommandI
                 $deleteQuery->whereNotIn('target_id', $targetIds);
             }
 
-            $deletedTargets = $deleteQuery
+            $deletedTargets = (clone $deleteQuery)
                 ->pluck('target_id')
                 ->map(static fn (int|string $targetId): int => (int) $targetId)
                 ->all();
@@ -72,6 +73,12 @@ final readonly class KitApplicabilityCommand implements KitApplicabilityCommandI
                     continue;
                 }
 
+                $shouldDispatchUpdated = $existing !== null
+                    && (
+                        $existing->source !== ApplicabilitySourceEnum::CALCULATED
+                        || $existing->algorithm !== $algorithm
+                    );
+
                 $applicability = KitApplicability::query()->updateOrCreate(
                     [
                         'kit_id' => $kitId,
@@ -86,6 +93,14 @@ final readonly class KitApplicabilityCommand implements KitApplicabilityCommandI
 
                 if ($applicability->wasRecentlyCreated) {
                     event(new KitApplicabilityCreated(
+                        kitId: $kitId,
+                        targetType: $targetType,
+                        targetId: $targetId,
+                    ));
+                }
+
+                if (! $applicability->wasRecentlyCreated && $shouldDispatchUpdated) {
+                    event(new KitApplicabilityUpdated(
                         kitId: $kitId,
                         targetType: $targetType,
                         targetId: $targetId,

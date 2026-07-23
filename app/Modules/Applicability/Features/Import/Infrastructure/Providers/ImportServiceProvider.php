@@ -34,17 +34,38 @@ use Illuminate\Support\ServiceProvider;
 
 final class ImportServiceProvider extends ServiceProvider
 {
-    private const array BINDINGS = [
-        KitApplicabilityImportInterface::class => KitApplicabilityImport::class,
+    private const array CLIENT_BINDINGS = [
         WarehouseKitClientInterface::class => WarehouseKitClient::class,
         VehiclesModificationClientInterface::class => VehiclesModificationClient::class,
+    ];
+
+    private const array COMMAND_BINDINGS = [
         KitApplicabilityCommandInterface::class => KitApplicabilityCommand::class,
+    ];
+
+    private const array IMPORT_BINDINGS = [
+        KitApplicabilityImportInterface::class => KitApplicabilityImport::class,
+    ];
+
+    private const array SERVICE_BINDINGS = [
         ImportKitApplicabilityRowServiceInterface::class => ImportKitApplicabilityRowService::class,
-        ImportFileFactoryInterface::class => ImportFileFactory::class,
-        StartExternalFileImportUseCaseInterface::class => StartExternalFileImportUseCase::class,
         ExternalImportCacheServiceInterface::class => ExternalImportCacheService::class,
         ExternalImportFileStorageInterface::class => LaravelExternalImportFileStorage::class,
+    ];
+
+    private const array FACTORY_BINDINGS = [
+        ImportFileFactoryInterface::class => ImportFileFactory::class,
+    ];
+
+    private const array USE_CASE_BINDINGS = [
+        StartExternalFileImportUseCaseInterface::class => StartExternalFileImportUseCase::class,
+    ];
+
+    private const array NOTIFICATION_BINDINGS = [
         ImportNotificationServiceInterface::class => RabbitMqImportNotificationService::class,
+    ];
+
+    private const array REPORTING_BINDINGS = [
         ImportFailureReporterInterface::class => ImportFailureReporter::class,
         ImportFailureStoreInterface::class => CacheImportFailureStore::class,
         FailuresExportInterface::class => FailuresExport::class,
@@ -52,8 +73,27 @@ final class ImportServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        foreach (self::BINDINGS as $interface => $implementation) {
-            $this->app->bind($interface, $implementation);
+        foreach ($this->bindings() as $bindings) {
+            foreach ($bindings as $interface => $implementation) {
+                $this->app->bind($interface, $implementation);
+            }
         }
+    }
+
+    /**
+     * Возвращает сгруппированные DI bindings фичи Import.
+     */
+    private function bindings(): array
+    {
+        return [
+            self::CLIENT_BINDINGS,
+            self::COMMAND_BINDINGS,
+            self::IMPORT_BINDINGS,
+            self::SERVICE_BINDINGS,
+            self::FACTORY_BINDINGS,
+            self::USE_CASE_BINDINGS,
+            self::NOTIFICATION_BINDINGS,
+            self::REPORTING_BINDINGS,
+        ];
     }
 }

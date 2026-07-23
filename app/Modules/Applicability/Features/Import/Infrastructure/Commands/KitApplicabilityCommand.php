@@ -10,6 +10,7 @@ use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilitySourceEnum;
 use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilityTargetTypeEnum;
 use App\Modules\Applicability\Shared\Domain\Enums\KitApplicabilityAlgorithmEnum;
 use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabilityCreated;
+use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabilityUpdated;
 
 /**
  * Записывает импортированные связи применяемости набора.
@@ -17,10 +18,22 @@ use App\Modules\Applicability\Shared\Domain\Events\KitApplicability\KitApplicabi
 final readonly class KitApplicabilityCommand implements KitApplicabilityCommandInterface
 {
     /**
-     * Сохраняет imported-связь набора с модификацией и публикует факт создания новой связи.
+     * Сохраняет imported-связь набора с модификацией и публикует факт создания/изменения.
      */
     public function saveImportedModificationTarget(int $kitId, int $modificationId): void
     {
+        $existing = KitApplicability::query()
+            ->where('kit_id', $kitId)
+            ->where('target_type', ApplicabilityTargetTypeEnum::MODIFICATION)
+            ->where('target_id', $modificationId)
+            ->first();
+
+        $shouldDispatchUpdated = $existing !== null
+            && (
+                $existing->source !== ApplicabilitySourceEnum::IMPORTED
+                || $existing->algorithm !== KitApplicabilityAlgorithmEnum::MANUAL_XLSX
+            );
+
         $applicability = KitApplicability::query()->updateOrCreate(
             [
                 'kit_id' => $kitId,
@@ -34,6 +47,14 @@ final readonly class KitApplicabilityCommand implements KitApplicabilityCommandI
         );
 
         if (! $applicability->wasRecentlyCreated) {
+            if ($shouldDispatchUpdated) {
+                event(new KitApplicabilityUpdated(
+                    kitId: $kitId,
+                    targetType: ApplicabilityTargetTypeEnum::MODIFICATION,
+                    targetId: $modificationId,
+                ));
+            }
+
             return;
         }
 
