@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Import\Application\Services\Nomenclature;
 
+use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
@@ -95,6 +96,8 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
         }
 
         $details = $this->templates->buildNomenclatureDetails($template, $row, self::DETAILS_START_INDEX);
+        $this->validateDetails($template, $details, (string) ($row[5] ?? ''));
+
         $weight = $this->parsePositiveInteger(
             value: $row[7] ?? null,
             columnName: 'Вес',
@@ -127,6 +130,30 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
         }
 
         return $this->command->create($data);
+    }
+
+    /**
+     * Проверяет обязательные поля details, которые критичны для последующей сборки комплектов.
+     *
+     * @param  array<string, mixed>  $details
+     */
+    private function validateDetails(
+        NomenclatureDetailTemplateEnum $template,
+        array $details,
+        string $partNumber,
+    ): void {
+        if ($template !== NomenclatureDetailTemplateEnum::WIPER) {
+            return;
+        }
+
+        $category = $details['category'] ?? null;
+        if ($category !== null && trim((string) $category) !== '') {
+            return;
+        }
+
+        throw new InvalidArgumentException(
+            "У щетки {$partNumber} не заполнена категория. Проверьте колонку «Категория».",
+        );
     }
 
     /**

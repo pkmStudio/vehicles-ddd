@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\KitProperties\Infrastructure\Providers;
 
 use App\Modules\Warehouse\Features\KitProperties\Application\Services\KitComplectationService;
+use App\Modules\Warehouse\Features\KitProperties\Application\Services\KitCompositionValidator;
 use App\Modules\Warehouse\Features\KitProperties\Application\Services\KitPropertiesService;
 use App\Modules\Warehouse\Features\KitProperties\Application\Services\Strategies\SingleTypeStrategy;
 use App\Modules\Warehouse\Features\KitProperties\Application\Services\Strategies\WiperWithAdapterStrategy;
 use App\Modules\Warehouse\Features\KitProperties\Application\Services\TypeTemplateResolver;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Clients\PackagingClientInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitComplectationServiceInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCompositionValidatorInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCompositionStrategyInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
@@ -36,6 +38,7 @@ final class KitPropertiesServiceProvider extends ServiceProvider
     private const array SERVICE_BINDINGS = [
         TypeTemplateResolverInterface::class => TypeTemplateResolver::class,
         KitComplectationServiceInterface::class => KitComplectationService::class,
+        KitCompositionValidatorInterface::class => KitCompositionValidator::class,
     ];
 
     private const array CLIENT_BINDINGS = [

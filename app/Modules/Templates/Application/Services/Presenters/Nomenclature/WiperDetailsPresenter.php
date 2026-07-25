@@ -6,6 +6,7 @@ namespace App\Modules\Templates\Application\Services\Presenters\Nomenclature;
 
 use App\Modules\Templates\Application\Traits\FormatsExportCells;
 use App\Modules\Templates\Domain\Enums\PositionEnum;
+use App\Modules\Templates\Domain\Enums\Wiper\CategoryEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\ConstructionEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\FrontAdapterTypeEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\RearAdapterTypeEnum;
@@ -24,7 +25,7 @@ final readonly class WiperDetailsPresenter
     public function headings(): array
     {
         return [
-            'Расположение', 'Конструкция', 'Сезон',
+            'Расположение', 'Категория', 'Конструкция', 'Сезон',
             'Длина водительской (мм)', 'Длина пассажирской (мм)', 'Длина задней (мм)',
             'Тип крепления передних', 'Тип крепления задней',
             'Покрытие', 'Датчик износа', 'Спойлер', 'Форсунка омывателя', 'C подогревом',
@@ -36,6 +37,7 @@ final readonly class WiperDetailsPresenter
     {
         return [
             $this->nameToLabelCell(PositionEnum::class, $data->position),
+            $this->nameToLabelCell(CategoryEnum::class, $data->category),
             $this->nameToLabelCell(ConstructionEnum::class, $data->construction),
             $this->nameToLabelCell(SeasonEnum::class, $data->season),
             $data->lengthMain,

@@ -40,6 +40,7 @@ use App\Modules\Templates\Domain\Enums\SparkPlug\ThreadPitchEnum;
 use App\Modules\Templates\Domain\Enums\SparkPlug\ThreadSizeEnum;
 use App\Modules\Templates\Domain\Enums\SparkPlug\WrenchJawWidthEnum;
 use App\Modules\Templates\Domain\Enums\TieRod\ApplicationEnum;
+use App\Modules\Templates\Domain\Enums\Wiper\CategoryEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\ConstructionEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\FrontAdapterTypeEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\RearAdapterTypeEnum;
@@ -135,6 +136,7 @@ final readonly class NomenclatureDetailsDataPresenter implements NomenclatureDet
             ],
             NomenclatureDetailTemplateEnum::WIPER => [
                 'Расположение' => $this->labels(PositionEnum::class),
+                'Категория' => $this->labels(CategoryEnum::class),
                 'Конструкция' => $this->labels(ConstructionEnum::class),
                 'Сезон' => $this->labels(SeasonEnum::class),
                 'Тип крепления передних' => $this->labels(FrontAdapterTypeEnum::class),

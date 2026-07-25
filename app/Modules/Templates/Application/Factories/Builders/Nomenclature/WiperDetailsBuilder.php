@@ -7,6 +7,7 @@ namespace App\Modules\Templates\Application\Factories\Builders\Nomenclature;
 use App\Modules\Templates\Application\Factories\DetailsRowCursor;
 use App\Modules\Templates\Application\Traits\ParsesBooleanCells;
 use App\Modules\Templates\Domain\Enums\PositionEnum;
+use App\Modules\Templates\Domain\Enums\Wiper\CategoryEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\ConstructionEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\FrontAdapterTypeEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\RearAdapterTypeEnum;
@@ -28,6 +29,7 @@ final readonly class WiperDetailsBuilder
     {
         return new WiperDetailsData(
             position: $cursor->pullLabel(PositionEnum::class)?->name,
+            category: $cursor->pullLabel(CategoryEnum::class)?->name,
             construction: $cursor->pullLabel(ConstructionEnum::class)?->name,
             season: $cursor->pullLabel(SeasonEnum::class)?->name,
             lengthMain: $cursor->pullIntCell(),

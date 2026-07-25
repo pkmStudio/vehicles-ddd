@@ -31,5 +31,6 @@ final class NomenclatureData extends Data
         public readonly array $details,
         public readonly ?int $id = null,
         public readonly ?TypeData $type = null,
+        public readonly ?int $brandId = null,
     ) {}
 }

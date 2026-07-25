@@ -6,6 +6,7 @@ namespace App\Modules\Warehouse\Features\KitProperties\Application\Services;
 
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Clients\PackagingClientInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitComplectationServiceInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCompositionValidatorInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCompositionStrategyInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\DTOs\KitPropertiesDTO;
@@ -14,7 +15,6 @@ use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\PackDimension
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use UnexpectedValueException;
 
@@ -30,6 +30,7 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
     public function __construct(
         private PackagingClientInterface $packaging,
         private KitComplectationServiceInterface $complectationService,
+        private KitCompositionValidatorInterface $compositionValidator,
         private LoggerInterface $logger,
         private array $strategies,
     ) {}
@@ -47,11 +48,8 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
      */
     public function build(array $nomenclatures): KitPropertiesDTO
     {
-        if ($nomenclatures === []) {
-            throw new InvalidArgumentException('Список номенклатур не может быть пустым');
-        }
-
         $collection = new Collection($nomenclatures);
+        $this->compositionValidator->validate($collection);
 
         $strategy = $this->resolveStrategy($collection);
         $type = $strategy->resolveType($collection);

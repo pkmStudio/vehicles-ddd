@@ -177,6 +177,38 @@ final class KitMutationRequestedHandlerTest extends TestCase
         $this->assertSame(1, Kit::query()->where('import_hash', 'hash-duplicate')->count());
     }
 
+    public function test_kit_create_is_rejected_when_real_composition_validation_fails(): void
+    {
+        $type = Type::query()->create(['name' => 'V-Belt', 'char' => 'VB']);
+        $firstBrand = Brand::query()->create($this->brandAttributes());
+        $secondBrand = Brand::query()->create([
+            ...$this->brandAttributes(),
+            'name' => 'Denso',
+            'number_sert' => 'CERT-2',
+            'char' => 'D',
+        ]);
+
+        $first = Nomenclature::query()->create($this->nomenclatureAttributes($type->id, $firstBrand->id, 'VB-1'));
+        $second = Nomenclature::query()->create($this->nomenclatureAttributes($type->id, $secondBrand->id, 'VB-2'));
+
+        $notifier = $this->mock(WarehouseCatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (WarehouseCatalogMutationResultDTO $result): bool => $result->entity === WarehouseCatalogEntityEnum::Kit
+                && $result->operation === WarehouseCatalogMutationOperationEnum::Create
+                && $result->status === WarehouseCatalogMutationStatusEnum::Rejected
+                && $result->reason === WarehouseCatalogMutationRejectReasonEnum::InvalidComposition->value
+                && str_contains((string) ($result->errors['message'] ?? ''), 'Нельзя собрать комплект из разных брендов')));
+
+        app(KitMutationRequestedHandler::class)->handle($this->payload(
+            operationId: 'warehouse-kit-invalid-composition-1',
+            operation: 'create',
+            nomenclatureIds: [$first->id, $second->id],
+        ));
+
+        $this->assertSame(0, Kit::query()->count());
+    }
+
     public function test_warehouse_catalog_mutation_events_are_registered(): void
     {
         $brandHandler = [BrandMutationRequestedHandler::class, 'handle'];

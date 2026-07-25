@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Warehouse\KitProperties;
 
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Modules\Warehouse\Features\KitProperties\Application\Services\KitCompositionValidator;
 use App\Modules\Warehouse\Features\KitProperties\Application\Services\KitPropertiesService;
 use App\Modules\Warehouse\Features\KitProperties\Application\Services\Strategies\SingleTypeStrategy;
 use App\Modules\Warehouse\Features\KitProperties\Application\Services\Strategies\WiperWithAdapterStrategy;
@@ -18,7 +19,6 @@ use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use Mockery;
 use Psr\Log\NullLogger;
 use Tests\TestCase;
-use UnexpectedValueException;
 
 final class KitPropertiesServiceTest extends TestCase
 {
@@ -34,6 +34,7 @@ final class KitPropertiesServiceTest extends TestCase
         return new KitPropertiesService(
             packaging: $packaging,
             complectationService: $complectation,
+            compositionValidator: new KitCompositionValidator($wiperResolver, new NullLogger),
             logger: new NullLogger,
             strategies: [new WiperWithAdapterStrategy($wiperResolver), new SingleTypeStrategy],
         );
@@ -80,8 +81,8 @@ final class KitPropertiesServiceTest extends TestCase
         $wiperType = new TypeData(name: 'Щетки стеклоочистителя', id: 3);
         $adapterType = new TypeData(name: 'Адаптер стеклоочистителя', id: 7);
 
-        $wiper = new NomenclatureData(typeId: 3, partNumber: 'WB-1', quantityInPak: 1, quantityPak: 1, weight: 100, material: [], details: [], type: $wiperType);
-        $adapter = new NomenclatureData(typeId: 7, partNumber: 'AW-1', quantityInPak: 5, quantityPak: 5, weight: 20, material: [], details: [], type: $adapterType);
+        $wiper = new NomenclatureData(typeId: 3, partNumber: 'WB-1', quantityInPak: 1, quantityPak: 1, weight: 100, material: [], details: ['category' => 'FRAMELESS'], type: $wiperType, brandId: 10);
+        $adapter = new NomenclatureData(typeId: 7, partNumber: 'AW-1', quantityInPak: 5, quantityPak: 5, weight: 20, material: [], details: [], type: $adapterType, brandId: 20);
 
         $resolver = Mockery::mock(TypeTemplateResolverInterface::class);
         $resolver->shouldReceive('resolve')->with($wiperType)->andReturn(NomenclatureDetailTemplateEnum::WIPER);
@@ -158,7 +159,8 @@ final class KitPropertiesServiceTest extends TestCase
 
         $service = $this->service($packaging, $complectation, $resolver);
 
-        $this->expectException(UnexpectedValueException::class);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Нельзя собрать комплект из разных типов товаров. Исключение: щетка + адаптер.');
         $service->build([$n1, $n2]);
     }
 

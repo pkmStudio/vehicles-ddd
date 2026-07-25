@@ -129,4 +129,45 @@ final class KitImportTest extends TestCase
         );
         $this->assertNotEmpty(Cache::get($cacheKey));
     }
+
+    public function test_mixed_brand_kit_is_recorded_as_failure_and_not_written(): void
+    {
+        Event::fake([KitImportCompleted::class]);
+
+        $type = Type::query()->create(['name' => 'V-Belt', 'char' => 'VB']);
+        $firstBrand = Brand::query()->create([
+            'name' => 'BrandX',
+            'number_sert' => 'CERT-1',
+            'date_start' => now(),
+            'date_end' => now(),
+        ]);
+        $secondBrand = Brand::query()->create([
+            'name' => 'BrandY',
+            'number_sert' => 'CERT-2',
+            'date_start' => now(),
+            'date_end' => now(),
+        ]);
+
+        $this->createNomenclature($type->id, $firstBrand->id, 'VB-1');
+        $this->createNomenclature($type->id, $secondBrand->id, 'VB-2');
+
+        $path = $this->writeCsv("id,part_numbers,is_sale_separately,is_active\n,VB-1;VB-2,Да,Да\n");
+
+        $context = new ImportRunContextDTO(userId: null, runId: 'run-kit-mixed-brand');
+        app(KitImportInterface::class)->import($path, $context);
+
+        $this->assertSame(0, Kit::query()->count());
+
+        $cacheKey = sprintf(
+            (string) config('warehouse.import.failures.cache.keys.kit_import_failures'),
+            'run-kit-mixed-brand',
+        );
+        $failures = Cache::get($cacheKey);
+
+        $this->assertNotEmpty($failures);
+        $this->assertStringContainsString(
+            'Нельзя собрать комплект из разных брендов',
+            json_encode($failures, JSON_UNESCAPED_UNICODE),
+        );
+    }
 }

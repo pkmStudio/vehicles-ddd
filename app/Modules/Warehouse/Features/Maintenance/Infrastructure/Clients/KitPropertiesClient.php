@@ -55,6 +55,7 @@ final readonly class KitPropertiesClient implements KitPropertiesClientInterface
             details: $nomenclature->details,
             id: $nomenclature->id,
             type: $type,
+            brandId: $nomenclature->brand_id,
         );
     }
 }

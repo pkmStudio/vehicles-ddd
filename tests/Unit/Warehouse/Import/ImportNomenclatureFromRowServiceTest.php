@@ -194,6 +194,37 @@ final class ImportNomenclatureFromRowServiceTest extends TestCase
         $service->importFromRow($row, $this->types(), $this->brands());
     }
 
+    public function test_throws_when_wiper_category_is_missing(): void
+    {
+        $templateResolver = Mockery::mock(TypeTemplateResolverInterface::class);
+        $templateResolver->shouldReceive('resolve')->once()->andReturn(NomenclatureDetailTemplateEnum::WIPER);
+
+        $templates = Mockery::mock(TemplatesClientInterface::class);
+        $templates->shouldReceive('buildNomenclatureDetails')
+            ->once()
+            ->with(NomenclatureDetailTemplateEnum::WIPER, Mockery::type('array'), Mockery::any())
+            ->andReturn(['position' => 'FRONT']);
+
+        $command = Mockery::mock(NomenclatureCommandInterface::class);
+        $command->shouldNotReceive('create');
+        $command->shouldNotReceive('updateById');
+
+        $repository = Mockery::mock(NomenclatureRepositoryInterface::class);
+        $repository->shouldNotReceive('findByPartNumber');
+
+        $service = new ImportNomenclatureFromRowService($repository, $command, $templateResolver, $templates);
+
+        $row = $this->validRow();
+        $row[1] = 'Щетки стеклоочистителя';
+        $row[5] = 'WB-ART-001';
+        $types = new Collection([new TypeData(name: 'Щетки стеклоочистителя', char: 'WB', id: 3)]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('У щетки WB-ART-001 не заполнена категория');
+
+        $service->importFromRow($row, $types, $this->brands());
+    }
+
     private function dummyNomenclatureData(): NomenclatureData
     {
         return new NomenclatureData(

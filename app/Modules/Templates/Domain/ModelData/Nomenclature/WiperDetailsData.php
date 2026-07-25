@@ -20,6 +20,7 @@ final class WiperDetailsData extends AbstractDetailsData
 {
     public function __construct(
         public readonly ?string $position = null,
+        public readonly ?string $category = null,
         public readonly ?string $construction = null,
         public readonly ?string $season = null,
         public readonly ?int $lengthMain = null,
