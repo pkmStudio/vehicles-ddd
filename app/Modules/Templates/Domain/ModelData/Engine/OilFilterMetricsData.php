@@ -15,10 +15,10 @@ final class OilFilterMetricsData extends Data
 {
     public function __construct(
         /** @var array<int, float> */
-        public readonly array $length = [],
+        public readonly array $length,
         /** @var array<int, float> */
-        public readonly array $width = [],
+        public readonly array $width,
         /** @var array<int, float> */
-        public readonly array $height = [],
+        public readonly array $height,
     ) {}
 }

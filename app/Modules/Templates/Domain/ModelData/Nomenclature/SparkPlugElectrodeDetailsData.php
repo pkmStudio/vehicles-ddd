@@ -13,7 +13,7 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class SparkPlugElectrodeDetailsData extends Data
 {
     public function __construct(
-        public readonly ?string $gap = null,
-        public readonly ?string $countSide = null,
+        public readonly string $gap,
+        public readonly string $countSide,
     ) {}
 }

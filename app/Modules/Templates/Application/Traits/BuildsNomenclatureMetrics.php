@@ -13,9 +13,9 @@ trait BuildsNomenclatureMetrics
     private function buildMetrics(DetailsRowCursor $cursor): NomenclatureMetricsData
     {
         return new NomenclatureMetricsData(
-            length: $cursor->pullIntArray(),
-            width: $cursor->pullIntArray(),
-            height: $cursor->pullIntArray(),
+            length: $cursor->pullRequiredIntArray('Длина'),
+            width: $cursor->pullRequiredIntArray('Ширина'),
+            height: $cursor->pullRequiredIntArray('Высота'),
         );
     }
 }

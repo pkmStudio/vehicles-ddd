@@ -20,12 +20,12 @@ final readonly class WheelHubBearingDetailsBuilder
     public function build(DetailsRowCursor $cursor): WheelHubBearingDetailsData
     {
         return new WheelHubBearingDetailsData(
-            height: $cursor->pullStringCell(),
-            abs: $cursor->pullStringCell(),
-            mount1: $cursor->pullStringCell(),
-            mount2: $cursor->pullStringCell(),
-            innerDiameter: $cursor->pullStringCell(),
-            outerDiameter: $cursor->pullStringCell(),
+            height: $cursor->pullRequiredStringCell('Высота'),
+            abs: $cursor->pullRequiredStringCell('ABS'),
+            mount1: $cursor->pullRequiredStringCell('Крепление 1'),
+            mount2: $cursor->pullRequiredStringCell('Крепление 2'),
+            innerDiameter: $cursor->pullRequiredStringCell('Внутренний диаметр'),
+            outerDiameter: $cursor->pullRequiredStringCell('Внешний диаметр'),
             metrics: $this->buildMetrics($cursor),
         );
     }

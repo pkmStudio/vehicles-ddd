@@ -25,11 +25,11 @@ final readonly class WiperAdapterDetailsBuilder
         $toName = static fn ($case) => $case->name;
 
         return new WiperAdapterDetailsData(
-            position: $cursor->pullLabel(PositionEnum::class)?->name,
-            construction: $cursor->pullLabel(ConstructionEnum::class)?->name,
+            position: $cursor->pullRequiredLabel(PositionEnum::class, 'Расположение')->name,
+            construction: $cursor->pullRequiredLabel(ConstructionEnum::class, 'Конструкция')->name,
             adapterTypeFront: array_map(
                 $toName,
-                $cursor->pullMultiLabel(FrontAdapterTypeEnum::class),
+                $cursor->pullRequiredMultiLabel(FrontAdapterTypeEnum::class, 'Тип крепления передних'),
             ),
             metrics: $this->buildMetrics($cursor),
         );

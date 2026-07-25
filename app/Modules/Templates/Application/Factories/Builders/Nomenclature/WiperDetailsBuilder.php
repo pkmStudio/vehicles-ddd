@@ -28,21 +28,21 @@ final readonly class WiperDetailsBuilder
     public function build(DetailsRowCursor $cursor): WiperDetailsData
     {
         return new WiperDetailsData(
-            position: $cursor->pullLabel(PositionEnum::class)?->name,
-            category: $cursor->pullLabel(CategoryEnum::class)?->name,
-            construction: $cursor->pullLabel(ConstructionEnum::class)?->name,
-            season: $cursor->pullLabel(SeasonEnum::class)?->name,
-            lengthMain: $cursor->pullIntCell(),
-            lengthSecond: $cursor->pullIntCell(),
-            lengthRear: $cursor->pullIntCell(),
-            adapterTypeFront: $this->namesOf($cursor->pullMultiLabel(FrontAdapterTypeEnum::class)),
-            adapterTypeRear: $this->namesOf($cursor->pullMultiLabel(RearAdapterTypeEnum::class)),
-            coating: $cursor->pullStringCell(),
-            wearSensor: $this->pullBoolLabel($cursor),
-            spoiler: $this->pullBoolLabel($cursor),
-            washerNozzle: $this->pullBoolLabel($cursor),
-            heated: $this->pullBoolLabel($cursor),
-            steering: $cursor->pullLabel(SteeringCompatibilityEnum::class)?->name,
+            position: $cursor->pullRequiredLabel(PositionEnum::class, 'Расположение')->name,
+            category: $cursor->pullRequiredLabel(CategoryEnum::class, 'Категория')->name,
+            construction: $cursor->pullRequiredLabel(ConstructionEnum::class, 'Конструкция')->name,
+            season: $cursor->pullRequiredLabel(SeasonEnum::class, 'Сезон')->name,
+            lengthMain: $cursor->pullRequiredIntCell('Длина водительской'),
+            lengthSecond: $cursor->pullRequiredIntCell('Длина пассажирской'),
+            lengthRear: $cursor->pullRequiredIntCell('Длина задней'),
+            adapterTypeFront: $this->namesOf($cursor->pullRequiredMultiLabel(FrontAdapterTypeEnum::class, 'Тип крепления передних')),
+            adapterTypeRear: $this->namesOf($cursor->pullRequiredMultiLabel(RearAdapterTypeEnum::class, 'Тип крепления задней')),
+            coating: $cursor->pullRequiredStringCell('Покрытие'),
+            wearSensor: $this->pullRequiredBoolLabel($cursor, 'Датчик износа'),
+            spoiler: $this->pullRequiredBoolLabel($cursor, 'Спойлер'),
+            washerNozzle: $this->pullRequiredBoolLabel($cursor, 'Форсунка омывателя'),
+            heated: $this->pullRequiredBoolLabel($cursor, 'C подогревом'),
+            steering: $cursor->pullRequiredLabel(SteeringCompatibilityEnum::class, 'Рулевое управление')->name,
         );
     }
 

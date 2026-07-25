@@ -11,6 +11,7 @@ use App\Modules\Templates\Domain\Enums\Filter\OilFilterThreadEnum;
 use App\Modules\Templates\Domain\Enums\Filter\PerformanceEnum;
 use App\Modules\Templates\Domain\ModelData\Engine\OilFilterDetailsData;
 use App\Modules\Templates\Domain\ModelData\Engine\OilFilterMetricsData;
+use RuntimeException;
 
 /**
  * Строит форму шаблона `oilFilter` из Excel-строки (не подключена ни к одному Import/Export
@@ -23,11 +24,11 @@ final readonly class OilFilterDetailsBuilder
     public function build(DetailsRowCursor $cursor): OilFilterDetailsData
     {
         return new OilFilterDetailsData(
-            performance: $cursor->pullLabel(PerformanceEnum::class)?->name,
-            form: $cursor->pullLabel(FormEnum::class)?->name,
+            performance: $cursor->pullRequiredLabel(PerformanceEnum::class, 'Исполнение фильтра')->name,
+            form: $cursor->pullRequiredLabel(FormEnum::class, 'Форма фильтра')->name,
             father: $this->pullFather($cursor),
-            diameter: $cursor->pullIntCell(),
-            mother: $cursor->pullIntCell(),
+            diameter: $cursor->pullRequiredIntCell('Диаметр'),
+            mother: $cursor->pullRequiredIntCell('Мать'),
             metrics: $this->buildMetrics($cursor),
         );
     }
@@ -36,9 +37,9 @@ final readonly class OilFilterDetailsBuilder
     private function buildMetrics(DetailsRowCursor $cursor): OilFilterMetricsData
     {
         return new OilFilterMetricsData(
-            length: $cursor->pullFloatArray(),
-            width: $cursor->pullFloatArray(),
-            height: $cursor->pullFloatArray(),
+            length: $cursor->pullRequiredFloatArray('Длина'),
+            width: $cursor->pullRequiredFloatArray('Ширина'),
+            height: $cursor->pullRequiredFloatArray('Высота'),
         );
     }
 
@@ -52,13 +53,15 @@ final readonly class OilFilterDetailsBuilder
      * 4) Если не нашёл — пробует `OilFilterFatherEnum`; возвращает хранимое имя найденного case'а
      *    (или null, если не нашёлся ни в одном из двух словарей).
      */
-    private function pullFather(DetailsRowCursor $cursor): ?string
+    private function pullFather(DetailsRowCursor $cursor): string
     {
-        $label = $cursor->pullCell();
-        if ($label === null) {
-            return null;
+        $label = $cursor->pullRequiredStringCell('Резьба или Папа');
+        $case = OilFilterThreadEnum::fromLabel($label) ?? OilFilterFatherEnum::fromLabel($label);
+
+        if ($case === null) {
+            throw new RuntimeException("Не найдено совпадение в справочнике резьбы/папы масляного фильтра. Значение: {$label}");
         }
 
-        return (OilFilterThreadEnum::fromLabel((string) $label) ?? OilFilterFatherEnum::fromLabel((string) $label))?->name;
+        return $case->name;
     }
 }

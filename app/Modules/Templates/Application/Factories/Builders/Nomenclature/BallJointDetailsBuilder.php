@@ -19,12 +19,12 @@ final readonly class BallJointDetailsBuilder
     public function build(DetailsRowCursor $cursor): BallJointDetailsData
     {
         return new BallJointDetailsData(
-            thread1: $cursor->pullStringCell(),
-            thread2: $cursor->pullStringCell(),
-            length: $cursor->pullFloatCell(),
-            outerDiameter: $cursor->pullStringCell(),
-            coneSize: $cursor->pullFloatCell(),
-            taper: $cursor->pullStringCell(),
+            thread1: $cursor->pullRequiredStringCell('Резьба 1'),
+            thread2: $cursor->pullRequiredStringCell('Резьба 2'),
+            length: $cursor->pullRequiredFloatCell('Длина'),
+            outerDiameter: $cursor->pullRequiredStringCell('Внешний диаметр'),
+            coneSize: $cursor->pullRequiredFloatCell('Размер конуса'),
+            taper: $cursor->pullRequiredStringCell('Конусность'),
             metrics: $this->buildMetrics($cursor),
         );
     }

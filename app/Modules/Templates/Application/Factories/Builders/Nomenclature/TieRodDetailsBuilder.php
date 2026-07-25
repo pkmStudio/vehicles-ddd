@@ -21,12 +21,12 @@ final readonly class TieRodDetailsBuilder
     public function build(DetailsRowCursor $cursor): TieRodDetailsData
     {
         return new TieRodDetailsData(
-            thread1: $cursor->pullStringCell(),
-            thread2: $cursor->pullStringCell(),
-            length: $cursor->pullStringCell(),
-            coneSize: $cursor->pullFloatCell(),
-            taper: $cursor->pullStringCell(),
-            application: $cursor->pullLabel(ApplicationEnum::class)?->name,
+            thread1: $cursor->pullRequiredStringCell('Резьба 1'),
+            thread2: $cursor->pullRequiredStringCell('Резьба 2'),
+            length: $cursor->pullRequiredStringCell('Длина'),
+            coneSize: $cursor->pullRequiredFloatCell('Размер конуса'),
+            taper: $cursor->pullRequiredStringCell('Конусность'),
+            application: $cursor->pullRequiredLabel(ApplicationEnum::class, 'Применение')->name,
             metrics: $this->buildMetrics($cursor),
         );
     }

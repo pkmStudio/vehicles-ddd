@@ -49,26 +49,15 @@ final class DetailsDataFactoryTest extends TestCase
         $this->assertSame(5, $index);
     }
 
-    /**
-     * Проверяет `make()` для свечи зажигания: пустые/отсутствующие ячейки — не ошибка,
-     * а null в соответствующих полях.
-     *
-     * Шаги:
-     * 1. Зовёт `make(SPARK_PLUGS, ...)` со строкой `[null, '', '19']`.
-     * 2. Проверяет, что `size`/`pitch`/`gap`/`wrench_jaw_width` стали null, а `length` — `'TL19'`.
-     */
-    public function test_spark_plugs_missing_cells_produce_nulls_without_throwing(): void
+    public function test_spark_plugs_missing_required_cells_throw(): void
     {
         $row = [null, '', '19'];
         $index = 0;
 
-        $details = $this->factory->make(DetailTemplateEnum::SPARK_PLUGS, $row, $index)->toArray();
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Поле «Размер резьбы» обязательно для заполнения.');
 
-        $this->assertSame([
-            'thread' => ['size' => null, 'pitch' => null, 'length' => 'TL19'],
-            'electrode' => ['gap' => null],
-            'wrench_jaw_width' => null,
-        ], $details);
+        $this->factory->make(DetailTemplateEnum::SPARK_PLUGS, $row, $index);
     }
 
     /**
@@ -125,34 +114,15 @@ final class DetailsDataFactoryTest extends TestCase
         $this->assertSame(10, $index);
     }
 
-    /**
-     * Проверяет `make()` для дворников: пустые ячейки по всей строке — не ошибка, все
-     * листья становятся null/[].
-     *
-     * Шаги:
-     * 1. Зовёт `make(WIPER, ...)` со строкой из 10 null-ячеек.
-     * 2. Проверяет, что все скалярные поля — null, а массивы адаптеров — пустые.
-     */
-    public function test_wiper_handles_fully_blank_row(): void
+    public function test_wiper_blank_required_cells_throw(): void
     {
         $row = array_fill(0, 10, null);
         $index = 0;
 
-        $details = $this->factory->make(DetailTemplateEnum::WIPER, $row, $index)->toArray();
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Поле «Минимальная длина щётки» обязательно для заполнения.');
 
-        $this->assertSame([
-            'front' => [
-                'length_main' => ['min' => null, 'max' => null],
-                'length_second' => ['min' => null, 'max' => null],
-                'adapter_type_front' => [],
-                'count_wipers' => null,
-            ],
-            'back' => [
-                'length_rear' => ['min' => null, 'max' => null],
-                'adapter_type_rear' => [],
-                'count_wipers' => null,
-            ],
-        ], $details);
+        $this->factory->make(DetailTemplateEnum::WIPER, $row, $index);
     }
 
     /**
@@ -165,7 +135,10 @@ final class DetailsDataFactoryTest extends TestCase
      */
     public function test_wiper_multiple_adapters_parsed_from_semicolon_joined_labels(): void
     {
-        $row = [null, null, null, null, 'Крючок (Hook / J-Hook);Боковой штырь (Side pin)', null, null, null, null, null];
+        $row = [
+            500, 550, 450, 500, 'Крючок (Hook / J-Hook);Боковой штырь (Side pin)', 2,
+            400, 420, 'RA', 1,
+        ];
         $index = 0;
 
         $details = $this->factory->make(DetailTemplateEnum::WIPER, $row, $index)->toArray();

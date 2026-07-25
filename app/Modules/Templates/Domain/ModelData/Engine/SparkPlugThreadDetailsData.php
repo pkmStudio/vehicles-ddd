@@ -14,8 +14,8 @@ use Spatie\LaravelData\Data;
 final class SparkPlugThreadDetailsData extends Data
 {
     public function __construct(
-        public readonly ?string $size = null,
-        public readonly ?string $pitch = null,
-        public readonly ?string $length = null,
+        public readonly string $size,
+        public readonly string $pitch,
+        public readonly string $length,
     ) {}
 }

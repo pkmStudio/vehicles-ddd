@@ -95,7 +95,7 @@ final class DetailsDataPresenterTest extends TestCase
         $details = [
             'front' => [
                 'length_main' => ['min' => 500, 'max' => 550],
-                'length_second' => ['min' => null, 'max' => null],
+                'length_second' => ['min' => 450, 'max' => 500],
                 'adapter_type_front' => ['H'],
                 'count_wipers' => 2,
             ],
@@ -104,7 +104,7 @@ final class DetailsDataPresenterTest extends TestCase
         ];
 
         $this->assertSame(
-            [500, 550, null, null, 'Крючок (Hook / J-Hook)', 2, null, null, '', null],
+            [500, 550, 450, 500, 'Крючок (Hook / J-Hook)', 2, null, null, '', null],
             $this->presenter->toExportCells(DetailTemplateEnum::WIPER, $details),
         );
     }
@@ -120,7 +120,14 @@ final class DetailsDataPresenterTest extends TestCase
      */
     public function test_wiper_multiple_adapters_round_trip_as_semicolon_joined_labels(): void
     {
-        $details = ['front' => ['adapter_type_front' => ['H', 'S']]];
+        $details = [
+            'front' => [
+                'length_main' => ['min' => 500, 'max' => 550],
+                'length_second' => ['min' => 450, 'max' => 500],
+                'adapter_type_front' => ['H', 'S'],
+                'count_wipers' => 2,
+            ],
+        ];
 
         $cells = $this->presenter->toExportCells(DetailTemplateEnum::WIPER, $details);
 

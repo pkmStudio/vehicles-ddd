@@ -20,4 +20,11 @@ trait ParsesBooleanCells
 
         return $case === null ? null : $case->name === BooleanOptionEnum::TRUE->name;
     }
+
+    private function pullRequiredBoolLabel(DetailsRowCursor $cursor, string $field): bool
+    {
+        $case = $cursor->pullRequiredLabel(BooleanOptionEnum::class, $field);
+
+        return $case->name === BooleanOptionEnum::TRUE->name;
+    }
 }

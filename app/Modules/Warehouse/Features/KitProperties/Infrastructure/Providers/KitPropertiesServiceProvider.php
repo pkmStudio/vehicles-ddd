@@ -71,6 +71,11 @@ final class KitPropertiesServiceProvider extends ServiceProvider
             ->needs(abstract: LoggerInterface::class)
             ->give(implementation: LaravelLoggerProxy::class);
 
+        $this->app
+            ->when(concrete: KitCompositionValidator::class)
+            ->needs(abstract: LoggerInterface::class)
+            ->give(implementation: LaravelLoggerProxy::class);
+
         foreach (self::SERVICE_BINDINGS as $interface => $implementation) {
             $this->app->bind(
                 abstract: $interface,

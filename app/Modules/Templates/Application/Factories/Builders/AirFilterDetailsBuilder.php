@@ -18,11 +18,11 @@ final readonly class AirFilterDetailsBuilder
     public function build(DetailsRowCursor $cursor): AirFilterDetailsData
     {
         return new AirFilterDetailsData(
-            form: $cursor->pullLabel(FormEnum::class)?->name,
-            length: $cursor->pullFloatArray(),
-            width: $cursor->pullFloatArray(),
-            height: $cursor->pullFloatArray(),
-            diameter: $cursor->pullFloatCell(),
+            form: $cursor->pullRequiredLabel(FormEnum::class, 'Форма фильтра')->name,
+            length: $cursor->pullRequiredFloatArray('Длина'),
+            width: $cursor->pullRequiredFloatArray('Ширина'),
+            height: $cursor->pullRequiredFloatArray('Высота'),
+            diameter: $cursor->pullRequiredFloatCell('Диаметр'),
         );
     }
 }

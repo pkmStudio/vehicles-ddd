@@ -18,9 +18,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class WiperBackDetailsData extends Data
 {
     public function __construct(
-        public readonly WiperLengthRangeData $lengthRear = new WiperLengthRangeData,
+        public readonly WiperLengthRangeData $lengthRear,
         /** @var array<int, string> */
-        public readonly array $adapterTypeRear = [],
-        public readonly ?int $countWipers = null,
+        public readonly array $adapterTypeRear,
+        public readonly int $countWipers,
     ) {}
 }

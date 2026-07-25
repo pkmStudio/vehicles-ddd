@@ -12,6 +12,7 @@ use App\Modules\Templates\Domain\Enums\Filter\OilFilterFatherEnum;
 use App\Modules\Templates\Domain\Enums\Filter\OilFilterThreadEnum;
 use App\Modules\Templates\Domain\Enums\Filter\PerformanceEnum;
 use App\Modules\Templates\Domain\ModelData\Nomenclature\OilFilterDetailsData;
+use RuntimeException;
 
 /**
  * Строит форму шаблона `oilFilter` (Nomenclature) из Excel-строки. Не подключена ни к одному
@@ -26,12 +27,12 @@ final readonly class OilFilterDetailsBuilder
     public function build(DetailsRowCursor $cursor): OilFilterDetailsData
     {
         return new OilFilterDetailsData(
-            performance: $cursor->pullLabel(PerformanceEnum::class)?->name,
-            form: $cursor->pullLabel(FormEnum::class)?->name,
-            frame: $this->pullBoolLabel($cursor),
+            performance: $cursor->pullRequiredLabel(PerformanceEnum::class, 'Исполнение фильтра')->name,
+            form: $cursor->pullRequiredLabel(FormEnum::class, 'Форма фильтра')->name,
+            frame: $this->pullRequiredBoolLabel($cursor, 'Корпус'),
             father: $this->pullFather($cursor),
-            diameter: $cursor->pullIntCell(),
-            mother: $cursor->pullIntCell(),
+            diameter: $cursor->pullRequiredIntCell('Диаметр'),
+            mother: $cursor->pullRequiredIntCell('Мать'),
             metrics: $this->buildMetrics($cursor),
         );
     }
@@ -40,13 +41,15 @@ final readonly class OilFilterDetailsBuilder
      * Читает `father`, пробуя два словаря по очереди (см. докблок `OilFilterDetailsData` —
      * зависимость от `performance` в исходном DSL не проверялась).
      */
-    private function pullFather(DetailsRowCursor $cursor): ?string
+    private function pullFather(DetailsRowCursor $cursor): string
     {
-        $label = $cursor->pullCell();
-        if ($label === null) {
-            return null;
+        $label = $cursor->pullRequiredStringCell('Резьба или Папа');
+        $case = OilFilterThreadEnum::fromLabel($label) ?? OilFilterFatherEnum::fromLabel($label);
+
+        if ($case === null) {
+            throw new RuntimeException("Не найдено совпадение в справочнике резьбы/папы масляного фильтра. Значение: {$label}");
         }
 
-        return (OilFilterThreadEnum::fromLabel((string) $label) ?? OilFilterFatherEnum::fromLabel((string) $label))?->name;
+        return $case->name;
     }
 }

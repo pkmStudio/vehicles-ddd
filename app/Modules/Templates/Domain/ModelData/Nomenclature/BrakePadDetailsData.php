@@ -18,9 +18,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class BrakePadDetailsData extends AbstractDetailsData
 {
     public function __construct(
-        public readonly ?string $position = null,
-        public readonly ?string $brakePadsType = null,
-        public readonly ?string $materialLinings = null,
-        public readonly NomenclatureMetricsData $metrics = new NomenclatureMetricsData,
+        public readonly string $position,
+        public readonly string $brakePadsType,
+        public readonly string $materialLinings,
+        public readonly NomenclatureMetricsData $metrics,
     ) {}
 }

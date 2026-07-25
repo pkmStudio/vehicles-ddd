@@ -24,11 +24,11 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 final class OilFilterDetailsData extends AbstractDetailsData
 {
     public function __construct(
-        public readonly ?string $performance = null,
-        public readonly ?string $form = null,
-        public readonly ?string $father = null,
-        public readonly ?int $diameter = null,
-        public readonly ?int $mother = null,
-        public readonly OilFilterMetricsData $metrics = new OilFilterMetricsData,
+        public readonly string $performance,
+        public readonly string $form,
+        public readonly string $father,
+        public readonly int $diameter,
+        public readonly int $mother,
+        public readonly OilFilterMetricsData $metrics,
     ) {}
 }

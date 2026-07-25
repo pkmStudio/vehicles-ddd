@@ -25,14 +25,14 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class WheelHubBearingDetailsData extends AbstractDetailsData
 {
     public function __construct(
-        public readonly ?string $height = null,
-        public readonly ?string $abs = null,
+        public readonly string $height,
+        public readonly string $abs,
         #[MapName('mount_1')]
-        public readonly ?string $mount1 = null,
+        public readonly string $mount1,
         #[MapName('mount_2')]
-        public readonly ?string $mount2 = null,
-        public readonly ?string $innerDiameter = null,
-        public readonly ?string $outerDiameter = null,
-        public readonly NomenclatureMetricsData $metrics = new NomenclatureMetricsData,
+        public readonly string $mount2,
+        public readonly string $innerDiameter,
+        public readonly string $outerDiameter,
+        public readonly NomenclatureMetricsData $metrics,
     ) {}
 }

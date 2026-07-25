@@ -19,15 +19,15 @@ final class CvJointDetailsData extends AbstractDetailsData
 {
     public function __construct(
         #[MapName('thread_1')]
-        public readonly ?string $thread1 = null,
+        public readonly string $thread1,
         #[MapName('length_1')]
-        public readonly ?float $length1 = null,
+        public readonly float $length1,
         #[MapName('length_2')]
-        public readonly ?float $length2 = null,
-        public readonly ?string $abs = null,
-        public readonly ?float $sealDiameter = null,
-        public readonly ?int $splinesOuter = null,
-        public readonly ?int $splinesInner = null,
-        public readonly NomenclatureMetricsData $metrics = new NomenclatureMetricsData,
+        public readonly float $length2,
+        public readonly string $abs,
+        public readonly float $sealDiameter,
+        public readonly int $splinesOuter,
+        public readonly int $splinesInner,
+        public readonly NomenclatureMetricsData $metrics,
     ) {}
 }

@@ -23,9 +23,9 @@ final readonly class BrakePadDetailsBuilder
     public function build(DetailsRowCursor $cursor): BrakePadDetailsData
     {
         return new BrakePadDetailsData(
-            position: $cursor->pullLabel(PositionEnum::class)?->name,
-            brakePadsType: $cursor->pullLabel(BrakePadTypeEnum::class)?->name,
-            materialLinings: $cursor->pullLabel(LiningMaterialEnum::class)?->name,
+            position: $cursor->pullRequiredLabel(PositionEnum::class, 'Расположение')->name,
+            brakePadsType: $cursor->pullRequiredLabel(BrakePadTypeEnum::class, 'Вид колодки')->name,
+            materialLinings: $cursor->pullRequiredLabel(LiningMaterialEnum::class, 'Материал накладок')->name,
             metrics: $this->buildMetrics($cursor),
         );
     }

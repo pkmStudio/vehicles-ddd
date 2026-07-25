@@ -19,11 +19,11 @@ final readonly class TieRodEndDetailsBuilder
     public function build(DetailsRowCursor $cursor): TieRodEndDetailsData
     {
         return new TieRodEndDetailsData(
-            thread1: $cursor->pullStringCell(),
-            thread2: $cursor->pullStringCell(),
-            length: $cursor->pullFloatCell(),
-            coneSize: $cursor->pullFloatCell(),
-            taper: $cursor->pullStringCell(),
+            thread1: $cursor->pullRequiredStringCell('Резьба 1'),
+            thread2: $cursor->pullRequiredStringCell('Резьба 2'),
+            length: $cursor->pullRequiredFloatCell('Длина'),
+            coneSize: $cursor->pullRequiredFloatCell('Размер конуса'),
+            taper: $cursor->pullRequiredStringCell('Конусность'),
             metrics: $this->buildMetrics($cursor),
         );
     }

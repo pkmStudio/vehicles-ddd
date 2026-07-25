@@ -25,7 +25,7 @@ final readonly class SparkPlugDetailsBuilder
         return new SparkPlugDetailsData(
             thread: $this->buildThread($cursor),
             electrode: $this->buildElectrode($cursor),
-            wrenchJawWidth: $cursor->pullLabel(WrenchJawWidthEnum::class)?->name,
+            wrenchJawWidth: $cursor->pullRequiredLabel(WrenchJawWidthEnum::class, 'Ширина зева гаечного ключа')->name,
         );
     }
 
@@ -33,16 +33,16 @@ final readonly class SparkPlugDetailsBuilder
     private function buildThread(DetailsRowCursor $cursor): SparkPlugThreadDetailsData
     {
         return new SparkPlugThreadDetailsData(
-            size: $cursor->pullLabel(ThreadSizeEnum::class)?->name,
-            pitch: $cursor->pullLabel(ThreadPitchEnum::class)?->name,
-            length: $cursor->pullLabel(ThreadLengthEnum::class)?->name,
+            size: $cursor->pullRequiredLabel(ThreadSizeEnum::class, 'Размер резьбы')->name,
+            pitch: $cursor->pullRequiredLabel(ThreadPitchEnum::class, 'Шаг резьбы')->name,
+            length: $cursor->pullRequiredLabel(ThreadLengthEnum::class, 'Длина резьбы')->name,
         );
     }
 
     private function buildElectrode(DetailsRowCursor $cursor): SparkPlugElectrodeDetailsData
     {
         return new SparkPlugElectrodeDetailsData(
-            gap: $cursor->pullLabel(ElectrodeGapEnum::class)?->name,
+            gap: $cursor->pullRequiredLabel(ElectrodeGapEnum::class, 'Межконтактный зазор')->name,
         );
     }
 }

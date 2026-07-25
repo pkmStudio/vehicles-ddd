@@ -17,10 +17,10 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class SparkPlugDetailsData extends AbstractDetailsData
 {
     public function __construct(
-        public readonly SparkPlugThreadDetailsData $thread = new SparkPlugThreadDetailsData,
-        public readonly SparkPlugElectrodeDetailsData $electrode = new SparkPlugElectrodeDetailsData,
-        public readonly ?string $wrenchJawWidth = null,
-        public readonly TighteningTorqueData $tighteningTorque = new TighteningTorqueData,
-        public readonly NomenclatureMetricsData $metrics = new NomenclatureMetricsData,
+        public readonly SparkPlugThreadDetailsData $thread,
+        public readonly SparkPlugElectrodeDetailsData $electrode,
+        public readonly string $wrenchJawWidth,
+        public readonly TighteningTorqueData $tighteningTorque,
+        public readonly NomenclatureMetricsData $metrics,
     ) {}
 }

@@ -16,13 +16,13 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 final class AirFilterDetailsData extends AbstractDetailsData
 {
     public function __construct(
-        public readonly ?string $form = null,
+        public readonly string $form,
         /** @var array<int, float> */
-        public readonly array $length = [],
+        public readonly array $length,
         /** @var array<int, float> */
-        public readonly array $width = [],
+        public readonly array $width,
         /** @var array<int, float> */
-        public readonly array $height = [],
-        public readonly ?float $diameter = null,
+        public readonly array $height,
+        public readonly float $diameter,
     ) {}
 }

@@ -18,10 +18,10 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class WiperAdapterDetailsData extends AbstractDetailsData
 {
     public function __construct(
-        public readonly ?string $position = null,
-        public readonly ?string $construction = null,
+        public readonly string $position,
+        public readonly string $construction,
         /** @var array<int, string> */
-        public readonly array $adapterTypeFront = [],
-        public readonly NomenclatureMetricsData $metrics = new NomenclatureMetricsData,
+        public readonly array $adapterTypeFront,
+        public readonly NomenclatureMetricsData $metrics,
     ) {}
 }

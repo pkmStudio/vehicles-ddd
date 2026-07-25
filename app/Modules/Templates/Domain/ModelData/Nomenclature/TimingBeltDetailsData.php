@@ -18,7 +18,7 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class TimingBeltDetailsData extends AbstractDetailsData
 {
     public function __construct(
-        public readonly ?float $clutchDiscDiameter = null,
-        public readonly NomenclatureMetricsData $metrics = new NomenclatureMetricsData,
+        public readonly float $clutchDiscDiameter,
+        public readonly NomenclatureMetricsData $metrics,
     ) {}
 }

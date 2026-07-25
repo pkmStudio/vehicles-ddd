@@ -36,8 +36,8 @@ final readonly class WiperDetailsBuilder
         return new WiperFrontDetailsData(
             lengthMain: $this->buildLengthRange($cursor),
             lengthSecond: $this->buildLengthRange($cursor),
-            adapterTypeFront: $this->namesOf($cursor->pullMultiLabel(FrontAdapterTypeEnum::class)),
-            countWipers: $cursor->pullIntCell(),
+            adapterTypeFront: $this->namesOf($cursor->pullRequiredMultiLabel(FrontAdapterTypeEnum::class, 'Тип крепления передних')),
+            countWipers: $cursor->pullRequiredIntCell('Количество передних щёток'),
         );
     }
 
@@ -48,16 +48,16 @@ final readonly class WiperDetailsBuilder
     {
         return new WiperBackDetailsData(
             lengthRear: $this->buildLengthRange($cursor),
-            adapterTypeRear: $this->namesOf($cursor->pullMultiLabel(RearAdapterTypeEnum::class)),
-            countWipers: $cursor->pullIntCell(),
+            adapterTypeRear: $this->namesOf($cursor->pullRequiredMultiLabel(RearAdapterTypeEnum::class, 'Тип крепления задней')),
+            countWipers: $cursor->pullRequiredIntCell('Количество задних щёток'),
         );
     }
 
     private function buildLengthRange(DetailsRowCursor $cursor): WiperLengthRangeData
     {
         return new WiperLengthRangeData(
-            min: $cursor->pullIntCell(),
-            max: $cursor->pullIntCell(),
+            min: $cursor->pullRequiredIntCell('Минимальная длина щётки'),
+            max: $cursor->pullRequiredIntCell('Максимальная длина щётки'),
         );
     }
 

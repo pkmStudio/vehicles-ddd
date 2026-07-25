@@ -74,6 +74,16 @@ final class DetailsRowCursor
         return $value === null ? null : (int) $value;
     }
 
+    public function pullRequiredIntCell(string $field): int
+    {
+        $value = $this->pullIntCell();
+        if ($value === null) {
+            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+        }
+
+        return $value;
+    }
+
     /**
      * Этот метод читает одну ячейку строки как строку (для простых текстовых полей — там, где
      * ячейка не select и не резолвится через enum-справочник).
@@ -87,6 +97,16 @@ final class DetailsRowCursor
         $value = $this->pullCell();
 
         return $value === null ? null : (string) $value;
+    }
+
+    public function pullRequiredStringCell(string $field): string
+    {
+        $value = $this->pullStringCell();
+        if ($value === null || trim($value) === '') {
+            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+        }
+
+        return $value;
     }
 
     /**
@@ -103,6 +123,16 @@ final class DetailsRowCursor
         return $value === null ? null : (float) $value;
     }
 
+    public function pullRequiredFloatCell(string $field): float
+    {
+        $value = $this->pullFloatCell();
+        if ($value === null) {
+            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+        }
+
+        return $value;
+    }
+
     /**
      * Этот метод читает одну ячейку — одиночный select — и резолвит её в case enum'а.
      * Шаги:
@@ -114,6 +144,19 @@ final class DetailsRowCursor
     public function pullLabel(string $enumClass): ?EnumHelperInterface
     {
         return $this->resolveLabel($enumClass, $this->pullCell());
+    }
+
+    /**
+     * @param  class-string<EnumHelperInterface>  $enumClass
+     */
+    public function pullRequiredLabel(string $enumClass, string $field): EnumHelperInterface
+    {
+        $case = $this->pullLabel($enumClass);
+        if ($case === null) {
+            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+        }
+
+        return $case;
     }
 
     /**
@@ -147,6 +190,20 @@ final class DetailsRowCursor
     }
 
     /**
+     * @param  class-string<EnumHelperInterface>  $enumClass
+     * @return array<int, EnumHelperInterface>
+     */
+    public function pullRequiredMultiLabel(string $enumClass, string $field): array
+    {
+        $cases = $this->pullMultiLabel($enumClass);
+        if ($cases === []) {
+            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+        }
+
+        return $cases;
+    }
+
+    /**
      * Этот метод читает одну ячейку — `;`-джойн список чисел — как `array<float>`.
      * Шаги:
      * 1) Читает сырую ячейку через `pullCell()`.
@@ -174,6 +231,19 @@ final class DetailsRowCursor
     }
 
     /**
+     * @return array<int, float>
+     */
+    public function pullRequiredFloatArray(string $field): array
+    {
+        $values = $this->pullFloatArray();
+        if ($values === []) {
+            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+        }
+
+        return $values;
+    }
+
+    /**
      * Этот метод читает одну ячейку — `;`-джойн список чисел — как `array<int>`. В отличие от
      * `pullFloatArray()` — для полей, где источник (Nomenclature-миграция) явно объявляет
      * колонку как `integer`, не `float`.
@@ -197,6 +267,19 @@ final class DetailsRowCursor
         }
 
         return $result;
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function pullRequiredIntArray(string $field): array
+    {
+        $values = $this->pullIntArray();
+        if ($values === []) {
+            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+        }
+
+        return $values;
     }
 
     /**

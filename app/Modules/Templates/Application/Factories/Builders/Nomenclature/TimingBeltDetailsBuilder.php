@@ -20,7 +20,7 @@ final readonly class TimingBeltDetailsBuilder
     public function build(DetailsRowCursor $cursor): TimingBeltDetailsData
     {
         return new TimingBeltDetailsData(
-            clutchDiscDiameter: $cursor->pullFloatCell(),
+            clutchDiscDiameter: $cursor->pullRequiredFloatCell('Диаметр диска сцепления'),
             metrics: $this->buildMetrics($cursor),
         );
     }

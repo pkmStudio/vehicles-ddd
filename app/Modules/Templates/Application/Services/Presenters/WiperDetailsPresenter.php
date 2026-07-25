@@ -52,20 +52,24 @@ final readonly class WiperDetailsPresenter
      * Шаги:
      * 1) Берёт переднюю сторону, если она есть; если её нет (в смерженном
      *    `WiperSpecificationService::mergeForExport()` массиве не было ключа `front`) —
-     *    использует пустой объект вместо неё, чтобы количество ячеек не поменялось.
+     *    возвращает пустые ячейки, чтобы количество колонок не поменялось.
      * 2) То же самое для задней стороны.
      * 3) Разворачивает ячейки обеих сторон подряд в один плоский список.
      */
     public function cells(WiperDetailsData $data): array
     {
         return [
-            ...$this->frontCells($data->front ?? new WiperFrontDetailsData),
-            ...$this->backCells($data->back ?? new WiperBackDetailsData),
+            ...$this->frontCells($data->front),
+            ...$this->backCells($data->back),
         ];
     }
 
-    private function frontCells(WiperFrontDetailsData $front): array
+    private function frontCells(?WiperFrontDetailsData $front): array
     {
+        if ($front === null) {
+            return [null, null, null, null, '', null];
+        }
+
         return [
             ...$this->lengthRangeCells($front->lengthMain),
             ...$this->lengthRangeCells($front->lengthSecond),
@@ -74,8 +78,12 @@ final readonly class WiperDetailsPresenter
         ];
     }
 
-    private function backCells(WiperBackDetailsData $back): array
+    private function backCells(?WiperBackDetailsData $back): array
     {
+        if ($back === null) {
+            return [null, null, '', null];
+        }
+
         return [
             ...$this->lengthRangeCells($back->lengthRear),
             $this->namesToLabelString($back->adapterTypeRear, RearAdapterTypeEnum::class),

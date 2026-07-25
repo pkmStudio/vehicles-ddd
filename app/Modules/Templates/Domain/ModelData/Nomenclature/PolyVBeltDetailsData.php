@@ -14,6 +14,6 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 final class PolyVBeltDetailsData extends AbstractDetailsData
 {
     public function __construct(
-        public readonly NomenclatureMetricsData $metrics = new NomenclatureMetricsData,
+        public readonly NomenclatureMetricsData $metrics,
     ) {}
 }

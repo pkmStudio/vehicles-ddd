@@ -19,22 +19,22 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class WiperDetailsData extends AbstractDetailsData
 {
     public function __construct(
-        public readonly ?string $position = null,
-        public readonly ?string $category = null,
-        public readonly ?string $construction = null,
-        public readonly ?string $season = null,
-        public readonly ?int $lengthMain = null,
-        public readonly ?int $lengthSecond = null,
-        public readonly ?int $lengthRear = null,
+        public readonly string $position,
+        public readonly string $category,
+        public readonly string $construction,
+        public readonly string $season,
+        public readonly int $lengthMain,
+        public readonly int $lengthSecond,
+        public readonly int $lengthRear,
         /** @var array<int, string> */
-        public readonly array $adapterTypeFront = [],
+        public readonly array $adapterTypeFront,
         /** @var array<int, string> */
-        public readonly array $adapterTypeRear = [],
-        public readonly ?string $coating = null,
-        public readonly ?bool $wearSensor = null,
-        public readonly ?bool $spoiler = null,
-        public readonly ?bool $washerNozzle = null,
-        public readonly ?bool $heated = null,
-        public readonly ?string $steering = null,
+        public readonly array $adapterTypeRear,
+        public readonly string $coating,
+        public readonly bool $wearSensor,
+        public readonly bool $spoiler,
+        public readonly bool $washerNozzle,
+        public readonly bool $heated,
+        public readonly string $steering,
     ) {}
 }

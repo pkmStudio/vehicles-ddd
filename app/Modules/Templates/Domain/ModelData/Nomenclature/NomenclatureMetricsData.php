@@ -15,10 +15,10 @@ final class NomenclatureMetricsData extends Data
 {
     public function __construct(
         /** @var array<int, int> */
-        public readonly array $length = [],
+        public readonly array $length,
         /** @var array<int, int> */
-        public readonly array $width = [],
+        public readonly array $width,
         /** @var array<int, int> */
-        public readonly array $height = [],
+        public readonly array $height,
     ) {}
 }

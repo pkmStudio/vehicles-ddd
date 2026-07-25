@@ -18,10 +18,10 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class AirFilterDetailsData extends AbstractDetailsData
 {
     public function __construct(
-        public readonly ?string $performance = null,
-        public readonly ?string $form = null,
-        public readonly ?bool $frame = null,
-        public readonly ?string $filterType = null,
-        public readonly NomenclatureMetricsData $metrics = new NomenclatureMetricsData,
+        public readonly string $performance,
+        public readonly string $form,
+        public readonly bool $frame,
+        public readonly string $filterType,
+        public readonly NomenclatureMetricsData $metrics,
     ) {}
 }

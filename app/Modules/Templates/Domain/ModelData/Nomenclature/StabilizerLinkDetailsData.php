@@ -19,10 +19,10 @@ final class StabilizerLinkDetailsData extends AbstractDetailsData
 {
     public function __construct(
         #[MapName('thread_1')]
-        public readonly ?string $thread1 = null,
+        public readonly string $thread1,
         #[MapName('thread_2')]
-        public readonly ?string $thread2 = null,
-        public readonly ?float $length = null,
-        public readonly NomenclatureMetricsData $metrics = new NomenclatureMetricsData,
+        public readonly string $thread2,
+        public readonly float $length,
+        public readonly NomenclatureMetricsData $metrics,
     ) {}
 }

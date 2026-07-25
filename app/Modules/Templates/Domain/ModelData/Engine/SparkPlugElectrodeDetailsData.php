@@ -13,6 +13,6 @@ use Spatie\LaravelData\Data;
 final class SparkPlugElectrodeDetailsData extends Data
 {
     public function __construct(
-        public readonly ?string $gap = null,
+        public readonly string $gap,
     ) {}
 }

@@ -25,10 +25,10 @@ final readonly class CabinFilterDetailsBuilder
     public function build(DetailsRowCursor $cursor): CabinFilterDetailsData
     {
         return new CabinFilterDetailsData(
-            performance: $cursor->pullLabel(PerformanceEnum::class)?->name,
-            form: $cursor->pullLabel(FormEnum::class)?->name,
-            frame: $this->pullBoolLabel($cursor),
-            filterType: $cursor->pullLabel(FilterMediaTypeEnum::class)?->name,
+            performance: $cursor->pullRequiredLabel(PerformanceEnum::class, 'Исполнение фильтра')->name,
+            form: $cursor->pullRequiredLabel(FormEnum::class, 'Форма фильтра')->name,
+            frame: $this->pullRequiredBoolLabel($cursor, 'Корпус'),
+            filterType: $cursor->pullRequiredLabel(FilterMediaTypeEnum::class, 'Вид фильтра')->name,
             metrics: $this->buildMetrics($cursor),
         );
     }

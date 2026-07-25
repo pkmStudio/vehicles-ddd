@@ -20,13 +20,13 @@ final class TieRodDetailsData extends AbstractDetailsData
 {
     public function __construct(
         #[MapName('thread_1')]
-        public readonly ?string $thread1 = null,
+        public readonly string $thread1,
         #[MapName('thread_2')]
-        public readonly ?string $thread2 = null,
-        public readonly ?string $length = null,
-        public readonly ?float $coneSize = null,
-        public readonly ?string $taper = null,
-        public readonly ?string $application = null,
-        public readonly NomenclatureMetricsData $metrics = new NomenclatureMetricsData,
+        public readonly string $thread2,
+        public readonly string $length,
+        public readonly float $coneSize,
+        public readonly string $taper,
+        public readonly string $application,
+        public readonly NomenclatureMetricsData $metrics,
     ) {}
 }

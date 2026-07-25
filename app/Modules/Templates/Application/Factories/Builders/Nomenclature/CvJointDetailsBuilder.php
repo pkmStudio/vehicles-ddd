@@ -19,13 +19,13 @@ final readonly class CvJointDetailsBuilder
     public function build(DetailsRowCursor $cursor): CvJointDetailsData
     {
         return new CvJointDetailsData(
-            thread1: $cursor->pullStringCell(),
-            length1: $cursor->pullFloatCell(),
-            length2: $cursor->pullFloatCell(),
-            abs: $cursor->pullStringCell(),
-            sealDiameter: $cursor->pullFloatCell(),
-            splinesOuter: $cursor->pullIntCell(),
-            splinesInner: $cursor->pullIntCell(),
+            thread1: $cursor->pullRequiredStringCell('Резьба 1'),
+            length1: $cursor->pullRequiredFloatCell('Длина 1'),
+            length2: $cursor->pullRequiredFloatCell('Длина 2'),
+            abs: $cursor->pullRequiredStringCell('ABS'),
+            sealDiameter: $cursor->pullRequiredFloatCell('Диаметр уплотнения'),
+            splinesOuter: $cursor->pullRequiredIntCell('Наружные шлицы'),
+            splinesInner: $cursor->pullRequiredIntCell('Внутренние шлицы'),
             metrics: $this->buildMetrics($cursor),
         );
     }

@@ -31,7 +31,7 @@ final readonly class SparkPlugDetailsBuilder
         return new SparkPlugDetailsData(
             thread: $this->buildThread($cursor),
             electrode: $this->buildElectrode($cursor),
-            wrenchJawWidth: $cursor->pullLabel(WrenchJawWidthEnum::class)?->name,
+            wrenchJawWidth: $cursor->pullRequiredLabel(WrenchJawWidthEnum::class, 'Ширина зева гаечного ключа')->name,
             tighteningTorque: $this->buildTighteningTorque($cursor),
             metrics: $this->buildMetrics($cursor),
         );
@@ -40,25 +40,25 @@ final readonly class SparkPlugDetailsBuilder
     private function buildThread(DetailsRowCursor $cursor): SparkPlugThreadDetailsData
     {
         return new SparkPlugThreadDetailsData(
-            size: $cursor->pullLabel(ThreadSizeEnum::class)?->name,
-            pitch: $cursor->pullLabel(ThreadPitchEnum::class)?->name,
-            length: $cursor->pullLabel(ThreadLengthEnum::class)?->name,
+            size: $cursor->pullRequiredLabel(ThreadSizeEnum::class, 'Размер резьбы')->name,
+            pitch: $cursor->pullRequiredLabel(ThreadPitchEnum::class, 'Шаг резьбы')->name,
+            length: $cursor->pullRequiredLabel(ThreadLengthEnum::class, 'Длина резьбы')->name,
         );
     }
 
     private function buildElectrode(DetailsRowCursor $cursor): SparkPlugElectrodeDetailsData
     {
         return new SparkPlugElectrodeDetailsData(
-            gap: $cursor->pullLabel(ElectrodeGapEnum::class)?->name,
-            countSide: $cursor->pullLabel(ElectrodeSideCountEnum::class)?->name,
+            gap: $cursor->pullRequiredLabel(ElectrodeGapEnum::class, 'Межконтактный зазор')->name,
+            countSide: $cursor->pullRequiredLabel(ElectrodeSideCountEnum::class, 'Число боковых электродов')->name,
         );
     }
 
     private function buildTighteningTorque(DetailsRowCursor $cursor): TighteningTorqueData
     {
         return new TighteningTorqueData(
-            min: $cursor->pullFloatCell(),
-            max: $cursor->pullFloatCell(),
+            min: $cursor->pullRequiredFloatCell('Минимальный момент затяжки'),
+            max: $cursor->pullRequiredFloatCell('Максимальный момент затяжки'),
         );
     }
 }

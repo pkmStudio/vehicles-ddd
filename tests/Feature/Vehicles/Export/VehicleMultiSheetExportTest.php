@@ -138,7 +138,14 @@ final class VehicleMultiSheetExportTest extends TestCase
             'partable_type' => PartableTypeEnum::VEHICLE->value,
             'partable_id' => $vehicle->id,
             'template' => DetailTemplateEnum::WIPER->value,
-            'details' => ['front' => ['adapter_type_front' => ['A1'], 'count_wipers' => 2]],
+            'details' => [
+                'front' => [
+                    'length_main' => ['min' => 500, 'max' => 550],
+                    'length_second' => ['min' => 450, 'max' => 500],
+                    'adapter_type_front' => ['A1'],
+                    'count_wipers' => 2,
+                ],
+            ],
         ]);
 
         $context = new ExportRunContextDTO(userId: 1, runId: 'vehicle-export-wiper');

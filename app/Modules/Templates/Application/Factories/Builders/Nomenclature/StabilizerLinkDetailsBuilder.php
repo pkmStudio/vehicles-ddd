@@ -19,9 +19,9 @@ final readonly class StabilizerLinkDetailsBuilder
     public function build(DetailsRowCursor $cursor): StabilizerLinkDetailsData
     {
         return new StabilizerLinkDetailsData(
-            thread1: $cursor->pullStringCell(),
-            thread2: $cursor->pullStringCell(),
-            length: $cursor->pullFloatCell(),
+            thread1: $cursor->pullRequiredStringCell('Резьба 1'),
+            thread2: $cursor->pullRequiredStringCell('Резьба 2'),
+            length: $cursor->pullRequiredFloatCell('Длина'),
             metrics: $this->buildMetrics($cursor),
         );
     }

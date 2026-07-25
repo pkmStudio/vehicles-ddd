@@ -10,7 +10,7 @@ use Spatie\LaravelData\Data;
 final class TighteningTorqueData extends Data
 {
     public function __construct(
-        public readonly ?float $min = null,
-        public readonly ?float $max = null,
+        public readonly float $min,
+        public readonly float $max,
     ) {}
 }

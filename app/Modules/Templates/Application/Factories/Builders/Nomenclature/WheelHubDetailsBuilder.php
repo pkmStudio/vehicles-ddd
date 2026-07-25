@@ -20,14 +20,14 @@ final readonly class WheelHubDetailsBuilder
     public function build(DetailsRowCursor $cursor): WheelHubDetailsData
     {
         return new WheelHubDetailsData(
-            height: $cursor->pullFloatCell(),
-            abs: $cursor->pullStringCell(),
-            mount1: $cursor->pullStringCell(),
-            mount2: $cursor->pullStringCell(),
-            mount3: $cursor->pullStringCell(),
-            innerDiameter: $cursor->pullStringCell(),
-            splinesCount: $cursor->pullIntCell(),
-            outerDiameter: $cursor->pullFloatCell(),
+            height: $cursor->pullRequiredFloatCell('Высота'),
+            abs: $cursor->pullRequiredStringCell('ABS'),
+            mount1: $cursor->pullRequiredStringCell('Крепление 1'),
+            mount2: $cursor->pullRequiredStringCell('Крепление 2'),
+            mount3: $cursor->pullRequiredStringCell('Крепление 3'),
+            innerDiameter: $cursor->pullRequiredStringCell('Внутренний диаметр'),
+            splinesCount: $cursor->pullRequiredIntCell('Количество шлицов'),
+            outerDiameter: $cursor->pullRequiredFloatCell('Внешний диаметр'),
             metrics: $this->buildMetrics($cursor),
         );
     }

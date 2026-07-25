@@ -15,7 +15,7 @@ use Spatie\LaravelData\Data;
 final class WiperLengthRangeData extends Data
 {
     public function __construct(
-        public readonly ?int $min = null,
-        public readonly ?int $max = null,
+        public readonly int $min,
+        public readonly int $max,
     ) {}
 }

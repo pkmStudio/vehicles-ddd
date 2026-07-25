@@ -20,12 +20,12 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 final class OilFilterDetailsData extends AbstractDetailsData
 {
     public function __construct(
-        public readonly ?string $performance = null,
-        public readonly ?string $form = null,
-        public readonly ?bool $frame = null,
-        public readonly ?string $father = null,
-        public readonly ?int $diameter = null,
-        public readonly ?int $mother = null,
-        public readonly NomenclatureMetricsData $metrics = new NomenclatureMetricsData,
+        public readonly string $performance,
+        public readonly string $form,
+        public readonly bool $frame,
+        public readonly string $father,
+        public readonly int $diameter,
+        public readonly int $mother,
+        public readonly NomenclatureMetricsData $metrics,
     ) {}
 }
