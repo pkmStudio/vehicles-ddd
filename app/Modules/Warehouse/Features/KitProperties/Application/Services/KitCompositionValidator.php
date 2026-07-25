@@ -8,9 +8,9 @@ use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\CategoryEnum;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCompositionValidatorInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -198,6 +198,6 @@ final readonly class KitCompositionValidator implements KitCompositionValidatorI
             ],
         );
 
-        throw new InvalidArgumentException($message);
+        throw new KitCompositionException($message);
     }
 }

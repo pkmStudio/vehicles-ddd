@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services;
 
 use App\Modules\Warehouse\Features\KitProperties\Domain\DTOs\KitPropertiesDTO;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
 
 /**
@@ -19,6 +20,7 @@ interface KitPropertiesServiceInterface
      *
      * @throws \UnexpectedValueException если комбинация типов не поддерживается ни одной стратегией
      * @throws \InvalidArgumentException если список номенклатур пуст
+     * @throws KitCompositionException если состав комплекта нарушает доменные правила
      */
     public function build(array $nomenclatures): KitPropertiesDTO;
 }

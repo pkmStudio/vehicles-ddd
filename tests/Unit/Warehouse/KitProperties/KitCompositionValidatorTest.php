@@ -7,10 +7,10 @@ namespace Tests\Unit\Warehouse\KitProperties;
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
 use App\Modules\Warehouse\Features\KitProperties\Application\Services\KitCompositionValidator;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 use Mockery;
 use Psr\Log\NullLogger;
 use Tests\TestCase;
@@ -48,7 +48,7 @@ final class KitCompositionValidatorTest extends TestCase
     {
         $validator = $this->validator();
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(KitCompositionException::class);
         $this->expectExceptionMessage('Нельзя собрать комплект из разных категорий щеток: Бескаркасные, Зимние.');
 
         $validator->validate(new Collection([
@@ -61,7 +61,7 @@ final class KitCompositionValidatorTest extends TestCase
     {
         $validator = $this->validator();
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(KitCompositionException::class);
         $this->expectExceptionMessage('Нельзя собрать комплект из разных брендов: 10, 20.');
 
         $validator->validate(new Collection([
@@ -86,7 +86,7 @@ final class KitCompositionValidatorTest extends TestCase
     {
         $validator = $this->validator();
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(KitCompositionException::class);
         $this->expectExceptionMessage('Нельзя собрать комплект из разных брендов: 10, 20.');
 
         $validator->validate(new Collection([
@@ -100,7 +100,7 @@ final class KitCompositionValidatorTest extends TestCase
     {
         $validator = $this->validator();
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(KitCompositionException::class);
         $this->expectExceptionMessage('У щетки WB-1 не заполнена категория.');
 
         $validator->validate(new Collection([
@@ -112,7 +112,7 @@ final class KitCompositionValidatorTest extends TestCase
     {
         $validator = $this->validator();
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(KitCompositionException::class);
         $this->expectExceptionMessage('Нельзя собрать комплект из разных типов товаров. Исключение: щетка + адаптер.');
 
         $validator->validate(new Collection([
