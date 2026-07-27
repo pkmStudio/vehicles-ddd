@@ -1,0 +1,1097 @@
+mfa_id,name,provider
+-8,Umo,OD
+-7,Oting,OD
+-6,Knewstar,OD
+-5,Sollers,OD
+-4,Eviolute,OD
+-3,Sollers,OD
+-2,DW Hower,OD
+-1,Tenet,OD
+1,Aebi,TD
+2,Alfa Romeo,TD
+3,Auto Union,TD
+5,Audi,TD
+6,Austin,TD
+10,Bedford,TD
+16,BMW,TD
+20,Chrysler,TD
+21,Citroen,TD
+24,Daf,TD
+25,Daihatsu,TD
+26,Daimler,TD
+29,Dodge,TD
+30,Drögmöller,TD
+35,Fiat,TD
+36,Ford,TD
+39,Gmc,TD
+45,Honda,TD
+52,Innocenti,TD
+53,International Harv.,TD
+54,Isuzu,TD
+55,Iveco,TD
+56,Jaguar,TD
+63,Lada,TD
+64,Lancia,TD
+65,Leyland,TD
+67,Mack,TD
+68,Magirus-Deutz,TD
+69,Man,TD
+72,Mazda,TD
+74,Mercedes Benz,TD
+75,Mg,TD
+77,Mitsubishi,TD
+78,Morris,TD
+79,Multicar,TD
+80,Nissan,TD
+81,Nsu,TD
+83,Om,TD
+84,Opel,TD
+88,Peugeot,TD
+92,Porsche,TD
+93,Renault,TD
+95,Rover,TD
+99,Saab,TD
+103,Scania,TD
+104,Seat,TD
+106,Skoda,TD
+107,Subaru,TD
+109,Suzuki,TD
+110,Talbot,TD
+111,Toyota,TD
+112,Triumph,TD
+116,Van Hool,TD
+117,Vauxhall,TD
+120,Volvo,TD
+121,Volkswagen,TD
+124,Zastava,TD
+126,Öaf,TD
+128,Agrale,TD
+131,Astra,TD
+132,Avia,TD
+134,Barkas,TD
+136,Borgward,TD
+137,Bova,TD
+138,Chevrolet,TD
+139,Dacia,TD
+140,Dennis,TD
+142,Ebro,TD
+143,Erf,TD
+147,Freightliner,TD
+148,ГАЗ,TD
+150,Heuliez,TD
+151,Hino,TD
+153,Karosa,TD
+155,Kenworth,TD
+161,Mercury,TD
+162,Neoplan,TD
+164,Padane,TD
+166,Peterbilt,TD
+171,Santana,TD
+174,Sisu,TD
+175,Ssangyong,TD
+176,Steyr,TD
+178,Tata,TD
+179,Tatra,TD
+181,Piaggio,TD
+182,Western Star,TD
+183,Hyundai,TD
+184,Kia,TD
+185,Daewoo,TD
+186,Wartburg,TD
+187,Trabant,TD
+609,Ac,TD
+661,Case Ih,TD
+669,Massey Ferguson,TD
+670,Mwm,TD
+674,Same,TD
+675,Solo,TD
+678,Zuendapp,TD
+694,Renault Trucks,TD
+700,Ferrari,TD
+701,Lamborghini,TD
+705,Rolls-Royce,TD
+750,Claas,TD
+751,Deutz-Fahr,TD
+752,Fendt,TD
+755,John Deere,TD
+771,Maserati,TD
+773,Reliant,TD
+774,Pontiac,TD
+775,Daewoo,TD
+776,Ford,TD
+778,Proton,TD
+788,Bugatti,TD
+799,Autobianchi,TD
+801,Isuzu,TD
+802,Lotus,TD
+803,Morgan,TD
+807,Datsun,TD
+808,Ford Otosan,TD
+810,Alpine,TD
+812,Glas,TD
+813,Москвич,TD
+815,Bentley,TD
+816,Buick,TD
+819,Cadillac,TD
+824,Eagle,TD
+829,Foden Trucks,TD
+831,Geo,TD
+832,Ginaf,TD
+837,Jcb,TD
+842,Lexus,TD
+843,Mcw,TD
+845,Mega,TD
+849,Optare,TD
+850,Plymouth,TD
+851,Premier,TD
+860,Terberg-Benschop,TD
+861,Tvr,TD
+865,Berkhof,TD
+866,Alpina,TD
+879,Asia Motors,TD
+880,Puma,TD
+881,Aston Martin,TD
+882,Jeep,TD
+907,Westfield,TD
+908,Maruti,TD
+937,Caterpillar,TD
+976,Kramer,TD
+977,Kubota,TD
+979,Landini,TD
+1021,Yamaha,TD
+1025,Gueldner,TD
+1033,Agco,TD
+1039,Bautz,TD
+1040,Bcs,TD
+1048,Carraro,TD
+1049,Cbt,TD
+1057,Eicher,TD
+1060,Fahr,TD
+1063,Goldoni,TD
+1111,Zetor,TD
+1131,Kawasaki,TD
+1138,Smart,TD
+1139,ЗАЗ,TD
+1141,Oldsmobile,TD
+1200,Lincoln,TD
+1280,Mahindra,TD
+1360,Aro,TD
+1380,Ldv,TD
+1480,Aixam,TD
+1485,Bertone,TD
+1486,Bitter,TD
+1487,Bristol,TD
+1488,Callaway,TD
+1489,Carbodies,TD
+1490,Caterham,TD
+1491,Checker,TD
+1493,Dallas,TD
+1494,De Lorean,TD
+1495,De Tomaso,TD
+1496,Ford,TD
+1497,Saturn,TD
+1498,Ginetta,TD
+1499,Hindustan,TD
+1500,Hobbycar,TD
+1503,Envemo,TD
+1505,Acura,TD
+1506,Hummer,TD
+1507,Indigo,TD
+1508,Irmscher,TD
+1509,Isdera,TD
+1511,Jensen,TD
+1513,Ligier,TD
+1515,Luaz,TD
+1516,Marcos,TD
+1518,Mclaren,TD
+1520,Metrocab,TD
+1521,Middlebridge,TD
+1522,Minelli,TD
+1523,Mini,TD
+1526,Infiniti,TD
+1527,Oltcit,TD
+1529,Osca,TD
+1530,Panoz,TD
+1531,Panther,TD
+1533,Perodua,TD
+1534,Ranger,TD
+1536,Rayton Fissore,TD
+1537,Bond,TD
+1538,Austin-Healey,TD
+1539,Riley,TD
+1540,Sterling,TD
+1541,Wolseley,TD
+1544,San,TD
+1545,Sao,TD
+1547,Shelby,TD
+1548,Sipani,TD
+1549,Spectre,TD
+1550,Standard Automobile,TD
+1551,Tofas,TD
+1553,УАЗ,TD
+1554,Umm,TD
+1555,Vector,TD
+1556,Venturi,TD
+1558,Wiesmann,TD
+1559,Yulon,TD
+1580,Puch,TD
+1820,Land Rover,TD
+2115,Irisbus,TD
+2144,Vm,TD
+2162,Ayats,TD
+2164,Maybach,TD
+2208,Dina,TD
+2241,Ashok Leyland,TD
+2242,Askam,TD
+2243,Bmc,TD
+2245,Maz,TD
+2246,Amc,TD
+2249,Gurgel,TD
+2254,Miura,TD
+2256,Pegaso,TD
+2395,Bredamenarinibus,TD
+2407,Leyland-Innocenti,TD
+2453,Kamaz,TD
+2460,International,TD
+2488,Setra,TD
+2524,Aprilia,TD
+2526,Armstrong Siddeley,TD
+2532,Benelli,TD
+2554,Cagiva,TD
+2589,Landwind (Jmc),TD
+2590,Geely,TD
+2601,Marbus,TD
+2621,Kymco,TD
+2637,New Holland,TD
+2667,Temsa,TD
+2671,Valtra,TD
+2697,Sterling Trucks,TD
+2706,Asüna,TD
+2707,Avanti,TD
+2708,Bricklin,TD
+2709,Excalibur,TD
+2710,Laforza,TD
+2711,Merkur,TD
+2712,Qvale,TD
+2713,Saleen,TD
+2714,Scion,TD
+2715,Studebaker,TD
+2716,Sunbeam,TD
+2736,Zhonghua (Brilliance),TD
+2749,Bremach,TD
+2755,Spyker,TD
+2758,Camc,TD
+2759,Ducati,TD
+2760,Ktm,TD
+2761,Mv Agusta,TD
+2775,Am General,TD
+2784,Desoto,TD
+2794,Hillman,TD
+2798,Isotta Fraschini,TD
+2806,Packard,TD
+2808,Rambler,TD
+2810,Stanguellini,TD
+2815,Willys,TD
+2816,Yugo,TD
+2845,Auverland,TD
+2847,Anchi,TD
+2848,Anfini,TD
+2849,Bajaj Tempo,TD
+2850,Force,TD
+2851,Jeep (Bjc),TD
+2852,Changan,TD
+2853,Changhe,TD
+2854,DongFeng,TD
+2857,Eunos,TD
+2858,Audi (Faw),TD
+2859,Volkswagen,TD
+2862,DongFeng,TD
+2863,Fengxing,TD
+2864,Ford Asia & Oceania,TD
+2866,Hafei,TD
+2867,Foton,TD
+2871,Hongqi,TD
+2872,Huali,TD
+2873,Jac,TD
+2874,Wuling,TD
+2875,Fuqi,TD
+2887,Chery,TD
+2888,Jinbei,TD
+2889,Changfeng,TD
+2890,Faw (Tianjin),TD
+2891,Citroën (Df-Psa),TD
+2901,Dadi,TD
+2902,Gonow,TD
+2903,Great Wall,TD
+2904,Mitsuoka,TD
+2905,Maple (Sma),TD
+2906,Baolong,TD
+2908,Jiangnan,TD
+2909,Faw (Jilin),TD
+2910,Nissan,TD
+2911,ZX,TD
+2913,Tongtian,TD
+2915,Casalini,TD
+2916,Chatenet,TD
+2924,Fap,TD
+2926,Grecav,TD
+2927,Irizar,TD
+2929,Otokar,TD
+2931,Solaris,TD
+2932,Zil,TD
+3035,Volkswagen,TD
+3036,Haima,TD
+3038,Chenglong,TD
+3040,Jmc,TD
+3046,Pininfarina,TD
+3047,Lti,TD
+3048,Tianma,TD
+3069,Derways,TD
+3070,Naza,TD
+3071,Baw,TD
+3076,Brilliance,TD
+3084,Iran Khodro,TD
+3086,Lifan,TD
+3122,Byd,TD
+3123,Hyundai,TD
+3124,Bmw (Brilliance),TD
+3125,Ford (Changan),TD
+3126,Honda,TD
+3127,Kia,TD
+3128,Hyundai (Huatai),TD
+3129,Honda,TD
+3130,Toyota,TD
+3131,Fiat (Nanjing),TD
+3132,Nac Iveco (Naveco),TD
+3133,Mg (Nanjing),TD
+3136,Buick,TD
+3137,Toyota,TD
+3138,Mazda,TD
+3139,Isuzu (Qingling),TD
+3140,Wuling (Sgmw),TD
+3141,Nissan,TD
+3143,Suzuki (Changan),TD
+3152,Dongfeng Xiaokang,TD
+3153,Soyat,TD
+3154,Polarsun,TD
+3155,Huizhong,TD
+3156,Shuanghuan,TD
+3157,Tianqi Meiya,TD
+3158,Golden Dragon,TD
+3159,Ufo,TD
+3160,Zotye,TD
+3186,Xinkai,TD
+3191,Wanfeng,TD
+3193,Yuejin,TD
+3194,Carlarky,TD
+3196,Gac,TD
+3199,Suzuki (Changhe),TD
+3202,Roewe (Saic),TD
+3267,Europestar,TD
+3274,Daihatsu (Faw),TD
+3276,Hsv,TD
+3282,Plaxton,TD
+3284,Rely,TD
+3285,Riich,TD
+3286,Karry,TD
+3297,Fpv,TD
+3300,Avior,TD
+3328,Tesla,TD
+3332,Geely,TD
+3443,Tazzari,TD
+3495,Artega,TD
+3497,Dr,TD
+3500,Gruau,TD
+3507,Icml,TD
+3514,Think,TD
+3522,Mercedes-Benz (Fjda),TD
+3526,Anadol,TD
+3527,Chevrolet,TD
+3528,Cadillac (Sgm),TD
+3530,Skoda (Svw),TD
+3531,Peugeot (Df-Psa),TD
+3532,Mazda (Changan),TD
+3533,Volvo (Changan),TD
+3549,Suzuki,TD
+3551,Maz-Man,TD
+3554,Mahindra Renault,TD
+3555,Reva,TD
+3562,Hawtai,TD
+3610,Faw,TD
+3618,Effedi,TD
+3620,Ud Trucks,TD
+3625,Noble,TD
+3645,Mercedes-Benz (Bbdc),TD
+3646,Chrysler (Bbdc),TD
+3650,Mitsubishi (Bjc),TD
+3651,Chevrolet (Sgmw),TD
+3652,Effa,TD
+3656,Ford,TD
+3657,Soueast,TD
+3658,Mitsubishi (Soueast),TD
+3659,Dongfeng,TD
+3661,Lotus (Youngman),TD
+3677,Inokom,TD
+3678,Chamonix,TD
+3679,Lobini,TD
+3680,Tac,TD
+3681,Troller,TD
+3687,Allgaier,TD
+3688,Bucher,TD
+3689,Ram,TD
+3696,Workhorse,TD
+3697,Gleagle,TD
+3704,Englon,TD
+3719,Coda,TD
+3729,Bharatbenz,TD
+3738,Fisker,TD
+3740,Pyeonghwa (Pmc),TD
+3741,Mitsubishi,TD
+3742,Luxgen,TD
+3750,Vdl,TD
+3752,Vpg,TD
+3761,Fiat (Gac),TD
+3762,FAW,TD
+3763,Ural,TD
+3764,Baojun (Sgmw),TD
+3770,C.A.M,TD
+3771,Foday,TD
+3772,Cmc,TD
+3773,Baic,TD
+3794,Mastretta,TD
+3799,Venucia,TD
+3804,Laz,TD
+3805,King Long,TD
+3806,Viseon,TD
+3819,Yagmur,TD
+3820,Pasquali,TD
+3821,Ferrari Agri,TD
+3822,Caron,TD
+3823,Challenger,TD
+3824,Sonalika,TD
+3826,Solis,TD
+3828,Durso,TD
+3829,Armatrac,TD
+3830,Bm Tractors,TD
+3831,Branson,TD
+3833,Kioti,TD
+3837,Mitsubishi (Gac),TD
+3838,MG,TD
+3839,Qoros,TD
+3842,Autozam,TD
+3848,Shaanxi,TD
+3849,Jiefang (Faw),TD
+3854,Abarth,TD
+3855,Sinotruk (Cnhtc),TD
+3913,Haima (Zhengzhou),TD
+3914,Mccormick,TD
+3915,Belarus,TD
+3923,Weituo,TD
+3946,Farmtrac,TD
+3960,Basak,TD
+3961,Mia Electric,TD
+3968,Haval,TD
+3971,Andoria,TD
+3972,Preet,TD
+3974,Al-Ghazi,TD
+3975,Swaraj,TD
+3991,Can-Am,TD
+3993,Jonway,TD
+3997,Gonow (Gac),TD
+3999,Ds (Capsa),TD
+4002,Yema,TD
+4004,Beiben,TD
+4010,Srt,TD
+4015,Streetscooter,TD
+4033,Zinoro,TD
+4036,Baic Huansu,TD
+4048,Buell,TD
+4052,Daelim,TD
+4054,Gilera,TD
+4055,Harley-Davidson,TD
+4056,Hyosung,TD
+4060,Malaguti,TD
+4061,Mbk,TD
+4062,Moto Guzzi,TD
+4063,Mz,TD
+4064,Sachs,TD
+4065,Simson,TD
+4069,Vespa,TD
+4070,Kreidler,TD
+4071,Derbi,TD
+4072,Fantic,TD
+4073,Italjet,TD
+4074,Jawa,TD
+4075,Laverda Motorcycles,TD
+4076,Maico,TD
+4077,Moto-Morini,TD
+4078,Pgo Motorcycles,TD
+4079,Sanglas,TD
+4080,Tornax,TD
+4087,Hercules,TD
+4089,Denza,TD
+4152,Ruf,TD
+4161,Brabus,TD
+4162,Bufori,TD
+4163,Koenigsegg,TD
+4164,Pagani,TD
+4167,Volvo Asia,TD
+4176,Higer,TD
+4177,Chtc Auto,TD
+4179,Jincheng,TD
+4180,Joylong,TD
+4181,Kawei Auto,TD
+4182,Kavz,TD
+4186,Liaz Bus,TD
+4187,Lloyd,TD
+4189,Forland,TD
+4191,Yutong,TD
+4211,Infiniti (Dfac),TD
+4214,Kaiyi,TD
+4219,Microcar,TD
+4231,Lml,TD
+4239,Brandy,TD
+4240,Dafra,TD
+4241,Husqvarna,TD
+4242,Kasinski,TD
+4244,Traxx,TD
+4245,Sym,TD
+4255,Huasong,TD
+4256,Victory,TD
+4257,Fqt Motor,TD
+4258,Huanghai,TD
+4259,Enranger,TD
+4260,Renault Samsung,TD
+4264,Dongfeng Fengdu,TD
+4265,Kama,TD
+4266,Baic Weiwang,TD
+4267,Dayun,TD
+4268,Hengtong,TD
+4269,DongFeng,TD
+4273,Shacman,TD
+4276,Xcmg,TD
+4280,Saic-Iveco Hongyan,TD
+4282,Land Rover (Chery),TD
+4287,Husaberg,TD
+4288,Ecm,TD
+4289,Gasgas,TD
+4290,Rex,TD
+4292,ТагАЗ,TD
+4294,Volgabus,TD
+4299,Sundown,TD
+4310,Vam,TD
+4314,Hmracing,TD
+4315,Beta,TD
+4319,Caloi,TD
+4320,Huayang,TD
+4322,Zero,TD
+4323,Wangye,TD
+4324,Victory Motorcycles,TD
+4325,Indian,TD
+4326,Wuyang,TD
+4328,Motobi,TD
+4330,Adly,TD
+4331,Aeon,TD
+4333,Mondial,TD
+4334,Nipponia,TD
+4346,Quadro,TD
+4367,Amazonas,TD
+4368,Bimota,TD
+4369,Dayang,TD
+4370,Garinni,TD
+4371,Haobao,TD
+4372,Hartford,TD
+4373,Iros,TD
+4374,Johnny Pag,TD
+4375,Kahena,TD
+4376,Miza,TD
+4377,Regal Raptor,TD
+4379,Vento,TD
+4385,Mvk,TD
+4386,Royal Enfield,TD
+4390,Kandi,TD
+4391,Agco Allis,TD
+4392,Pfanzelt,TD
+4393,Isuzu (Jiangxi),TD
+4394,C&C Trucks,TD
+4400,Sommer Motorcycles,TD
+4401,Tgb,TD
+4402,Beeline,TD
+4403,Generic,TD
+4404,Rivero,TD
+4406,Ariel,TD
+4407,Swm,TD
+4414,Alpheon,TD
+4418,Baic Bjev,TD
+4421,Troliga Bus,TD
+4423,Baotian,TD
+4424,Cf Moto,TD
+4425,Tomos,TD
+4439,Lada,TD
+4445,Karsan,TD
+4448,Tongjiafu,TD
+4449,Tongbao,TD
+4450,Heibao,TD
+4454,Jeep (Gac Fca),TD
+4468,Ds,TD
+4472,Kuba,TD
+4473,Genesis,TD
+4487,Cezeta,TD
+4488,Horex,TD
+4489,Amw,TD
+4491,Emco,TD
+4492,Mash,TD
+4493,Motowell,TD
+4494,Luxxon,TD
+4495,Keeway,TD
+4496,Turbho,TD
+4497,Sfm,TD
+4498,Ksr Moto,TD
+4501,Mobility Ventures,TD
+4532,Spartan,TD
+4534,Sml,TD
+4535,Ika,TD
+4536,Ies,TD
+4537,Siam,TD
+4538,Renault (Dfac),TD
+4539,Govecs,TD
+4540,Brixton,TD
+4541,Engesa,TD
+4542,Inbus,TD
+4552,Bajaj,TD
+4553,Hero,TD
+4554,Tvs,TD
+4555,Um,TD
+4556,Hero Electric,TD
+4558,Monto,TD
+4559,Lectric,TD
+4560,Yobykes,TD
+4564,Yezdi,TD
+4566,Kanda,TD
+4577,Tatsa,TD
+4592,Saipa,TD
+4593,Acura (Gac),TD
+4599,Zd,TD
+4600,Autoar,TD
+4604,Zenos Cars,TD
+4605,Multix,TD
+4607,Vuhl,TD
+4608,Güleryüz,TD
+4609,Brilliance,TD
+4610,Hanteng,TD
+4611,SWM,TD
+4612,Lynk & Co,TD
+4613,Niu,TD
+4614,Jaguar (Chery),TD
+4617,Ccm,TD
+4618,Megelli,TD
+4621,Rieju,TD
+4623,Zanella,TD
+4624,Scomadi,TD
+4626,Bahman,TD
+4627,Speranza,TD
+4628,Asiawing,TD
+4633,Garelli,TD
+4636,Venirauto,TD
+4637,Bisu,TD
+4639,El Detalle,TD
+4640,BAW,TD
+4642,Sileo,TD
+4644,Thairung,TD
+4645,Bio Auto,TD
+4646,Vem,TD
+4657,German E Cars,TD
+4658,Donkervoort,TD
+4659,Pgo,TD
+4660,Ravon,TD
+4661,Shineray,TD
+4667,Xgjao,TD
+4668,Haosen,TD
+4670,Motorrad,TD
+4672,Euromot,TD
+4673,Jianshe,TD
+4674,Loncin,TD
+4675,Tmracing,TD
+4683,ИЖ,TD
+4692,Hattat,TD
+4708,Romanital,TD
+4712,Bluecar,TD
+4717,De La Chapelle,TD
+4722,Hesket,TD
+4723,Norton,TD
+4729,Humber,TD
+4730,Alvis,TD
+4731,Singer,TD
+4739,Fnm,TD
+4740,Zamyad,TD
+4751,Wey,TD
+4752,Goupil,TD
+4762,Uz-Daewoo,TD
+4763,Seaz,TD
+4764,Yudo,TD
+4771,Qingqi,TD
+4773,Hicom,TD
+4780,Nio,TD
+4788,Zarooq,TD
+4798,Traum,TD
+4799,Jinlun,TD
+4801,Benzhou,TD
+4802,Znen,TD
+4803,Cpi,TD
+4817,Polestar,TD
+4896,Cupra,TD
+5062,Zongshen,TD
+5063,Adiva,TD
+5064,Atala,TD
+5065,Yiben,TD
+5066,Eton,TD
+5067,Huatian,TD
+5068,Lexmoto,TD
+5069,Lingben,TD
+5076,Gac Mobylette,TD
+5077,Xingyue,TD
+5078,Sanben,TD
+5109,Horki (Dyk),TD
+5111,Vortex,TD
+5114,Weltmeister,TD
+5115,Oshan,TD
+5116,Baic Ruili,TD
+5118,Vinfast,TD
+5119,Jetour,TD
+5123,Ora,TD
+5124,Red Star,TD
+5125,Sinogold,TD
+5127,Braaap Motorcycles,TD
+5128,Bsa Motorcycles,TD
+5129,Hunter Motorcycles,TD
+5130,Lambretta,TD
+5131,Laro,TD
+5133,Sherco,TD
+5134,Vmoto Motorcycles,TD
+5135,Gumpert,TD
+5136,Apollo,TD
+5138,Qiantu,TD
+5139,Sitech,TD
+5140,Dearcc,TD
+5141,Dorcen,TD
+5152,Polaris,TD
+5155,Lite (Bjev),TD
+5156,Hozon,TD
+5170,Martin Motors,TD
+5171,Spania Gta,TD
+5173,Bolwell,TD
+5181,Linktour,TD
+5184,Xpeng,TD
+5186,Autorrad,TD
+5188,Yulu,TD
+5190,Fac,TD
+5194,Levc,TD
+5201,Leapmotor,TD
+5203,Oullim,TD
+5204,Mpm Motors,TD
+5206,Ud Nissan Diesel,TD
+5208,Gme,TD
+5209,Giotti Victoria,TD
+5219,Jmev,TD
+5244,Geometry,TD
+5246,Li,TD
+5247,Exeed,TD
+5248,Enovate,TD
+5257,Minicord,TD
+5258,Zedriv,TD
+5259,Skywell (Kaiwo),TD
+5262,Srm (Brilliance),TD
+5330,Techart,TD
+5338,Cnj,TD
+5392,Hino (Gac),TD
+5398,Jetta,TD
+5402,Okinawa,TD
+5405,Cleveland Cyclewerks,TD
+5407,Ather,TD
+5409,Ampere,TD
+5411,Revolt,TD
+5412,F.B Mondial,TD
+5414,Atul,TD
+5415,Baxy,TD
+5416,Scooters India,TD
+5417,Jsa,TD
+5422,Lovson,TD
+5424,Kinetic,TD
+5425,Teja,TD
+5426,Rasandik,TD
+5436,Rosenbauer,TD
+5440,Alexander Dennis,TD
+5441,Bci,TD
+5463,Corona,TD
+5464,Jbm,TD
+5465,Ural India,TD
+5475,Galloper,TD
+5478,Zhongtong,TD
+5479,Ankai,TD
+5480,Sunlong,TD
+5482,Comarth,TD
+5486,Dongfeng,TD
+5487,Aeolus,TD
+5499,Letin,TD
+5500,Aiways,TD
+5501,Karma,TD
+5506,Vgv,TD
+5507,Dodge (Soueast),TD
+5510,FAW,TD
+5511,Hunkt,TD
+5512,Lincoln (Changan),TD
+5521,Chrysler (Soueast),TD
+5522,Everus,TD
+5525,New Baojun,TD
+5527,Dongfeng Chaolong,TD
+5530,Leopaard,TD
+5550,Lohia,TD
+5558,Togg,TD
+5568,Byd Adl,TD
+5583,Hycan,TD
+5590,Seres,TD
+5595,Sol,TD
+5596,Ciimo,TD
+5598,Foton Gratour,TD
+5599,Jdmc,TD
+5670,BAIC,TD
+5671,Baic-Orv,TD
+5672,Lorinser,TD
+5696,Maple,TD
+5699,Joyfun Auto,TD
+5704,Swaraj Mazda,TD
+5705,E.Go,TD
+5710,King,TD
+5711,Masa,TD
+5733,Voge,TD
+5735,Volvo Bm,TD
+5736,Isorivolta,TD
+5737,Iso,TD
+5738,Bizzarrini,TD
+5745,Gac Ne,TD
+5746,Lingbox,TD
+5747,Bajaj Re,TD
+5766,Rcev,TD
+5767,Dongfeng Fukang,TD
+5769,Cenntro,TD
+5808,Faw (Hongta),TD
+5813,Sd,TD
+5841,Ace,TD
+5842,Agri King,TD
+5843,Akash,TD
+5844,Captain,TD
+5845,Escorts,TD
+5846,Field Marshal,TD
+5847,Trakstar,TD
+5848,Indo Farm,TD
+5849,Hmt,TD
+5850,Kamco,TD
+5851,Standard Agri,TD
+5852,Tafe,TD
+5853,Trishul,TD
+5854,Vst Shakti,TD
+5855,White Wagon,TD
+5856,Mahindra Gujarat,TD
+5858,Hiphi,TD
+5890,Skywell,TD
+5891,Arcfox,TD
+5998,Ford Africa,TD
+5999,T-King,TD
+6000,Farizon Auto,TD
+6016,Faam,TD
+6025,Kish Khodro,TD
+6027,Lonsdale,TD
+6028,Mini (Gb),TD
+6029,Mosler,TD
+6030,Mtx,TD
+6039,Star,TD
+6043,Zenvo,TD
+6057,Refine,TD
+6067,R Auto,TD
+6089,Fargo,TD
+6119,Timor,TD
+6121,Fomm,TD
+6140,Esemka,TD
+6146,Pocco,TD
+6162,Henrey Automobile,TD
+6168,Zeekr,TD
+6175,Td Cars,TD
+6176,Skywell,TD
+6177,Elaris,TD
+6178,Sevic,TD
+6183,Pur Ev,TD
+6184,Benling,TD
+6203,Odysse,TD
+6204,Rowwet,TD
+6207,Zacua,TD
+6208,Hengrun Auto,TD
+6223,Voyah,TD
+6224,Kaicene,TD
+6233,Tank,TD
+6276,Feidi,TD
+6277,Sany,TD
+6288,Ev House,TD
+6302,Baic Ruixiang,TD
+6350,Online,TD
+6363,Forthing,TD
+6378,Modern Auto,TD
+6381,Baizhi,TD
+6398,Xbus,TD
+6400,Audi (Saic),TD
+6439,Tropos,TD
+6459,Motorino,TD
+6460,Haojue,TD
+6465,Aito,TD
+6466,Bull,TD
+6470,Sousa,TD
+6471,Aima,TD
+6476,Cake,TD
+6477,Voltz,TD
+6478,Bee,TD
+6479,Super Soco,TD
+6480,Avelloz,TD
+6491,Auguri,TD
+6493,Wazn,TD
+6494,Mormaii,TD
+6501,E.F.O,TD
+6502,Zontes,TD
+6513,Horwin,TD
+6514,Im Motors,TD
+6519,Lucid,TD
+6541,Brilliance Xinri,TD
+6543,New Gonow Auto,TD
+6545,Micro,TD
+6567,Motron,TD
+6576,Ineos,TD
+6579,Asia Cab,TD
+6587,Changan,TD
+6588,Xev,TD
+6619,Veam,TD
+6622,Avatr,TD
+6623,Huakai Auto,TD
+6624,Wanxiang Auto,TD
+6687,Qjmotor,TD
+6688,Yadea,TD
+6690,Tinbot,TD
+6695,B-On,TD
+6696,Scoobic,TD
+6697,Huazi Auto,TD
+6699,Alrendo,TD
+6702,Jidu,TD
+6705,Energica,TD
+6706,Truong Giang,TD
+6707,Tmt Motors,TD
+6708,Samco,TD
+6710,Radar,TD
+6725,Hdt,TD
+6732,Menarinibus,TD
+6739,Livan,TD
+6751,Praga,TD
+6758,Emw,TD
+6768,Viauto,TD
+6772,Evum Motors,TD
+6773,Nextem,TD
+6798,Vertigo,TD
+6812,Wright,TD
+6822,Lordstown,TD
+6856,Geely,TD
+6861,Bak Automobile,TD
+6862,Evo,TD
+6869,Livewire,TD
+6873,Ickx,TD
+6874,Sportequipe,TD
+6883,Addax,TD
+6897,Mutt,TD
+6898,Brightdrop,TD
+6899,Kayo,TD
+6903,Jac Ev,TD
+6904,Gpx Moto,TD
+6906,Talaria,TD
+6909,Ycf,TD
+6910,Zoot,TD
+6915,Rivian,TD
+6928,Linxys,TD
+6929,Hyper,TD
+6933,Kyc,TD
+7023,ROX,TD
+7024,Emc,TD
+7025,Thaco,TD
+7029,M-Hero,TD
+7030,KGM,TD
+7089,Yangwang,TD
+7090,Jiyue Auto,TD
+7094,Qiyuan,TD
+7095,Reach,TD
+7096,Jenhoo-Auto,TD
+7097,Chengshi,TD
+7098,Neomor,TD
+7099,Nammi,TD
+7110,Fest,TD
+7114,Royal Alloy,TD
+7268,Coradir,TD
+7274,Volt,TD
+7275,Vinamotor,TD
+7289,Ohm,TD
+7384,Vent,TD
+7507,BYD,TD
+7577,Landian,TD
+7642,Omoda,TD
+7731,Luxeed,TD
+7732,Yuanhang,TD
+7738,Dongben,TD
+7789,Eπ,TD
+7809,I Car,TD
+8047,Bac,TD
+8048,Xiaomi,TD
+8059,Jaecoo,TD
+8065,Mullen,TD
+8093,Stark Future,TD
+8113,Jpx,TD
+8126,Arrow Mobility,TD
+8127,Lafer,TD
+8128,Cross Lander,TD
+8129,Prike,TD
+8155,Santa Matilde,TD
+8161,Xcite,TD
+8166,Wallys,TD
+8168,Tnt,TD
+8179,Forza,TD
+8185,Qooder,TD
+8195,Wottan Motor,TD
+8223,Vw (Anhui),TD
+8231,Chirey,TD
+8232,212,TD
+8233,Chevoo,TD
+8234,Hengchi,TD
+8235,Minan Auto,TD
+8236,Onvo,TD
+8237,S-Hiace,TD
+8238,Stelato,TD
+8239,Winnerway,TD
+8241,Shacmoto,TD
+8245,Zeeho,TD
+8263,Lingxi,TD
+8264,Elfin,TD
+8265,Naxeon,TD
+8267,Kim Long,TD
+8268,Leonart,TD
+8295,Velocifero,TD
+8300,Dsk,TD
+8307,Voxan,TD
+8309,Ubco,TD
+8322,Eon Motors,TD
+8326,Kl,TD
+8327,Silence,TD
+8333,Benda,TD
+8337,Mbp Moto,TD
+8338,Morbidelli,TD
+8340,Rixe,TD
+8356,Ajp,TD
+8358,Kove,TD
+8359,Jj Cobas,TD
+8369,Mobilize,TD
+8370,Teraco,TD
+8389,Belgee,TD
+8423,Brammo,TD
+8440,Borile,TD
+8454,Firefly,TD

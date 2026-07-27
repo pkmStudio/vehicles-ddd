@@ -15,6 +15,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineCrossImportC
 use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineImportCompleted;
 use App\Modules\Vehicles\Features\Import\Domain\Events\EnginesAndModificationsReady;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Manufacturer\ManufacturerCommandImported;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Manufacturer\ManufacturerImportCompleted;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Vehicle\VehicleCommandImported;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Vehicle\VehicleImportCompleted;
 use Illuminate\Support\Facades\Event;
@@ -52,9 +53,11 @@ class ImportEventServiceProvider extends ServiceProvider
         Event::listen(VehicleImportCompleted::class, ReportImportResultListener::class);
         Event::listen(EngineImportCompleted::class, ReportImportResultListener::class);
         Event::listen(EngineCrossImportCompleted::class, ReportImportResultListener::class);
+        Event::listen(ManufacturerImportCompleted::class, ReportImportResultListener::class);
 
         Event::listen(VehicleImportCompleted::class, CleanupExternalImportFileListener::class);
         Event::listen(EngineImportCompleted::class, CleanupExternalImportFileListener::class);
         Event::listen(EngineCrossImportCompleted::class, CleanupExternalImportFileListener::class);
+        Event::listen(ManufacturerImportCompleted::class, CleanupExternalImportFileListener::class);
     }
 }

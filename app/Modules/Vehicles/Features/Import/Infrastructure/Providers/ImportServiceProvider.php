@@ -19,6 +19,7 @@ use App\Modules\Vehicles\Features\Import\Application\Services\EngineModification
 use App\Modules\Vehicles\Features\Import\Application\Services\EngineModificationReadinessGate;
 use App\Modules\Vehicles\Features\Import\Application\Services\External\CleanupExternalImportFileService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Manufacturer\UpsertManufacturerFromRowService;
+use App\Modules\Vehicles\Features\Import\Application\Services\Manufacturer\UpsertManufacturerFromSheetService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Modification\UpsertModificationFromRowService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Reporting\ReportImportResultService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleFromSheetService;
@@ -50,6 +51,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\Vehicl
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\EngineCrossImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\EngineMultiSheetImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\EngineSparkPlugSpecificationImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\ManufacturerImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\VehicleMultiSheetImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\FailuresExportInterface;
@@ -70,6 +72,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\EngineModific
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\External\CleanupExternalImportFileServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromRowServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromSheetServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Reporting\ReportImportResultServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
@@ -94,6 +97,7 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\EnginesCo
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\EngineSparkPlugSpecificationImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\EngineModification\EngineModificationImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\ManufacturerCommandImport;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\ManufacturerImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Modification\ModificationCommandImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\VehicleCommandImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\VehicleMultiSheetImport;
@@ -153,6 +157,7 @@ final class ImportServiceProvider extends ServiceProvider
         EngineCrossImportInterface::class => EngineCrossImport::class,
         EngineSparkPlugSpecificationImportInterface::class => EngineSparkPlugSpecificationImport::class,
         EnginesCodeImportInterface::class => EnginesCodeImport::class,
+        ManufacturerImportInterface::class => ManufacturerImport::class,
     ];
 
     private const array IMPORT_SHEET_BINDINGS = [
@@ -180,6 +185,7 @@ final class ImportServiceProvider extends ServiceProvider
         UpsertSparkPlugSpecByModificationServiceInterface::class => UpsertSparkPlugSpecByModificationService::class,
         AssignEngineGroupServiceInterface::class => AssignEngineGroupService::class,
         UpsertManufacturerFromRowServiceInterface::class => UpsertManufacturerFromRowService::class,
+        UpsertManufacturerFromSheetServiceInterface::class => UpsertManufacturerFromSheetService::class,
         UpsertModificationFromRowServiceInterface::class => UpsertModificationFromRowService::class,
         UpsertVehicleFromSheetServiceInterface::class => UpsertVehicleFromSheetService::class,
         UpsertVehicleFromTdRowServiceInterface::class => UpsertVehicleFromTdRowService::class,

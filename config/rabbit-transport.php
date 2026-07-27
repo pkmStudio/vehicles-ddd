@@ -145,6 +145,10 @@ return [
             ImportFileRequestedHandler::class,
             'handle',
         ],
+        'MANUFACTURERS_IMPORT_FILE_REQUESTED' => [
+            ImportFileRequestedHandler::class,
+            'handle',
+        ],
 
         /*
         | Входящие запросы на экспорт каталога. Один Handler на оба типа —
@@ -366,6 +370,7 @@ return [
             'crm.modifications.import',
             'crm.engine-groups.import',
             'crm.spark-plugs.import',
+            'crm.manufacturers.import',
             'crm.vehicles.export',
             'crm.engines.export',
             'crm.warehouse.nomenclatures.export',

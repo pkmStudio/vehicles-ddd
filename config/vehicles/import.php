@@ -54,6 +54,8 @@ return [
                 'vehicle_import_failures_lock' => 'vehicle_import_failures_lock_%s',
                 'engine_import_failures' => 'engine_import_failures_%s',
                 'engine_import_failures_lock' => 'engine_import_failures_lock_%s',
+                'manufacturer_import_failures' => 'manufacturer_import_failures_%s',
+                'manufacturer_import_failures_lock' => 'manufacturer_import_failures_lock_%s',
             ],
         ],
     ],
