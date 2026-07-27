@@ -10,11 +10,11 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\Nomenclature
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature\ImportNomenclatureFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 
 /**
  * Резолвит type_id/brand_id и detail-шаблон по справочникам, собирает details и пишет номенклатуру.
@@ -75,7 +75,7 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
         $typeName = mb_strtoupper(trim((string) ($row[1] ?? '')));
         $type = $typesByName->get($typeName);
         if ($type === null) {
-            throw new InvalidArgumentException(
+            throw ImportRowValidationException::withMessage(
                 "Тип товара «{$row[1]}» не найден. Проверьте колонку «Тип товара» (столбец B).",
             );
         }
@@ -83,14 +83,14 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
         $brandName = mb_strtoupper(trim((string) ($row[2] ?? '')));
         $brand = $brandsByName->get($brandName);
         if ($brand === null) {
-            throw new InvalidArgumentException(
+            throw ImportRowValidationException::withMessage(
                 "Бренд «{$row[2]}» не найден. Проверьте колонку «Бренд» (столбец C).",
             );
         }
 
         $template = $this->templateResolver->resolve($type);
         if ($template === null) {
-            throw new InvalidArgumentException(
+            throw ImportRowValidationException::withMessage(
                 "Шаблон деталей не найден для типа «{$type->name}» (ID={$type->id}).",
             );
         }
@@ -121,7 +121,11 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
         );
 
         if ($id !== null) {
-            return $this->command->updateById($data);
+            $existingById = $this->nomenclatures->findById($id);
+
+            return $existingById === null
+                ? $this->command->createWithId($data)
+                : $this->command->updateById($data);
         }
 
         $existing = $this->nomenclatures->findByPartNumber($data->partNumber);
@@ -151,7 +155,7 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
             return;
         }
 
-        throw new InvalidArgumentException(
+        throw ImportRowValidationException::withMessage(
             "У щетки {$partNumber} не заполнена категория. Проверьте колонку «Категория».",
         );
     }
@@ -196,7 +200,7 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
         }
 
         if ($parsed === null || $parsed <= 0) {
-            throw new InvalidArgumentException(
+            throw ImportRowValidationException::withMessage(
                 "{$columnName} должен быть положительным целым числом в граммах. Проверьте столбец {$columnLetter}.",
             );
         }

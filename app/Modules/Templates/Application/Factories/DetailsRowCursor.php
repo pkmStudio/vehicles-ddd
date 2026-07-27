@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Templates\Application\Factories;
 
 use App\Modules\Templates\Domain\Contracts\EnumHelperInterface;
-use RuntimeException;
+use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 
 /**
  * Курсор чтения Excel-строки для сборки `*DetailsData` из `fromImportRow()`. Держит саму строку
@@ -78,7 +78,7 @@ final class DetailsRowCursor
     {
         $value = $this->pullIntCell();
         if ($value === null) {
-            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+            throw DetailsDataBuildException::requiredField($field);
         }
 
         return $value;
@@ -103,7 +103,7 @@ final class DetailsRowCursor
     {
         $value = $this->pullStringCell();
         if ($value === null || trim($value) === '') {
-            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+            throw DetailsDataBuildException::requiredField($field);
         }
 
         return $value;
@@ -127,7 +127,7 @@ final class DetailsRowCursor
     {
         $value = $this->pullFloatCell();
         if ($value === null) {
-            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+            throw DetailsDataBuildException::requiredField($field);
         }
 
         return $value;
@@ -153,7 +153,7 @@ final class DetailsRowCursor
     {
         $case = $this->pullLabel($enumClass);
         if ($case === null) {
-            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+            throw DetailsDataBuildException::requiredField($field);
         }
 
         return $case;
@@ -197,7 +197,7 @@ final class DetailsRowCursor
     {
         $cases = $this->pullMultiLabel($enumClass);
         if ($cases === []) {
-            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+            throw DetailsDataBuildException::requiredField($field);
         }
 
         return $cases;
@@ -237,7 +237,7 @@ final class DetailsRowCursor
     {
         $values = $this->pullFloatArray();
         if ($values === []) {
-            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+            throw DetailsDataBuildException::requiredField($field);
         }
 
         return $values;
@@ -276,7 +276,7 @@ final class DetailsRowCursor
     {
         $values = $this->pullIntArray();
         if ($values === []) {
-            throw new RuntimeException("Поле «{$field}» обязательно для заполнения.");
+            throw DetailsDataBuildException::requiredField($field);
         }
 
         return $values;
@@ -287,8 +287,7 @@ final class DetailsRowCursor
      * Шаги:
      * 1) Если лейбл null или пустая строка — возвращает null (писать нечего, не ошибка).
      * 2) Иначе ищет case по лейблу через `$enumClass::fromLabel()`.
-     * 3) Если case не найден — бросает `RuntimeException` с именем справочника и значением
-     *    (та же реакция на непонятное значение, что была у старого `DetailsBuilder::getVarKey()`).
+     * 3) Если case не найден — бросает доменную ошибку с именем справочника и значением.
      * 4) Возвращает найденный case.
      *
      * @param  class-string<EnumHelperInterface>  $enumClass
@@ -302,11 +301,7 @@ final class DetailsRowCursor
         $case = $enumClass::fromLabel((string) $label);
 
         if ($case === null) {
-            throw new RuntimeException(sprintf(
-                'Не найдено совпадение в справочнике %s. Значение: %s',
-                $enumClass,
-                $label,
-            ));
+            throw DetailsDataBuildException::unknownDictionaryValue($enumClass, $label);
         }
 
         return $case;

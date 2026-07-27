@@ -10,11 +10,11 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\KitProperties
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\KitProperties\KitPropertiesDTO;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 use Mockery;
 use Tests\TestCase;
 
@@ -131,7 +131,7 @@ final class ImportKitFromRowServiceTest extends TestCase
 
         $service = new ImportKitFromRowService($repository, Mockery::mock(KitRepositoryInterface::class), $kitProperties, $command);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
         $service->importFromRow(['', 'A-1;A-MISSING', 'Нет', 'Да']);
     }
 
@@ -161,7 +161,7 @@ final class ImportKitFromRowServiceTest extends TestCase
 
         $service = new ImportKitFromRowService($repository, Mockery::mock(KitRepositoryInterface::class), $kitProperties, $command);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
         $service->importFromRow(['', 'A-1', 'Нет', 'Да']);
     }
 
@@ -177,7 +177,7 @@ final class ImportKitFromRowServiceTest extends TestCase
             Mockery::mock(KitCommandInterface::class),
         );
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
         $service->importFromRow(['', '', 'Нет', 'Да']);
     }
 

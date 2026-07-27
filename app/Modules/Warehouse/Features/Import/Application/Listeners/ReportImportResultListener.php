@@ -14,7 +14,7 @@ use App\Modules\Warehouse\Features\Import\Domain\Events\AbstractImportCompleted;
 use App\Modules\Warehouse\Features\Import\Domain\Events\KitImportCompleted;
 use App\Modules\Warehouse\Features\Import\Domain\Events\NomenclatureImportCompleted;
 use App\Modules\Warehouse\Features\Import\Domain\Events\PackDimensionImportCompleted;
-use RuntimeException;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportCompletionException;
 
 /**
  * Реакция на завершение Warehouse-импорта: выгружает накопленные ошибки в отчёт и публикует
@@ -45,12 +45,13 @@ final readonly class ReportImportResultListener
     public function handle(AbstractImportCompleted $event): void
     {
         $failures = $this->failures->pull($event->cacheKey);
+        $importType = $this->importTypeFor($event);
 
-        $reportPath = $this->reporter->store($failures);
+        $reportPath = $this->reporter->store($failures, $importType);
 
         $notification = new ImportCompletionNotificationDTO(
             status: $failures === [] ? ImportCompletionStatusEnum::Completed : ImportCompletionStatusEnum::Failed,
-            importType: $this->importTypeFor($event),
+            importType: $importType,
             userId: $event->userId,
             runId: $event->runId,
             failuresReportPath: $reportPath,
@@ -72,7 +73,7 @@ final readonly class ReportImportResultListener
             $event instanceof NomenclatureImportCompleted => ImportTypeEnum::Nomenclature,
             $event instanceof PackDimensionImportCompleted => ImportTypeEnum::PackDimension,
             $event instanceof KitImportCompleted => ImportTypeEnum::Kit,
-            default => throw new RuntimeException('Неизвестное событие завершения Warehouse-импорта: '.$event::class),
+            default => throw ImportCompletionException::unknownEvent($event::class),
         };
     }
 }

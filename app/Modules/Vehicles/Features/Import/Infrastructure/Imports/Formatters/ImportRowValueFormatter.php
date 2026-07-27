@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters;
 
-use InvalidArgumentException;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 
 final readonly class ImportRowValueFormatter
 {
@@ -45,7 +45,7 @@ final readonly class ImportRowValueFormatter
             return (int) $value;
         }
 
-        throw new InvalidArgumentException("Поле {$field}: ожидалось целое число.");
+        throw ImportRowValidationException::fromMessage("Поле {$field}: ожидалось целое число.");
     }
 
     public function nullableFloat(string|int|float|null $value, string $field): ?float
@@ -70,7 +70,7 @@ final readonly class ImportRowValueFormatter
             return (float) $value;
         }
 
-        throw new InvalidArgumentException("Поле {$field}: ожидалось число.");
+        throw ImportRowValidationException::fromMessage("Поле {$field}: ожидалось число.");
     }
 
     public function nullableBoolFromYesNo(string|int|float|null $value, string $field): ?bool
@@ -81,7 +81,7 @@ final readonly class ImportRowValueFormatter
             null => null,
             'Да' => true,
             'Нет' => false,
-            default => throw new InvalidArgumentException("Поле {$field}: ожидалось значение Да/Нет."),
+            default => throw ImportRowValidationException::fromMessage("Поле {$field}: ожидалось значение Да/Нет."),
         };
     }
 }

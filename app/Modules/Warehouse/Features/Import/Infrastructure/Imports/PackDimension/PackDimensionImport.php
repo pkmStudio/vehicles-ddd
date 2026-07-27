@@ -8,10 +8,10 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\PackDimension
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimension\ImportPackDimensionFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\PackDimensionImportCompleted;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\WarehouseImportException;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -81,7 +81,7 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
 
             try {
                 $this->service->importFromRow($rowValues);
-            } catch (InvalidArgumentException $e) {
+            } catch (WarehouseImportException $e) {
                 $failure = new Failure(
                     row: $indexRow + $this->startRow(),
                     attribute: 'pack_dimension',

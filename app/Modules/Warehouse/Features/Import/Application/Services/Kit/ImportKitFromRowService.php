@@ -11,7 +11,8 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\Nomencla
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit\ImportKitFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
-use InvalidArgumentException;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 
 /**
  * Резолвит состав Warehouse-набора, считает свойства через KitProperties и пишет набор.
@@ -42,14 +43,18 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
 
         $partNumbers = $this->parsePartNumbers((string) ($row[1] ?? ''));
         if ($partNumbers === []) {
-            throw new InvalidArgumentException('Список артикулов набора пуст');
+            throw ImportRowValidationException::withMessage('Список артикулов набора пуст');
         }
 
         $ordered = $this->resolveOrderedNomenclatures($partNumbers);
-        $properties = $this->kitProperties->build($ordered);
+        try {
+            $properties = $this->kitProperties->build($ordered);
+        } catch (KitCompositionException $e) {
+            throw new ImportRowValidationException($e->getMessage(), previous: $e);
+        }
 
         if ($properties->packDimensionId === null) {
-            throw new InvalidArgumentException(
+            throw ImportRowValidationException::withMessage(
                 'Невозможно автоматически рассчитать упаковку для смешанного комплекта',
             );
         }
@@ -158,7 +163,7 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
         }
 
         if ($missing !== []) {
-            throw new InvalidArgumentException(
+            throw ImportRowValidationException::withMessage(
                 'Номенклатура не найдена по артикулам: '.implode(', ', $missing),
             );
         }
@@ -172,7 +177,7 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
     private function nomenclatureId(NomenclatureData $nomenclature): int
     {
         if ($nomenclature->id === null) {
-            throw new InvalidArgumentException("Номенклатура {$nomenclature->partNumber} не имеет id");
+            throw ImportRowValidationException::withMessage("Номенклатура {$nomenclature->partNumber} не имеет id");
         }
 
         return $nomenclature->id;

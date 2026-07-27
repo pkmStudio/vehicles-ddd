@@ -7,8 +7,8 @@ namespace Tests\Unit\Warehouse\Import;
 use App\Modules\Warehouse\Features\Import\Application\Services\PackDimension\ImportPackDimensionFromRowService;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\PackDimensionCommandInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\PackDimensionData;
-use InvalidArgumentException;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -77,7 +77,7 @@ final class ImportPackDimensionFromRowServiceTest extends TestCase
 
         $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
         $service->importFromRow($row);
     }
 
@@ -89,7 +89,7 @@ final class ImportPackDimensionFromRowServiceTest extends TestCase
 
         $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
         $service->importFromRow($row);
     }
 
@@ -113,7 +113,7 @@ final class ImportPackDimensionFromRowServiceTest extends TestCase
 
         $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
         $service->importFromRow($row);
     }
 
@@ -124,7 +124,7 @@ final class ImportPackDimensionFromRowServiceTest extends TestCase
 
         $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
         $service->importFromRow($row);
     }
 

@@ -18,9 +18,7 @@ interface KitPropertiesServiceInterface
      *
      * @param  array<int, NomenclatureData>  $nomenclatures  непустой список, каждая — с загруженным `type`
      *
-     * @throws \UnexpectedValueException если комбинация типов не поддерживается ни одной стратегией
-     * @throws \InvalidArgumentException если список номенклатур пуст
-     * @throws KitCompositionException если состав комплекта нарушает доменные правила
+     * @throws KitCompositionException если состав набора некорректен
      */
     public function build(array $nomenclatures): KitPropertiesDTO;
 }

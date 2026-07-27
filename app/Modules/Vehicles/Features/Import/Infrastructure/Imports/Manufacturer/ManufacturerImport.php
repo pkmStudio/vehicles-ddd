@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\Manuf
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromSheetServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Manufacturer\ManufacturerImportCompleted;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\Mappers\ManufacturerSheetRowMapper;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,7 +23,6 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\Failure;
-use Throwable;
 
 /**
  * Excel/CSV-адаптер импорта производителей (mfa_id, name, provider) из внешнего файла:
@@ -61,7 +61,7 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
             try {
                 $manufacturerRow = $this->rowMapper->map($rowValues);
                 $this->service->upsertFromRow($manufacturerRow);
-            } catch (Throwable $e) {
+            } catch (ImportRowValidationException $e) {
                 $this->onFailure(new Failure(
                     row: $index + $this->startRow(),
                     attribute: 'Производитель',

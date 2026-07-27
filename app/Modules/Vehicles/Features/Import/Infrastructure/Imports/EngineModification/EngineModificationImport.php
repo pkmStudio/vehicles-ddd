@@ -9,7 +9,6 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\Engine
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\EngineModification\Mappers\EngineModificationCommandRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use InvalidArgumentException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -50,8 +49,6 @@ final class EngineModificationImport implements EngineModificationImportInterfac
                 $this->service->linkFromRow($engineModificationRow);
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', $e->errors(), $rowValues));
-            } catch (InvalidArgumentException $e) {
-                $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', [$e->getMessage()], $rowValues));
             }
         }
     }

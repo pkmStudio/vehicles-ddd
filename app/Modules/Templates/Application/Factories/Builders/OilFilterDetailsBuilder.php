@@ -9,9 +9,9 @@ use App\Modules\Templates\Domain\Enums\Filter\FormEnum;
 use App\Modules\Templates\Domain\Enums\Filter\OilFilterFatherEnum;
 use App\Modules\Templates\Domain\Enums\Filter\OilFilterThreadEnum;
 use App\Modules\Templates\Domain\Enums\Filter\PerformanceEnum;
+use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use App\Modules\Templates\Domain\ModelData\Engine\OilFilterDetailsData;
 use App\Modules\Templates\Domain\ModelData\Engine\OilFilterMetricsData;
-use RuntimeException;
 
 /**
  * Строит форму шаблона `oilFilter` из Excel-строки (не подключена ни к одному Import/Export
@@ -59,7 +59,7 @@ final readonly class OilFilterDetailsBuilder
         $case = OilFilterThreadEnum::fromLabel($label) ?? OilFilterFatherEnum::fromLabel($label);
 
         if ($case === null) {
-            throw new RuntimeException("Не найдено совпадение в справочнике резьбы/папы масляного фильтра. Значение: {$label}");
+            throw DetailsDataBuildException::unknownDictionaryValue('резьбы/папы масляного фильтра', $label);
         }
 
         return $case->name;

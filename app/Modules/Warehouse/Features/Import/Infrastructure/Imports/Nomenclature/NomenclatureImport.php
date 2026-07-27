@@ -11,12 +11,13 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\TypeRepo
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature\ImportNomenclatureFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\NomenclatureImportCompleted;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\WarehouseImportException;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Traits\CachesImportFailures;
+use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -26,7 +27,6 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\Failure;
-use RuntimeException;
 
 /**
  * Импортирует Warehouse-номенклатуру из Excel: чанками, в очереди, с накоплением ошибок построчно
@@ -96,12 +96,13 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
             $id = isset($rowValues[0]) && trim((string) $rowValues[0]) !== '' ? (int) trim((string) $rowValues[0]) : null;
             $partNumber = trim((string) ($rowValues[5] ?? ''));
             $wasExisting = $id !== null
-                || ($partNumber !== '' && $this->nomenclatures->findByPartNumber($partNumber) !== null);
+                ? $this->nomenclatures->findById($id) !== null
+                : ($partNumber !== '' && $this->nomenclatures->findByPartNumber($partNumber) !== null);
 
             try {
                 $nomenclature = $this->service->importFromRow($rowValues, $types, $brands);
                 $this->dispatchNomenclatureMutationEvent($nomenclature->toArray(), $wasExisting);
-            } catch (InvalidArgumentException|RuntimeException $e) {
+            } catch (WarehouseImportException|DetailsDataBuildException $e) {
                 $failure = new Failure(
                     row: $indexRow + $this->startRow(),
                     attribute: "артикул {$partNumber}",

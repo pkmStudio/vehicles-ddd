@@ -21,7 +21,6 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\Failure;
-use Throwable;
 
 /**
  * Excel-адаптер привязки двигателей к группам (механика): парсит коды из ячейки и на каждый код
@@ -55,9 +54,6 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         Excel::import($this, $path, $disk);
     }
 
-    /**
-     * @throws Throwable
-     */
     public function collection(Collection $collection): void
     {
         foreach ($collection as $indexRow => $row) {
@@ -75,34 +71,25 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         }
 
         foreach ($this->parseCodes($rawCodes) as $code) {
-            try {
-                $result = $this->service->assignGroup($code, $groupId);
+            $result = $this->service->assignGroup($code, $groupId);
 
-                if (! $result->found) {
-                    $this->onFailure(new Failure(
-                        row: $indexRow + $this->startRow(),
-                        attribute: 'code_engine',
-                        errors: ["Код двигателя '{$code}' не найден"],
-                        values: ['group_id' => $groupId, 'code' => $code],
-                    ));
-
-                    continue;
-                }
-
-                if ($result->reassigned) {
-                    $this->onFailure(new Failure(
-                        row: $indexRow + $this->startRow(),
-                        attribute: 'group_id',
-                        errors: ["Группа для '{$code}' изменена с {$result->previousGroupId} на {$groupId}"],
-                        values: ['code' => $code, 'old_group' => $result->previousGroupId, 'new_group' => $groupId],
-                    ));
-                }
-            } catch (Throwable $e) {
+            if (! $result->found) {
                 $this->onFailure(new Failure(
                     row: $indexRow + $this->startRow(),
-                    attribute: 'system',
-                    errors: [$e->getMessage()],
-                    values: $row,
+                    attribute: 'code_engine',
+                    errors: ["Код двигателя '{$code}' не найден"],
+                    values: ['group_id' => $groupId, 'code' => $code],
+                ));
+
+                continue;
+            }
+
+            if ($result->reassigned) {
+                $this->onFailure(new Failure(
+                    row: $indexRow + $this->startRow(),
+                    attribute: 'group_id',
+                    errors: ["Группа для '{$code}' изменена с {$result->previousGroupId} на {$groupId}"],
+                    values: ['code' => $code, 'old_group' => $result->previousGroupId, 'new_group' => $groupId],
                 ));
             }
         }

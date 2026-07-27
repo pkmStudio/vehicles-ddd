@@ -6,6 +6,7 @@ namespace App\Modules\Warehouse\Features\Import\Infrastructure\Reporting;
 
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Reporting\FailuresExportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportTypeEnum;
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
@@ -16,16 +17,17 @@ final readonly class ImportFailureReporter implements ImportFailureReporterInter
 {
     /**
      * Этот метод сохраняет failures в CSV, если они есть, и возвращает путь к файлу.
+     * Имя файла содержит $type->value — чтобы по пути было сразу видно, из какого импорта отчёт.
      *
      * @param  array<int, array{row: int, attribute: string, errors: array<int, string>, values: mixed}>  $failures
      */
-    public function store(array $failures): ?string
+    public function store(array $failures, ImportTypeEnum $type): ?string
     {
         if ($failures === []) {
             return null;
         }
 
-        $fileName = 'warehouse-import-failures-'.now()->format('Y-m-d-His').'.csv';
+        $fileName = sprintf('warehouse-import-failures-%s-%s.csv', $type->value, now()->format('Y-m-d-His'));
         $disk = (string) config(
             key: 'warehouse.import.failures.disk',
             default: 'local',
@@ -35,6 +37,7 @@ final readonly class ImportFailureReporter implements ImportFailureReporterInter
             abstract: FailuresExportInterface::class,
             parameters: [
                 'failures' => $failures,
+                'type' => $type,
             ],
         );
 

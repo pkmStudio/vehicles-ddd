@@ -4,6 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions;
 
-use RuntimeException;
+use DomainException;
 
-final class PackDimensionNotResolvableException extends RuntimeException {}
+final class PackDimensionNotResolvableException extends DomainException {}

@@ -11,13 +11,13 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRe
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
 
 /**
  * Сервис импорта спецификаций «дворники» для ТС.
@@ -43,12 +43,12 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
     public function upsertFromRow(VehicleWiperSheetRowDTO $row): void
     {
         if ($row->msId === null) {
-            throw new RuntimeException('Не указан ms_id для записи спецификации дворников.');
+            throw ImportRowValidationException::fromMessage('Не указан ms_id для записи спецификации дворников.');
         }
 
         $vehicle = $this->vehicles->findByMsId($row->msId);
         if ($vehicle?->id === null) {
-            throw new RuntimeException("ТС с ms_id {$row->msId} не найдено. Сначала импортируйте основной лист.");
+            throw ImportRowValidationException::fromMessage("ТС с ms_id {$row->msId} не найдено. Сначала импортируйте основной лист.");
         }
 
         if ($row->templateSlug === null) {
@@ -60,7 +60,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
         if (! empty($row->featureValueName)) {
             $featureValue = $this->featureValues->findByName($row->featureValueName);
             if ($featureValue === null) {
-                throw new RuntimeException("Особенность \"{$row->featureValueName}\" не найдена. Сначала импортируйте особенности.");
+                throw ImportRowValidationException::fromMessage("Особенность \"{$row->featureValueName}\" не найдена. Сначала импортируйте особенности.");
             }
 
             $featureValueId = $featureValue->id;

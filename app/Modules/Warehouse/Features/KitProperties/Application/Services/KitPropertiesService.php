@@ -11,12 +11,12 @@ use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCo
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\DTOs\KitPropertiesDTO;
 use App\Modules\Warehouse\Features\KitProperties\Domain\DTOs\Packaging\PackDimensionDTO;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\PackDimensionNotResolvableException;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
 use Psr\Log\LoggerInterface;
-use UnexpectedValueException;
 
 /**
  * Считает производные свойства Warehouse-набора (Kit) по его составу. Packaging вызывается через
@@ -62,7 +62,7 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
         $importHash = self::compositionHash($collection->pluck('partNumber')->all());
 
         return new KitPropertiesDTO(
-            typeId: $type->id ?? throw new UnexpectedValueException('TypeData::$id обязателен для расчёта свойств набора'),
+            typeId: $type->id ?? throw new KitCompositionException('TypeData::$id обязателен для расчёта свойств набора'),
             packDimensionId: $packDimension?->id,
             weight: $weight,
             quantityInPackage: $quantityInPackage,
@@ -87,7 +87,7 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
             }
         }
 
-        throw new UnexpectedValueException('Недопустимая комбинация типов номенклатур в наборе');
+        throw new KitCompositionException('Недопустимая комбинация типов номенклатур в наборе');
     }
 
     /**

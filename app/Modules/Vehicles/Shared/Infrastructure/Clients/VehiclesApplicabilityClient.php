@@ -9,10 +9,10 @@ use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
 use App\Modules\Vehicles\Shared\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Applicability\VehiclePartSpecificationForApplicabilityDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Exceptions\VehicleApplicabilityException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 use stdClass;
 
 /**
@@ -54,7 +54,7 @@ final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilit
             ->first(['id', 'ms_id', 'parent_id']);
 
         if ($vehicle === null) {
-            throw new RuntimeException("Модель (ms_id: {$msId}) не найдена.");
+            throw new VehicleApplicabilityException("Модель (ms_id: {$msId}) не найдена.");
         }
 
         $modification = $this->findModification((int) $vehicle->ms_id, $modId);
@@ -72,12 +72,12 @@ final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilit
                 return (int) $modification->id;
             }
 
-            throw new RuntimeException(
+            throw new VehicleApplicabilityException(
                 "Модификация (ms_id: {$vehicle->ms_id}, mod_id: {$modId}) не найдена ни у модели, ни у родителя (parent_ms_id: {$parentMsId}).",
             );
         }
 
-        throw new RuntimeException("Модификация (ms_id: {$vehicle->ms_id}, mod_id: {$modId}) не найдена.");
+        throw new VehicleApplicabilityException("Модификация (ms_id: {$vehicle->ms_id}, mod_id: {$modId}) не найдена.");
     }
 
     private function baseWiperQuery(WiperSideEnum $side): Builder

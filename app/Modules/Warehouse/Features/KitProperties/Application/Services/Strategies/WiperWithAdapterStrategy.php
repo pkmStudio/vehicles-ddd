@@ -7,10 +7,10 @@ namespace App\Modules\Warehouse\Features\KitProperties\Application\Services\Stra
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCompositionStrategyInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
-use UnexpectedValueException;
 
 /**
  * Комплект щётка + адаптер. Адаптер — вспомогательный тип, не влияет на упаковку/количество.
@@ -50,7 +50,7 @@ final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyI
         $wiper = $nomenclatures->first($isWiper);
 
         if ($wiper === null || $wiper->type === null) {
-            throw new UnexpectedValueException(
+            throw new KitCompositionException(
                 'WiperWithAdapterStrategy: не найдена номенклатура типа WIPER с загруженным type',
             );
         }

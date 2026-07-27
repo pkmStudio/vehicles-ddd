@@ -6,6 +6,7 @@ namespace Tests\Unit\Vehicles\Templates;
 
 use App\Modules\Templates\Application\Factories\DetailsDataFactory;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use Tests\TestCase;
 
 /**
@@ -54,7 +55,7 @@ final class DetailsDataFactoryTest extends TestCase
         $row = [null, '', '19'];
         $index = 0;
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(DetailsDataBuildException::class);
         $this->expectExceptionMessage('Поле «Размер резьбы» обязательно для заполнения.');
 
         $this->factory->make(DetailTemplateEnum::SPARK_PLUGS, $row, $index);
@@ -66,14 +67,14 @@ final class DetailsDataFactoryTest extends TestCase
      *
      * Шаги:
      * 1. Зовёт `make(SPARK_PLUGS, ...)` со строкой с несуществующим значением размера резьбы.
-     * 2. Проверяет, что выбрасывается `RuntimeException`.
+     * 2. Проверяет, что выбрасывается доменная ошибка сборки details.
      */
     public function test_unknown_label_throws(): void
     {
         $row = ['НЕИЗВЕСТНЫЙ РАЗМЕР'];
         $index = 0;
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(DetailsDataBuildException::class);
 
         $this->factory->make(DetailTemplateEnum::SPARK_PLUGS, $row, $index);
     }
@@ -119,7 +120,7 @@ final class DetailsDataFactoryTest extends TestCase
         $row = array_fill(0, 10, null);
         $index = 0;
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(DetailsDataBuildException::class);
         $this->expectExceptionMessage('Поле «Минимальная длина щётки» обязательно для заполнения.');
 
         $this->factory->make(DetailTemplateEnum::WIPER, $row, $index);

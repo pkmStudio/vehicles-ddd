@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\KitProperties\Application\Services\Strategies;
 
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCompositionStrategyInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
-use UnexpectedValueException;
 
 /**
  * Комплект из номенклатур одного типа. Fallback-стратегия — регистрируется последней в
@@ -33,7 +33,7 @@ final readonly class SingleTypeStrategy implements KitCompositionStrategyInterfa
         $first = $nomenclatures->first();
 
         if ($first->type === null) {
-            throw new UnexpectedValueException(
+            throw new KitCompositionException(
                 'Не удалось определить тип комплекта: у номенклатуры не загружен type',
             );
         }

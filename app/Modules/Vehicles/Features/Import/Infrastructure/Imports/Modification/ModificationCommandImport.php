@@ -10,7 +10,6 @@ use App\Modules\Vehicles\Features\Import\Domain\Events\Modification\Modification
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Modification\Mappers\ModificationCommandRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use InvalidArgumentException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -57,8 +56,6 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
                 }
             } catch (ImportRowValidationException $e) {
                 $this->fail($line, $e->errors(), $rowValues);
-            } catch (InvalidArgumentException $e) {
-                $this->fail($line, $e->getMessage(), $rowValues);
             }
         }
     }

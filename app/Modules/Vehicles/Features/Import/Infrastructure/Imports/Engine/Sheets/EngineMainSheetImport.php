@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Sheets;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Mappers\EngineMainSheetRowMapper;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Support\Collection;
@@ -42,7 +43,7 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
 
                     $this->service->upsertFromRow($engineRow);
                 });
-            } catch (\Throwable $e) {
+            } catch (ImportRowValidationException $e) {
                 $this->onFailure(
                     new Failure(
                         row: $indexRow + $this->startRow(),

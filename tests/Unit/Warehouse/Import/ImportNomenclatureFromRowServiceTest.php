@@ -10,11 +10,11 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\TemplatesClie
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 use Mockery;
 use Tests\TestCase;
 
@@ -87,10 +87,10 @@ final class ImportNomenclatureFromRowServiceTest extends TestCase
     }
 
     /**
-     * Проверяет ветку update: если в строке указан id, запись уходит в updateById, а не в
-     * create.
+     * Проверяет ветку update: если в строке указан id и запись с этим id уже есть в БД,
+     * запись уходит в updateById, а не в create.
      */
-    public function test_updates_by_id_when_id_present_in_row(): void
+    public function test_updates_by_id_when_id_present_and_found_in_db(): void
     {
         $expected = $this->dummyNomenclatureData();
 
@@ -107,12 +107,51 @@ final class ImportNomenclatureFromRowServiceTest extends TestCase
 
         $command = Mockery::mock(NomenclatureCommandInterface::class);
         $command->shouldNotReceive('create');
+        $command->shouldNotReceive('createWithId');
         $command->shouldReceive('updateById')
             ->once()
             ->with(Mockery::on(fn (NomenclatureData $data) => $data->id === 99))
             ->andReturn($expected);
 
         $repository = Mockery::mock(NomenclatureRepositoryInterface::class);
+        $repository->shouldReceive('findById')->once()->with(99)->andReturn($expected);
+        $repository->shouldNotReceive('findByPartNumber');
+
+        $service = new ImportNomenclatureFromRowService($repository, $command, $templateResolver, $templates);
+
+        $this->assertSame($expected, $service->importFromRow($row, $this->types(), $this->brands()));
+    }
+
+    /**
+     * Проверяет ветку создания с явным id: строка из внешней системы уже содержит id, но
+     * записи с этим id в текущей БД ещё нет — значит нужно создать новую запись именно с
+     * этим id, а не пытаться её обновить (и не бросать "запись не найдена").
+     */
+    public function test_creates_with_id_when_id_present_but_not_found_in_db(): void
+    {
+        $expected = $this->dummyNomenclatureData();
+
+        $templateResolver = Mockery::mock(TypeTemplateResolverInterface::class);
+        $templateResolver->shouldReceive('resolve')->once()->andReturn(NomenclatureDetailTemplateEnum::V_BELT);
+
+        $templates = Mockery::mock(TemplatesClientInterface::class);
+        $templates->shouldReceive('buildNomenclatureDetails')
+            ->once()
+            ->andReturn([]);
+
+        $row = $this->validRow();
+        $row[0] = '842';
+
+        $command = Mockery::mock(NomenclatureCommandInterface::class);
+        $command->shouldNotReceive('create');
+        $command->shouldNotReceive('updateById');
+        $command->shouldReceive('createWithId')
+            ->once()
+            ->with(Mockery::on(fn (NomenclatureData $data) => $data->id === 842))
+            ->andReturn($expected);
+
+        $repository = Mockery::mock(NomenclatureRepositoryInterface::class);
+        $repository->shouldReceive('findById')->once()->with(842)->andReturnNull();
         $repository->shouldNotReceive('findByPartNumber');
 
         $service = new ImportNomenclatureFromRowService($repository, $command, $templateResolver, $templates);
@@ -132,7 +171,7 @@ final class ImportNomenclatureFromRowServiceTest extends TestCase
         $row = $this->validRow();
         $row[1] = 'Неизвестный тип';
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
 
         $service->importFromRow($row, $this->types(), $this->brands());
     }
@@ -149,7 +188,7 @@ final class ImportNomenclatureFromRowServiceTest extends TestCase
         $row = $this->validRow();
         $row[2] = 'Неизвестный бренд';
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
 
         $service->importFromRow($row, $this->types(), $this->brands());
     }
@@ -166,7 +205,7 @@ final class ImportNomenclatureFromRowServiceTest extends TestCase
             Mockery::mock(TemplatesClientInterface::class),
         );
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
 
         $service->importFromRow($this->validRow(), $this->types(), $this->brands());
     }
@@ -188,7 +227,7 @@ final class ImportNomenclatureFromRowServiceTest extends TestCase
         $row = $this->validRow();
         $row[7] = '0';
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
         $this->expectExceptionMessage('Вес должен быть положительным целым числом в граммах');
 
         $service->importFromRow($row, $this->types(), $this->brands());
@@ -219,7 +258,7 @@ final class ImportNomenclatureFromRowServiceTest extends TestCase
         $row[5] = 'WB-ART-001';
         $types = new Collection([new TypeData(name: 'Щетки стеклоочистителя', char: 'WB', id: 3)]);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ImportRowValidationException::class);
         $this->expectExceptionMessage('У щетки WB-ART-001 не заполнена категория');
 
         $service->importFromRow($row, $types, $this->brands());

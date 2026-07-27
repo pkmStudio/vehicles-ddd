@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Applicability\Import;
 
 use App\Modules\Applicability\Features\Import\Infrastructure\Clients\VehiclesModificationClient;
+use App\Modules\Applicability\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Applicability\Features\Import\Infrastructure\Models\Modification;
 use App\Modules\Applicability\Features\Import\Infrastructure\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 use Tests\TestCase;
 
 final class VehiclesModificationClientTest extends TestCase
@@ -52,7 +52,7 @@ final class VehiclesModificationClientTest extends TestCase
         $parent = $this->createVehicle(msId: 300);
         $child = $this->createVehicle(msId: 301, parentId: $parent->id);
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(ImportRowValidationException::class);
         $this->expectExceptionMessage('не найдена ни у модели, ни у родителя');
 
         app(VehiclesModificationClient::class)->resolveByMsAndModId((int) $child->ms_id, 90);

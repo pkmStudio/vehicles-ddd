@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Ma
 
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 
@@ -35,8 +36,13 @@ final readonly class VehicleWiperSheetRowMapper
         $details = [];
 
         if ($templateSlug !== null) {
+            $template = DetailTemplateEnum::tryFrom($templateSlug);
+            if ($template === null) {
+                throw ImportRowValidationException::fromMessage("Шаблон деталей «{$templateSlug}» не найден.");
+            }
+
             $details = $this->templates->buildVehicleDetails(
-                template: DetailTemplateEnum::from($templateSlug),
+                template: $template,
                 row: $row,
                 startIndex: self::SPEC_START_COLUMN,
             );

@@ -20,4 +20,10 @@ interface NomenclatureCommandInterface
      * Создаёт новую номенклатуру.
      */
     public function create(NomenclatureData $data): NomenclatureData;
+
+    /**
+     * Создаёт новую номенклатуру с явно заданным id (импорт из внешней системы, где id уже
+     * назначен, но записи с ним ещё нет в этой БД).
+     */
+    public function createWithId(NomenclatureData $data): NomenclatureData;
 }

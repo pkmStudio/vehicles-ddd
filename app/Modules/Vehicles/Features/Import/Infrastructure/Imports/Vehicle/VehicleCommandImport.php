@@ -10,7 +10,6 @@ use App\Modules\Vehicles\Features\Import\Domain\Events\Vehicle\VehicleCommandImp
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleTdRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use InvalidArgumentException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -57,8 +56,6 @@ final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToColle
                 }
             } catch (ImportRowValidationException $e) {
                 $this->fail($line, $e->errors(), $rowValues);
-            } catch (InvalidArgumentException $e) {
-                $this->fail($line, $e->getMessage(), $rowValues);
             }
         }
     }

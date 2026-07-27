@@ -9,7 +9,7 @@ use App\Modules\Applicability\Features\Import\Domain\Contracts\Clients\Warehouse
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Commands\KitApplicabilityCommandInterface;
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Services\ImportKitApplicabilityRowServiceInterface;
 use App\Modules\Applicability\Features\Import\Domain\DTOs\KitApplicabilityImportRowDTO;
-use InvalidArgumentException;
+use App\Modules\Applicability\Features\Import\Domain\Exceptions\ImportRowValidationException;
 
 final readonly class ImportKitApplicabilityRowService implements ImportKitApplicabilityRowServiceInterface
 {
@@ -24,7 +24,7 @@ final readonly class ImportKitApplicabilityRowService implements ImportKitApplic
         $dto = $this->makeRow($row);
 
         if (! $this->kits->exists($dto->kitId)) {
-            throw new InvalidArgumentException("Кит с ID {$dto->kitId} не найден в системе.");
+            throw new ImportRowValidationException("Кит с ID {$dto->kitId} не найден в системе.");
         }
 
         $modificationId = $this->modifications->resolveByMsAndModId($dto->msId, $dto->modId);
@@ -45,7 +45,7 @@ final readonly class ImportKitApplicabilityRowService implements ImportKitApplic
         $kitId = (int) ($row[2] ?? 0);
 
         if ($msId === 0 || $modId === 0 || $kitId === 0) {
-            throw new InvalidArgumentException('Строка применяемости должна содержать ms_id, mod_id и kit_id.');
+            throw new ImportRowValidationException('Строка применяемости должна содержать ms_id, mod_id и kit_id.');
         }
 
         return new KitApplicabilityImportRowDTO($msId, $modId, $kitId);

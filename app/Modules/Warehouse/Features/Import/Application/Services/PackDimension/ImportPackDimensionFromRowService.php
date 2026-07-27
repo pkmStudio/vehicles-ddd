@@ -7,8 +7,8 @@ namespace App\Modules\Warehouse\Features\Import\Application\Services\PackDimensi
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\PackDimensionCommandInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimension\ImportPackDimensionFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\PackDimensionData;
-use InvalidArgumentException;
 
 /**
  * Валидирует Excel-строку упаковочного размера и пишет её через явные create/update команды.
@@ -42,19 +42,19 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
         $typeId = (int) ($row[7] ?? 0);
 
         if ($name === '') {
-            throw new InvalidArgumentException('Пустое название коробки');
+            throw ImportRowValidationException::withMessage('Пустое название коробки');
         }
 
         if ($weight <= 0 || $width <= 0 || $height <= 0 || $length <= 0) {
-            throw new InvalidArgumentException('Габариты и вес должны быть больше нуля');
+            throw ImportRowValidationException::withMessage('Габариты и вес должны быть больше нуля');
         }
 
         if ($price < 0) {
-            throw new InvalidArgumentException('Цена коробки не может быть отрицательной');
+            throw ImportRowValidationException::withMessage('Цена коробки не может быть отрицательной');
         }
 
         if ($typeId <= 0) {
-            throw new InvalidArgumentException('type_id должен быть положительным числом');
+            throw ImportRowValidationException::withMessage('type_id должен быть положительным числом');
         }
 
         $data = new PackDimensionData(

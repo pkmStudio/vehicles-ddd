@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Sheets;
 
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Validators\Failure;
-use Throwable;
 
 /**
  * Excel-адаптер листа «свечи зажигания» (механика): пропускает пустые строки, собирает details
@@ -39,7 +38,6 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
     }
 
     /**
-     * @throws Throwable
      * @throws LockTimeoutException
      */
     public function collection(Collection $collection): void
@@ -71,13 +69,15 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
                     $spec = $this->service->upsertByEngine((int) $engId, $details);
 
                     if (! $spec) {
-                        Log::warning('EngineSparkPlugsSheetImport: двигатель не найден', [
-                            'row' => $indexRow + $this->startRow(),
-                            'eng_id' => $engId,
-                        ]);
+                        $this->onFailure(new Failure(
+                            row: $indexRow + $this->startRow(),
+                            attribute: 'eng_id',
+                            errors: ["Двигатель с eng_id {$engId} не найден."],
+                            values: $rowValues,
+                        ));
                     }
                 });
-            } catch (Throwable $e) {
+            } catch (DetailsDataBuildException $e) {
                 $this->onFailure(
                     new Failure(
                         row: $indexRow + $this->startRow(),

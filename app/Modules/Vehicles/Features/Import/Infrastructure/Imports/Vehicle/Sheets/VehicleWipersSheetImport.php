@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Sheets;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleWiperSheetRowMapper;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
+use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
@@ -32,9 +34,6 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
         $this->lockKey = $lockKey;
     }
 
-    /**
-     * @throws \Throwable
-     */
     public function collection(Collection $collection): void
     {
         $trimString = fn ($value) => is_string($value) ? trim($value) : $value;
@@ -48,7 +47,7 @@ final class VehicleWipersSheetImport implements SkipsEmptyRows, SkipsOnFailure, 
                 $upsertWiperSpec = fn () => $this->upsertWiperSpec->upsertFromRow($vehicleRow);
 
                 DB::transaction($upsertWiperSpec);
-            } catch (\Throwable $e) {
+            } catch (ImportRowValidationException|DetailsDataBuildException $e) {
                 $this->onFailure(
                     new Failure(
                         row: $indexRow + $this->startRow(),

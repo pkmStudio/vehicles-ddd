@@ -8,10 +8,10 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\KitImportInte
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit\ImportKitFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\KitImportCompleted;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\WarehouseImportException;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -81,7 +81,7 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
 
             try {
                 $this->service->importFromRow($rowValues);
-            } catch (InvalidArgumentException $e) {
+            } catch (WarehouseImportException $e) {
                 $failure = new Failure(
                     row: $indexRow + $this->startRow(),
                     attribute: 'kit',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine;
 
+use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\EngineSparkPlugSpecificationImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
@@ -13,7 +14,6 @@ use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineImportComple
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -24,7 +24,6 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\Failure;
-use Throwable;
 
 /**
  * Excel-адаптер импорта свечей по модификациям (механика): парсит ms_id/mod_id, собирает details
@@ -66,9 +65,12 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
             $modId = $row[1] ?? null;
 
             if (! is_numeric($msId) || ! is_numeric($modId)) {
-                Log::warning('EngineSparkPlugSpecificationImport: неверный формат ms_id/mod_id', [
-                    'row' => $rowNumber, 'ms_id' => $msId, 'mod_id' => $modId,
-                ]);
+                $this->onFailure(new Failure(
+                    row: $rowNumber,
+                    attribute: 'ms_id/mod_id',
+                    errors: ['Строка должна содержать числовые ms_id и mod_id.'],
+                    values: $row->toArray(),
+                ));
 
                 continue;
             }
@@ -95,7 +97,7 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
                         $row->toArray(),
                     ));
                 }
-            } catch (Throwable $e) {
+            } catch (DetailsDataBuildException $e) {
                 $this->onFailure(new Failure($rowNumber, 'Свечи', [$e->getMessage()], $row->toArray()));
             }
         }

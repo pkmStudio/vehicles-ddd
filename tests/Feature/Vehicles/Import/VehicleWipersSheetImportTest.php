@@ -8,6 +8,7 @@ use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleWiperSheetRowMapper;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Sheets\VehicleWipersSheetImport;
@@ -16,7 +17,6 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Mockery;
-use RuntimeException;
 use Tests\TestCase;
 
 final class VehicleWipersSheetImportTest extends TestCase
@@ -155,7 +155,7 @@ final class VehicleWipersSheetImportTest extends TestCase
      *
      * Шаги:
      * 1. Мокает VehicleWiperSpecificationImportServiceInterface так, чтобы upsertFromRow()
-     *    бросал RuntimeException «ТС не найдено».
+     *    бросал ImportRowValidationException «ТС не найдено».
      * 2. Прогоняет одну строку (без предварительного создания ТС) через collection().
      * 3. Проверяет, что в БД ТС так и не появилось (count === 0).
      */
@@ -167,7 +167,7 @@ final class VehicleWipersSheetImportTest extends TestCase
         $wiperSpec->shouldReceive('upsertFromRow')
             ->once()
             ->with(Mockery::on(fn (VehicleWiperSheetRowDTO $dto): bool => $dto->msId === 300))
-            ->andThrow(new RuntimeException('ТС с ms_id 300 не найдено. Сначала импортируйте основной лист.'));
+            ->andThrow(ImportRowValidationException::fromMessage('ТС с ms_id 300 не найдено. Сначала импортируйте основной лист.'));
 
         /** @var VehicleWipersSheetImport $import */
         $import = app()->makeWith(VehicleWipersSheetImport::class, [

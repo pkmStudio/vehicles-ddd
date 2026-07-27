@@ -8,11 +8,11 @@ use App\Modules\Applicability\Features\Import\Domain\Contracts\Imports\KitApplic
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Services\ImportKitApplicabilityRowServiceInterface;
 use App\Modules\Applicability\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Applicability\Features\Import\Domain\Events\KitApplicabilityImportCompleted;
+use App\Modules\Applicability\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Applicability\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -23,7 +23,6 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\Failure;
-use RuntimeException;
 
 final class KitApplicabilityImport implements KitApplicabilityImportInterface, ShouldQueue, SkipsEmptyRows, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithMultipleSheets, WithStartRow
 {
@@ -69,7 +68,7 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
 
             try {
                 $this->service->importFromRow($rowValues);
-            } catch (InvalidArgumentException|RuntimeException $exception) {
+            } catch (ImportRowValidationException $exception) {
                 $this->onFailure(new Failure(
                     row: $indexRow + $this->startRow(),
                     attribute: 'kit_id',
