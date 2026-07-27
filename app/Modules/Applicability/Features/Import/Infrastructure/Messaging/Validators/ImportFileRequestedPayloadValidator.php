@@ -22,6 +22,7 @@ final readonly class ImportFileRequestedPayloadValidator
             'run_id' => ['required', 'string', 'max:128'],
             'import_type' => ['required', 'string', Rule::in($this->importTypes())],
             'path' => ['required', 'string', 'max:1024'],
+            'cleanup_after_import' => ['sometimes', 'boolean'],
         ]);
     }
 

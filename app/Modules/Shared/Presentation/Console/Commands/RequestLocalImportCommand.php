@@ -73,6 +73,7 @@ abstract class RequestLocalImportCommand extends Command
                     'import_type' => $this->importType(),
                     'disk' => $disk,
                     'path' => $path,
+                    'cleanup_after_import' => false,
                 ],
             ),
             routingKey: $this->routingKey(),

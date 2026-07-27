@@ -14,5 +14,6 @@ final readonly class ExternalImportFileRequestDTO
         public ImportTypeEnum $importType,
         public string $disk,
         public string $path,
+        public bool $cleanupAfterImport = true,
     ) {}
 }

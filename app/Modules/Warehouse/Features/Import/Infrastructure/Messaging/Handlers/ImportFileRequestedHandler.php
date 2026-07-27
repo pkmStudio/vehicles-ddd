@@ -63,6 +63,7 @@ final readonly class ImportFileRequestedHandler
                 default: 's3',
             )),
             path: (string) $data['path'],
+            cleanupAfterImport: (bool) ($data['cleanup_after_import'] ?? true),
         );
 
         $this->useCase->execute($request);

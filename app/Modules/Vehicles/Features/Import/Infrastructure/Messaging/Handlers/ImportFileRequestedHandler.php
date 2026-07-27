@@ -48,6 +48,7 @@ final readonly class ImportFileRequestedHandler
             importType: ExternalImportTypeEnum::from((string) $data['import_type']),
             disk: $filesDisk,
             path: (string) $data['path'],
+            cleanupAfterImport: (bool) ($data['cleanup_after_import'] ?? true),
         );
         $this->useCase->execute($request);
     }

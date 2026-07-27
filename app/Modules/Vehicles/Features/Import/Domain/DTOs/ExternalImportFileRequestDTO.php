@@ -17,6 +17,7 @@ final readonly class ExternalImportFileRequestDTO
      * @param  ExternalImportTypeEnum  $importType  тип импортного адаптера, который нужно запустить
      * @param  string  $disk  внутренний Laravel Storage disk из конфига, где лежит файл импорта
      * @param  string  $path  относительный путь к файлу внутри disk
+     * @param  bool  $cleanupAfterImport  удалять исходный файл после завершения импорта
      */
     public function __construct(
         public int $userId,
@@ -24,5 +25,6 @@ final readonly class ExternalImportFileRequestDTO
         public ExternalImportTypeEnum $importType,
         public string $disk,
         public string $path,
+        public bool $cleanupAfterImport = true,
     ) {}
 }

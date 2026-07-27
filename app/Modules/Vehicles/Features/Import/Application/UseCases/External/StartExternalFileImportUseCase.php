@@ -43,7 +43,10 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
         }
 
         try {
-            $this->cache->rememberCleanup($request);
+            if ($request->cleanupAfterImport) {
+                $this->cache->rememberCleanup($request);
+            }
+
             $context = new ImportRunContextDTO(userId: $request->userId, runId: $request->runId);
             $importService = $this->importFactory->make($request->importType);
             $importService->import($request->path, $context, $request->disk);

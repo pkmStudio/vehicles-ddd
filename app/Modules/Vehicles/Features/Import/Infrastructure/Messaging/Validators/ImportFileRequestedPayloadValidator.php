@@ -31,6 +31,7 @@ final readonly class ImportFileRequestedPayloadValidator
             'import_type' => ['required', 'string', Rule::in($this->importTypes())],
             'disk' => ['sometimes', 'string', Rule::in(array_keys((array) config('filesystems.disks', [])))],
             'path' => ['required', 'string', 'max:2048', 'not_regex:/\.\./', 'not_regex:/^\//'],
+            'cleanup_after_import' => ['sometimes', 'boolean'],
         ]);
     }
 

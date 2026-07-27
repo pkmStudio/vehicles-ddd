@@ -37,6 +37,7 @@ final readonly class ImportFileRequestedHandler
             importType: ImportTypeEnum::from((string) $data['import_type']),
             disk: (string) config('filesystems.files_disk', 's3'),
             path: (string) $data['path'],
+            cleanupAfterImport: (bool) ($data['cleanup_after_import'] ?? true),
         ));
     }
 }
