@@ -13,6 +13,7 @@ use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Clients\Packag
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitComplectationServiceInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\DTOs\Packaging\PackDimensionDTO;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\PackDimensionNotResolvableException;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
@@ -140,7 +141,7 @@ final class KitPropertiesServiceTest extends TestCase
 
         $service = $this->service($packaging, $complectation);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(KitCompositionException::class);
         $service->build([]);
     }
 
@@ -159,7 +160,7 @@ final class KitPropertiesServiceTest extends TestCase
 
         $service = $this->service($packaging, $complectation, $resolver);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(KitCompositionException::class);
         $this->expectExceptionMessage('Нельзя собрать комплект из разных типов товаров. Исключение: щетка + адаптер.');
         $service->build([$n1, $n2]);
     }

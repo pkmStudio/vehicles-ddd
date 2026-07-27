@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
@@ -17,12 +17,11 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationR
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Modules\Warehouse\Shared\Domain\Events\Kit\KitCreated;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
-use InvalidArgumentException;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
+use App\Modules\Warehouse\Shared\Domain\Events\Kit\KitCreated;
 use Throwable;
-use UnexpectedValueException;
 
 /**
  * Выполняет создание Warehouse-набора из внешнего сообщения.
@@ -180,7 +179,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
     ): KitPropertiesDTO|WarehouseCatalogMutationResultDTO {
         try {
             return $this->kitProperties->build($nomenclatures);
-        } catch (InvalidArgumentException|UnexpectedValueException $e) {
+        } catch (KitCompositionException $e) {
             return $this->results->rejected(
                 userId: $request->userId,
                 operationId: $request->operationId,
