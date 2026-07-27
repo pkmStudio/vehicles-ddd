@@ -10,6 +10,7 @@ namespace App\Modules\Warehouse\Features\Export\Domain\Enums;
 enum ExportTypeEnum: string
 {
     case NomenclatureByType = 'nomenclature_by_type';
+    case PackDimension = 'pack_dimension';
     case Kit = 'kit';
     case WiperAdapterAudit = 'wiper_adapter_audit';
 }

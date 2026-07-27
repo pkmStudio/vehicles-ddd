@@ -23,6 +23,11 @@ final readonly class FailuresExport implements FailuresExportInterface, FromColl
     private const int NOMENCLATURE_TYPE_NAME_INDEX = 1;
 
     /**
+     * Позиция колонки «Тип товара» в сырой строке PackDimension-импорта.
+     */
+    private const int PACK_DIMENSION_TYPE_NAME_INDEX = 7;
+
+    /**
      * @param  array<int, array{row: int, attribute: string, errors: array<int, string>, values: mixed}>  $failures
      */
     public function __construct(
@@ -60,10 +65,14 @@ final readonly class FailuresExport implements FailuresExportInterface, FromColl
      */
     private function category(mixed $values): string
     {
-        if ($this->type !== ImportTypeEnum::Nomenclature || ! is_array($values)) {
+        if (! is_array($values)) {
             return '';
         }
 
-        return (string) ($values[self::NOMENCLATURE_TYPE_NAME_INDEX] ?? '');
+        return match ($this->type) {
+            ImportTypeEnum::Nomenclature => (string) ($values[self::NOMENCLATURE_TYPE_NAME_INDEX] ?? ''),
+            ImportTypeEnum::PackDimension => (string) ($values[self::PACK_DIMENSION_TYPE_NAME_INDEX] ?? ''),
+            ImportTypeEnum::Kit => '',
+        };
     }
 }

@@ -7,6 +7,7 @@ namespace App\Modules\Warehouse\Features\Export\Infrastructure\Providers;
 use App\Modules\Warehouse\Features\Export\Application\Factories\ExportFileFactory;
 use App\Modules\Warehouse\Features\Export\Application\Services\KitExportService;
 use App\Modules\Warehouse\Features\Export\Application\Services\NomenclatureExportService;
+use App\Modules\Warehouse\Features\Export\Application\Services\PackDimensionExportService;
 use App\Modules\Warehouse\Features\Export\Application\Services\Rows\KitExportRow;
 use App\Modules\Warehouse\Features\Export\Application\Services\Rows\NomenclatureExportRow;
 use App\Modules\Warehouse\Features\Export\Application\Services\TypeTemplateResolver;
@@ -15,28 +16,33 @@ use App\Modules\Warehouse\Features\Export\Domain\Contracts\Clients\TemplatesClie
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Clients\WiperAdapterAuditClientInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\KitExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\NomenclatureByTypeExportInterface;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\PackDimensionExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\WiperAdapterAuditExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\External\CleanupStaleExportFilesServiceInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\KitExportServiceInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\NomenclatureExportServiceInterface;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\PackDimensionExportServiceInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\Rows\KitExportRowInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\Rows\NomenclatureExportRowInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
-use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Kit\KitExport;
-use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Nomenclature\NomenclatureByTypeExport;
-use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\WiperAdapterAudit\WiperAdapterAuditExport;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Clients\WiperAdapterAuditClient;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Kit\KitExport;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Nomenclature\NomenclatureByTypeExport;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\PackDimension\PackDimensionExport;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\WiperAdapterAudit\WiperAdapterAuditExport;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Repositories\KitRepository;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Repositories\NomenclatureRepository;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Repositories\PackDimensionRepository;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Repositories\TypeRepository;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Services\External\CleanupStaleExportFilesService;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Services\External\ExportRunCacheService;
@@ -49,6 +55,7 @@ final class ExportServiceProvider extends ServiceProvider
 {
     private const array EXPORT_BINDINGS = [
         NomenclatureByTypeExportInterface::class => NomenclatureByTypeExport::class,
+        PackDimensionExportInterface::class => PackDimensionExport::class,
         KitExportInterface::class => KitExport::class,
         WiperAdapterAuditExportInterface::class => WiperAdapterAuditExport::class,
     ];
@@ -56,6 +63,7 @@ final class ExportServiceProvider extends ServiceProvider
     private const array REPOSITORY_BINDINGS = [
         TypeRepositoryInterface::class => TypeRepository::class,
         NomenclatureRepositoryInterface::class => NomenclatureRepository::class,
+        PackDimensionRepositoryInterface::class => PackDimensionRepository::class,
         KitRepositoryInterface::class => KitRepository::class,
     ];
 
@@ -64,6 +72,7 @@ final class ExportServiceProvider extends ServiceProvider
         KitExportRowInterface::class => KitExportRow::class,
         TypeTemplateResolverInterface::class => TypeTemplateResolver::class,
         NomenclatureExportServiceInterface::class => NomenclatureExportService::class,
+        PackDimensionExportServiceInterface::class => PackDimensionExportService::class,
         KitExportServiceInterface::class => KitExportService::class,
         ExportRunCacheServiceInterface::class => ExportRunCacheService::class,
         CleanupStaleExportFilesServiceInterface::class => CleanupStaleExportFilesService::class,

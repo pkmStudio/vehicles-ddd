@@ -220,6 +220,35 @@ final class ExportFileRequestedHandlerTest extends TestCase
     }
 
     /**
+     * Проверяет запуск экспорта упаковок через общий Warehouse Export handler.
+     */
+    public function test_starts_pack_dimension_export(): void
+    {
+        $adapter = Mockery::mock(FileExportInterface::class);
+        $adapter->shouldReceive('export')->once()->andReturn('exports/warehouse-pack-dimensions.xlsx');
+
+        $factory = $this->mock(ExportFileFactoryInterface::class);
+        $factory->shouldReceive('make')
+            ->once()
+            ->with(ExportTypeEnum::PackDimension, null, null, null)
+            ->andReturn($adapter);
+
+        $notifier = $this->mock(ExportNotificationServiceInterface::class);
+        $notifier->shouldReceive('notifyExportCompleted')
+            ->once()
+            ->with(Mockery::on(function (ExportCompletionNotificationDTO $payload): bool {
+                return $payload->exportType === ExportTypeEnum::PackDimension
+                    && $payload->path === 'exports/warehouse-pack-dimensions.xlsx';
+            }));
+
+        app(ExportFileRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'run_id' => 'run-pack-dimensions',
+            'export_type' => 'pack_dimension',
+        ]);
+    }
+
+    /**
      * Проверяет регистрацию Warehouse export событий в rabbit-transport config.
      */
     public function test_warehouse_export_events_are_registered(): void
@@ -227,6 +256,7 @@ final class ExportFileRequestedHandlerTest extends TestCase
         $handler = [ExportFileRequestedHandler::class, 'handle'];
 
         $this->assertSame($handler, config('rabbit-transport.inbound.WAREHOUSE_NOMENCLATURE_EXPORT_FILE_REQUESTED'));
+        $this->assertSame($handler, config('rabbit-transport.inbound.WAREHOUSE_PACK_DIMENSION_EXPORT_FILE_REQUESTED'));
         $this->assertSame($handler, config('rabbit-transport.inbound.WAREHOUSE_KIT_EXPORT_FILE_REQUESTED'));
         $this->assertSame($handler, config('rabbit-transport.inbound.WAREHOUSE_WIPER_ADAPTER_AUDIT_EXPORT_FILE_REQUESTED'));
         $this->assertSame('warehouse.file.exported', config('rabbit-transport.outbound.WAREHOUSE_FILE_EXPORTED'));
@@ -234,6 +264,7 @@ final class ExportFileRequestedHandlerTest extends TestCase
         $bindings = (array) config('rabbit-transport.setup.bindings');
 
         $this->assertContains('crm.warehouse.nomenclatures.export', $bindings);
+        $this->assertContains('crm.warehouse.pack-dimensions.export', $bindings);
         $this->assertContains('crm.warehouse.kits.export', $bindings);
         $this->assertContains('crm.warehouse.wiper-adapter-audit.export', $bindings);
     }

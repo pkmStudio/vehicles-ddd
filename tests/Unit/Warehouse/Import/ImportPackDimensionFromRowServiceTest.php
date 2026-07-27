@@ -7,18 +7,32 @@ namespace Tests\Unit\Warehouse\Import;
 use App\Modules\Warehouse\Features\Import\Application\Services\PackDimension\ImportPackDimensionFromRowService;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\PackDimensionCommandInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\PackDimensionData;
+use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 final class ImportPackDimensionFromRowServiceTest extends TestCase
 {
-    /** [id, name, weight, width, height, length, price, type_id] */
+    /** [id, name, weight, width, height, length, price, type] */
     private function validRow(): array
     {
-        return ['', 'Test Box', '150', '20', '30', '40', '500', '5'];
+        return ['', 'Test Box', '150', '20', '30', '40', '500', 'Свечи зажигания'];
+    }
+
+    private function types(): TypeRepositoryInterface
+    {
+        $types = Mockery::mock(TypeRepositoryInterface::class);
+        $types->shouldReceive('all')
+            ->andReturn(collect([
+                new TypeData(name: 'Свечи зажигания', char: 'SP', id: 5),
+                new TypeData(name: 'Колодки', char: 'BP', id: 1),
+            ]));
+
+        return $types;
     }
 
     public function test_creates_valid_row_without_existing_id(): void
@@ -43,9 +57,47 @@ final class ImportPackDimensionFromRowServiceTest extends TestCase
         $repository = Mockery::mock(PackDimensionRepositoryInterface::class);
         $repository->shouldNotReceive('findById');
 
-        $service = new ImportPackDimensionFromRowService($repository, $command);
+        $service = new ImportPackDimensionFromRowService($repository, $this->types(), $command);
 
         $this->assertSame($expected, $service->importFromRow($this->validRow()));
+    }
+
+    public function test_resolves_type_by_code(): void
+    {
+        $row = $this->validRow();
+        $row[7] = 'SP';
+
+        $command = Mockery::mock(PackDimensionCommandInterface::class);
+        $command->shouldReceive('create')
+            ->once()
+            ->with(Mockery::on(fn (PackDimensionData $data): bool => $data->typeId === 5))
+            ->andReturn(new PackDimensionData(name: 'Test Box', weight: 150, width: 20, height: 30, length: 40, price: 500, typeId: 5));
+
+        $repository = Mockery::mock(PackDimensionRepositoryInterface::class);
+        $repository->shouldNotReceive('findById');
+
+        $service = new ImportPackDimensionFromRowService($repository, $this->types(), $command);
+
+        $this->assertSame(5, $service->importFromRow($row)->typeId);
+    }
+
+    public function test_keeps_numeric_type_id_as_legacy_fallback(): void
+    {
+        $row = $this->validRow();
+        $row[7] = '5';
+
+        $command = Mockery::mock(PackDimensionCommandInterface::class);
+        $command->shouldReceive('create')
+            ->once()
+            ->with(Mockery::on(fn (PackDimensionData $data): bool => $data->typeId === 5))
+            ->andReturn(new PackDimensionData(name: 'Test Box', weight: 150, width: 20, height: 30, length: 40, price: 500, typeId: 5));
+
+        $repository = Mockery::mock(PackDimensionRepositoryInterface::class);
+        $repository->shouldNotReceive('findById');
+
+        $service = new ImportPackDimensionFromRowService($repository, $this->types(), $command);
+
+        $this->assertSame(5, $service->importFromRow($row)->typeId);
     }
 
     public function test_updates_when_id_exists(): void
@@ -65,7 +117,7 @@ final class ImportPackDimensionFromRowServiceTest extends TestCase
             ->with(42)
             ->andReturn(new PackDimensionData(name: 'Old Box', weight: 100, width: 10, height: 10, length: 10, price: 100, typeId: 5, id: 42));
 
-        $service = new ImportPackDimensionFromRowService($repository, $command);
+        $service = new ImportPackDimensionFromRowService($repository, $this->types(), $command);
 
         $this->assertSame(42, $service->importFromRow($row)->id);
     }
@@ -75,7 +127,7 @@ final class ImportPackDimensionFromRowServiceTest extends TestCase
         $row = $this->validRow();
         $row[1] = '';
 
-        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
+        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), $this->types(), Mockery::mock(PackDimensionCommandInterface::class));
 
         $this->expectException(ImportRowValidationException::class);
         $service->importFromRow($row);
@@ -87,7 +139,7 @@ final class ImportPackDimensionFromRowServiceTest extends TestCase
         $row = $this->validRow();
         $row[$column] = '0';
 
-        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
+        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), $this->types(), Mockery::mock(PackDimensionCommandInterface::class));
 
         $this->expectException(ImportRowValidationException::class);
         $service->importFromRow($row);
@@ -111,18 +163,18 @@ final class ImportPackDimensionFromRowServiceTest extends TestCase
         $row = $this->validRow();
         $row[6] = '-1';
 
-        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
+        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), $this->types(), Mockery::mock(PackDimensionCommandInterface::class));
 
         $this->expectException(ImportRowValidationException::class);
         $service->importFromRow($row);
     }
 
-    public function test_throws_when_type_id_not_positive(): void
+    public function test_throws_when_type_not_found(): void
     {
         $row = $this->validRow();
-        $row[7] = '0';
+        $row[7] = 'Неизвестный тип';
 
-        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), Mockery::mock(PackDimensionCommandInterface::class));
+        $service = new ImportPackDimensionFromRowService(Mockery::mock(PackDimensionRepositoryInterface::class), $this->types(), Mockery::mock(PackDimensionCommandInterface::class));
 
         $this->expectException(ImportRowValidationException::class);
         $service->importFromRow($row);

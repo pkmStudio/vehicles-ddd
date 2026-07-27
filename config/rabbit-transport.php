@@ -35,6 +35,8 @@ declare(strict_types=1);
 |
 */
 
+use App\Modules\Applicability\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as ApplicabilityExportFileRequestedHandler;
+use App\Modules\Applicability\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler as ApplicabilityImportFileRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\EngineMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\ManufacturerMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\ModificationMutationRequestedHandler;
@@ -42,8 +44,6 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\Part
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
-use App\Modules\Applicability\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as ApplicabilityExportFileRequestedHandler;
-use App\Modules\Applicability\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler as ApplicabilityImportFileRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\BrandMutationRequestedHandler as WarehouseBrandMutationRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\KitMutationRequestedHandler as WarehouseKitMutationRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\NomenclatureMutationRequestedHandler as WarehouseNomenclatureMutationRequestedHandler;
@@ -165,6 +165,10 @@ return [
             'handle',
         ],
         'WAREHOUSE_NOMENCLATURE_EXPORT_FILE_REQUESTED' => [
+            WarehouseExportFileRequestedHandler::class,
+            'handle',
+        ],
+        'WAREHOUSE_PACK_DIMENSION_EXPORT_FILE_REQUESTED' => [
             WarehouseExportFileRequestedHandler::class,
             'handle',
         ],
@@ -374,6 +378,7 @@ return [
             'crm.vehicles.export',
             'crm.engines.export',
             'crm.warehouse.nomenclatures.export',
+            'crm.warehouse.pack-dimensions.export',
             'crm.warehouse.kits.export',
             'crm.warehouse.wiper-adapter-audit.export',
             'crm.warehouse.nomenclatures.import',

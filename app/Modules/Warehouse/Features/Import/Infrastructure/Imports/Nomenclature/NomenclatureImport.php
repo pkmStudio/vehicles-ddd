@@ -23,6 +23,7 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -31,8 +32,13 @@ use Maatwebsite\Excel\Validators\Failure;
 /**
  * Импортирует Warehouse-номенклатуру из Excel: чанками, в очереди, с накоплением ошибок построчно
  * в cache. Резолв type/brand и сборка details делегированы Application-сервису.
+ *
+ * Экспортные файлы содержат второй, служебный лист "Справочники" (списки для выпадающих списков
+ * Excel) — без WithMultipleSheets Laravel Excel гоняет collection() по КАЖДОМУ листу книги, и
+ * строки справочника ошибочно пытаются распарситься как номенклатура. sheets() явно ограничивает
+ * импорт первым листом (индекс 0) — там всегда реальные данные, справочник игнорируется.
  */
-final class NomenclatureImport implements NomenclatureImportInterface, ShouldQueue, SkipsEmptyRows, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
+final class NomenclatureImport implements NomenclatureImportInterface, ShouldQueue, SkipsEmptyRows, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithMultipleSheets, WithStartRow
 {
     use CachesImportFailures;
 
@@ -129,6 +135,19 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     public function chunkSize(): int
     {
         return 1000;
+    }
+
+    /**
+     * Ограничивает импорт первым листом файла — второй лист "Справочники" (выпадающие списки
+     * Excel) не относится к данным и не должен парситься как номенклатура.
+     *
+     * @return array<int, ToCollection>
+     */
+    public function sheets(): array
+    {
+        return [
+            0 => $this,
+        ];
     }
 
     /**

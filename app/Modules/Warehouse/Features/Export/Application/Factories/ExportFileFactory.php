@@ -7,6 +7,7 @@ namespace App\Modules\Warehouse\Features\Export\Application\Factories;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\FileExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\KitExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\NomenclatureByTypeExportInterface;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\PackDimensionExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\WiperAdapterAuditExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\KitExportFiltersDTO;
@@ -34,6 +35,9 @@ final readonly class ExportFileFactory implements ExportFileFactoryInterface
                 parameters: [
                     'typeId' => $typeId ?? throw new InvalidArgumentException('type_id обязателен для экспорта номенклатуры'),
                 ],
+            ),
+            ExportTypeEnum::PackDimension => app(
+                abstract: PackDimensionExportInterface::class,
             ),
             ExportTypeEnum::Kit => $this->kitExport(
                 filters: $kitFilters,

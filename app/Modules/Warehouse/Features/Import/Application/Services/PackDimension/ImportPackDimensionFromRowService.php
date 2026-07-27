@@ -6,9 +6,11 @@ namespace App\Modules\Warehouse\Features\Import\Application\Services\PackDimensi
 
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\PackDimensionCommandInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimension\ImportPackDimensionFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\PackDimensionData;
+use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
 
 /**
  * Валидирует Excel-строку упаковочного размера и пишет её через явные create/update команды.
@@ -20,6 +22,7 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
      */
     public function __construct(
         private PackDimensionRepositoryInterface $packDimensions,
+        private TypeRepositoryInterface $types,
         private PackDimensionCommandInterface $command,
     ) {}
 
@@ -39,7 +42,7 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
         $height = (int) ($row[4] ?? 0);
         $length = (int) ($row[5] ?? 0);
         $price = (int) ($row[6] ?? 0);
-        $typeId = (int) ($row[7] ?? 0);
+        $type = $this->resolveType($row[7] ?? null);
 
         if ($name === '') {
             throw ImportRowValidationException::withMessage('Пустое название коробки');
@@ -53,10 +56,6 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
             throw ImportRowValidationException::withMessage('Цена коробки не может быть отрицательной');
         }
 
-        if ($typeId <= 0) {
-            throw ImportRowValidationException::withMessage('type_id должен быть положительным числом');
-        }
-
         $data = new PackDimensionData(
             name: $name,
             weight: $weight,
@@ -64,7 +63,7 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
             height: $height,
             length: $length,
             price: $price,
-            typeId: $typeId,
+            typeId: (int) $type->id,
             id: $id,
         );
 
@@ -73,5 +72,44 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
         return $existing === null
             ? $this->command->create($data)
             : $this->command->updateById($data);
+    }
+
+    /**
+     * Резолвит пользовательское значение типа товара по названию или коду; numeric id оставлен
+     * для совместимости со старыми файлами.
+     */
+    private function resolveType(mixed $value): TypeData
+    {
+        $raw = trim((string) $value);
+        if ($raw === '') {
+            throw ImportRowValidationException::withMessage(
+                'Тип товара обязателен. Укажите название или код из листа «Справочники».',
+            );
+        }
+
+        $normalized = $this->normalizeTypeValue($raw);
+
+        foreach ($this->types->all() as $type) {
+            if ($type->id !== null && $raw === (string) $type->id) {
+                return $type;
+            }
+
+            if ($this->normalizeTypeValue($type->name) === $normalized) {
+                return $type;
+            }
+
+            if ($type->char !== null && $this->normalizeTypeValue($type->char) === $normalized) {
+                return $type;
+            }
+        }
+
+        throw ImportRowValidationException::withMessage(
+            "Тип товара «{$raw}» не найден. Укажите название или код из листа «Справочники».",
+        );
+    }
+
+    private function normalizeTypeValue(string $value): string
+    {
+        return mb_strtoupper(trim($value));
     }
 }

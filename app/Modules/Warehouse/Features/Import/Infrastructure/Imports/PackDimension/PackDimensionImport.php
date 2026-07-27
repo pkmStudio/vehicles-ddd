@@ -17,6 +17,7 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -25,8 +26,12 @@ use Maatwebsite\Excel\Validators\Failure;
 /**
  * Импортирует упаковочные размеры Warehouse из Excel: чанками, в очереди, с накоплением ошибок
  * построчно в cache. Валидация и запись делегированы Application-сервису.
+ *
+ * Экспортные файлы содержат второй, служебный лист "Справочники" (см. PackDimensionExport) — без
+ * WithMultipleSheets Laravel Excel гоняет collection() по КАЖДОМУ листу книги. sheets() явно
+ * ограничивает импорт первым листом (индекс 0), справочник игнорируется.
  */
-final class PackDimensionImport implements PackDimensionImportInterface, ShouldQueue, SkipsEmptyRows, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
+final class PackDimensionImport implements PackDimensionImportInterface, ShouldQueue, SkipsEmptyRows, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithMultipleSheets, WithStartRow
 {
     use CachesImportFailures;
 
@@ -108,6 +113,18 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
     public function chunkSize(): int
     {
         return 500;
+    }
+
+    /**
+     * Ограничивает импорт первым листом файла — второй лист "Справочники" не относится к данным.
+     *
+     * @return array<int, ToCollection>
+     */
+    public function sheets(): array
+    {
+        return [
+            0 => $this,
+        ];
     }
 
     /**
