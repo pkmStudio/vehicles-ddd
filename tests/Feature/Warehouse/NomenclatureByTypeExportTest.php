@@ -106,8 +106,12 @@ final class NomenclatureByTypeExportTest extends TestCase
         );
 
         Storage::disk('local')->assertExists($path);
+        $spreadsheet = IOFactory::load(Storage::disk('local')->path($path));
         [$dataRows, $referenceRows] = $this->readSheets($path);
 
+        $this->assertSame(2, $spreadsheet->getSheetCount());
+        $this->assertSame('Справочники', $spreadsheet->getSheet(1)->getTitle());
+        $this->assertTrue($spreadsheet->getSheet(0)->getStyle('A1')->getFont()->getBold());
         $this->assertCount(2, $dataRows);
         $this->assertSame('Тип товара', $dataRows[0][1]);
         $this->assertSame('Свечи зажигания', $dataRows[1][1]);
@@ -120,8 +124,6 @@ final class NomenclatureByTypeExportTest extends TestCase
         $this->assertSame('19', $dataRows[1][14]);
         $this->assertSame('0.9', $dataRows[1][15]);
         $this->assertSame('2', $dataRows[1][16]);
-
-        $this->assertSame('Справочники', IOFactory::load(Storage::disk('local')->path($path))->getSheet(1)->getTitle());
         $this->assertContains('Размер резьбы', $referenceRows[0]);
         $this->assertContains('Свечи зажигания', array_column(array_slice($referenceRows, 1), 0));
     }

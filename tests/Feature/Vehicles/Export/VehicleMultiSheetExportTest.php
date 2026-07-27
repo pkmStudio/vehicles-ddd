@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Export;
 
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Models\PartSpecification;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Models\Vehicle;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -79,8 +79,16 @@ final class VehicleMultiSheetExportTest extends TestCase
         $path = $export->export($context, 'local');
 
         Storage::disk('local')->assertExists($path);
+        $spreadsheet = IOFactory::load(Storage::disk('local')->path($path));
         [$mainRows] = $this->readSheets($path);
 
+        $this->assertSame(3, $spreadsheet->getSheetCount());
+        $this->assertSame('Основная информация', $spreadsheet->getSheet(0)->getTitle());
+        $this->assertSame('Дворники', $spreadsheet->getSheet(1)->getTitle());
+        $this->assertSame('Справочники', $spreadsheet->getSheet(2)->getTitle());
+        $this->assertTrue($spreadsheet->getSheet(0)->getStyle('A1')->getFont()->getBold());
+        $this->assertContains('Тип кузова', $spreadsheet->getSheet(2)->toArray()[0]);
+        $this->assertContains('Тип крепления передних', $spreadsheet->getSheet(2)->toArray()[0]);
         $this->assertCount(3, $mainRows); // заголовок + 2 строки
         $names = array_column(array_slice($mainRows, 1), 4); // индекс 4 = "Модель"
         $this->assertEqualsCanonicalizing(['Octavia', 'Fabia'], $names);

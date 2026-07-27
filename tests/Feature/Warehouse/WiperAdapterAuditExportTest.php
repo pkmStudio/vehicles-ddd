@@ -130,8 +130,11 @@ final class WiperAdapterAuditExportTest extends TestCase
             context: $context,
             disk: 'local',
         );
+        $spreadsheet = IOFactory::load(Storage::disk('local')->path($path));
         $rows = $this->readSheet($path);
 
+        $this->assertSame(1, $spreadsheet->getSheetCount());
+        $this->assertTrue($spreadsheet->getSheet(0)->getStyle('A1')->getFont()->getBold());
         $this->assertCount(2, $rows);
         $this->assertSame('ID Набора', $rows[0][0]);
         $this->assertSame((string) $kit->id, $rows[1][0]);

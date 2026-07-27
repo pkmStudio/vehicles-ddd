@@ -115,14 +115,22 @@ final class KitExportTest extends TestCase
         );
 
         Storage::disk('local')->assertExists($path);
+        $spreadsheet = IOFactory::load(Storage::disk('local')->path($path));
         $rows = $this->readSheet($path);
+        $referenceRows = $spreadsheet->getSheet(1)->toArray();
 
+        $this->assertSame(2, $spreadsheet->getSheetCount());
+        $this->assertSame('Наборы', $spreadsheet->getSheet(0)->getTitle());
+        $this->assertSame('Справочники', $spreadsheet->getSheet(1)->getTitle());
+        $this->assertTrue($spreadsheet->getSheet(0)->getStyle('A1')->getFont()->getBold());
         $this->assertCount(2, $rows);
         $this->assertSame('ID комплекта', $rows[0][0]);
         $this->assertSame((string) $kit->id, $rows[1][0]);
         $this->assertSame('SP-1;SP-2', $rows[1][1]);
         $this->assertSame('Да', $rows[1][2]);
         $this->assertSame('Нет', $rows[1][3]);
+        $this->assertSame(['Может продаваться отдельно', 'Активен'], $referenceRows[0]);
+        $this->assertSame(['Да', 'Да'], $referenceRows[1]);
     }
 
     /**

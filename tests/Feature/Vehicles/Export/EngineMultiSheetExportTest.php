@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Export;
 
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Models\Engine;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Models\PartSpecification;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -63,8 +63,16 @@ final class EngineMultiSheetExportTest extends TestCase
         $path = $export->export($context, 'local');
 
         Storage::disk('local')->assertExists($path);
+        $spreadsheet = IOFactory::load(Storage::disk('local')->path($path));
         [$mainRows] = $this->readSheets($path);
 
+        $this->assertSame(3, $spreadsheet->getSheetCount());
+        $this->assertSame('Двигатели', $spreadsheet->getSheet(0)->getTitle());
+        $this->assertSame('Свечи зажигания', $spreadsheet->getSheet(1)->getTitle());
+        $this->assertSame('Справочники', $spreadsheet->getSheet(2)->getTitle());
+        $this->assertTrue($spreadsheet->getSheet(0)->getStyle('A1')->getFont()->getBold());
+        $this->assertContains('Тип топлива', $spreadsheet->getSheet(2)->toArray()[0]);
+        $this->assertContains('Размер резьбы', $spreadsheet->getSheet(2)->toArray()[0]);
         $this->assertCount(2, $mainRows); // заголовок + 1 строка
         $this->assertSame('M54B30', $mainRows[1][1]);
         $this->assertSame('бензин', $mainRows[1][3]);
