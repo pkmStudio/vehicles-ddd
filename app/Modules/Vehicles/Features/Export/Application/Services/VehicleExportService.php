@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Export\Application\Services;
 
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Modules\Vehicles\Features\Export\Domain\DTOs\WiperExportRowDTO;
-use App\Modules\Vehicles\Features\Export\Domain\ModelData\VehicleData;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
+use App\Modules\Vehicles\Features\Export\Domain\DTOs\WiperExportRowDTO;
+use App\Modules\Vehicles\Features\Export\Domain\ModelData\VehicleData;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Support\Collection;
 
 /**
@@ -114,5 +118,54 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
         );
 
         return array_merge($baseData, $specData, $detailsData);
+    }
+
+    public function getReferenceRows(): Collection
+    {
+        $columns = array_values($this->referenceColumns());
+        $max = max(array_map('count', $columns));
+        $rows = [];
+
+        for ($i = 0; $i < $max; $i++) {
+            $rows[] = array_map(
+                static fn (array $values): mixed => $values[$i] ?? null,
+                $columns,
+            );
+        }
+
+        return collect($rows);
+    }
+
+    public function getReferenceHeadings(): array
+    {
+        return array_keys($this->referenceColumns());
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    private function referenceColumns(): array
+    {
+        return array_merge(
+            [
+                'Тип кузова' => $this->enumValues(CarcaseTypeEnum::class),
+                'Тип транспорта' => $this->enumValues(VehicleTypeEnum::class),
+                'Провайдер' => $this->enumValues(ProviderEnum::class),
+                'Рулевое управление' => $this->enumValues(SteeringTypeEnum::class),
+            ],
+            $this->templates->vehicleReferenceOptions(DetailTemplateEnum::WIPER),
+        );
+    }
+
+    /**
+     * @param  class-string<\BackedEnum>  $enumClass
+     * @return list<string>
+     */
+    private function enumValues(string $enumClass): array
+    {
+        return array_map(
+            static fn (\BackedEnum $case): string => (string) $case->value,
+            $enumClass::cases(),
+        );
     }
 }

@@ -12,6 +12,9 @@ interface TemplatesClientInterface
     /** @return array<int, string> */
     public function vehicleDetailHeadings(string $template): array;
 
+    /** @return array<string, list<string>> */
+    public function vehicleReferenceOptions(string $template): array;
+
     /**
      * @param  array<string, mixed>  $details
      * @return array<int, mixed>

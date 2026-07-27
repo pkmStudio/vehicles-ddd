@@ -7,6 +7,7 @@ namespace App\Modules\Applicability\Features\Export\Application\Services;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Repositories\KitApplicabilityExportRepositoryInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\VehicleKitApplicabilityExportServiceInterface;
 use App\Modules\Applicability\Features\Export\Domain\DTOs\VehicleKitApplicabilityRowDTO;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use Illuminate\Support\Collection;
 
 final readonly class VehicleKitApplicabilityExportService implements VehicleKitApplicabilityExportServiceInterface
@@ -49,5 +50,18 @@ final readonly class VehicleKitApplicabilityExportService implements VehicleKitA
             'Год до',
             'Тип кузова',
         ];
+    }
+
+    public function getReferenceRows(): Collection
+    {
+        return collect(array_map(
+            static fn (CarcaseTypeEnum $case): array => [$case->value],
+            CarcaseTypeEnum::cases(),
+        ));
+    }
+
+    public function getReferenceHeadings(): array
+    {
+        return ['Тип кузова'];
     }
 }

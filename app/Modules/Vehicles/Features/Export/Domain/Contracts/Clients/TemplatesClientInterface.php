@@ -11,6 +11,9 @@ interface TemplatesClientInterface
     /** @return array<int, string> */
     public function vehicleDetailHeadings(DetailTemplateEnum $template): array;
 
+    /** @return array<string, list<string>> */
+    public function vehicleReferenceOptions(DetailTemplateEnum $template): array;
+
     /**
      * @param  array<string, mixed>  $details
      * @return array<int, mixed>

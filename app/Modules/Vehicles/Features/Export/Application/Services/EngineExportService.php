@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Export\Application\Services;
 
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\EngineExportServiceInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\EngineExportServiceInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\PartSpecificationExportRowDTO;
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\EngineData;
-use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use Illuminate\Support\Collection;
 
 /**
@@ -87,5 +88,51 @@ final readonly class EngineExportService implements EngineExportServiceInterface
         }
 
         return array_merge($baseData, $detailsData);
+    }
+
+    public function getReferenceRows(): Collection
+    {
+        $columns = array_values($this->referenceColumns());
+        $max = max(array_map('count', $columns));
+        $rows = [];
+
+        for ($i = 0; $i < $max; $i++) {
+            $rows[] = array_map(
+                static fn (array $values): mixed => $values[$i] ?? null,
+                $columns,
+            );
+        }
+
+        return collect($rows);
+    }
+
+    public function getReferenceHeadings(): array
+    {
+        return array_keys($this->referenceColumns());
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    private function referenceColumns(): array
+    {
+        return array_merge(
+            [
+                'Тип топлива' => $this->enumValues(EngineFuelTypeEnum::class),
+            ],
+            $this->templates->vehicleReferenceOptions(DetailTemplateEnum::SPARK_PLUGS),
+        );
+    }
+
+    /**
+     * @param  class-string<\BackedEnum>  $enumClass
+     * @return list<string>
+     */
+    private function enumValues(string $enumClass): array
+    {
+        return array_map(
+            static fn (\BackedEnum $case): string => (string) $case->value,
+            $enumClass::cases(),
+        );
     }
 }

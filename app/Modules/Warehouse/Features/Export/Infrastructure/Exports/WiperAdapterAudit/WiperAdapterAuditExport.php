@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Export\Infrastructure\Exports\WiperAdapterAudit;
 
-use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\WiperAdapterAuditExportInterface;
+use App\Modules\Shared\Infrastructure\Exports\Concerns\StylesExportWorksheet;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Clients\WiperAdapterAuditClientInterface;
+use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\WiperAdapterAuditExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportRunContextDTO;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
@@ -18,8 +20,10 @@ use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 /**
  * Excel-адаптер, который сохраняет отчёт аудита адаптеров дворников Warehouse-наборов.
  */
-final readonly class WiperAdapterAuditExport implements FromCollection, WiperAdapterAuditExportInterface, WithHeadings, WithMapping, WithTitle
+final readonly class WiperAdapterAuditExport implements FromCollection, WiperAdapterAuditExportInterface, WithHeadings, WithMapping, WithStyles, WithTitle
 {
+    use StylesExportWorksheet;
+
     /**
      * Получает сервис расчёта готовых строк отчёта.
      */

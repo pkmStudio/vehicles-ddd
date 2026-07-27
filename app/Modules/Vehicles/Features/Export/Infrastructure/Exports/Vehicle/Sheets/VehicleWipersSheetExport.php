@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\Sheets;
 
+use App\Modules\Shared\Infrastructure\Exports\Concerns\StylesExportWorksheet;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
 /**
@@ -16,13 +18,14 @@ use Maatwebsite\Excel\Concerns\WithTitle;
  * нужен старый объединённый формат. Expander собирает строки {frontSpec, backSpec},
  * map() склеивает стороны обратно в {front, back} через доменный сервис.
  */
-final readonly class VehicleWipersSheetExport implements FromCollection, WithHeadings, WithMapping, WithTitle
+final readonly class VehicleWipersSheetExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle
 {
+    use StylesExportWorksheet;
+
     public function __construct(
         private VehicleExportServiceInterface $exportService,
         private bool $isAllow = false,
-    ) {
-    }
+    ) {}
 
     public function title(): string
     {

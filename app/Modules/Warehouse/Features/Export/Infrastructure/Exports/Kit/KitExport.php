@@ -4,29 +4,25 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Kit;
 
+use App\Modules\Shared\Infrastructure\Exports\ReferenceSheetExport;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\KitExportInterface;
-use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\KitExportServiceInterface;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\KitExportFiltersDTO;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\KitExportSortDTO;
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithTitle;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Kit\Sheets\KitDataSheetExport;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
 /**
  * Excel-адаптер, который сохраняет лист Warehouse-наборов в xlsx-файл.
  */
-final readonly class KitExport implements FromCollection, KitExportInterface, WithHeadings, WithMapping, WithTitle
+final readonly class KitExport implements KitExportInterface, WithMultipleSheets
 {
     /**
      * Получает сервис подготовки строк и заголовков набора.
      */
     public function __construct(
-        private KitExportServiceInterface $exportService,
         private ?KitExportFiltersDTO $filters = null,
         private ?KitExportSortDTO $sort = null,
     ) {}
@@ -57,45 +53,25 @@ final readonly class KitExport implements FromCollection, KitExportInterface, Wi
     }
 
     /**
-     * Возвращает название листа наборов.
+     * @return array<int, object>
      */
-    public function title(): string
+    public function sheets(): array
     {
-        return 'Наборы';
-    }
-
-    /**
-     * Возвращает коллекцию наборов для maatwebsite/excel.
-     */
-    public function collection(): Collection
-    {
-        $filters = $this->filters ?? new KitExportFiltersDTO;
-        $sort = $this->sort ?? new KitExportSortDTO;
-
-        return $this->exportService->getRows(
-            filters: $filters,
-            sort: $sort,
-        );
-    }
-
-    /**
-     * Мапит одну строку набора в плоский массив значений Excel.
-     *
-     * @param  mixed  $row
-     * @return array<int, mixed>
-     */
-    public function map($row): array
-    {
-        return $this->exportService->mapRow($row);
-    }
-
-    /**
-     * Возвращает заголовки листа наборов.
-     *
-     * @return array<int, string>
-     */
-    public function headings(): array
-    {
-        return $this->exportService->getHeadings();
+        return [
+            app()->makeWith(
+                abstract: KitDataSheetExport::class,
+                parameters: [
+                    'filters' => $this->filters,
+                    'sort' => $this->sort,
+                ],
+            ),
+            new ReferenceSheetExport(
+                headings: ['Может продаваться отдельно', 'Активен'],
+                rows: [
+                    ['Да', 'Да'],
+                    ['Нет', 'Нет'],
+                ],
+            ),
+        ];
     }
 }

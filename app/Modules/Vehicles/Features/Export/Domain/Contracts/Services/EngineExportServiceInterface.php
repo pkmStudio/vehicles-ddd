@@ -21,4 +21,8 @@ interface EngineExportServiceInterface
     public function getSparkPlugHeadings(): array;
 
     public function mapSparkPlugRow(PartSpecificationExportRowDTO $row): array;
+
+    public function getReferenceRows(): Collection;
+
+    public function getReferenceHeadings(): array;
 }

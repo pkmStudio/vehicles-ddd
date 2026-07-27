@@ -31,6 +31,11 @@ final readonly class TemplatesClient implements TemplatesClientInterface
         return $this->vehiclePresenter->headingsFor(DetailTemplateEnum::from($template));
     }
 
+    public function vehicleReferenceOptions(string $template): array
+    {
+        return $this->vehiclePresenter->referenceOptionsFor(DetailTemplateEnum::from($template));
+    }
+
     public function renderVehicleDetails(string $template, array $details): array
     {
         return $this->vehiclePresenter->toExportCells(DetailTemplateEnum::from($template), $details);

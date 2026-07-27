@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle;
 
+use App\Modules\Shared\Infrastructure\Exports\ReferenceSheetExport;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\AbstractMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\Sheets\VehicleMainSheetExport;
@@ -23,9 +25,15 @@ final readonly class VehicleMultiSheetExport extends AbstractMultiSheetExport im
 
     public function sheets(): array
     {
+        $exportService = app(VehicleExportServiceInterface::class);
+
         return [
             app()->makeWith(VehicleMainSheetExport::class, ['isAllow' => $this->isAllow]),
             app()->makeWith(VehicleWipersSheetExport::class, ['isAllow' => $this->isAllow]),
+            new ReferenceSheetExport(
+                headings: $exportService->getReferenceHeadings(),
+                rows: $exportService->getReferenceRows(),
+            ),
         ];
     }
 }

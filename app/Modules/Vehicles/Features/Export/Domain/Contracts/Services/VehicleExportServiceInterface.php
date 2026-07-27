@@ -21,4 +21,8 @@ interface VehicleExportServiceInterface
     public function getWiperHeadings(): array;
 
     public function mapWiperRow(WiperExportRowDTO $row): array;
+
+    public function getReferenceRows(): Collection;
+
+    public function getReferenceHeadings(): array;
 }

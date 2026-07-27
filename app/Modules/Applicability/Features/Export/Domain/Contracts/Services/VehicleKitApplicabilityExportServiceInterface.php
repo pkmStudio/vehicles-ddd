@@ -15,4 +15,9 @@ interface VehicleKitApplicabilityExportServiceInterface
 
     /** @return array<int, string> */
     public function getHeadings(): array;
+
+    public function getReferenceRows(): Collection;
+
+    /** @return array<int, string> */
+    public function getReferenceHeadings(): array;
 }

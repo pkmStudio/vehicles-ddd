@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Nomenclature\Sheets;
 
+use App\Modules\Shared\Infrastructure\Exports\Concerns\StylesExportWorksheet;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\NomenclatureExportServiceInterface;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
 /**
  * Лист справочников для импорта/проверки Warehouse-номенклатуры выбранного типа.
  */
-final readonly class NomenclatureReferenceSheetExport implements FromCollection, WithHeadings, WithTitle
+final readonly class NomenclatureReferenceSheetExport implements FromCollection, WithHeadings, WithStyles, WithTitle
 {
+    use StylesExportWorksheet;
+
     /**
      * Получает сервис экспорта номенклатуры и id выбранного типа.
      */

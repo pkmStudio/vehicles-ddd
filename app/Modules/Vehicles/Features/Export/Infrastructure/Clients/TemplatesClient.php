@@ -19,6 +19,11 @@ final readonly class TemplatesClient implements TemplatesClientInterface
         return $this->templates->vehicleDetailHeadings($template->value);
     }
 
+    public function vehicleReferenceOptions(DetailTemplateEnum $template): array
+    {
+        return $this->templates->vehicleReferenceOptions($template->value);
+    }
+
     public function renderVehicleDetails(DetailTemplateEnum $template, array $details): array
     {
         return $this->templates->renderVehicleDetails($template->value, $details);

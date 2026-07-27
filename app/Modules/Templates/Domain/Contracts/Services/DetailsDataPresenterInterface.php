@@ -15,6 +15,9 @@ interface DetailsDataPresenterInterface
     /** @return array<int, string> */
     public function headingsFor(DetailTemplateEnum $template): array;
 
+    /** @return array<string, list<string>> */
+    public function referenceOptionsFor(DetailTemplateEnum $template): array;
+
     /**
      * @param  array<string, mixed>  $details
      * @return array<int, mixed>
