@@ -31,6 +31,17 @@ abstract class RequestLocalImportCommand extends Command
     abstract protected function importType(): string;
 
     /**
+     * Удалять ли исходный файл после успешного импорта (data.cleanup_after_import).
+     * По умолчанию true — так ведёт себя штатный CRM-флоу (файл пришёл извне и не нужен после
+     * импорта). Команды ручного/операционного запуска (см. ImportNomenclature/ImportKits/
+     * ImportPackDimensions) переопределяют на false, чтобы не удалять файл оператора.
+     */
+    protected function cleanupAfterImport(): bool
+    {
+        return false;
+    }
+
+    /**
      * Проверяет файл в локальном Storage disk и публикует RabbitMQ-запрос импорта.
      */
     public function handle(RabbitMQPublisher $publisher): int
@@ -73,7 +84,7 @@ abstract class RequestLocalImportCommand extends Command
                     'import_type' => $this->importType(),
                     'disk' => $disk,
                     'path' => $path,
-                    'cleanup_after_import' => false,
+                    'cleanup_after_import' => $this->cleanupAfterImport(),
                 ],
             ),
             routingKey: $this->routingKey(),

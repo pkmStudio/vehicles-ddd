@@ -4,38 +4,36 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Import\Presentation\Console\Commands;
 
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
-use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
-use Illuminate\Console\Command;
-use Illuminate\Support\Str;
+use App\Modules\Shared\Presentation\Console\Commands\RequestLocalImportCommand;
+use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportTypeEnum;
 
 /**
- * Тонкая точка входа для ручного/операционного запуска импорта Warehouse-номенклатуры из файла.
- * userId в контексте — null: оператор в терминале, не HTTP/Rabbit-инициатор (см. ImportRunContextDTO).
+ * Ручной/операционный запуск импорта Warehouse-номенклатуры: тот же RabbitMQ-flow, что и
+ * warehouse:request-import-nomenclature, но не удаляет исходный файл после импорта (это файл
+ * оператора, не одноразовая выгрузка CRM) — см. cleanupAfterImport().
  */
-final class ImportNomenclature extends Command
+final class ImportNomenclature extends RequestLocalImportCommand
 {
-    protected $signature = 'warehouse:import-nomenclature {path : Путь к Excel-файлу на диске "local"}';
+    protected $signature = 'warehouse:import-nomenclature
+        {path : Относительный путь к файлу на Storage disk}
+        {--disk=local : Laravel Storage disk, где лежит файл}
+        {--user-id=1 : ID инициатора для отчёта об импорте}
+        {--run-id= : Идемпотентный ID прогона; по умолчанию UUID}';
 
-    protected $description = 'Импортирует Warehouse-номенклатуру из Excel-файла';
+    protected $description = 'Опубликовать RabbitMQ-запрос импорта Warehouse-номенклатуры из локального Storage (файл не удаляется после импорта)';
 
-    /**
-     * Создаёт контекст ручного запуска и делегирует импорт Excel-адаптеру.
-     */
-    public function handle(NomenclatureImportInterface $import): int
+    protected function eventName(): string
     {
-        $context = new ImportRunContextDTO(
-            userId: null,
-            runId: (string) Str::uuid(),
-        );
+        return 'WAREHOUSE_NOMENCLATURE_IMPORT_FILE_REQUESTED';
+    }
 
-        $import->import(
-            path: $this->argument('path'),
-            context: $context,
-        );
+    protected function routingKey(): string
+    {
+        return 'crm.warehouse.nomenclatures.import';
+    }
 
-        $this->info("Импорт номенклатуры поставлен в очередь (runId: {$context->runId}).");
-
-        return self::SUCCESS;
+    protected function importType(): string
+    {
+        return ImportTypeEnum::Nomenclature->value;
     }
 }
