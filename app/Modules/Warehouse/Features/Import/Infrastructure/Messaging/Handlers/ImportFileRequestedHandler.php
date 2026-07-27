@@ -58,10 +58,10 @@ final readonly class ImportFileRequestedHandler
             userId: (int) $data['user_id'],
             runId: (string) $data['run_id'],
             importType: ImportTypeEnum::from((string) $data['import_type']),
-            disk: (string) config(
+            disk: (string) ($data['disk'] ?? config(
                 key: 'filesystems.files_disk',
                 default: 's3',
-            ),
+            )),
             path: (string) $data['path'],
         );
 

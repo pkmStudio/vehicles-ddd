@@ -55,6 +55,32 @@ final class ImportFileRequestedHandlerTest extends TestCase
         $this->assertTrue(Cache::has($this->cleanupCacheKey('run-123')));
     }
 
+    public function test_payload_disk_overrides_default_files_disk(): void
+    {
+        config(['filesystems.files_disk' => 's3']);
+        Storage::fake('local');
+        Storage::disk('local')->put('warehouse/nomenclature.xlsx', 'xlsx');
+
+        $import = $this->mock(NomenclatureImportInterface::class);
+        $import->shouldReceive('import')
+            ->once()
+            ->with(
+                'warehouse/nomenclature.xlsx',
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-local'),
+                'local',
+            );
+
+        app(ImportFileRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'run_id' => 'run-local',
+            'import_type' => 'nomenclature',
+            'disk' => 'local',
+            'path' => 'warehouse/nomenclature.xlsx',
+        ]);
+
+        $this->assertTrue(Cache::has($this->cleanupCacheKey('run-local')));
+    }
+
     public function test_invalid_payload_is_logged_and_skipped(): void
     {
         $useCase = $this->mock(StartExternalFileImportUseCaseInterface::class);

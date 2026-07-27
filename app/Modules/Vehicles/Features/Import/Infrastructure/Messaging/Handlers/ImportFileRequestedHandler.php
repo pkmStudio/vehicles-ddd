@@ -40,7 +40,7 @@ final readonly class ImportFileRequestedHandler
 
         $data = $validator->validated();
 
-        $filesDisk = (string) config('filesystems.files_disk', 's3');
+        $filesDisk = (string) ($data['disk'] ?? config('filesystems.files_disk', 's3'));
 
         $request = new ExternalImportFileRequestDTO(
             userId: (int) $data['user_id'],

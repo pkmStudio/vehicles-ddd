@@ -68,6 +68,32 @@ final class ImportFileRequestedHandlerTest extends TestCase
         $this->assertTrue(Cache::has($this->cleanupCacheKey('run-123')));
     }
 
+    public function test_payload_disk_overrides_default_files_disk(): void
+    {
+        config(['filesystems.files_disk' => 's3']);
+        Storage::fake('local');
+        Storage::disk('local')->put('VehicleMultiSheet/vehicles.xlsx', 'xlsx');
+
+        $import = $this->mock(VehicleMultiSheetImportInterface::class);
+        $import->shouldReceive('import')
+            ->once()
+            ->with(
+                'VehicleMultiSheet/vehicles.xlsx',
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-local'),
+                'local',
+            );
+
+        app(ImportFileRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'run_id' => 'run-local',
+            'import_type' => 'vehicle_multi_sheet',
+            'disk' => 'local',
+            'path' => 'VehicleMultiSheet/vehicles.xlsx',
+        ]);
+
+        $this->assertTrue(Cache::has($this->cleanupCacheKey('run-local')));
+    }
+
     /**
      * Проверяет, что невалидный payload (нет обязательного поля path) не доходит до UseCase —
      * ошибка валидации логируется, а не бросается исключением (брокер не должен ретраить
