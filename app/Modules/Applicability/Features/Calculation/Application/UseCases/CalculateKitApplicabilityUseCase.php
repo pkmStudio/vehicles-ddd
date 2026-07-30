@@ -38,6 +38,7 @@ final readonly class CalculateKitApplicabilityUseCase implements CalculateKitApp
                 $result = $this->calculator->calculate($kit);
                 if ($result === null) {
                     $skipped++;
+
                     continue;
                 }
 

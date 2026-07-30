@@ -6,6 +6,7 @@ namespace App\Modules\Applicability\Features\Calculation\Application\Listeners;
 
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Notifications\CalculationNotificationServiceInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Reporting\CalculationFailureReporterInterface;
+use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\ExternalCalculationContextServiceInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\CalculationCompletionNotificationDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\Enums\CalculationCompletionStatusEnum;
 use App\Modules\Applicability\Features\Calculation\Domain\Events\KitApplicabilityRecalculated;
@@ -19,6 +20,7 @@ final readonly class ReportCalculationResultListener
     public function __construct(
         private CalculationFailureReporterInterface $reporter,
         private CalculationNotificationServiceInterface $notifications,
+        private ExternalCalculationContextServiceInterface $context,
         private LoggerInterface $logger,
     ) {}
 
@@ -41,6 +43,7 @@ final readonly class ReportCalculationResultListener
             failedKits: $event->result->failedKits,
             failuresReportPath: $reportPath,
             failuresReportDisk: $reportPath === null ? null : $reportDisk,
+            userId: $this->context->pullUserId($event->operationId),
         ));
 
         if ($reportPath === null) {

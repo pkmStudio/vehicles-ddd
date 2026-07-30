@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'dan_vehicles' => [
+        'read_api_key' => env('DAN_VEHICLES_READ_API_KEY', ''),
+    ],
+
 ];

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Calculation\Infrastructure\Providers;
 
+use App\Modules\Applicability\Features\Calculation\Application\Listeners\ReportCalculationResultListener;
 use App\Modules\Applicability\Features\Calculation\Application\Services\ApplicabilityServiceFactory;
 use App\Modules\Applicability\Features\Calculation\Application\Services\KitApplicabilityCalculator;
 use App\Modules\Applicability\Features\Calculation\Application\Services\TypeTemplateResolver;
@@ -13,7 +14,6 @@ use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\Wi
 use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\WiperLengthExtractor;
 use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\WiperVehicleFinder;
 use App\Modules\Applicability\Features\Calculation\Application\UseCases\CalculateKitApplicabilityUseCase;
-use App\Modules\Applicability\Features\Calculation\Application\Listeners\ReportCalculationResultListener;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\WarehouseKitClientInterface;
@@ -21,6 +21,7 @@ use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Commands\Kit
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Notifications\CalculationNotificationServiceInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Reporting\CalculationFailureReporterInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\ApplicabilityServiceFactoryInterface;
+use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\ExternalCalculationContextServiceInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\KitApplicabilityCalculatorInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperAdapterExtractorInterface;
@@ -35,6 +36,7 @@ use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\Wareho
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Commands\KitApplicabilityCommand;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Notifications\RabbitMqCalculationNotificationService;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Reporting\CalculationFailureReporter;
+use App\Modules\Applicability\Features\Calculation\Infrastructure\Services\LaravelExternalCalculationContextService;
 use App\Modules\Applicability\Shared\Infrastructure\Logging\LaravelLoggerProxy;
 use Illuminate\Support\ServiceProvider;
 use Psr\Log\LoggerInterface;
@@ -60,6 +62,7 @@ final class CalculationServiceProvider extends ServiceProvider
         WiperLengthExtractorInterface::class => WiperLengthExtractor::class,
         WiperAdapterExtractorInterface::class => WiperAdapterExtractor::class,
         WiperVehicleFinderInterface::class => WiperVehicleFinder::class,
+        ExternalCalculationContextServiceInterface::class => LaravelExternalCalculationContextService::class,
     ];
 
     private const array REPORTING_BINDINGS = [

@@ -7,6 +7,7 @@ namespace Tests\Unit\Applicability\Calculation;
 use App\Modules\Applicability\Features\Calculation\Application\Listeners\ReportCalculationResultListener;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Notifications\CalculationNotificationServiceInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Reporting\CalculationFailureReporterInterface;
+use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\ExternalCalculationContextServiceInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\CalculationCompletionNotificationDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\KitApplicabilityCalculationResultDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\Enums\CalculationCompletionStatusEnum;
@@ -39,12 +40,19 @@ final class ReportCalculationResultListenerTest extends TestCase
             ->once()
             ->with(Mockery::on(static fn (CalculationCompletionNotificationDTO $payload): bool => $payload->status === CalculationCompletionStatusEnum::COMPLETED_WITH_FAILURES
                 && $payload->operationId === 'run-1'
+                && $payload->userId === 42
                 && $payload->processedKits === 2
                 && $payload->failedKits === 1
                 && $payload->failuresReportPath === 'exports/applicability-calculation-failures-run-1.csv'
                 && $payload->failuresReportDisk === 'exports'));
 
-        (new ReportCalculationResultListener($reporter, $notifications, new NullLogger))->handle(
+        $context = Mockery::mock(ExternalCalculationContextServiceInterface::class);
+        $context->shouldReceive('pullUserId')
+            ->once()
+            ->with('run-1')
+            ->andReturn(42);
+
+        (new ReportCalculationResultListener($reporter, $notifications, $context, new NullLogger))->handle(
             new KitApplicabilityRecalculated('run-1', $result),
         );
 

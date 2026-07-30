@@ -35,6 +35,7 @@ declare(strict_types=1);
 |
 */
 
+use App\Modules\Applicability\Features\Calculation\Infrastructure\Messaging\Handlers\CalculationRequestedHandler as ApplicabilityCalculationRequestedHandler;
 use App\Modules\Applicability\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as ApplicabilityExportFileRequestedHandler;
 use App\Modules\Applicability\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler as ApplicabilityImportFileRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\EngineMutationRequestedHandler;
@@ -205,6 +206,10 @@ return [
         ],
         'APPLICABILITY_EXPORT_FILE_REQUESTED' => [
             ApplicabilityExportFileRequestedHandler::class,
+            'handle',
+        ],
+        'APPLICABILITY_CALCULATION_REQUESTED' => [
+            ApplicabilityCalculationRequestedHandler::class,
             'handle',
         ],
 
@@ -386,6 +391,7 @@ return [
             'crm.warehouse.kits.import',
             'crm.applicability.import',
             'crm.applicability.export',
+            'crm.applicability.calculate',
             'crm.warehouse.brands.create',
             'crm.warehouse.brands.update',
             'crm.warehouse.brands.delete',
