@@ -323,22 +323,22 @@ return [
     | Исходящие события (T1.3): логическое имя → routing key по умолчанию.
     | Per-message routing key может переопределяться отправителем.
     |
-    | IMPORT_COMPLETED — статус импорта: completed / completed_with_errors / failed.
+    | VEHICLES_IMPORT_COMPLETED — статус импорта: completed / completed_with_errors / failed.
     | Содержит operation_id, user_id, errors_count и, если есть, путь к отчёту.
-    | FILE_EXPORTED — файл сформирован и сохранён в общем хранилище (disk из
+    | VEHICLES_FILE_EXPORTED — файл сформирован и сохранён в общем хранилище (disk из
     | vehicles.export.output.disk), путь передан в payload; сервис с Filament
     | слушает это событие, чтобы уведомить получателя о готовности каталога.
     | Публикуется из Export\Infrastructure\Notifications\RabbitMqExportNotificationService.
     */
     'outbound' => [
-        'FILE_EXPORTED' => 'vehicles.file.exported',
+        'VEHICLES_FILE_EXPORTED' => 'vehicles.file.exported',
         'WAREHOUSE_FILE_EXPORTED' => 'warehouse.file.exported',
-        'IMPORT_COMPLETED' => 'vehicles.import.completed',
+        'VEHICLES_IMPORT_COMPLETED' => 'vehicles.import.completed',
         'WAREHOUSE_IMPORT_COMPLETED' => 'warehouse.import.completed',
         'APPLICABILITY_IMPORT_COMPLETED' => 'applicability.import.completed',
         'APPLICABILITY_FILE_EXPORTED' => 'applicability.file.exported',
         'APPLICABILITY_CALCULATION_COMPLETED' => 'applicability.calculation.completed',
-        'CATALOG_MUTATION_COMPLETED' => 'vehicles.catalog.mutation.completed',
+        'VEHICLES_CATALOG_MUTATION_COMPLETED' => 'vehicles.catalog.mutation.completed',
         'WAREHOUSE_CATALOG_MUTATION_COMPLETED' => 'warehouse.catalog.mutation.completed',
     ],
 

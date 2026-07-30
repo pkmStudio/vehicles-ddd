@@ -39,11 +39,11 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
      * 2. Выбирает Excel-адаптер через фабрику и синхронно строит файл на указанном disk
      *    (RabbitMQ-консьюмер — уже асинхронная граница, отдельная очередь не нужна).
      * 3. При ошибке снимает отметку принятого operationId (чтобы повторная доставка сообщения
-     *    могла попробовать снова), публикует FILE_EXPORTED со статусом Failed — инициатор не
+     *    могла попробовать снова), публикует VEHICLES_FILE_EXPORTED со статусом Failed — инициатор не
      *    должен узнавать о сбое только по факту отсутствия ответа/по retry-таймауту брокера —
      *    и пробрасывает ошибку дальше (retry/DLQ — уже на стороне rabbit-transport, см.
      *    config/rabbit-transport.php:consumer).
-     * 4. При успехе публикует FILE_EXPORTED со статусом Completed и путём к файлу.
+     * 4. При успехе публикует VEHICLES_FILE_EXPORTED со статусом Completed и путём к файлу.
      */
     public function execute(ExportFileRequestDTO $request): void
     {

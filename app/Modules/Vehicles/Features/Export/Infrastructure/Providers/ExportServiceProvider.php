@@ -87,7 +87,7 @@ final class ExportServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        // Уведомление о готовом файле экспорта уходит в RabbitMQ (FILE_EXPORTED).
+        // Уведомление о готовом файле экспорта уходит в RabbitMQ (VEHICLES_FILE_EXPORTED).
         $this->app->bind(ExportNotificationServiceInterface::class, RabbitMqExportNotificationService::class);
 
         foreach (self::EXPORT_BINDINGS as $interface => $implementation) {

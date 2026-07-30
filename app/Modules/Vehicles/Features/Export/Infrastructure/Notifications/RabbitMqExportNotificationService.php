@@ -11,7 +11,7 @@ use PkmStudio\RabbitTransport\DTOs\RabbitMessageDTO;
 
 /**
  * Уведомление о завершении экспорта через RabbitMQ — публикует зарезервированное,
- * но ранее не использовавшееся исходящее событие FILE_EXPORTED
+ * но ранее не использовавшееся исходящее событие VEHICLES_FILE_EXPORTED
  * (config/rabbit-transport.php:outbound). Publisher — конкретный класс вендора
  * (pkmstudio/rabbit-transport), а не порт: Infrastructure→Infrastructure, свой
  * RabbitMQPublisherInterface не нужен (см. Import\Infrastructure\Notifications\
@@ -26,7 +26,7 @@ final readonly class RabbitMqExportNotificationService implements ExportNotifica
     public function notifyExportCompleted(ExportCompletionNotificationDTO $payload): void
     {
         $message = new RabbitMessageDTO(
-            name: 'FILE_EXPORTED',
+            name: 'VEHICLES_FILE_EXPORTED',
             data: $payload->toArray(),
         );
         $this->publisher->publish($message);

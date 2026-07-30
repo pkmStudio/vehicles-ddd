@@ -26,7 +26,7 @@ final readonly class RabbitMqFileNotificationService implements FileNotification
     public function notifyImportCompleted(ImportCompletionNotificationDTO $payload): void
     {
         $message = new RabbitMessageDTO(
-            name: 'IMPORT_COMPLETED',
+            name: 'VEHICLES_IMPORT_COMPLETED',
             data: $payload->toArray(),
         );
         $this->publisher->publish($message);

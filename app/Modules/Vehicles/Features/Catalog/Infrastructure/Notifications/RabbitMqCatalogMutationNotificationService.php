@@ -31,7 +31,7 @@ final readonly class RabbitMqCatalogMutationNotificationService implements Catal
     public function notify(CatalogMutationResultDTO $result): void
     {
         $message = new RabbitMessageDTO(
-            name: 'CATALOG_MUTATION_COMPLETED',
+            name: 'VEHICLES_CATALOG_MUTATION_COMPLETED',
             data: $result->toArray(),
         );
         $this->publisher->publish($message);

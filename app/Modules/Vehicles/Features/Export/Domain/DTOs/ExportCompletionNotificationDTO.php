@@ -9,7 +9,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
 
 /**
  * DTO для payload события завершения экспорта, которое отправляется во внешние
- * сервисы (outbound FILE_EXPORTED, config/rabbit-transport.php). Симметрично
+ * сервисы (outbound VEHICLES_FILE_EXPORTED, config/rabbit-transport.php). Симметрично
  * Import\Domain\DTOs\ImportCompletionNotificationDTO — публикуется на любой исход
  * (Completed и Failed), не только на успех; `path` есть только при Completed.
  */

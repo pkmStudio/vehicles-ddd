@@ -288,7 +288,7 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
         $this->assertSame([ModificationMutationRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.MODIFICATION_CREATE_REQUESTED'));
         $this->assertSame([ModificationMutationRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.MODIFICATION_UPDATE_REQUESTED'));
         $this->assertSame([ModificationMutationRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.MODIFICATION_DELETE_REQUESTED'));
-        $this->assertSame('vehicles.catalog.mutation.completed', config('rabbit-transport.outbound.CATALOG_MUTATION_COMPLETED'));
+        $this->assertSame('vehicles.catalog.mutation.completed', config('rabbit-transport.outbound.VEHICLES_CATALOG_MUTATION_COMPLETED'));
     }
 
     private function createManufacturer(int $mfaId): Manufacturer
