@@ -14,7 +14,7 @@ return [
     ],
 
     'output' => [
-        'disk' => env('APPLICABILITY_EXPORT_OUTPUT_DISK', 'local'),
+        'disk' => env('APPLICABILITY_EXPORT_OUTPUT_DISK', 'exports'),
         'directory' => 'exports',
         'retention_hours' => (int) env('APPLICABILITY_EXPORT_RETENTION_HOURS', 24),
     ],

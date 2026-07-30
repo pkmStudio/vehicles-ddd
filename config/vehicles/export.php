@@ -28,20 +28,14 @@ return [
     | Output
     |--------------------------------------------------------------------------
     |
-    | Диск и подпапка, куда пишутся сгенерированные файлы каталога — та же пара,
-    | что Import использует под отчёт об ошибках
-    | (Import\Infrastructure\Reporting\ImportFailureReporter: disk 'local',
-    | путь 'exports/%s'), физически storage/app/private/exports/. 'local' —
-    | не публичный disk (не отдаётся напрямую по URL), в этом окружении
-    | реальных креды не нужны. Отдельный диск 'exports' (настоящий S3) тоже
-    | объявлен в config/filesystems.php — переключить можно через
-    | VEHICLES_EXPORT_OUTPUT_DISK, когда появятся league/flysystem-aws-s3-v3
-    | и AWS_*-креды.
+    | Диск и подпапка, куда пишутся сгенерированные файлы каталога. По умолчанию
+    | используется общий S3-compatible disk `exports`, чтобы `dan-center` мог
+    | получить готовый файл по пути из RabbitMQ-события.
     |
     */
 
     'output' => [
-        'disk' => env('VEHICLES_EXPORT_OUTPUT_DISK', 'local'),
+        'disk' => env('VEHICLES_EXPORT_OUTPUT_DISK', 'exports'),
         'directory' => 'exports',
 
         /*

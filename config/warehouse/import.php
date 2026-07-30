@@ -15,7 +15,7 @@ return [
     ],
 
     'failures' => [
-        'disk' => env('IMPORT_FAILURES_REPORT_DISK', 'local'),
+        'disk' => env('IMPORT_FAILURES_REPORT_DISK', 'exports'),
 
         'cache' => [
             'keys' => [
