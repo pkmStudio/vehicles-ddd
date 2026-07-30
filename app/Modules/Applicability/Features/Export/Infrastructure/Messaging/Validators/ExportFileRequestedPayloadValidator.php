@@ -19,7 +19,7 @@ final readonly class ExportFileRequestedPayloadValidator
     {
         return $this->validator->make($data, [
             'user_id' => ['required', 'integer', 'min:1'],
-            'run_id' => ['required', 'string', 'max:128'],
+            'operation_id' => ['required', 'string', 'max:128'],
             'export_type' => ['required', 'string', Rule::in($this->exportTypes())],
         ]);
     }

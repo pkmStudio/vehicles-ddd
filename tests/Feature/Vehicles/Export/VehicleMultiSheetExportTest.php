@@ -72,7 +72,7 @@ final class VehicleMultiSheetExportTest extends TestCase
         $this->createVehicle($manufacturer, 300, 'Octavia', true);
         $this->createVehicle($manufacturer, 301, 'Fabia', false);
 
-        $context = new ExportRunContextDTO(userId: 1, runId: 'vehicle-export-full');
+        $context = new ExportRunContextDTO(userId: 1, operationId: 'vehicle-export-full');
 
         /** @var VehicleMultiSheetExportInterface $export */
         $export = app()->makeWith(VehicleMultiSheetExportInterface::class, ['isAllow' => false]);
@@ -111,7 +111,7 @@ final class VehicleMultiSheetExportTest extends TestCase
         $this->createVehicle($manufacturer, 300, 'Octavia', true);
         $this->createVehicle($manufacturer, 301, 'Fabia', false);
 
-        $context = new ExportRunContextDTO(userId: 1, runId: 'vehicle-export-filtered');
+        $context = new ExportRunContextDTO(userId: 1, operationId: 'vehicle-export-filtered');
 
         /** @var VehicleMultiSheetExportInterface $export */
         $export = app()->makeWith(VehicleMultiSheetExportInterface::class, ['isAllow' => true]);
@@ -156,7 +156,7 @@ final class VehicleMultiSheetExportTest extends TestCase
             ],
         ]);
 
-        $context = new ExportRunContextDTO(userId: 1, runId: 'vehicle-export-wiper');
+        $context = new ExportRunContextDTO(userId: 1, operationId: 'vehicle-export-wiper');
 
         /** @var VehicleMultiSheetExportInterface $export */
         $export = app()->makeWith(VehicleMultiSheetExportInterface::class, ['isAllow' => false]);

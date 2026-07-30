@@ -53,7 +53,7 @@ final readonly class ReportImportResultListener
             status: $failures === [] ? ImportCompletionStatusEnum::Completed : ImportCompletionStatusEnum::Failed,
             importType: $importType,
             userId: $event->userId,
-            runId: $event->runId,
+            operationId: $event->operationId,
             failuresReportPath: $reportPath,
             failuresReportDisk: $reportPath === null ? null : (string) config(
                 key: 'warehouse.import.failures.disk',

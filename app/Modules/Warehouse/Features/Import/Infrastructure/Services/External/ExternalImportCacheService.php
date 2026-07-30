@@ -15,23 +15,23 @@ use Illuminate\Support\Facades\Cache;
 final readonly class ExternalImportCacheService implements ExternalImportCacheServiceInterface
 {
     /**
-     * Принимает runId только один раз в пределах cache TTL.
+     * Принимает operationId только один раз в пределах cache TTL.
      */
-    public function accept(string $runId): bool
+    public function accept(string $operationId): bool
     {
         return Cache::add(
-            key: $this->acceptedKey($runId),
+            key: $this->acceptedKey($operationId),
             value: true,
             ttl: $this->ttlSeconds(),
         );
     }
 
     /**
-     * Снимает флаг принятого runId после неуспешного запуска.
+     * Снимает флаг принятого operationId после неуспешного запуска.
      */
-    public function forgetAccepted(string $runId): void
+    public function forgetAccepted(string $operationId): void
     {
-        Cache::forget($this->acceptedKey($runId));
+        Cache::forget($this->acceptedKey($operationId));
     }
 
     /**
@@ -40,18 +40,18 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
     public function rememberCleanup(ExternalImportFileRequestDTO $request): void
     {
         Cache::put(
-            key: $this->cleanupKey($request->runId),
+            key: $this->cleanupKey($request->operationId),
             value: ['disk' => $request->disk, 'path' => $request->path],
             ttl: $this->ttlSeconds(),
         );
     }
 
     /**
-     * Забирает и удаляет из cache запомненное задание на очистку файла для runId, если оно есть.
+     * Забирает и удаляет из cache запомненное задание на очистку файла для operationId, если оно есть.
      */
-    public function pullCleanup(string $runId): ?ExternalImportFileCleanupDTO
+    public function pullCleanup(string $operationId): ?ExternalImportFileCleanupDTO
     {
-        $key = $this->cleanupKey($runId);
+        $key = $this->cleanupKey($operationId);
         $cleanup = Cache::get($key);
         Cache::forget($key);
 
@@ -68,26 +68,26 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
     /**
      * Собирает cache-ключ идемпотентности внешнего импорта.
      */
-    private function acceptedKey(string $runId): string
+    private function acceptedKey(string $operationId): string
     {
         return sprintf(
             (string) config(
                 key: 'warehouse.import.external.cache.keys.accepted',
             ),
-            $runId,
+            $operationId,
         );
     }
 
     /**
      * Собирает cache-ключ отложенной очистки исходного файла.
      */
-    private function cleanupKey(string $runId): string
+    private function cleanupKey(string $operationId): string
     {
         return sprintf(
             (string) config(
                 key: 'warehouse.import.external.cache.keys.cleanup',
             ),
-            $runId,
+            $operationId,
         );
     }
 

@@ -6,5 +6,5 @@ namespace App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Reporti
 
 interface ReportImportResultServiceInterface
 {
-    public function report(int $userId, string $cacheKey, ?string $runId = null): void;
+    public function report(int $userId, string $cacheKey, ?string $operationId = null): void;
 }

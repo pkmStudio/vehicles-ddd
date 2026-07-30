@@ -41,13 +41,13 @@ final class ImportFileRequestedHandlerTest extends TestCase
             ->once()
             ->with(
                 'warehouse/nomenclature.xlsx',
-                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-123'),
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->operationId === 'run-123'),
                 's3',
             );
 
         app(ImportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-123',
+            'operation_id' => 'run-123',
             'import_type' => 'nomenclature',
             'path' => 'warehouse/nomenclature.xlsx',
         ]);
@@ -66,13 +66,13 @@ final class ImportFileRequestedHandlerTest extends TestCase
             ->once()
             ->with(
                 'warehouse/nomenclature.xlsx',
-                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-local'),
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->operationId === 'run-local'),
                 'local',
             );
 
         app(ImportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-local',
+            'operation_id' => 'run-local',
             'import_type' => 'nomenclature',
             'disk' => 'local',
             'path' => 'warehouse/nomenclature.xlsx',
@@ -92,13 +92,13 @@ final class ImportFileRequestedHandlerTest extends TestCase
             ->once()
             ->with(
                 'warehouse/nomenclature.xlsx',
-                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-keep-local'),
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->operationId === 'run-keep-local'),
                 'local',
             );
 
         app(ImportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-keep-local',
+            'operation_id' => 'run-keep-local',
             'import_type' => 'nomenclature',
             'disk' => 'local',
             'path' => 'warehouse/nomenclature.xlsx',
@@ -122,12 +122,12 @@ final class ImportFileRequestedHandlerTest extends TestCase
 
         app(ImportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-123',
+            'operation_id' => 'run-123',
             'import_type' => 'nomenclature',
         ]);
     }
 
-    public function test_duplicate_run_id_is_skipped(): void
+    public function test_duplicate_operation_id_is_skipped(): void
     {
         config(['filesystems.files_disk' => 's3']);
         Storage::fake('s3');
@@ -138,7 +138,7 @@ final class ImportFileRequestedHandlerTest extends TestCase
 
         $payload = [
             'user_id' => 42,
-            'run_id' => 'run-dup',
+            'operation_id' => 'run-dup',
             'import_type' => 'pack_dimension',
             'path' => 'warehouse/pd.xlsx',
         ];
@@ -158,13 +158,13 @@ final class ImportFileRequestedHandlerTest extends TestCase
             ->once()
             ->with(
                 'warehouse/kit.xlsx',
-                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-kit'),
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->operationId === 'run-kit'),
                 's3',
             );
 
         app(ImportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-kit',
+            'operation_id' => 'run-kit',
             'import_type' => 'kit',
             'path' => 'warehouse/kit.xlsx',
         ]);
@@ -186,8 +186,8 @@ final class ImportFileRequestedHandlerTest extends TestCase
         $this->assertContains('crm.warehouse.kits.import', $bindings);
     }
 
-    private function cleanupCacheKey(string $runId): string
+    private function cleanupCacheKey(string $operationId): string
     {
-        return sprintf((string) config('warehouse.import.external.cache.keys.cleanup'), $runId);
+        return sprintf((string) config('warehouse.import.external.cache.keys.cleanup'), $operationId);
     }
 }

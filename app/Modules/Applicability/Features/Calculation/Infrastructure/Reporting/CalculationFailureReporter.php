@@ -19,7 +19,7 @@ final readonly class CalculationFailureReporter implements CalculationFailureRep
 
         $fileName = sprintf(
             'applicability-calculation-failures-%s-%s.csv',
-            $result->runId,
+            $result->operationId,
             now()->format('Y-m-d-His'),
         );
         $disk = (string) config('applicability.calculation.failures.disk', 'local');

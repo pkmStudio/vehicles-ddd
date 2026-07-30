@@ -19,7 +19,7 @@ final readonly class ImportFileRequestedPayloadValidator
     {
         return $this->validator->make($data, [
             'user_id' => ['required', 'integer', 'min:1'],
-            'run_id' => ['required', 'string', 'max:128'],
+            'operation_id' => ['required', 'string', 'max:128'],
             'import_type' => ['required', 'string', Rule::in($this->importTypes())],
             'path' => ['required', 'string', 'max:1024'],
             'cleanup_after_import' => ['sometimes', 'boolean'],

@@ -14,14 +14,14 @@ final readonly class ExportFileRequestDTO
 {
     /**
      * @param  int  $userId  внешний идентификатор инициатора экспорта; уходит в уведомление о завершении
-     * @param  string  $runId  уникальный идентификатор прогона; идемпотентность + имя файла
+     * @param  string  $operationId  уникальный идентификатор прогона; идемпотентность + имя файла
      * @param  ExportTypeEnum  $exportType  какой каталог экспортировать
      * @param  bool  $isAllow  бизнес-фильтр «только допущенные» (используется только Vehicle)
      * @param  string  $disk  Laravel Storage disk, куда пишется сгенерированный файл
      */
     public function __construct(
         public int $userId,
-        public string $runId,
+        public string $operationId,
         public ExportTypeEnum $exportType,
         public bool $isAllow,
         public string $disk,

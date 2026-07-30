@@ -13,13 +13,13 @@ final readonly class ImportCompletionNotificationDTO
         public ImportCompletionStatusEnum $status,
         public ImportTypeEnum $importType,
         public ?int $userId = null,
-        public ?string $runId = null,
+        public ?string $operationId = null,
         public ?string $failuresReportPath = null,
         public ?string $failuresReportDisk = null,
     ) {}
 
     /**
-     * @return array{status: string, import_type: string, user_id: ?int, run_id: ?string, failures_report_path: ?string, failures_report_disk: ?string}
+     * @return array{status: string, import_type: string, user_id: ?int, operation_id: ?string, failures_report_path: ?string, failures_report_disk: ?string}
      */
     public function toArray(): array
     {
@@ -27,7 +27,7 @@ final readonly class ImportCompletionNotificationDTO
             'status' => $this->status->value,
             'import_type' => $this->importType->value,
             'user_id' => $this->userId,
-            'run_id' => $this->runId,
+            'operation_id' => $this->operationId,
             'failures_report_path' => $this->failuresReportPath,
             'failures_report_disk' => $this->failuresReportDisk,
         ];

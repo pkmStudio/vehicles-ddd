@@ -8,5 +8,5 @@ use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\KitAp
 
 interface CalculateKitApplicabilityUseCaseInterface
 {
-    public function execute(?int $kitId = null, int $chunk = 1000, ?string $runId = null): KitApplicabilityCalculationResultDTO;
+    public function execute(?int $kitId = null, int $chunk = 1000, ?string $operationId = null): KitApplicabilityCalculationResultDTO;
 }

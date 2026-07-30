@@ -51,12 +51,12 @@ final class ExportFileRequestedHandlerTest extends TestCase
      *
      * Шаги:
      * 1. Мокает FileExportInterface (сам адаптер) — ожидает export() с
-     *    ExportRunContextDTO(userId: 42, runId: 'run-123') и диском 'local' (свой конфиг,
+     *    ExportRunContextDTO(userId: 42, operationId: 'run-123') и диском 'exports' (свой конфиг,
      *    не из payload), возвращает путь к «сгенерированному» файлу.
      * 2. Мокает ExportFileFactoryInterface::make — ожидает вызов с (Vehicle, isAllow: false)
      *    и возвращает мок адаптера из шага 1.
      * 3. Мокает ExportNotificationServiceInterface — ожидает notifyExportCompleted() со
-     *    статусом Completed, тем же runId/exportType и этим же путём.
+     *    статусом Completed, тем же operationId/exportType и этим же путём.
      * 4. Зовёт handle() с валидным payload (export_type=vehicle_multi_sheet).
      */
     public function test_starts_vehicle_export_and_notifies_completion(): void
@@ -65,8 +65,8 @@ final class ExportFileRequestedHandlerTest extends TestCase
         $adapter->shouldReceive('export')
             ->once()
             ->with(
-                Mockery::on(fn (ExportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-123'),
-                'local',
+                Mockery::on(fn (ExportRunContextDTO $context): bool => $context->userId === 42 && $context->operationId === 'run-123'),
+                'exports',
             )
             ->andReturn('exports/vehicle-catalog-run-123.xlsx');
 
@@ -82,14 +82,14 @@ final class ExportFileRequestedHandlerTest extends TestCase
             ->with(Mockery::on(function (ExportCompletionNotificationDTO $payload): bool {
                 return $payload->userId === 42
                     && $payload->status === ExportCompletionStatusEnum::Completed
-                    && $payload->runId === 'run-123'
+                    && $payload->operationId === 'run-123'
                     && $payload->exportType === ExportTypeEnum::Vehicle
                     && $payload->path === 'exports/vehicle-catalog-run-123.xlsx';
             }));
 
         app(ExportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-123',
+            'operation_id' => 'run-123',
             'export_type' => 'vehicle_multi_sheet',
         ]);
     }
@@ -117,12 +117,12 @@ final class ExportFileRequestedHandlerTest extends TestCase
 
         app(ExportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-123',
+            'operation_id' => 'run-123',
         ]);
     }
 
     /**
-     * Проверяет идемпотентность по runId: повторная доставка одного и того же сообщения
+     * Проверяет идемпотентность по operationId: повторная доставка одного и того же сообщения
      * (например, ретрай брокера) не запускает экспорт дважды.
      *
      * Шаги:
@@ -131,10 +131,10 @@ final class ExportFileRequestedHandlerTest extends TestCase
      * 2. Мокает ExportFileFactoryInterface::make — возвращает этот адаптер.
      * 3. Мокает ExportNotificationServiceInterface — ожидает notifyExportCompleted() ровно
      *    один раз.
-     * 4. Дважды зовёт handle() с одинаковым payload (тот же run_id).
+     * 4. Дважды зовёт handle() с одинаковым payload (тот же operation_id).
      * 5. Mockery сам провалит тест, если export()/notifyExportCompleted() вызовутся дважды.
      */
-    public function test_duplicate_run_id_is_skipped(): void
+    public function test_duplicate_operation_id_is_skipped(): void
     {
         $adapter = Mockery::mock(FileExportInterface::class);
         $adapter->shouldReceive('export')->once()->andReturn('exports/vehicle-catalog-run-dup.xlsx');
@@ -147,7 +147,7 @@ final class ExportFileRequestedHandlerTest extends TestCase
 
         $payload = [
             'user_id' => 42,
-            'run_id' => 'run-dup',
+            'operation_id' => 'run-dup',
             'export_type' => 'vehicle_multi_sheet',
         ];
 

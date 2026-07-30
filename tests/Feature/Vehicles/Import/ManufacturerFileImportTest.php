@@ -27,7 +27,7 @@ final class ManufacturerFileImportTest extends TestCase
     {
         Event::fake([ManufacturerImportCompleted::class]);
 
-        $context = new ImportRunContextDTO(userId: 42, runId: 'run-manufacturers');
+        $context = new ImportRunContextDTO(userId: 42, operationId: 'run-manufacturers');
         $path = base_path('tests/Fixtures/manufacturers_provider_sample.csv');
 
         app(ManufacturerImportInterface::class)->import($path, $context);
@@ -48,7 +48,7 @@ final class ManufacturerFileImportTest extends TestCase
 
         Event::assertDispatched(
             ManufacturerImportCompleted::class,
-            fn (ManufacturerImportCompleted $event): bool => $event->userId === 42 && $event->runId === 'run-manufacturers',
+            fn (ManufacturerImportCompleted $event): bool => $event->userId === 42 && $event->operationId === 'run-manufacturers',
         );
     }
 
@@ -57,7 +57,7 @@ final class ManufacturerFileImportTest extends TestCase
         Event::fake([ManufacturerImportCompleted::class]);
         Cache::flush();
 
-        $context = new ImportRunContextDTO(userId: 42, runId: 'run-manufacturers-missing-provider');
+        $context = new ImportRunContextDTO(userId: 42, operationId: 'run-manufacturers-missing-provider');
         $path = base_path('tests/Fixtures/manufacturers_missing_provider_sample.csv');
 
         app(ManufacturerImportInterface::class)->import($path, $context);

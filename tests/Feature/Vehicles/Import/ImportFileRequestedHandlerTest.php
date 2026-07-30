@@ -39,9 +39,9 @@ final class ImportFileRequestedHandlerTest extends TestCase
      * Шаги:
      * 1. Подменяет files_disk на фейковый 's3' и кладёт туда файл по ожидаемому пути.
      * 2. Мокает VehicleMultiSheetImportInterface — ожидает import() с этим путём, диском 's3'
-     *    и ImportRunContextDTO(userId: 42, runId: 'run-123').
+     *    и ImportRunContextDTO(userId: 42, operationId: 'run-123').
      * 3. Зовёт handle() с валидным payload (import_type=vehicle_multi_sheet).
-     * 4. Проверяет, что cache-ключ отложенной очистки для этого runId создан.
+     * 4. Проверяет, что cache-ключ отложенной очистки для этого operationId создан.
      */
     public function test_starts_vehicle_multi_sheet_import_from_files_disk(): void
     {
@@ -54,13 +54,13 @@ final class ImportFileRequestedHandlerTest extends TestCase
             ->once()
             ->with(
                 'VehicleMultiSheet/vehicles.xlsx',
-                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-123'),
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->operationId === 'run-123'),
                 's3',
             );
 
         app(ImportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-123',
+            'operation_id' => 'run-123',
             'import_type' => 'vehicle_multi_sheet',
             'path' => 'VehicleMultiSheet/vehicles.xlsx',
         ]);
@@ -79,13 +79,13 @@ final class ImportFileRequestedHandlerTest extends TestCase
             ->once()
             ->with(
                 'VehicleMultiSheet/vehicles.xlsx',
-                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-local'),
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->operationId === 'run-local'),
                 'local',
             );
 
         app(ImportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-local',
+            'operation_id' => 'run-local',
             'import_type' => 'vehicle_multi_sheet',
             'disk' => 'local',
             'path' => 'VehicleMultiSheet/vehicles.xlsx',
@@ -105,13 +105,13 @@ final class ImportFileRequestedHandlerTest extends TestCase
             ->once()
             ->with(
                 'VehicleMultiSheet/vehicles.xlsx',
-                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-keep-local'),
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42 && $context->operationId === 'run-keep-local'),
                 'local',
             );
 
         app(ImportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-keep-local',
+            'operation_id' => 'run-keep-local',
             'import_type' => 'vehicle_multi_sheet',
             'disk' => 'local',
             'path' => 'VehicleMultiSheet/vehicles.xlsx',
@@ -146,7 +146,7 @@ final class ImportFileRequestedHandlerTest extends TestCase
 
         app(ImportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-123',
+            'operation_id' => 'run-123',
             'import_type' => 'vehicle_multi_sheet',
         ]);
 
@@ -154,15 +154,15 @@ final class ImportFileRequestedHandlerTest extends TestCase
     }
 
     /**
-     * Проверяет идемпотентность по runId: повторная доставка одного и того же сообщения
+     * Проверяет идемпотентность по operationId: повторная доставка одного и того же сообщения
      * (например, ретрай брокера) не запускает импорт дважды.
      *
      * Шаги:
      * 1. Мокает VehicleMultiSheetImportInterface — ожидает import() ровно один раз.
-     * 2. Дважды зовёт handle() с одинаковым payload (тот же run_id).
+     * 2. Дважды зовёт handle() с одинаковым payload (тот же operation_id).
      * 3. Mockery сам провалит тест, если import() будет вызван больше одного раза.
      */
-    public function test_duplicate_run_id_is_skipped(): void
+    public function test_duplicate_operation_id_is_skipped(): void
     {
         config(['filesystems.files_disk' => 's3']);
         Storage::fake('s3');
@@ -173,7 +173,7 @@ final class ImportFileRequestedHandlerTest extends TestCase
 
         $payload = [
             'user_id' => 42,
-            'run_id' => 'run-123',
+            'operation_id' => 'run-123',
             'import_type' => 'vehicle_multi_sheet',
             'path' => 'VehicleMultiSheet/vehicles.xlsx',
         ];
@@ -187,8 +187,8 @@ final class ImportFileRequestedHandlerTest extends TestCase
      * исходный файл на нужном диске и снимает саму инструкцию.
      *
      * Шаги:
-     * 1. Кладёт файл на фейковый диск 's3' и заранее пишет cache-инструкцию очистки для runId.
-     * 2. Зовёт cleanup(runId) напрямую (не через Handler).
+     * 1. Кладёт файл на фейковый диск 's3' и заранее пишет cache-инструкцию очистки для operationId.
+     * 2. Зовёт cleanup(operationId) напрямую (не через Handler).
      * 3. Проверяет, что файл удалён с диска.
      * 4. Проверяет, что cache-инструкция очистки тоже снята (не остаётся мусора).
      */
@@ -239,8 +239,8 @@ final class ImportFileRequestedHandlerTest extends TestCase
         $this->assertContains('crm.spark-plugs.import', $bindings);
     }
 
-    private function cleanupCacheKey(string $runId): string
+    private function cleanupCacheKey(string $operationId): string
     {
-        return sprintf((string) config('vehicles.import.external.cache.keys.cleanup'), $runId);
+        return sprintf((string) config('vehicles.import.external.cache.keys.cleanup'), $operationId);
     }
 }

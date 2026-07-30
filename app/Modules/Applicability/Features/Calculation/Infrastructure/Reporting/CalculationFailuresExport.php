@@ -18,7 +18,7 @@ final readonly class CalculationFailuresExport implements FromCollection, WithHe
     public function collection(): Collection
     {
         return collect($this->result->errors)->map(fn (string $error, int $index): array => [
-            $this->result->runId,
+            $this->result->operationId,
             $index + 1,
             $error,
         ]);

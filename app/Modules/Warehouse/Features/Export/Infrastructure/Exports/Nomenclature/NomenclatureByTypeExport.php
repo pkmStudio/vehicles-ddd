@@ -37,7 +37,7 @@ final readonly class NomenclatureByTypeExport implements NomenclatureByTypeExpor
             key: 'warehouse.export.output.directory',
             default: 'exports',
         );
-        $path = sprintf('%s/warehouse-nomenclature-type-%d-%s.xlsx', $directory, $this->typeId, $context->runId);
+        $path = sprintf('%s/warehouse-nomenclature-type-%d-%s.xlsx', $directory, $this->typeId, $context->operationId);
 
         ExcelFacade::store(
             export: $this,

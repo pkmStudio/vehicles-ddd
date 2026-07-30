@@ -40,7 +40,7 @@ final readonly class KitExport implements KitExportInterface, WithMultipleSheets
             key: 'warehouse.export.output.directory',
             default: 'exports',
         );
-        $path = sprintf('%s/warehouse-kits-%s.xlsx', $directory, $context->runId);
+        $path = sprintf('%s/warehouse-kits-%s.xlsx', $directory, $context->operationId);
 
         ExcelFacade::store(
             export: $this,

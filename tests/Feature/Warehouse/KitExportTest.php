@@ -105,7 +105,7 @@ final class KitExportTest extends TestCase
 
         $context = new ExportRunContextDTO(
             userId: 1,
-            runId: 'warehouse-kits',
+            operationId: 'warehouse-kits',
         );
 
         $export = app(KitExportInterface::class);
@@ -241,7 +241,7 @@ final class KitExportTest extends TestCase
         );
         $context = new ExportRunContextDTO(
             userId: 1,
-            runId: 'warehouse-kits-filtered',
+            operationId: 'warehouse-kits-filtered',
         );
         $export = app()->makeWith(
             abstract: KitExportInterface::class,

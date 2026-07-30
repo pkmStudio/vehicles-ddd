@@ -44,7 +44,7 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
 
     private ?int $userId = null;
 
-    private ?string $runId = null;
+    private ?string $operationId = null;
 
     /**
      * Получает построчный сервис импорта и справочники типов/брендов.
@@ -59,24 +59,24 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     /**
      * Этот метод запускает Excel-импорт файла в рамках прогона, описанного контекстом.
      * Шаги:
-     * 1) Сохранить userId/runId контекста и вычислить cache-ключи по runId.
+     * 1) Сохранить userId/operationId контекста и вычислить cache-ключи по operationId.
      * 2) Передать себя в Excel::import — чанки будут обработаны в очереди (ShouldQueue).
      */
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
         $this->userId = $context->userId;
-        $this->runId = $context->runId;
+        $this->operationId = $context->operationId;
         $this->cacheKey = sprintf(
             (string) config(
                 key: 'warehouse.import.failures.cache.keys.nomenclature_import_failures',
             ),
-            $context->runId,
+            $context->operationId,
         );
         $this->lockKey = sprintf(
             (string) config(
                 key: 'warehouse.import.failures.cache.keys.nomenclature_import_failures_lock',
             ),
-            $context->runId,
+            $context->operationId,
         );
 
         Excel::import(
@@ -159,7 +159,7 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
             AfterImport::class => fn () => event(new NomenclatureImportCompleted(
                 userId: $this->userId,
                 cacheKey: $this->cacheKey,
-                runId: $this->runId,
+                operationId: $this->operationId,
             )),
         ];
     }
@@ -172,7 +172,7 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     private function dispatchNomenclatureMutationEvent(array $nomenclature, bool $wasExisting): void
     {
         $userId = $this->userId ?? 0;
-        $operationId = $this->runId ?? 'warehouse-nomenclature-import';
+        $operationId = $this->operationId ?? 'warehouse-nomenclature-import';
 
         if ($wasExisting) {
             event(new NomenclatureUpdated(

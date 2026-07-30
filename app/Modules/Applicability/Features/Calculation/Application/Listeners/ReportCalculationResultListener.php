@@ -34,7 +34,7 @@ final readonly class ReportCalculationResultListener
             status: $reportPath === null
                 ? CalculationCompletionStatusEnum::COMPLETED
                 : CalculationCompletionStatusEnum::COMPLETED_WITH_FAILURES,
-            runId: $event->runId,
+            operationId: $event->operationId,
             processedKits: $event->result->processedKits,
             calculatedKits: $event->result->calculatedKits,
             skippedKits: $event->result->skippedKits,
@@ -45,7 +45,7 @@ final readonly class ReportCalculationResultListener
 
         if ($reportPath === null) {
             $this->logger->info('Applicability calculation completed', [
-                'run_id' => $event->runId,
+                'operation_id' => $event->operationId,
                 'processed_kits' => $event->result->processedKits,
                 'calculated_kits' => $event->result->calculatedKits,
                 'skipped_kits' => $event->result->skippedKits,
@@ -56,7 +56,7 @@ final readonly class ReportCalculationResultListener
         }
 
         $this->logger->warning('Applicability calculation completed with failures', [
-            'run_id' => $event->runId,
+            'operation_id' => $event->operationId,
             'processed_kits' => $event->result->processedKits,
             'calculated_kits' => $event->result->calculatedKits,
             'skipped_kits' => $event->result->skippedKits,

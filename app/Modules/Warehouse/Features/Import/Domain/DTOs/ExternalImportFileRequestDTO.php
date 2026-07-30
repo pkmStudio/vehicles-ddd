@@ -16,7 +16,7 @@ final readonly class ExternalImportFileRequestDTO
      */
     public function __construct(
         public int $userId,
-        public string $runId,
+        public string $operationId,
         public ImportTypeEnum $importType,
         public string $disk,
         public string $path,

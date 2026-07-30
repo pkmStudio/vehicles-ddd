@@ -6,7 +6,7 @@ namespace App\Modules\Applicability\Features\Export\Domain\Contracts\Services\Ex
 
 interface ExportRunCacheServiceInterface
 {
-    public function accept(string $runId): bool;
+    public function accept(string $operationId): bool;
 
-    public function forgetAccepted(string $runId): void;
+    public function forgetAccepted(string $operationId): void;
 }

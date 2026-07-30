@@ -45,13 +45,13 @@ final class ReportImportResultListenerTest extends TestCase
                 return $payload->status === ImportCompletionStatusEnum::Failed
                     && $payload->importType === ImportTypeEnum::Nomenclature
                     && $payload->userId === 42
-                    && $payload->runId === 'test-run'
+                    && $payload->operationId === 'test-run'
                     && is_string($payload->failuresReportPath)
                     && str_starts_with($payload->failuresReportPath, 'exports/warehouse-import-failures');
             }));
 
         app(ReportImportResultListener::class)->handle(
-            new NomenclatureImportCompleted(userId: 42, cacheKey: $cacheKey, runId: 'test-run'),
+            new NomenclatureImportCompleted(userId: 42, cacheKey: $cacheKey, operationId: 'test-run'),
         );
 
         $this->assertFalse(Cache::has($cacheKey));
@@ -71,7 +71,7 @@ final class ReportImportResultListenerTest extends TestCase
             }));
 
         app(ReportImportResultListener::class)->handle(
-            new PackDimensionImportCompleted(userId: null, cacheKey: $cacheKey, runId: null),
+            new PackDimensionImportCompleted(userId: null, cacheKey: $cacheKey, operationId: null),
         );
     }
 }

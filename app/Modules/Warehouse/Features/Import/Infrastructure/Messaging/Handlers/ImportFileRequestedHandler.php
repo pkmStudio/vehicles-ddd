@@ -56,7 +56,7 @@ final readonly class ImportFileRequestedHandler
 
         $request = new ExternalImportFileRequestDTO(
             userId: (int) $data['user_id'],
-            runId: (string) $data['run_id'],
+            operationId: (string) $data['operation_id'],
             importType: ImportTypeEnum::from((string) $data['import_type']),
             disk: (string) ($data['disk'] ?? config(
                 key: 'filesystems.files_disk',

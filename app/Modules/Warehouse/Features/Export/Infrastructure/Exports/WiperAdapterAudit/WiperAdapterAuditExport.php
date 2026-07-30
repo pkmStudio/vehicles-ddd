@@ -44,7 +44,7 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
             key: 'warehouse.export.output.directory',
             default: 'exports',
         );
-        $path = sprintf('%s/warehouse-wiper-adapter-audit-%s.xlsx', $directory, $context->runId);
+        $path = sprintf('%s/warehouse-wiper-adapter-audit-%s.xlsx', $directory, $context->operationId);
 
         ExcelFacade::store(
             export: $this,

@@ -24,15 +24,15 @@ final readonly class CleanupExternalImportFileListener
     ) {}
 
     /**
-     * Этот метод удаляет файл, если для этого runId было запомнено задание на очистку.
+     * Этот метод удаляет файл, если для этого operationId было запомнено задание на очистку.
      */
     public function handle(AbstractImportCompleted $event): void
     {
-        if ($event->runId === null) {
+        if ($event->operationId === null) {
             return;
         }
 
-        $cleanup = $this->cache->pullCleanup($event->runId);
+        $cleanup = $this->cache->pullCleanup($event->operationId);
 
         if ($cleanup === null) {
             return;

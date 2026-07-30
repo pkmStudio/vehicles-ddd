@@ -9,11 +9,11 @@ use App\Modules\Applicability\Features\Import\Domain\DTOs\ExternalImportFileRequ
 
 interface ExternalImportCacheServiceInterface
 {
-    public function accept(string $runId): bool;
+    public function accept(string $operationId): bool;
 
-    public function forgetAccepted(string $runId): void;
+    public function forgetAccepted(string $operationId): void;
 
     public function rememberCleanup(ExternalImportFileRequestDTO $request): void;
 
-    public function pullCleanup(string $runId): ?ExternalImportFileCleanupDTO;
+    public function pullCleanup(string $operationId): ?ExternalImportFileCleanupDTO;
 }

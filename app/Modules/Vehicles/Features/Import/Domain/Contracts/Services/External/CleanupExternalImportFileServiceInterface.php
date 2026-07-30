@@ -10,7 +10,7 @@ namespace App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Externa
 interface CleanupExternalImportFileServiceInterface
 {
     /**
-     * Удалить исходный файл, связанный с runId, если такая инструкция была сохранена.
+     * Удалить исходный файл, связанный с operationId, если такая инструкция была сохранена.
      */
-    public function cleanup(?string $runId): void;
+    public function cleanup(?string $operationId): void;
 }

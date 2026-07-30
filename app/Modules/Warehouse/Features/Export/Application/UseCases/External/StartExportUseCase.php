@@ -32,14 +32,14 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
      * Принимает внешний запрос, создаёт файл экспорта и публикует статус завершения.
      *
      * Шаги:
-     * 1) Проверить runId через cache, чтобы повтор брокера не запустил экспорт второй раз.
+     * 1) Проверить operationId через cache, чтобы повтор брокера не запустил экспорт второй раз.
      * 2) Собрать контекст и выбрать Excel-адаптер по типу запроса.
      * 3) На ошибке снять cache-флаг, отправить failed-уведомление и пробросить исключение.
      * 4) После успешной записи файла отправить completed-уведомление с путём файла.
      */
     public function execute(ExportFileRequestDTO $request): void
     {
-        $runAccepted = $this->cache->accept($request->runId);
+        $runAccepted = $this->cache->accept($request->operationId);
 
         if (! $runAccepted) {
             return;
@@ -48,7 +48,7 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
         try {
             $context = new ExportRunContextDTO(
                 userId: $request->userId,
-                runId: $request->runId,
+                operationId: $request->operationId,
             );
             $export = $this->exportFactory->make(
                 type: $request->exportType,
@@ -61,13 +61,13 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
                 disk: $request->disk,
             );
         } catch (Throwable $e) {
-            $this->cache->forgetAccepted($request->runId);
+            $this->cache->forgetAccepted($request->operationId);
 
             $failedNotification = new ExportCompletionNotificationDTO(
                 userId: $request->userId,
                 status: ExportCompletionStatusEnum::Failed,
                 exportType: $request->exportType,
-                runId: $request->runId,
+                operationId: $request->operationId,
                 disk: $request->disk,
                 typeId: $request->typeId,
             );
@@ -80,7 +80,7 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
             userId: $request->userId,
             status: ExportCompletionStatusEnum::Completed,
             exportType: $request->exportType,
-            runId: $request->runId,
+            operationId: $request->operationId,
             disk: $request->disk,
             path: $path,
             typeId: $request->typeId,

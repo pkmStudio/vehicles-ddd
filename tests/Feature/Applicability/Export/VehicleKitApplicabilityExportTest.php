@@ -21,7 +21,7 @@ final class VehicleKitApplicabilityExportTest extends TestCase
 
         $context = new ExportRunContextDTO(
             userId: 1,
-            runId: 'applicability-export',
+            operationId: 'applicability-export',
         );
 
         $export = app(VehicleKitApplicabilityExportInterface::class);

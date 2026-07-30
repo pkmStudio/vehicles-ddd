@@ -37,7 +37,7 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
 
     private ?int $userId = null;
 
-    private ?string $runId = null;
+    private ?string $operationId = null;
 
     /**
      * Получает построчный сервис импорта упаковочных размеров.
@@ -49,24 +49,24 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
     /**
      * Этот метод запускает Excel-импорт файла в рамках прогона, описанного контекстом.
      * Шаги:
-     * 1) Сохранить userId/runId контекста и вычислить cache-ключи по runId.
+     * 1) Сохранить userId/operationId контекста и вычислить cache-ключи по operationId.
      * 2) Передать себя в Excel::import — чанки будут обработаны в очереди (ShouldQueue).
      */
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
         $this->userId = $context->userId;
-        $this->runId = $context->runId;
+        $this->operationId = $context->operationId;
         $this->cacheKey = sprintf(
             (string) config(
                 key: 'warehouse.import.failures.cache.keys.pack_dimension_import_failures',
             ),
-            $context->runId,
+            $context->operationId,
         );
         $this->lockKey = sprintf(
             (string) config(
                 key: 'warehouse.import.failures.cache.keys.pack_dimension_import_failures_lock',
             ),
-            $context->runId,
+            $context->operationId,
         );
 
         Excel::import(
@@ -136,7 +136,7 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
             AfterImport::class => fn () => event(new PackDimensionImportCompleted(
                 userId: $this->userId,
                 cacheKey: $this->cacheKey,
-                runId: $this->runId,
+                operationId: $this->operationId,
             )),
         ];
     }

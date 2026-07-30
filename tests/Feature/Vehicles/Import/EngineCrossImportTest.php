@@ -38,7 +38,7 @@ final class EngineCrossImportTest extends TestCase
 
         $engine = Engine::query()->create(['eng_id' => 500, 'code_engine' => 'M54B30']);
 
-        $context = new ImportRunContextDTO(userId: 42, runId: 'test-run-cross');
+        $context = new ImportRunContextDTO(userId: 42, operationId: 'test-run-cross');
         $path = base_path('tests/Fixtures/engine_groups_sample.csv');
 
         app(EngineCrossImportInterface::class)->import($path, $context);

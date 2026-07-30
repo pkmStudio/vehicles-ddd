@@ -91,7 +91,7 @@ final class NomenclatureByTypeExportTest extends TestCase
 
         $context = new ExportRunContextDTO(
             userId: 1,
-            runId: 'warehouse-nomenclature',
+            operationId: 'warehouse-nomenclature',
         );
 
         $export = app()->makeWith(

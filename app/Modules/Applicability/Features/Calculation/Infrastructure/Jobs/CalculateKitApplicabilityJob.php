@@ -15,7 +15,7 @@ final class CalculateKitApplicabilityJob implements ShouldQueue
     public function __construct(
         private readonly ?int $kitId = null,
         private readonly int $chunk = 1000,
-        private readonly ?string $runId = null,
+        private readonly ?string $operationId = null,
     ) {}
 
     public function handle(CalculateKitApplicabilityUseCaseInterface $useCase): void
@@ -23,7 +23,7 @@ final class CalculateKitApplicabilityJob implements ShouldQueue
         $useCase->execute(
             kitId: $this->kitId,
             chunk: $this->chunk,
-            runId: $this->runId,
+            operationId: $this->operationId,
         );
     }
 }

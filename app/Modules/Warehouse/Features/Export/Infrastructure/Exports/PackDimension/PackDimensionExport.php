@@ -35,7 +35,7 @@ final readonly class PackDimensionExport implements PackDimensionExportInterface
             key: 'warehouse.export.output.directory',
             default: 'exports',
         );
-        $path = sprintf('%s/warehouse-pack-dimensions-%s.xlsx', $directory, $context->runId);
+        $path = sprintf('%s/warehouse-pack-dimensions-%s.xlsx', $directory, $context->operationId);
 
         ExcelFacade::store(
             export: $this,

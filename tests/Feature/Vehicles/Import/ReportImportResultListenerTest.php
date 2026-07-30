@@ -30,8 +30,8 @@ final class ReportImportResultListenerTest extends TestCase
      * Шаги:
      * 1. Подменяет диск 'exports' на фейковый и кладёт в cache одну построчную ошибку импорта.
      * 2. Мокает FileNotificationServiceInterface — ожидает notifyImportCompleted() с
-     *    userId/runId/errorsCount и путём, начинающимся с 'exports/import-failures'.
-     * 3. Зовёт handle() с VehicleImportCompleted(userId: 42, cacheKey, runId: 'run-123').
+     *    userId/operationId/errorsCount и путём, начинающимся с 'exports/import-failures'.
+     * 3. Зовёт handle() с VehicleImportCompleted(userId: 42, cacheKey, operationId: 'run-123').
      * 4. Проверяет, что cache-запись с ошибками снята после обработки.
      */
     public function test_exports_failures_and_notifies_user(): void
@@ -50,7 +50,7 @@ final class ReportImportResultListenerTest extends TestCase
                 Mockery::on(
                     fn (ImportCompletionNotificationDTO $payload) => $payload->userId === 42
                         && $payload->status === ImportCompletionStatusEnum::CompletedWithErrors
-                        && $payload->runId === 'run-123'
+                        && $payload->operationId === 'run-123'
                         && $payload->errorsCount === 1
                         && is_string($payload->path)
                         && str_starts_with($payload->path, 'exports/import-failures'),
@@ -58,7 +58,7 @@ final class ReportImportResultListenerTest extends TestCase
             );
 
         $listener = app(ReportImportResultListener::class);
-        $listener->handle(new VehicleImportCompleted(userId: 42, cacheKey: $cacheKey, runId: 'run-123'));
+        $listener->handle(new VehicleImportCompleted(userId: 42, cacheKey: $cacheKey, operationId: 'run-123'));
 
         $this->assertFalse(Cache::has($cacheKey));
     }
@@ -71,7 +71,7 @@ final class ReportImportResultListenerTest extends TestCase
      * 1. Не кладёт в cache никаких ошибок для данного cacheKey.
      * 2. Мокает FileNotificationServiceInterface — ожидает notifyImportCompleted() со статусом
      *    Completed, errorsCount=0 и path=null.
-     * 3. Зовёт handle() с VehicleImportCompleted(userId: 42, cacheKey, runId: 'run-456').
+     * 3. Зовёт handle() с VehicleImportCompleted(userId: 42, cacheKey, operationId: 'run-456').
      * 4. Проверяет, что cache-ключ (которого и так не было) остаётся отсутствующим.
      */
     public function test_does_not_notify_when_no_failures(): void
@@ -85,14 +85,14 @@ final class ReportImportResultListenerTest extends TestCase
                 Mockery::on(
                     fn (ImportCompletionNotificationDTO $payload) => $payload->userId === 42
                         && $payload->status === ImportCompletionStatusEnum::Completed
-                        && $payload->runId === 'run-456'
+                        && $payload->operationId === 'run-456'
                         && $payload->errorsCount === 0
                         && $payload->path === null,
                 ),
             );
 
         $listener = app(ReportImportResultListener::class);
-        $listener->handle(new VehicleImportCompleted(userId: 42, cacheKey: $cacheKey, runId: 'run-456'));
+        $listener->handle(new VehicleImportCompleted(userId: 42, cacheKey: $cacheKey, operationId: 'run-456'));
 
         $this->assertFalse(Cache::has($cacheKey));
     }

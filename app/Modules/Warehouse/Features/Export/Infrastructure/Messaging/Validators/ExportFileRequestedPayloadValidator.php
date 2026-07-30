@@ -32,7 +32,7 @@ final readonly class ExportFileRequestedPayloadValidator
             data: $data,
             rules: [
                 'user_id' => ['required', 'integer', 'min:1'],
-                'run_id' => ['required', 'string', 'max:128'],
+                'operation_id' => ['required', 'string', 'max:128'],
                 'export_type' => ['required', 'string', Rule::in($this->exportTypes())],
                 'type_id' => [
                     Rule::requiredIf(($data['export_type'] ?? null) === ExportTypeEnum::NomenclatureByType->value),

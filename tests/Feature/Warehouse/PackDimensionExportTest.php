@@ -40,7 +40,7 @@ final class PackDimensionExportTest extends TestCase
 
         $context = new ExportRunContextDTO(
             userId: 1,
-            runId: 'warehouse-pack-dimensions',
+            operationId: 'warehouse-pack-dimensions',
         );
 
         $path = app(PackDimensionExportInterface::class)->export(

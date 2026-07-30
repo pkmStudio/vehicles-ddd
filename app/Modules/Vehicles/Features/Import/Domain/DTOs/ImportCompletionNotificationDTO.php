@@ -14,20 +14,20 @@ final readonly class ImportCompletionNotificationDTO
     public function __construct(
         public int $userId,
         public ImportCompletionStatusEnum $status,
-        public ?string $runId = null,
+        public ?string $operationId = null,
         public int $errorsCount = 0,
         public ?string $path = null,
     ) {
     }
 
     /**
-     * @return array{user_id: int, run_id: ?string, status: string, errors_count: int, path: ?string}
+     * @return array{user_id: int, operation_id: ?string, status: string, errors_count: int, path: ?string}
      */
     public function toArray(): array
     {
         return [
             'user_id' => $this->userId,
-            'run_id' => $this->runId,
+            'operation_id' => $this->operationId,
             'status' => $this->status->value,
             'errors_count' => $this->errorsCount,
             'path' => $this->path,

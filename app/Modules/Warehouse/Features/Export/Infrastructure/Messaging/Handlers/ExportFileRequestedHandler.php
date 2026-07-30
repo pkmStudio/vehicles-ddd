@@ -64,7 +64,7 @@ final readonly class ExportFileRequestedHandler
 
         $request = new ExportFileRequestDTO(
             userId: (int) $data['user_id'],
-            runId: (string) $data['run_id'],
+            operationId: (string) $data['operation_id'],
             exportType: $exportType,
             disk: $outputDisk,
             typeId: isset($data['type_id']) ? (int) $data['type_id'] : null,

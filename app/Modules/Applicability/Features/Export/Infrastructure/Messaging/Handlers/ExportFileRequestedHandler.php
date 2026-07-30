@@ -33,7 +33,7 @@ final readonly class ExportFileRequestedHandler
 
         $this->useCase->execute(new ExportFileRequestDTO(
             userId: (int) $data['user_id'],
-            runId: (string) $data['run_id'],
+            operationId: (string) $data['operation_id'],
             exportType: ExportTypeEnum::from((string) $data['export_type']),
             disk: (string) config('applicability.export.output.disk', 'local'),
         ));

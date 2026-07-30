@@ -26,7 +26,7 @@ final class ExternalImportCacheServiceTest extends TestCase
         $service = new ExternalImportCacheService;
         $service->rememberCleanup(new ExternalImportFileRequestDTO(
             userId: 1,
-            runId: 'run-1',
+            operationId: 'run-1',
             importType: ImportTypeEnum::Nomenclature,
             disk: 's3',
             path: 'warehouse/file.xlsx',
@@ -50,7 +50,7 @@ final class ExternalImportCacheServiceTest extends TestCase
         $service = new ExternalImportCacheService;
         $service->rememberCleanup(new ExternalImportFileRequestDTO(
             userId: 1,
-            runId: 'run-2',
+            operationId: 'run-2',
             importType: ImportTypeEnum::Nomenclature,
             disk: 's3',
             path: 'warehouse/file.xlsx',

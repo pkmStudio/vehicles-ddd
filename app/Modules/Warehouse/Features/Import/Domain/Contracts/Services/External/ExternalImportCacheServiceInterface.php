@@ -13,15 +13,15 @@ use App\Modules\Warehouse\Features\Import\Domain\DTOs\ExternalImportFileRequestD
 interface ExternalImportCacheServiceInterface
 {
     /**
-     * Принимает runId только один раз в пределах cache TTL.
+     * Принимает operationId только один раз в пределах cache TTL.
      */
-    public function accept(string $runId): bool;
+    public function accept(string $operationId): bool;
 
     /**
-     * Снимает флаг принятого runId после неуспешного запуска — повтор сообщения из брокера
+     * Снимает флаг принятого operationId после неуспешного запуска — повтор сообщения из брокера
      * сможет попробовать снова.
      */
-    public function forgetAccepted(string $runId): void;
+    public function forgetAccepted(string $operationId): void;
 
     /**
      * Запоминает disk+path исходного файла, чтобы удалить его после завершения импорта.
@@ -29,7 +29,7 @@ interface ExternalImportCacheServiceInterface
     public function rememberCleanup(ExternalImportFileRequestDTO $request): void;
 
     /**
-     * Забирает и удаляет из cache запомненное задание на очистку файла для runId, если оно есть.
+     * Забирает и удаляет из cache запомненное задание на очистку файла для operationId, если оно есть.
      */
-    public function pullCleanup(string $runId): ?ExternalImportFileCleanupDTO;
+    public function pullCleanup(string $operationId): ?ExternalImportFileCleanupDTO;
 }

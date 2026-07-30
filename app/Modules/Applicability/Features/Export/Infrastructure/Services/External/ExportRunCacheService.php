@@ -17,24 +17,24 @@ final readonly class ExportRunCacheService implements ExportRunCacheServiceInter
     ) {}
 
     /**
-     * Атомарно принимает runId внешнего экспорта.
+     * Атомарно принимает operationId внешнего экспорта.
      */
-    public function accept(string $runId): bool
+    public function accept(string $operationId): bool
     {
-        return $this->cache->store()->add($this->acceptedKey($runId), true, now()->addSeconds($this->ttlSeconds()));
+        return $this->cache->store()->add($this->acceptedKey($operationId), true, now()->addSeconds($this->ttlSeconds()));
     }
 
     /**
-     * Снимает отметку принятого runId после ошибки запуска.
+     * Снимает отметку принятого operationId после ошибки запуска.
      */
-    public function forgetAccepted(string $runId): void
+    public function forgetAccepted(string $operationId): void
     {
-        $this->cache->store()->forget($this->acceptedKey($runId));
+        $this->cache->store()->forget($this->acceptedKey($operationId));
     }
 
-    private function acceptedKey(string $runId): string
+    private function acceptedKey(string $operationId): string
     {
-        return sprintf((string) config('applicability.export.external.cache.keys.accepted'), $runId);
+        return sprintf((string) config('applicability.export.external.cache.keys.accepted'), $operationId);
     }
 
     private function ttlSeconds(): int

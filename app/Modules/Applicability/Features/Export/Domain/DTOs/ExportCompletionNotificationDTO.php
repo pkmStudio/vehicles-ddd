@@ -13,13 +13,13 @@ final readonly class ExportCompletionNotificationDTO
         public int $userId,
         public ExportCompletionStatusEnum $status,
         public ExportTypeEnum $exportType,
-        public ?string $runId = null,
+        public ?string $operationId = null,
         public ?string $disk = null,
         public ?string $path = null,
     ) {}
 
     /**
-     * @return array{user_id: int, status: string, export_type: string, run_id: ?string, disk: ?string, path: ?string}
+     * @return array{user_id: int, status: string, export_type: string, operation_id: ?string, disk: ?string, path: ?string}
      */
     public function toArray(): array
     {
@@ -27,7 +27,7 @@ final readonly class ExportCompletionNotificationDTO
             'user_id' => $this->userId,
             'status' => $this->status->value,
             'export_type' => $this->exportType->value,
-            'run_id' => $this->runId,
+            'operation_id' => $this->operationId,
             'disk' => $this->disk,
             'path' => $this->path,
         ];

@@ -22,16 +22,16 @@ final class CalculateKitApplicabilityCommand extends Command
     {
         $kitId = $this->option('kit-id') === null ? null : (int) $this->option('kit-id');
         $chunk = max(1, (int) $this->option('chunk'));
-        $runId = (string) Str::uuid();
+        $operationId = (string) Str::uuid();
 
         if ((bool) $this->option('queue')) {
             CalculateKitApplicabilityJob::dispatch(
                 kitId: $kitId,
                 chunk: $chunk,
-                runId: $runId,
+                operationId: $operationId,
             );
 
-            $this->info("Расчёт применяемости поставлен в очередь, runId={$runId}");
+            $this->info("Расчёт применяемости поставлен в очередь, operationId={$operationId}");
 
             return self::SUCCESS;
         }
@@ -39,12 +39,12 @@ final class CalculateKitApplicabilityCommand extends Command
         $result = $useCase->execute(
             kitId: $kitId,
             chunk: $chunk,
-            runId: $runId,
+            operationId: $operationId,
         );
 
         $this->info(sprintf(
-            'runId=%s processed=%d calculated=%d skipped=%d failed=%d',
-            $result->runId,
+            'operationId=%s processed=%d calculated=%d skipped=%d failed=%d',
+            $result->operationId,
             $result->processedKits,
             $result->calculatedKits,
             $result->skippedKits,

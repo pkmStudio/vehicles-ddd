@@ -13,7 +13,7 @@ final class RequestKitImport extends RequestLocalImportCommand
         {path : Относительный путь к файлу на Storage disk}
         {--disk=local : Laravel Storage disk, где лежит файл}
         {--user-id=1 : ID инициатора для отчёта об импорте}
-        {--run-id= : Идемпотентный ID прогона; по умолчанию UUID}';
+        {--operation-id= : Идемпотентный ID прогона; по умолчанию UUID}';
 
     protected $description = 'Опубликовать RabbitMQ-запрос импорта Warehouse-наборов из локального Storage';
 

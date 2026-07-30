@@ -54,8 +54,8 @@ final class ExportFileRequestedHandlerTest extends TestCase
         $adapter->shouldReceive('export')
             ->once()
             ->with(
-                Mockery::on(fn (ExportRunContextDTO $context): bool => $context->userId === 42 && $context->runId === 'run-123'),
-                'local',
+                Mockery::on(fn (ExportRunContextDTO $context): bool => $context->userId === 42 && $context->operationId === 'run-123'),
+                'exports',
             )
             ->andReturn('exports/warehouse-nomenclature-type-2-run-123.xlsx');
 
@@ -71,7 +71,7 @@ final class ExportFileRequestedHandlerTest extends TestCase
             ->with(Mockery::on(function (ExportCompletionNotificationDTO $payload): bool {
                 return $payload->userId === 42
                     && $payload->status === ExportCompletionStatusEnum::Completed
-                    && $payload->runId === 'run-123'
+                    && $payload->operationId === 'run-123'
                     && $payload->exportType === ExportTypeEnum::NomenclatureByType
                     && $payload->typeId === 2
                     && $payload->path === 'exports/warehouse-nomenclature-type-2-run-123.xlsx';
@@ -79,7 +79,7 @@ final class ExportFileRequestedHandlerTest extends TestCase
 
         app(ExportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-123',
+            'operation_id' => 'run-123',
             'export_type' => 'nomenclature_by_type',
             'type_id' => 2,
         ]);
@@ -102,15 +102,15 @@ final class ExportFileRequestedHandlerTest extends TestCase
 
         app(ExportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-123',
+            'operation_id' => 'run-123',
             'export_type' => 'nomenclature_by_type',
         ]);
     }
 
     /**
-     * Проверяет, что повтор одного runId не запускает второй экспорт.
+     * Проверяет, что повтор одного operationId не запускает второй экспорт.
      */
-    public function test_duplicate_run_id_is_skipped(): void
+    public function test_duplicate_operation_id_is_skipped(): void
     {
         $adapter = Mockery::mock(FileExportInterface::class);
         $adapter->shouldReceive('export')->once()->andReturn('exports/warehouse-kits-run-dup.xlsx');
@@ -131,7 +131,7 @@ final class ExportFileRequestedHandlerTest extends TestCase
 
         $payload = [
             'user_id' => 42,
-            'run_id' => 'run-dup',
+            'operation_id' => 'run-dup',
             'export_type' => 'kit',
         ];
 
@@ -173,7 +173,7 @@ final class ExportFileRequestedHandlerTest extends TestCase
 
         app(ExportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-filters',
+            'operation_id' => 'run-filters',
             'export_type' => 'kit',
             'filters' => [
                 'ids' => [10, 20],
@@ -214,7 +214,7 @@ final class ExportFileRequestedHandlerTest extends TestCase
 
         app(ExportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-adapter-audit',
+            'operation_id' => 'run-adapter-audit',
             'export_type' => 'wiper_adapter_audit',
         ]);
     }
@@ -243,7 +243,7 @@ final class ExportFileRequestedHandlerTest extends TestCase
 
         app(ExportFileRequestedHandler::class)->handle([
             'user_id' => 42,
-            'run_id' => 'run-pack-dimensions',
+            'operation_id' => 'run-pack-dimensions',
             'export_type' => 'pack_dimension',
         ]);
     }

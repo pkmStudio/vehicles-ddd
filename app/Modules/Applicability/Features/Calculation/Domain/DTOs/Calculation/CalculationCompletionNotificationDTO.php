@@ -10,7 +10,7 @@ final readonly class CalculationCompletionNotificationDTO
 {
     public function __construct(
         public CalculationCompletionStatusEnum $status,
-        public string $runId,
+        public string $operationId,
         public int $processedKits,
         public int $calculatedKits,
         public int $skippedKits,
@@ -20,13 +20,13 @@ final readonly class CalculationCompletionNotificationDTO
     ) {}
 
     /**
-     * @return array{status: string, run_id: string, processed_kits: int, calculated_kits: int, skipped_kits: int, failed_kits: int, failures_report_path: ?string, failures_report_disk: ?string}
+     * @return array{status: string, operation_id: string, processed_kits: int, calculated_kits: int, skipped_kits: int, failed_kits: int, failures_report_path: ?string, failures_report_disk: ?string}
      */
     public function toArray(): array
     {
         return [
             'status' => $this->status->value,
-            'run_id' => $this->runId,
+            'operation_id' => $this->operationId,
             'processed_kits' => $this->processedKits,
             'calculated_kits' => $this->calculatedKits,
             'skipped_kits' => $this->skippedKits,

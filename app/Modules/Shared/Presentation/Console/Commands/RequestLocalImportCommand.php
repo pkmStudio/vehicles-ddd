@@ -48,7 +48,7 @@ abstract class RequestLocalImportCommand extends Command
     {
         $path = trim((string) $this->argument('path'));
         $disk = trim((string) ($this->option('disk') ?? 'local'));
-        $runId = trim((string) ($this->option('run-id') ?: Str::uuid()));
+        $operationId = trim((string) ($this->option('operation-id') ?: Str::uuid()));
         $userId = (int) $this->option('user-id');
 
         if ($userId < 1) {
@@ -80,7 +80,7 @@ abstract class RequestLocalImportCommand extends Command
                 name: $this->eventName(),
                 data: [
                     'user_id' => $userId,
-                    'run_id' => $runId,
+                    'operation_id' => $operationId,
                     'import_type' => $this->importType(),
                     'disk' => $disk,
                     'path' => $path,
@@ -97,10 +97,10 @@ abstract class RequestLocalImportCommand extends Command
         }
 
         $this->info(sprintf(
-            'RabbitMQ-запрос импорта опубликован: event=%s routing_key=%s runId=%s disk=%s path=%s',
+            'RabbitMQ-запрос импорта опубликован: event=%s routing_key=%s operationId=%s disk=%s path=%s',
             $this->eventName(),
             $this->routingKey(),
-            $runId,
+            $operationId,
             $disk,
             $path,
         ));

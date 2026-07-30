@@ -26,7 +26,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
         private LoggerInterface $logger,
     ) {}
 
-    public function report(int $userId, string $cacheKey, ?string $runId = null): void
+    public function report(int $userId, string $cacheKey, ?string $operationId = null): void
     {
         $failures = $this->failureStore->get($cacheKey);
         $errorsCount = count($failures);
@@ -40,7 +40,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
                 $notification = new ImportCompletionNotificationDTO(
                     userId: $userId,
                     status: ImportCompletionStatusEnum::CompletedWithErrors,
-                    runId: $runId,
+                    operationId: $operationId,
                     errorsCount: $errorsCount,
                     path: $reportPath,
                 );
@@ -49,7 +49,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
                 $notification = new ImportCompletionNotificationDTO(
                     userId: $userId,
                     status: ImportCompletionStatusEnum::Completed,
-                    runId: $runId,
+                    operationId: $operationId,
                 );
                 $this->notifier->notifyImportCompleted($notification);
             }
@@ -59,7 +59,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
             $failedNotification = new ImportCompletionNotificationDTO(
                 userId: $userId,
                 status: ImportCompletionStatusEnum::Failed,
-                runId: $runId,
+                operationId: $operationId,
                 errorsCount: $errorsCount,
             );
             $this->notifier->notifyImportCompleted($failedNotification);

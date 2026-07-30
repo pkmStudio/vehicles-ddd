@@ -12,11 +12,11 @@ namespace App\Modules\Warehouse\Features\Import\Domain\Events;
 abstract readonly class AbstractImportCompleted
 {
     /**
-     * Хранит инициатора (если был), cache-ключ накопленных failures и runId внешнего прогона.
+     * Хранит инициатора (если был), cache-ключ накопленных failures и operationId внешнего прогона.
      */
     public function __construct(
         public ?int $userId,
         public string $cacheKey,
-        public ?string $runId,
+        public ?string $operationId,
     ) {}
 }

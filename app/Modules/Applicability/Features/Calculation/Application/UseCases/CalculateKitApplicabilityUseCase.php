@@ -21,9 +21,9 @@ final readonly class CalculateKitApplicabilityUseCase implements CalculateKitApp
         private KitApplicabilityCommandInterface $command,
     ) {}
 
-    public function execute(?int $kitId = null, int $chunk = 1000, ?string $runId = null): KitApplicabilityCalculationResultDTO
+    public function execute(?int $kitId = null, int $chunk = 1000, ?string $operationId = null): KitApplicabilityCalculationResultDTO
     {
-        $runId ??= (string) Str::uuid();
+        $operationId ??= (string) Str::uuid();
         $processed = 0;
         $calculated = 0;
         $skipped = 0;
@@ -57,7 +57,7 @@ final readonly class CalculateKitApplicabilityUseCase implements CalculateKitApp
         }
 
         $result = new KitApplicabilityCalculationResultDTO(
-            runId: $runId,
+            operationId: $operationId,
             processedKits: $processed,
             calculatedKits: $calculated,
             skippedKits: $skipped,
@@ -66,7 +66,7 @@ final readonly class CalculateKitApplicabilityUseCase implements CalculateKitApp
             errors: $errors,
         );
 
-        event(new KitApplicabilityRecalculated($runId, $result));
+        event(new KitApplicabilityRecalculated($operationId, $result));
 
         return $result;
     }

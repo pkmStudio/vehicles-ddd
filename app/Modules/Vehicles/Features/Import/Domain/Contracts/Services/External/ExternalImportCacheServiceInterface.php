@@ -13,14 +13,14 @@ use App\Modules\Vehicles\Features\Import\Domain\DTOs\ExternalImportFileRequestDT
 interface ExternalImportCacheServiceInterface
 {
     /**
-     * Атомарно принять runId; вернуть false, если такой запуск уже был принят.
+     * Атомарно принять operationId; вернуть false, если такой запуск уже был принят.
      */
     public function accept(ExternalImportFileRequestDTO $request): bool;
 
     /**
-     * Убрать отметку принятого runId после ошибки запуска.
+     * Убрать отметку принятого operationId после ошибки запуска.
      */
-    public function forgetAccepted(string $runId): void;
+    public function forgetAccepted(string $operationId): void;
 
     /**
      * Запомнить, какой исходный файл нужно удалить после завершения импорта.
@@ -28,7 +28,7 @@ interface ExternalImportCacheServiceInterface
     public function rememberCleanup(ExternalImportFileRequestDTO $request): void;
 
     /**
-     * Забрать и удалить инструкцию очистки по runId.
+     * Забрать и удалить инструкцию очистки по operationId.
      */
-    public function pullCleanup(string $runId): ?ExternalImportFileCleanupDTO;
+    public function pullCleanup(string $operationId): ?ExternalImportFileCleanupDTO;
 }

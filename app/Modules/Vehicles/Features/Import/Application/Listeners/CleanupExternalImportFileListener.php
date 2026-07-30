@@ -17,10 +17,10 @@ final readonly class CleanupExternalImportFileListener
     ) {}
 
     /**
-     * Очистить файл только для импортов, у которых есть внешний runId.
+     * Очистить файл только для импортов, у которых есть внешний operationId.
      */
     public function handle(AbstractImportCompleted $event): void
     {
-        $this->service->cleanup($event->runId);
+        $this->service->cleanup($event->operationId);
     }
 }

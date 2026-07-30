@@ -13,27 +13,27 @@ use Illuminate\Support\Facades\Cache;
 final readonly class LaravelExportRunCacheService implements ExportRunCacheServiceInterface
 {
     /**
-     * Атомарно принимает runId для идемпотентного запуска экспорта.
+     * Атомарно принимает operationId для идемпотентного запуска экспорта.
      */
-    public function accept(string $runId): bool
+    public function accept(string $operationId): bool
     {
-        return Cache::add($this->acceptedCacheKey($runId), true, now()->addSeconds($this->cacheTtlSeconds()));
+        return Cache::add($this->acceptedCacheKey($operationId), true, now()->addSeconds($this->cacheTtlSeconds()));
     }
 
     /**
-     * Снимает отметку принятого runId после сбоя экспорта.
+     * Снимает отметку принятого operationId после сбоя экспорта.
      */
-    public function forgetAccepted(string $runId): void
+    public function forgetAccepted(string $operationId): void
     {
-        Cache::forget($this->acceptedCacheKey($runId));
+        Cache::forget($this->acceptedCacheKey($operationId));
     }
 
     /**
      * Получить cache-ключ принятого внешнего запроса на экспорт.
      */
-    private function acceptedCacheKey(string $runId): string
+    private function acceptedCacheKey(string $operationId): string
     {
-        return sprintf((string) config('vehicles.export.external.cache.keys.accepted'), $runId);
+        return sprintf((string) config('vehicles.export.external.cache.keys.accepted'), $operationId);
     }
 
     /**

@@ -65,7 +65,7 @@ final class EngineSparkPlugSpecificationImportTest extends TestCase
         ]);
         $engine->modifications()->attach($modification->id, ['eng_id' => 500, 'mod_id' => 50, 'type' => 'PC']);
 
-        $context = new ImportRunContextDTO(userId: 42, runId: 'test-run-spark-by-mod');
+        $context = new ImportRunContextDTO(userId: 42, operationId: 'test-run-spark-by-mod');
         $path = base_path('tests/Fixtures/engine_spark_plugs_by_modification_sample.csv');
 
         app(EngineSparkPlugSpecificationImportInterface::class)->import($path, $context);

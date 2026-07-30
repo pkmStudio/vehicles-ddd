@@ -55,7 +55,7 @@ final class PackDimensionImportTest extends TestCase
             "id,name,weight,width,height,length,price,type\n,Test Box,150,20,30,40,500,BP\n",
         );
 
-        $context = new ImportRunContextDTO(userId: null, runId: 'run-pd-test');
+        $context = new ImportRunContextDTO(userId: null, operationId: 'run-pd-test');
 
         app(PackDimensionImportInterface::class)->import($path, $context);
 
@@ -80,7 +80,7 @@ final class PackDimensionImportTest extends TestCase
             "id,name,weight,width,height,length,price,type\n,,150,20,30,40,500,BP\n",
         );
 
-        $context = new ImportRunContextDTO(userId: null, runId: 'run-pd-fail');
+        $context = new ImportRunContextDTO(userId: null, operationId: 'run-pd-fail');
 
         app(PackDimensionImportInterface::class)->import($path, $context);
 

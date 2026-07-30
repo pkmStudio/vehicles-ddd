@@ -8,42 +8,42 @@ use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\External\Exp
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Laravel cache-реализация флага принятого внешнего запроса Warehouse-экспорта по runId.
+ * Laravel cache-реализация флага принятого внешнего запроса Warehouse-экспорта по operationId.
  */
 final readonly class ExportRunCacheService implements ExportRunCacheServiceInterface
 {
     /**
-     * Атомарно принимает новый runId и отклоняет повтор того же запуска.
+     * Атомарно принимает новый operationId и отклоняет повтор того же запуска.
      */
-    public function accept(string $runId): bool
+    public function accept(string $operationId): bool
     {
         return Cache::add(
-            key: $this->acceptedCacheKey($runId),
+            key: $this->acceptedCacheKey($operationId),
             value: true,
             ttl: now()->addSeconds($this->cacheTtlSeconds()),
         );
     }
 
     /**
-     * Снимает флаг принятого runId, чтобы брокер мог повторить неуспешный запуск.
+     * Снимает флаг принятого operationId, чтобы брокер мог повторить неуспешный запуск.
      */
-    public function forgetAccepted(string $runId): void
+    public function forgetAccepted(string $operationId): void
     {
         Cache::forget(
-            key: $this->acceptedCacheKey($runId),
+            key: $this->acceptedCacheKey($operationId),
         );
     }
 
     /**
      * Собирает cache-ключ принятого внешнего запроса по шаблону из конфига.
      */
-    private function acceptedCacheKey(string $runId): string
+    private function acceptedCacheKey(string $operationId): string
     {
         return sprintf(
             (string) config(
                 key: 'warehouse.export.external.cache.keys.accepted',
             ),
-            $runId,
+            $operationId,
         );
     }
 

@@ -86,7 +86,7 @@ final class KitImportTest extends TestCase
 
         $path = $this->writeCsv("id,part_numbers,is_sale_separately,is_active\n,VB-1;VB-2,Да,Нет\n");
 
-        $context = new ImportRunContextDTO(userId: null, runId: 'run-kit-test');
+        $context = new ImportRunContextDTO(userId: null, operationId: 'run-kit-test');
         app(KitImportInterface::class)->import($path, $context);
 
         $this->assertSame(1, Kit::query()->count());
@@ -118,7 +118,7 @@ final class KitImportTest extends TestCase
 
         $path = $this->writeCsv("id,part_numbers,is_sale_separately,is_active\n,VB-1;VB-MISSING,Нет,Да\n");
 
-        $context = new ImportRunContextDTO(userId: null, runId: 'run-kit-fail');
+        $context = new ImportRunContextDTO(userId: null, operationId: 'run-kit-fail');
         app(KitImportInterface::class)->import($path, $context);
 
         $this->assertSame(0, Kit::query()->count());
@@ -153,7 +153,7 @@ final class KitImportTest extends TestCase
 
         $path = $this->writeCsv("id,part_numbers,is_sale_separately,is_active\n,VB-1;VB-2,Да,Да\n");
 
-        $context = new ImportRunContextDTO(userId: null, runId: 'run-kit-mixed-brand');
+        $context = new ImportRunContextDTO(userId: null, operationId: 'run-kit-mixed-brand');
         app(KitImportInterface::class)->import($path, $context);
 
         $this->assertSame(0, Kit::query()->count());

@@ -19,19 +19,19 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
     ) {}
 
     /**
-     * Атомарно принимает runId внешнего импорта.
+     * Атомарно принимает operationId внешнего импорта.
      */
-    public function accept(string $runId): bool
+    public function accept(string $operationId): bool
     {
-        return $this->cache->store()->add($this->acceptedKey($runId), true, $this->ttlSeconds());
+        return $this->cache->store()->add($this->acceptedKey($operationId), true, $this->ttlSeconds());
     }
 
     /**
-     * Снимает отметку принятого runId после ошибки запуска.
+     * Снимает отметку принятого operationId после ошибки запуска.
      */
-    public function forgetAccepted(string $runId): void
+    public function forgetAccepted(string $operationId): void
     {
-        $this->cache->store()->forget($this->acceptedKey($runId));
+        $this->cache->store()->forget($this->acceptedKey($operationId));
     }
 
     /**
@@ -40,7 +40,7 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
     public function rememberCleanup(ExternalImportFileRequestDTO $request): void
     {
         $this->cache->store()->put(
-            key: $this->cleanupKey($request->runId),
+            key: $this->cleanupKey($request->operationId),
             value: ['disk' => $request->disk, 'path' => $request->path],
             ttl: $this->ttlSeconds(),
         );
@@ -49,9 +49,9 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
     /**
      * Забирает и удаляет сохраненный контекст очистки исходного файла.
      */
-    public function pullCleanup(string $runId): ?ExternalImportFileCleanupDTO
+    public function pullCleanup(string $operationId): ?ExternalImportFileCleanupDTO
     {
-        $key = $this->cleanupKey($runId);
+        $key = $this->cleanupKey($operationId);
         $cleanup = $this->cache->store()->get($key);
         $this->cache->store()->forget($key);
 
@@ -65,14 +65,14 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
         );
     }
 
-    private function acceptedKey(string $runId): string
+    private function acceptedKey(string $operationId): string
     {
-        return sprintf((string) config('applicability.import.external.cache.keys.accepted'), $runId);
+        return sprintf((string) config('applicability.import.external.cache.keys.accepted'), $operationId);
     }
 
-    private function cleanupKey(string $runId): string
+    private function cleanupKey(string $operationId): string
     {
-        return sprintf((string) config('applicability.import.external.cache.keys.cleanup'), $runId);
+        return sprintf((string) config('applicability.import.external.cache.keys.cleanup'), $operationId);
     }
 
     private function ttlSeconds(): int

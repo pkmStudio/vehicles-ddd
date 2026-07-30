@@ -15,7 +15,7 @@ final readonly class KitApplicabilityRecalculated
      * Инициализирует immutable-снимок результата расчета.
      */
     public function __construct(
-        public string $runId,
+        public string $operationId,
         public KitApplicabilityCalculationResultDTO $result,
     ) {}
 }

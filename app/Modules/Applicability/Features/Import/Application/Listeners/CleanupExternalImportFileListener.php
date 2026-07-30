@@ -17,11 +17,11 @@ final readonly class CleanupExternalImportFileListener
 
     public function handle(AbstractImportCompleted $event): void
     {
-        if ($event->runId === null) {
+        if ($event->operationId === null) {
             return;
         }
 
-        $cleanup = $this->cache->pullCleanup($event->runId);
+        $cleanup = $this->cache->pullCleanup($event->operationId);
         if ($cleanup === null) {
             return;
         }

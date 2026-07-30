@@ -16,12 +16,12 @@ final readonly class LaravelExternalImportCacheService implements ExternalImport
 {
     public function accept(ExternalImportFileRequestDTO $request): bool
     {
-        return Cache::add($this->acceptedCacheKey($request->runId), true, now()->addSeconds($this->cacheTtlSeconds()));
+        return Cache::add($this->acceptedCacheKey($request->operationId), true, now()->addSeconds($this->cacheTtlSeconds()));
     }
 
-    public function forgetAccepted(string $runId): void
+    public function forgetAccepted(string $operationId): void
     {
-        Cache::forget($this->acceptedCacheKey($runId));
+        Cache::forget($this->acceptedCacheKey($operationId));
     }
 
     public function rememberCleanup(ExternalImportFileRequestDTO $request): void
@@ -32,15 +32,15 @@ final readonly class LaravelExternalImportCacheService implements ExternalImport
         );
 
         Cache::put(
-            $this->cleanupCacheKey($request->runId),
+            $this->cleanupCacheKey($request->operationId),
             $cleanup->toArray(),
             now()->addSeconds($this->cacheTtlSeconds()),
         );
     }
 
-    public function pullCleanup(string $runId): ?ExternalImportFileCleanupDTO
+    public function pullCleanup(string $operationId): ?ExternalImportFileCleanupDTO
     {
-        $data = Cache::pull($this->cleanupCacheKey($runId));
+        $data = Cache::pull($this->cleanupCacheKey($operationId));
 
         if (! is_array($data)) {
             return null;
@@ -55,17 +55,17 @@ final readonly class LaravelExternalImportCacheService implements ExternalImport
     /**
      * Получить cache-ключ принятого внешнего запроса.
      */
-    private function acceptedCacheKey(string $runId): string
+    private function acceptedCacheKey(string $operationId): string
     {
-        return sprintf((string) config('vehicles.import.external.cache.keys.accepted'), $runId);
+        return sprintf((string) config('vehicles.import.external.cache.keys.accepted'), $operationId);
     }
 
     /**
      * Получить cache-ключ инструкции очистки внешнего файла.
      */
-    private function cleanupCacheKey(string $runId): string
+    private function cleanupCacheKey(string $operationId): string
     {
-        return sprintf((string) config('vehicles.import.external.cache.keys.cleanup'), $runId);
+        return sprintf((string) config('vehicles.import.external.cache.keys.cleanup'), $operationId);
     }
 
     /**

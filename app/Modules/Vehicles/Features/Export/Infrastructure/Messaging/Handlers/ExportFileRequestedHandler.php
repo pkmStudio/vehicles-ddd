@@ -49,7 +49,7 @@ final readonly class ExportFileRequestedHandler
 
         $request = new ExportFileRequestDTO(
             userId: (int) $data['user_id'],
-            runId: (string) $data['run_id'],
+            operationId: (string) $data['operation_id'],
             exportType: ExportTypeEnum::from((string) $data['export_type']),
             isAllow: (bool) ($data['is_allow'] ?? false),
             disk: $outputDisk,

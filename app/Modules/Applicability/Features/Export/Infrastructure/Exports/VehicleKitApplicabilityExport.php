@@ -23,7 +23,7 @@ final readonly class VehicleKitApplicabilityExport implements VehicleKitApplicab
     {
         $disk ??= (string) config('applicability.export.output.disk', 'local');
         $directory = (string) config('applicability.export.output.directory', 'exports');
-        $path = "{$directory}/applicability-vehicles-{$context->runId}.xlsx";
+        $path = "{$directory}/applicability-vehicles-{$context->operationId}.xlsx";
 
         ExcelFacade::store(
             export: $this,

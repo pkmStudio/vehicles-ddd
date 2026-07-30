@@ -9,6 +9,6 @@ abstract readonly class AbstractImportCompleted
     public function __construct(
         public ?int $userId,
         public string $cacheKey,
-        public ?string $runId,
+        public ?string $operationId,
     ) {}
 }

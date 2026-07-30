@@ -9,7 +9,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Cache-ключ идемпотентности внешнего запроса на экспорт. Шаблон принимает
-    | runId через sprintf(). Симметрично vehicles/import.php:external.cache.
+    | operationId через sprintf(). Симметрично vehicles/import.php:external.cache.
     |
     */
 

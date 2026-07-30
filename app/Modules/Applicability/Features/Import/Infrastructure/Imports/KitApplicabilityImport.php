@@ -30,7 +30,7 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
 
     private ?int $userId = null;
 
-    private ?string $runId = null;
+    private ?string $operationId = null;
 
     public function __construct(
         private readonly ImportKitApplicabilityRowServiceInterface $service,
@@ -40,14 +40,14 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
         $this->userId = $context->userId;
-        $this->runId = $context->runId;
+        $this->operationId = $context->operationId;
         $this->cacheKey = sprintf(
             (string) config('applicability.import.failures.cache.keys.kit_applicability_import_failures'),
-            $context->runId,
+            $context->operationId,
         );
         $this->lockKey = sprintf(
             (string) config('applicability.import.failures.cache.keys.kit_applicability_import_failures_lock'),
-            $context->runId,
+            $context->operationId,
         );
 
         Excel::import(
@@ -104,7 +104,7 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
             AfterImport::class => fn () => event(new KitApplicabilityImportCompleted(
                 userId: $this->userId,
                 cacheKey: $this->cacheKey,
-                runId: $this->runId,
+                operationId: $this->operationId,
             )),
         ];
     }

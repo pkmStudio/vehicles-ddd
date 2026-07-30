@@ -57,7 +57,7 @@ final class EngineMultiSheetExportTest extends TestCase
             'eng_fuel_type' => 'бензин',
         ]);
 
-        $context = new ExportRunContextDTO(userId: 1, runId: 'engine-export-main');
+        $context = new ExportRunContextDTO(userId: 1, operationId: 'engine-export-main');
 
         $export = app(EngineMultiSheetExportInterface::class);
         $path = $export->export($context, 'local');
@@ -107,7 +107,7 @@ final class EngineMultiSheetExportTest extends TestCase
             ],
         ]);
 
-        $context = new ExportRunContextDTO(userId: 1, runId: 'engine-export-spark-plugs');
+        $context = new ExportRunContextDTO(userId: 1, operationId: 'engine-export-spark-plugs');
 
         $export = app(EngineMultiSheetExportInterface::class);
         $path = $export->export($context, 'local');

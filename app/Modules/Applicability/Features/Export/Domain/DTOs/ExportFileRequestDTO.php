@@ -10,7 +10,7 @@ final readonly class ExportFileRequestDTO
 {
     public function __construct(
         public int $userId,
-        public string $runId,
+        public string $operationId,
         public ExportTypeEnum $exportType,
         public string $disk,
     ) {}

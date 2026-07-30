@@ -324,7 +324,7 @@ return [
     | Per-message routing key может переопределяться отправителем.
     |
     | IMPORT_COMPLETED — статус импорта: completed / completed_with_errors / failed.
-    | Содержит run_id, user_id, errors_count и, если есть, путь к отчёту.
+    | Содержит operation_id, user_id, errors_count и, если есть, путь к отчёту.
     | FILE_EXPORTED — файл сформирован и сохранён в общем хранилище (disk из
     | vehicles.export.output.disk), путь передан в payload; сервис с Filament
     | слушает это событие, чтобы уведомить получателя о готовности каталога.

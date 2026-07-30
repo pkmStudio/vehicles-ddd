@@ -20,7 +20,7 @@ final class ReportCalculationResultListenerTest extends TestCase
     public function test_listener_reports_recalculation_result(): void
     {
         $result = new KitApplicabilityCalculationResultDTO(
-            runId: 'run-1',
+            operationId: 'run-1',
             processedKits: 2,
             failedKits: 1,
             errors: ['Kit 10: Unknown kitType'],
@@ -38,11 +38,11 @@ final class ReportCalculationResultListenerTest extends TestCase
             ->shouldReceive('notifyCalculationCompleted')
             ->once()
             ->with(Mockery::on(static fn (CalculationCompletionNotificationDTO $payload): bool => $payload->status === CalculationCompletionStatusEnum::COMPLETED_WITH_FAILURES
-                && $payload->runId === 'run-1'
+                && $payload->operationId === 'run-1'
                 && $payload->processedKits === 2
                 && $payload->failedKits === 1
                 && $payload->failuresReportPath === 'exports/applicability-calculation-failures-run-1.csv'
-                && $payload->failuresReportDisk === 'local'));
+                && $payload->failuresReportDisk === 'exports'));
 
         (new ReportCalculationResultListener($reporter, $notifications, new NullLogger))->handle(
             new KitApplicabilityRecalculated('run-1', $result),

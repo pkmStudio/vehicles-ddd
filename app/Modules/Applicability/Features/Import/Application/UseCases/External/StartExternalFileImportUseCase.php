@@ -20,7 +20,7 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
 
     public function execute(ExternalImportFileRequestDTO $request): void
     {
-        if (! $this->cache->accept($request->runId)) {
+        if (! $this->cache->accept($request->operationId)) {
             return;
         }
 
@@ -31,14 +31,14 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
 
             $context = new ImportRunContextDTO(
                 userId: $request->userId,
-                runId: $request->runId,
+                operationId: $request->operationId,
             );
 
             $this->importFactory
                 ->make($request->importType)
                 ->import($request->path, $context, $request->disk);
         } catch (Throwable $e) {
-            $this->cache->forgetAccepted($request->runId);
+            $this->cache->forgetAccepted($request->operationId);
 
             throw $e;
         }

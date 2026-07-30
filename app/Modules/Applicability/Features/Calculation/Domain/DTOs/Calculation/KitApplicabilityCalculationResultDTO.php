@@ -13,7 +13,7 @@ namespace App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation
 final readonly class KitApplicabilityCalculationResultDTO
 {
     public function __construct(
-        public string $runId,
+        public string $operationId,
         public int $processedKits = 0,
         public int $calculatedKits = 0,
         public int $skippedKits = 0,

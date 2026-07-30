@@ -8,6 +8,6 @@ final readonly class ExportRunContextDTO
 {
     public function __construct(
         public int $userId,
-        public string $runId,
+        public string $operationId,
     ) {}
 }

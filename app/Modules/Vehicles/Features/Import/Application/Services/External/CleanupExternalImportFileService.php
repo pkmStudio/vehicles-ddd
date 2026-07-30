@@ -22,15 +22,15 @@ final readonly class CleanupExternalImportFileService implements CleanupExternal
     ) {}
 
     /**
-     * Забрать инструкцию очистки по runId и удалить исходный файл.
+     * Забрать инструкцию очистки по operationId и удалить исходный файл.
      */
-    public function cleanup(?string $runId): void
+    public function cleanup(?string $operationId): void
     {
-        if ($runId === null || $runId === '') {
+        if ($operationId === null || $operationId === '') {
             return;
         }
 
-        $cleanup = $this->cache->pullCleanup($runId);
+        $cleanup = $this->cache->pullCleanup($operationId);
         if ($cleanup === null) {
             return;
         }

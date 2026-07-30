@@ -31,14 +31,14 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
     ) {}
 
     /**
-     * Обеспечивает идемпотентность runId, запускает выбранный экспорт и уведомляет
+     * Обеспечивает идемпотентность operationId, запускает выбранный экспорт и уведомляет
      * инициатора о готовности файла.
      *
      * Шаги:
-     * 1. Просит cache-сервис принять runId; повторный запрос не запускает экспорт дважды.
+     * 1. Просит cache-сервис принять operationId; повторный запрос не запускает экспорт дважды.
      * 2. Выбирает Excel-адаптер через фабрику и синхронно строит файл на указанном disk
      *    (RabbitMQ-консьюмер — уже асинхронная граница, отдельная очередь не нужна).
-     * 3. При ошибке снимает отметку принятого runId (чтобы повторная доставка сообщения
+     * 3. При ошибке снимает отметку принятого operationId (чтобы повторная доставка сообщения
      *    могла попробовать снова), публикует FILE_EXPORTED со статусом Failed — инициатор не
      *    должен узнавать о сбое только по факту отсутствия ответа/по retry-таймауту брокера —
      *    и пробрасывает ошибку дальше (retry/DLQ — уже на стороне rabbit-transport, см.
@@ -47,23 +47,23 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
      */
     public function execute(ExportFileRequestDTO $request): void
     {
-        $isAccepted = $this->cache->accept($request->runId);
+        $isAccepted = $this->cache->accept($request->operationId);
         if (! $isAccepted) {
             return;
         }
 
         try {
-            $context = new ExportRunContextDTO(userId: $request->userId, runId: $request->runId);
+            $context = new ExportRunContextDTO(userId: $request->userId, operationId: $request->operationId);
             $export = $this->exportFactory->make($request->exportType, $request->isAllow);
             $path = $export->export($context, $request->disk);
         } catch (Throwable $e) {
-            $this->cache->forgetAccepted($request->runId);
+            $this->cache->forgetAccepted($request->operationId);
 
             $failedNotification = new ExportCompletionNotificationDTO(
                 userId: $request->userId,
                 status: ExportCompletionStatusEnum::Failed,
                 exportType: $request->exportType,
-                runId: $request->runId,
+                operationId: $request->operationId,
                 disk: $request->disk,
             );
             $this->notifier->notifyExportCompleted($failedNotification);
@@ -75,7 +75,7 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
             userId: $request->userId,
             status: ExportCompletionStatusEnum::Completed,
             exportType: $request->exportType,
-            runId: $request->runId,
+            operationId: $request->operationId,
             disk: $request->disk,
             path: $path,
         );

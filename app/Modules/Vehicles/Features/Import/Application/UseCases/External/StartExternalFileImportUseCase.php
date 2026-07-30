@@ -25,14 +25,14 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
     ) {}
 
     /**
-     * Обеспечивает идемпотентность runId и запускает выбранный импорт.
+     * Обеспечивает идемпотентность operationId и запускает выбранный импорт.
      *
      * Шаги:
-     * 1. Просит cache-сервис принять runId; повторный запрос не запускает импорт.
+     * 1. Просит cache-сервис принять operationId; повторный запрос не запускает импорт.
      * 2. Сохраняет cleanup-инструкцию, чтобы после завершения импорта удалить исходный файл.
-     * 3. Создаёт контекст запуска с userId/runId и выбирает импортный адаптер через фабрику.
+     * 3. Создаёт контекст запуска с userId/operationId и выбирает импортный адаптер через фабрику.
      * 4. Передаёт path и disk в импортный адаптер; Laravel Excel сам читает файл из указанного disk.
-     * 5. При ошибке снимает отметку принятого runId, чтобы запрос можно было повторить.
+     * 5. При ошибке снимает отметку принятого operationId, чтобы запрос можно было повторить.
      * 6. Пробрасывает ошибку дальше, чтобы RabbitMQ-обработчик не подтвердил неуспешное сообщение как обработанное.
      */
     public function execute(ExternalImportFileRequestDTO $request): void
@@ -47,11 +47,11 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
                 $this->cache->rememberCleanup($request);
             }
 
-            $context = new ImportRunContextDTO(userId: $request->userId, runId: $request->runId);
+            $context = new ImportRunContextDTO(userId: $request->userId, operationId: $request->operationId);
             $importService = $this->importFactory->make($request->importType);
             $importService->import($request->path, $context, $request->disk);
         } catch (Throwable $e) {
-            $this->cache->forgetAccepted($request->runId);
+            $this->cache->forgetAccepted($request->operationId);
 
             throw $e;
         }

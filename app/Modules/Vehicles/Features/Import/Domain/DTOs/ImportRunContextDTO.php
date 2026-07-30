@@ -12,13 +12,13 @@ namespace App\Modules\Vehicles\Features\Import\Domain\DTOs;
  * входящее Rabbit-сообщение) всегда знает, кто просит, — заменяет неявный Auth::id()
  * явной передачей внешнего идентификатора.
  *
- * runId — не userId — основа cache-ключа отчёта об ошибках: так конкурентные прогоны
+ * operationId — не userId — основа cache-ключа отчёта об ошибках: так конкурентные прогоны
  * (в том числе повторные от одного и того же инициатора) не затирают друг друга.
  */
 final readonly class ImportRunContextDTO
 {
     public function __construct(
         public int $userId,
-        public string $runId,
+        public string $operationId,
     ) {}
 }

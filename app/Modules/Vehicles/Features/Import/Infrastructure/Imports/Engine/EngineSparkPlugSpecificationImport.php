@@ -48,11 +48,11 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         $this->context = $context;
         $this->cacheKey = sprintf(
             (string) config('vehicles.import.failures.cache.keys.engine_import_failures'),
-            $context->runId,
+            $context->operationId,
         );
         $this->lockKey = sprintf(
             (string) config('vehicles.import.failures.cache.keys.engine_import_failures_lock'),
-            $context->runId,
+            $context->operationId,
         );
         Excel::import($this, $path, $disk);
     }
@@ -123,7 +123,7 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         event(new EngineImportCompleted(
             userId: $import->context->userId,
             cacheKey: $import->cacheKey,
-            runId: $import->context->runId,
+            operationId: $import->context->operationId,
         ));
     }
 

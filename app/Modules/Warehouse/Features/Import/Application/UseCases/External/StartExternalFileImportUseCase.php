@@ -30,14 +30,14 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
      * Этот метод принимает внешний запрос и диспатчит Excel-импорт в очередь.
      *
      * Шаги:
-     * 1) Проверить runId через cache — повтор сообщения брокера не должен запустить импорт дважды.
+     * 1) Проверить operationId через cache — повтор сообщения брокера не должен запустить импорт дважды.
      * 2) Запомнить disk+path файла для отложенного удаления после завершения.
      * 3) Выбрать адаптер импорта по типу запроса и передать ему путь и контекст прогона.
-     * 4) На ошибке снять cache-флаг принятого runId и пробросить исключение.
+     * 4) На ошибке снять cache-флаг принятого operationId и пробросить исключение.
      */
     public function execute(ExternalImportFileRequestDTO $request): void
     {
-        $runAccepted = $this->cache->accept($request->runId);
+        $runAccepted = $this->cache->accept($request->operationId);
 
         if (! $runAccepted) {
             return;
@@ -50,7 +50,7 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
 
             $context = new ImportRunContextDTO(
                 userId: $request->userId,
-                runId: $request->runId,
+                operationId: $request->operationId,
             );
 
             $this->importFactory
@@ -61,7 +61,7 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
                     disk: $request->disk,
                 );
         } catch (Throwable $e) {
-            $this->cache->forgetAccepted($request->runId);
+            $this->cache->forgetAccepted($request->operationId);
 
             throw $e;
         }

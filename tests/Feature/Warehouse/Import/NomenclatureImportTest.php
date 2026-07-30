@@ -50,7 +50,7 @@ final class NomenclatureImportTest extends TestCase
         ]);
 
         $path = base_path('tests/Fixtures/warehouse_nomenclature_sample.csv');
-        $context = new ImportRunContextDTO(userId: 42, runId: 'run-nomenclature-test');
+        $context = new ImportRunContextDTO(userId: 42, operationId: 'run-nomenclature-test');
 
         app(NomenclatureImportInterface::class)->import($path, $context);
 
@@ -77,7 +77,7 @@ final class NomenclatureImportTest extends TestCase
         Event::fake([NomenclatureImportCompleted::class]);
 
         $path = base_path('tests/Fixtures/warehouse_nomenclature_sample.csv');
-        $context = new ImportRunContextDTO(userId: null, runId: 'run-nomenclature-fail');
+        $context = new ImportRunContextDTO(userId: null, operationId: 'run-nomenclature-fail');
 
         app(NomenclatureImportInterface::class)->import($path, $context);
 

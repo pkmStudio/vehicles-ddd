@@ -16,7 +16,7 @@ abstract readonly class AbstractMultiSheetExport implements WithMultipleSheets
     {
         $disk ??= (string) config('vehicles.export.output.disk', 'local');
         $directory = (string) config('vehicles.export.output.directory', 'exports');
-        $path = sprintf('%s/%s-%s.xlsx', $directory, $this->exportType()->filePrefix(), $context->runId);
+        $path = sprintf('%s/%s-%s.xlsx', $directory, $this->exportType()->filePrefix(), $context->operationId);
 
         ExcelFacade::store($this, $path, $disk, Excel::XLSX);
 

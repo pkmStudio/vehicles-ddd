@@ -24,25 +24,25 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
 
     public function execute(ExportFileRequestDTO $request): void
     {
-        if (! $this->cache->accept($request->runId)) {
+        if (! $this->cache->accept($request->operationId)) {
             return;
         }
 
         try {
             $context = new ExportRunContextDTO(
                 userId: $request->userId,
-                runId: $request->runId,
+                operationId: $request->operationId,
             );
             $path = $this->exportFactory
                 ->make($request->exportType)
                 ->export($context, $request->disk);
         } catch (Throwable $e) {
-            $this->cache->forgetAccepted($request->runId);
+            $this->cache->forgetAccepted($request->operationId);
             $this->notifier->notifyExportCompleted(new ExportCompletionNotificationDTO(
                 userId: $request->userId,
                 status: ExportCompletionStatusEnum::Failed,
                 exportType: $request->exportType,
-                runId: $request->runId,
+                operationId: $request->operationId,
                 disk: $request->disk,
             ));
 
@@ -53,7 +53,7 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
             userId: $request->userId,
             status: ExportCompletionStatusEnum::Completed,
             exportType: $request->exportType,
-            runId: $request->runId,
+            operationId: $request->operationId,
             disk: $request->disk,
             path: $path,
         ));

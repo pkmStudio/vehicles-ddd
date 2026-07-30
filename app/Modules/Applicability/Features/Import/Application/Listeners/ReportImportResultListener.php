@@ -29,7 +29,7 @@ final readonly class ReportImportResultListener
             status: $failures === [] ? ImportCompletionStatusEnum::Completed : ImportCompletionStatusEnum::Failed,
             importType: ImportTypeEnum::KitApplicability,
             userId: $event->userId,
-            runId: $event->runId,
+            operationId: $event->operationId,
             failuresReportPath: $reportPath,
             failuresReportDisk: $reportPath === null ? null : (string) config('applicability.import.failures.disk', 'local'),
         ));

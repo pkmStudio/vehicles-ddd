@@ -10,12 +10,12 @@ namespace App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\Extern
 interface ExportRunCacheServiceInterface
 {
     /**
-     * Принимает runId только один раз в пределах cache TTL.
+     * Принимает operationId только один раз в пределах cache TTL.
      */
-    public function accept(string $runId): bool;
+    public function accept(string $operationId): bool;
 
     /**
-     * Снимает флаг принятого runId после неуспешного запуска.
+     * Снимает флаг принятого operationId после неуспешного запуска.
      */
-    public function forgetAccepted(string $runId): void;
+    public function forgetAccepted(string $operationId): void;
 }

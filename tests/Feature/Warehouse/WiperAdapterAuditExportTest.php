@@ -123,7 +123,7 @@ final class WiperAdapterAuditExportTest extends TestCase
 
         $context = new ExportRunContextDTO(
             userId: 1,
-            runId: 'warehouse-adapter-audit',
+            operationId: 'warehouse-adapter-audit',
         );
         $export = app(WiperAdapterAuditExportInterface::class);
         $path = $export->export(

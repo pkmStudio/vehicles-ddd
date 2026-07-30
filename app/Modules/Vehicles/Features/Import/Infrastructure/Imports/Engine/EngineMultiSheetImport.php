@@ -59,7 +59,7 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
         event(new EngineImportCompleted(
             userId: $import->context->userId,
             cacheKey: $import->cacheKey(),
-            runId: $import->context->runId,
+            operationId: $import->context->operationId,
         ));
     }
 
@@ -72,7 +72,7 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
     {
         return sprintf(
             (string) config('vehicles.import.failures.cache.keys.engine_import_failures'),
-            $this->context->runId,
+            $this->context->operationId,
         );
     }
 
@@ -80,7 +80,7 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
     {
         return sprintf(
             (string) config('vehicles.import.failures.cache.keys.engine_import_failures_lock'),
-            $this->context->runId,
+            $this->context->operationId,
         );
     }
 }

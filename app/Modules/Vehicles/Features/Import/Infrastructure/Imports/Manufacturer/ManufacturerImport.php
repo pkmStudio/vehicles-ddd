@@ -45,11 +45,11 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
         $this->context = $context;
         $this->cacheKey = sprintf(
             (string) config('vehicles.import.failures.cache.keys.manufacturer_import_failures'),
-            $context->runId,
+            $context->operationId,
         );
         $this->lockKey = sprintf(
             (string) config('vehicles.import.failures.cache.keys.manufacturer_import_failures_lock'),
-            $context->runId,
+            $context->operationId,
         );
         Excel::import($this, $path, $disk);
     }
@@ -92,7 +92,7 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
         event(new ManufacturerImportCompleted(
             userId: $import->context->userId,
             cacheKey: $import->cacheKey,
-            runId: $import->context->runId,
+            operationId: $import->context->operationId,
         ));
     }
 

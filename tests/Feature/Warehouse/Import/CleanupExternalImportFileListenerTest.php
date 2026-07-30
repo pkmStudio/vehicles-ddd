@@ -34,23 +34,23 @@ final class CleanupExternalImportFileListenerTest extends TestCase
 
         app(ExternalImportCacheServiceInterface::class)->rememberCleanup(new ExternalImportFileRequestDTO(
             userId: 1,
-            runId: 'run-cleanup',
+            operationId: 'run-cleanup',
             importType: ImportTypeEnum::Nomenclature,
             disk: 's3',
             path: 'warehouse/file.xlsx',
         ));
 
         app(CleanupExternalImportFileListener::class)->handle(
-            new NomenclatureImportCompleted(userId: 1, cacheKey: 'irrelevant', runId: 'run-cleanup'),
+            new NomenclatureImportCompleted(userId: 1, cacheKey: 'irrelevant', operationId: 'run-cleanup'),
         );
 
         Storage::disk('s3')->assertMissing('warehouse/file.xlsx');
     }
 
-    public function test_no_op_when_run_id_is_null(): void
+    public function test_no_op_when_operation_id_is_null(): void
     {
         app(CleanupExternalImportFileListener::class)->handle(
-            new NomenclatureImportCompleted(userId: null, cacheKey: 'irrelevant', runId: null),
+            new NomenclatureImportCompleted(userId: null, cacheKey: 'irrelevant', operationId: null),
         );
 
         $this->addToAssertionCount(1);
@@ -59,7 +59,7 @@ final class CleanupExternalImportFileListenerTest extends TestCase
     public function test_no_op_when_nothing_was_remembered(): void
     {
         app(CleanupExternalImportFileListener::class)->handle(
-            new NomenclatureImportCompleted(userId: null, cacheKey: 'irrelevant', runId: 'run-not-remembered'),
+            new NomenclatureImportCompleted(userId: null, cacheKey: 'irrelevant', operationId: 'run-not-remembered'),
         );
 
         $this->addToAssertionCount(1);
