@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c4391ebdf372e63888b305d96264825e",
+    "content-hash": "004219efc7673aba37813204b5865821",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -4193,6 +4193,40 @@
                 "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.3"
             },
             "time": "2026-07-08T07:01:06+00:00"
+        },
+        {
+            "name": "pkmstudio/dan-wire-contracts",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "../packages/dan-wire-contracts",
+                "reference": "4efcefa94f92919ba2a5dd1ab0ce5368f70d76d9"
+            },
+            "require": {
+                "php": "^8.3 || ^8.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.0 || ^12.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PkmStudio\\DanWireContracts\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "PkmStudio\\DanWireContracts\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Wire DTO contracts for DAN services: Vehicles, CRM and Parse.",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "pkmstudio/moysklad-client",
@@ -10495,5 +10529,5 @@
         "php": "^8.4"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

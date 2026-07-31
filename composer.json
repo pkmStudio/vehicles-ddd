@@ -7,12 +7,25 @@
     "license": "MIT",
     "repositories": [
         {
-            "type": "vcs",
-            "url": "https://github.com/pkmStudio/laravel-rabbitmq-transport"
+            "type": "path",
+            "url": "../packages/dan-wire-contracts",
+            "options": {
+                "symlink": true
+            }
         },
         {
-            "type": "vcs",
-            "url": "https://github.com/pkmStudio/laravel-moysklad-client"
+            "type": "path",
+            "url": "../packages/rabbit-transport",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../packages/moysklad-client",
+            "options": {
+                "symlink": true
+            }
         }
     ],
     "require": {
@@ -22,6 +35,7 @@
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.30",
         "maatwebsite/excel": "^3.1",
+        "pkmstudio/dan-wire-contracts": "*",
         "pkmstudio/moysklad-client": "dev-main",
         "pkmstudio/rabbit-transport": "dev-master",
         "spatie/laravel-data": "^4.23",
