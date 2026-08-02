@@ -4,7 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories;
 
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailTemplateOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureValueOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmManufacturerOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmSearchItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
+use Illuminate\Support\Collection;
 
 /**
  * Read-порт CRM API каталога Vehicles.
@@ -12,32 +20,47 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQuer
 interface VehicleCrmReadRepositoryInterface
 {
     /**
-     * @return array{data: list<array<string, mixed>>, meta: array<string, int>}
+     * Возвращает постраничную CRM projection автомобилей.
      */
-    public function paginate(VehicleCrmReadQueryDTO $query): array;
+    public function paginate(VehicleCrmReadQueryDTO $query): VehicleCrmPageDTO;
 
     /**
-     * @return array<string, mixed>|null
+     * Возвращает detail projection автомобиля или null.
      */
-    public function find(int $id): ?array;
+    public function find(int $id): ?VehicleCrmDetailDTO;
 
     /**
-     * @return list<array{id: int, label: string, ms_id: int, manufacturer: ?string}>
+     * Возвращает compact search options автомобилей.
+     *
+     * @return Collection<int, VehicleCrmSearchItemDTO>
      */
-    public function search(string $query, int $limit = 20): array;
+    public function search(string $query, int $limit = 20): Collection;
 
     /**
-     * @return list<array{id: int, label: string}>
+     * Возвращает feature options.
+     *
+     * @return Collection<int, VehicleCrmFeatureOptionDTO>
      */
-    public function featureOptions(): array;
+    public function featureOptions(): Collection;
 
     /**
-     * @return list<array{id: int, feature_id: int, label: string, short_code: string}>
+     * Возвращает feature value options.
+     *
+     * @return Collection<int, VehicleCrmFeatureValueOptionDTO>
      */
-    public function featureValueOptions(int $featureId): array;
+    public function featureValueOptions(int $featureId): Collection;
 
     /**
-     * @return list<array{id: string, label: string}>
+     * Возвращает detail template options.
+     *
+     * @return Collection<int, VehicleCrmDetailTemplateOptionDTO>
      */
-    public function detailTemplateOptions(): array;
+    public function detailTemplateOptions(): Collection;
+
+    /**
+     * Возвращает manufacturer options.
+     *
+     * @return Collection<int, VehicleCrmManufacturerOptionDTO>
+     */
+    public function manufacturerOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection;
 }

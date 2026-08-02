@@ -8,7 +8,9 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\Vehic
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\External\CleanupExternalImportFileServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportRunContextDTO;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\VehicleMultiSheetImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -180,6 +182,20 @@ final class ImportFileRequestedHandlerTest extends TestCase
 
         app(ImportFileRequestedHandler::class)->handle($payload);
         app(ImportFileRequestedHandler::class)->handle($payload);
+    }
+
+    public function test_vehicle_multi_sheet_import_sheets_are_serializable_for_queued_chunks(): void
+    {
+        $import = app(VehicleMultiSheetImport::class);
+        $import->context = new ImportRunContextDTO(
+            userId: 42,
+            operationId: 'run-serializable-sheets',
+        );
+
+        foreach ($import->sheets() as $sheet) {
+            $this->assertInstanceOf(ShouldQueue::class, $sheet);
+            $this->assertIsString(serialize($sheet));
+        }
     }
 
     /**

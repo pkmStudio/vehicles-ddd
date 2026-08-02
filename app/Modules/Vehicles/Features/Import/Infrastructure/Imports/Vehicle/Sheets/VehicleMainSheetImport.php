@@ -8,22 +8,22 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\Upser
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleSheetRowMapper;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Validators\Failure;
 
-final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, WithStartRow
+final class VehicleMainSheetImport implements ShouldQueue, SkipsOnFailure, ToCollection, WithStartRow
 {
     use CachesImportFailures;
 
     public function __construct(
         string $cacheKey,
         string $lockKey,
-        private readonly UpsertVehicleFromSheetServiceInterface $upsertVehicle,
-        private readonly VehicleSheetRowMapper $rowMapper,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = $lockKey;
@@ -31,13 +31,20 @@ final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, With
 
     public function collection(Collection $collection): void
     {
+        Log::debug('[FIX:vehicles-import-queued] Processing vehicle main import chunk', [
+            'rows' => $collection->count(),
+        ]);
+
+        $upsertVehicle = $this->upsertVehicle();
+        $rowMapper = $this->rowMapper();
+
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
             try {
-                DB::transaction(function () use ($rowValues): void {
-                    $vehicleRow = $this->rowMapper->map($rowValues);
+                DB::transaction(function () use ($rowMapper, $rowValues, $upsertVehicle): void {
+                    $vehicleRow = $rowMapper->map($rowValues);
 
-                    $this->upsertVehicle->upsertFromRow($vehicleRow);
+                    $upsertVehicle->upsertFromRow($vehicleRow);
                 });
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(
@@ -55,5 +62,15 @@ final class VehicleMainSheetImport implements SkipsOnFailure, ToCollection, With
     public function startRow(): int
     {
         return 2;
+    }
+
+    private function upsertVehicle(): UpsertVehicleFromSheetServiceInterface
+    {
+        return app(UpsertVehicleFromSheetServiceInterface::class);
+    }
+
+    private function rowMapper(): VehicleSheetRowMapper
+    {
+        return app(VehicleSheetRowMapper::class);
     }
 }

@@ -37,7 +37,10 @@ final readonly class VehicleMutationPayloadValidator
             'operation_id' => ['required', 'string', 'max:128'],
             'operation' => ['required', 'string', Rule::in($this->operations())],
             'vehicle' => ['required', 'array'],
-            'vehicle.ms_id' => ['required', 'integer'],
+            'vehicle.ms_id' => [
+                $operation === CatalogMutationOperationEnum::Create->value ? 'nullable' : 'required',
+                'integer',
+            ],
         ];
 
         if ($operation === CatalogMutationOperationEnum::Create->value

@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Catalog;
 
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmReadRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmSearchItemDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
@@ -134,20 +140,13 @@ final class VehicleCrmReadApiTest extends TestCase
      */
     public function test_option_endpoints_return_features_values_and_detail_templates(): void
     {
-        $featureId = DB::table('features')->insertGetId([
-            'entity_type' => 'vehicle',
-            'name' => 'Крепление',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $manufacturer = $this->createManufacturer(
+            name: 'Skoda',
+            mfaId: 111,
+        );
+        $featureId = $this->createFeature();
 
-        DB::table('feature_values')->insert([
-            'feature_id' => $featureId,
-            'name' => 'Крючок',
-            'short_code' => 'HOOK',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $this->createFeatureValue($featureId);
 
         $this->getJson('/api/v1/vehicles/options/features')
             ->assertOk()
@@ -161,6 +160,39 @@ final class VehicleCrmReadApiTest extends TestCase
         $this->getJson('/api/v1/vehicles/options/detail-templates')
             ->assertOk()
             ->assertJsonPath('data.0.id', 'wiper');
+
+        $this->getJson('/api/v1/vehicles/options/manufacturers?q=Skoda')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $manufacturer->id)
+            ->assertJsonPath('data.0.mfa_id', 111)
+            ->assertJsonPath('data.0.label', 'Skoda');
+    }
+
+    /**
+     * Проверяет, что CRM read repository отдаёт локальные DTO, а не raw arrays.
+     */
+    public function test_repository_returns_local_crm_read_dtos(): void
+    {
+        $manufacturer = $this->createManufacturer(name: 'Skoda');
+        $vehicle = $this->createVehicle(
+            msId: 1301,
+            manufacturer: $manufacturer,
+            name: 'Kodiaq',
+        );
+        $featureId = $this->createFeature();
+        $this->createFeatureValue($featureId);
+
+        $repository = app(VehicleCrmReadRepositoryInterface::class);
+        $query = new VehicleCrmReadQueryDTO(perPage: 10);
+        $page = $repository->paginate($query);
+        $detail = $repository->find((int) $vehicle->id);
+        $search = $repository->search('Kodiaq');
+        $features = $repository->featureOptions();
+
+        self::assertInstanceOf(VehicleCrmPageDTO::class, $page);
+        self::assertInstanceOf(VehicleCrmDetailDTO::class, $detail);
+        self::assertInstanceOf(VehicleCrmSearchItemDTO::class, $search->first());
+        self::assertInstanceOf(VehicleCrmFeatureOptionDTO::class, $features->first());
     }
 
     /**
@@ -172,6 +204,33 @@ final class VehicleCrmReadApiTest extends TestCase
             'mfa_id' => $mfaId,
             'name' => $name,
             'provider' => ProviderEnum::TD->value,
+        ]);
+    }
+
+    /**
+     * Создаёт feature для option endpoint тестов.
+     */
+    private function createFeature(): int
+    {
+        return (int) DB::table('features')->insertGetId([
+            'entity_type' => 'vehicle',
+            'name' => 'Крепление',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    /**
+     * Создаёт feature value для option endpoint тестов.
+     */
+    private function createFeatureValue(int $featureId): void
+    {
+        DB::table('feature_values')->insert([
+            'feature_id' => $featureId,
+            'name' => 'Крючок',
+            'short_code' => 'HOOK',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 

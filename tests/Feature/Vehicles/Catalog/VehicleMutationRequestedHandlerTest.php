@@ -79,6 +79,45 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
         ]);
     }
 
+    public function test_create_vehicle_message_generates_ms_id_when_missing(): void
+    {
+        $manufacturer = $this->createManufacturer();
+        $this->createVehicle(msId: 701, manufacturer: $manufacturer, name: 'Existing');
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(function (CatalogMutationResultDTO $result): bool {
+                return $result->entity === CatalogEntityEnum::Vehicle
+                    && $result->operation === CatalogMutationOperationEnum::Create
+                    && $result->status === CatalogMutationStatusEnum::Completed
+                    && $result->operationId === 'vehicle-create-auto-ms-id'
+                    && $result->externalId === 702
+                    && $result->recordId !== null;
+            }));
+
+        app(VehicleMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'vehicle-create-auto-ms-id',
+            'operation' => 'create',
+            'vehicle' => [
+                'mfa_id' => $manufacturer->mfa_id,
+                'name' => 'Generated MS ID',
+                'type' => VehicleTypeEnum::PC->value,
+                'type_carcase' => CarcaseTypeEnum::HATCHBACK->value,
+                'provider' => ProviderEnum::OD->value,
+                'steering_type' => SteeringTypeEnum::LEFT->value,
+            ],
+        ]);
+
+        $this->assertDatabaseHas('vehicles', [
+            'ms_id' => 702,
+            'mfa_id' => $manufacturer->mfa_id,
+            'manufacturer_id' => $manufacturer->id,
+            'name' => 'Generated MS ID',
+        ]);
+    }
+
     public function test_update_vehicle_message_updates_vehicle(): void
     {
         $manufacturer = $this->createManufacturer();

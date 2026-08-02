@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle;
 
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
+
 /**
  * Use case port detail CRM API Vehicles.
  */
 interface ShowVehicleForCrmUseCaseInterface
 {
     /**
-     * @return array<string, mixed>|null
+     * Возвращает detail projection автомобиля или null.
      */
-    public function execute(int $id): ?array;
+    public function execute(int $id): ?VehicleCrmDetailDTO;
 }

@@ -54,7 +54,7 @@ final readonly class VehicleMutationRequestFactory implements VehicleMutationReq
         return new CreateVehicleRequestDTO(
             userId: (int) $payload['user_id'],
             operationId: (string) $payload['operation_id'],
-            msId: (int) $vehicle['ms_id'],
+            msId: isset($vehicle['ms_id']) ? (int) $vehicle['ms_id'] : null,
             mfaId: (int) $vehicle['mfa_id'],
             name: (string) $vehicle['name'],
             type: VehicleTypeEnum::from((string) $vehicle['type']),

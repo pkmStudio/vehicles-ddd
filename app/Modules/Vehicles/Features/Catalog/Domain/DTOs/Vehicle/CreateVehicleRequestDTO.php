@@ -20,7 +20,7 @@ final readonly class CreateVehicleRequestDTO
     public function __construct(
         public int $userId,
         public string $operationId,
-        public int $msId,
+        public ?int $msId,
         public int $mfaId,
         public string $name,
         public VehicleTypeEnum $type,

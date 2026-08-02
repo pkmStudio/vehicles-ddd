@@ -10,6 +10,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\Show
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -35,8 +36,11 @@ final readonly class VehicleCrmController
             return $response;
         }
 
+        $query = VehicleCrmReadQueryDTO::fromArray($request->query());
+        $page = $this->listVehicles->execute($query);
+
         return response()->json(
-            $this->listVehicles->execute(VehicleCrmReadQueryDTO::fromArray($request->query())),
+            $page->toArray(),
         );
     }
 
@@ -55,7 +59,7 @@ final readonly class VehicleCrmController
             return response()->json(['message' => 'Vehicle not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json(['data' => $vehicle]);
+        return response()->json(['data' => $vehicle->toArray()]);
     }
 
     /**
@@ -70,7 +74,12 @@ final readonly class VehicleCrmController
         $limit = min(max((int) $request->integer('limit', 20), 1), 50);
         $query = trim($request->string('q')->toString());
 
-        return response()->json(['data' => $this->searchVehicles->execute($query, $limit)]);
+        $items = $this->searchVehicles->execute(
+            query: $query,
+            limit: $limit,
+        );
+
+        return response()->json(['data' => $this->dtoCollectionToArray($items)]);
     }
 
     /**
@@ -82,7 +91,9 @@ final readonly class VehicleCrmController
             return $response;
         }
 
-        return response()->json(['data' => $this->listVehicles->features()]);
+        $features = $this->listVehicles->features();
+
+        return response()->json(['data' => $this->dtoCollectionToArray($features)]);
     }
 
     /**
@@ -94,9 +105,10 @@ final readonly class VehicleCrmController
             return $response;
         }
 
-        return response()->json([
-            'data' => $this->listVehicles->featureValues((int) $request->integer('feature_id')),
-        ]);
+        $featureId = (int) $request->integer('feature_id');
+        $featureValues = $this->listVehicles->featureValues($featureId);
+
+        return response()->json(['data' => $this->dtoCollectionToArray($featureValues)]);
     }
 
     /**
@@ -108,7 +120,46 @@ final readonly class VehicleCrmController
             return $response;
         }
 
-        return response()->json(['data' => $this->listVehicles->detailTemplates()]);
+        $detailTemplates = $this->listVehicles->detailTemplates();
+
+        return response()->json(['data' => $this->dtoCollectionToArray($detailTemplates)]);
+    }
+
+    /**
+     * Возвращает manufacturer options для CRM-формы.
+     */
+    public function manufacturers(Request $request): JsonResponse
+    {
+        if ($response = $this->guard($request)) {
+            return $response;
+        }
+
+        $limit = min(max((int) $request->integer('limit', 50), 1), 50);
+        $id = $request->query('id') === null ? null : (int) $request->integer('id');
+        $query = trim($request->string('q')->toString());
+
+        $query = $query === '' ? null : $query;
+        $manufacturers = $this->listVehicles->manufacturers(
+            query: $query,
+            id: $id,
+            limit: $limit,
+        );
+
+        return response()->json(['data' => $this->dtoCollectionToArray($manufacturers)]);
+    }
+
+    /**
+     * Преобразует коллекцию CRM DTO в публичный JSON payload.
+     *
+     * @param  Collection<int, mixed>  $items
+     * @return list<array<string, mixed>>
+     */
+    private function dtoCollectionToArray(Collection $items): array
+    {
+        return $items
+            ->map(fn (mixed $item): array => $item->toArray())
+            ->values()
+            ->all();
     }
 
     /**

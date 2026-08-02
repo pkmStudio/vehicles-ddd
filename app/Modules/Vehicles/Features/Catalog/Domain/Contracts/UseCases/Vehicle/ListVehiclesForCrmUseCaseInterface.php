@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle;
 
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailTemplateOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureValueOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmManufacturerOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
+use Illuminate\Support\Collection;
 
 /**
  * Use case port списка и options CRM API Vehicles.
@@ -12,22 +18,35 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQuer
 interface ListVehiclesForCrmUseCaseInterface
 {
     /**
-     * @return array{data: list<array<string, mixed>>, meta: array<string, int>}
+     * Возвращает постраничный список ТС для CRM.
      */
-    public function execute(VehicleCrmReadQueryDTO $query): array;
+    public function execute(VehicleCrmReadQueryDTO $query): VehicleCrmPageDTO;
 
     /**
-     * @return list<array{id: int, label: string}>
+     * Возвращает feature options.
+     *
+     * @return Collection<int, VehicleCrmFeatureOptionDTO>
      */
-    public function features(): array;
+    public function features(): Collection;
 
     /**
-     * @return list<array{id: int, feature_id: int, label: string, short_code: string}>
+     * Возвращает feature value options.
+     *
+     * @return Collection<int, VehicleCrmFeatureValueOptionDTO>
      */
-    public function featureValues(int $featureId): array;
+    public function featureValues(int $featureId): Collection;
 
     /**
-     * @return list<array{id: string, label: string}>
+     * Возвращает detail template options.
+     *
+     * @return Collection<int, VehicleCrmDetailTemplateOptionDTO>
      */
-    public function detailTemplates(): array;
+    public function detailTemplates(): Collection;
+
+    /**
+     * Возвращает manufacturer options.
+     *
+     * @return Collection<int, VehicleCrmManufacturerOptionDTO>
+     */
+    public function manufacturers(?string $query = null, ?int $id = null, int $limit = 50): Collection;
 }

@@ -16,4 +16,8 @@ interface VehicleRepositoryInterface
      */
     public function findByMsId(int $msId): ?VehicleData;
 
+    /**
+     * Возвращает следующий свободный внешний идентификатор автомобиля.
+     */
+    public function nextMsId(): int;
 }

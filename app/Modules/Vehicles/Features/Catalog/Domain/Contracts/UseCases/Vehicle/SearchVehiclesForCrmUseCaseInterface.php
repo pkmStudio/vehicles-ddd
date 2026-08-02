@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle;
 
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmSearchItemDTO;
+use Illuminate\Support\Collection;
+
 /**
  * Use case port compact search CRM API Vehicles.
  */
 interface SearchVehiclesForCrmUseCaseInterface
 {
     /**
-     * @return list<array{id: int, label: string, ms_id: int, manufacturer: ?string}>
+     * Возвращает compact search options автомобилей.
+     *
+     * @return Collection<int, VehicleCrmSearchItemDTO>
      */
-    public function execute(string $query, int $limit = 20): array;
+    public function execute(string $query, int $limit = 20): Collection;
 }

@@ -21,4 +21,11 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
         return VehicleData::optional(Vehicle::query()->where('ms_id', $msId)->first());
     }
 
+    /**
+     * Возвращает следующий свободный внешний идентификатор автомобиля.
+     */
+    public function nextMsId(): int
+    {
+        return (int) Vehicle::query()->min('ms_id') - 1;
+    }
 }

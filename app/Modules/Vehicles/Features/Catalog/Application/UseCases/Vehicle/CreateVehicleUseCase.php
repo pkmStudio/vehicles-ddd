@@ -15,8 +15,8 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\CreateVehicleReque
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\VehicleData;
+use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
 use Throwable;
 
 /**
@@ -52,8 +52,12 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
             return null;
         }
 
+        $msId = $request->msId;
+
         try {
-            $existingVehicle = $this->vehicles->findByMsId($request->msId);
+            $msId ??= $this->vehicles->nextMsId();
+
+            $existingVehicle = $this->vehicles->findByMsId($msId);
 
             if ($existingVehicle !== null) {
                 return $this->results->rejected(
@@ -61,7 +65,7 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
                     operationId: $request->operationId,
                     entity: CatalogEntityEnum::Vehicle,
                     operation: CatalogMutationOperationEnum::Create,
-                    externalId: $request->msId,
+                    externalId: $msId,
                     reason: CatalogMutationRejectReasonEnum::AlreadyExists,
                 );
             }
@@ -73,7 +77,7 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
                     operationId: $request->operationId,
                     entity: CatalogEntityEnum::Vehicle,
                     operation: CatalogMutationOperationEnum::Create,
-                    externalId: $request->msId,
+                    externalId: $msId,
                     reason: CatalogMutationRejectReasonEnum::ManufacturerNotFound,
                 );
             }
@@ -87,7 +91,7 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
                         operationId: $request->operationId,
                         entity: CatalogEntityEnum::Vehicle,
                         operation: CatalogMutationOperationEnum::Create,
-                        externalId: $request->msId,
+                        externalId: $msId,
                         reason: CatalogMutationRejectReasonEnum::ParentVehicleNotFound,
                     );
                 }
@@ -95,7 +99,7 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
             }
 
             $vehicleData = new VehicleData(
-                msId: $request->msId,
+                msId: $msId,
                 mfaId: $request->mfaId,
                 manufacturerId: (int) $manufacturer->id,
                 name: $request->name,
@@ -136,7 +140,7 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
                 operationId: $request->operationId,
                 entity: CatalogEntityEnum::Vehicle,
                 operation: CatalogMutationOperationEnum::Create,
-                externalId: $request->msId,
+                externalId: $msId ?? 0,
             );
 
             throw $e;
