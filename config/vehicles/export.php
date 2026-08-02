@@ -29,14 +29,14 @@ return [
     |--------------------------------------------------------------------------
     |
     | Диск и подпапка, куда пишутся сгенерированные файлы каталога. По умолчанию
-    | используется общий S3-compatible disk `exports`, чтобы `dan-center` мог
-    | получить готовый файл по пути из RabbitMQ-события.
+    | используется общий S3-compatible disk из FILES_DISK и единая S3-структура
+    | dan-vehicles/export.
     |
     */
 
     'output' => [
-        'disk' => env('VEHICLES_EXPORT_OUTPUT_DISK', 'exports'),
-        'directory' => 'exports',
+        'disk' => env('VEHICLES_EXPORT_OUTPUT_DISK', env('FILES_DISK', 's3')),
+        'directory' => env('VEHICLES_EXPORT_OUTPUT_DIRECTORY', 'dan-vehicles/export'),
 
         /*
         | Safety-net: удаление файлов старше этого возраста запланированной

@@ -33,6 +33,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
 
         try {
             $path = $this->reporter->store($failures);
+            $reportDisk = (string) config('vehicles.import.failures.disk', 'local');
 
             if ($errorsCount > 0) {
                 $reportPath = is_string($path) ? $path : null;
@@ -41,6 +42,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
                     userId: $userId,
                     status: ImportCompletionStatusEnum::CompletedWithErrors,
                     operationId: $operationId,
+                    disk: $reportDisk,
                     errorsCount: $errorsCount,
                     path: $reportPath,
                 );
@@ -50,11 +52,17 @@ final readonly class ReportImportResultService implements ReportImportResultServ
                     userId: $userId,
                     status: ImportCompletionStatusEnum::Completed,
                     operationId: $operationId,
+                    disk: null,
                 );
                 $this->notifier->notifyImportCompleted($notification);
             }
         } catch (Throwable $e) {
-            $this->logger->error('Import reporting failed', ['exception' => $e]);
+            $this->logger->error('Import reporting failed', [
+                'operation_id' => $operationId,
+                'user_id' => $userId,
+                'errors_count' => $errorsCount,
+                'exception' => $e,
+            ]);
 
             $failedNotification = new ImportCompletionNotificationDTO(
                 userId: $userId,

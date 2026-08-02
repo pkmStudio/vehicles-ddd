@@ -31,10 +31,6 @@ final class VehicleMainSheetImport implements ShouldQueue, SkipsOnFailure, ToCol
 
     public function collection(Collection $collection): void
     {
-        Log::debug('[FIX:vehicles-import-queued] Processing vehicle main import chunk', [
-            'rows' => $collection->count(),
-        ]);
-
         $upsertVehicle = $this->upsertVehicle();
         $rowMapper = $this->rowMapper();
 

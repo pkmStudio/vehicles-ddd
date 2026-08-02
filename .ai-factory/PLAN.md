@@ -1,113 +1,84 @@
-# Implementation Plan: исправление архитектурных границ без MoySklad
+# Implementation Plan: типизация CRM read repository через локальные DTO
 
 Branch: master
-Created: 2026-08-01
+Created: 2026-08-02
 
 ## Settings
 
 - Testing: yes
-- Logging: standard
-- Docs: yes
+- Logging: minimal
+- Docs: no
 
 ## Research Context
 
-Source: архитектурный разбор текущего проекта и обновлённые `ARCHITECTURE.md` / `.ai-factory/ARCHITECTURE.md`.
+Source: conversation / `$aif-explore`
 
-Goal: привести согласованные архитектурные долги к целевым правилам без отказа от Laravel и без
-рефакторинга `Warehouse/Features/MoySklad`.
+Goal: привести `VehicleCrmReadRepository` к архитектурной границе, где repository возвращает типизированные локальные DTO/read projections, а не массивы и не внешние `dan-wire-contracts` DTO.
 
 Constraints:
-- Laravel framework coupling остаётся допустимым компромиссом.
-- `ModelData` остаются тонкими snapshots; бизнес-логика остаётся в Application.
-- `Warehouse/Features/MoySklad` не трогать в рамках этого плана.
-- Не делать один большой style-only PR; стиль править рядом с изменяемым кодом.
+- Не возвращать Eloquent-модели за пределы Infrastructure.
+- Не использовать `ModelData` для CRM projections, если результат не является снимком сущности.
+- Допустимо возвращать локальные Domain DTO из repository по существующим прецедентам `Applicability/Export` и `Warehouse/Catalog`.
+- Внешний JSON CRM API должен остаться обратно совместимым.
+- `PkmStudio\DanWireContracts\...` не должен создаваться внутри repository; wire mapping должен жить ближе к Presentation boundary.
+- Не делать массовый перевод всех `DB::table(...)` на Eloquent без явной пользы.
 
 Decisions:
-- Driving adapters должны идти через use case/service ports.
-- Broker/storage детали должны жить за Infrastructure adapters.
-- `Templates` считается shared-kernel; `WiperSpecificationService` не должен писать в Laravel `Log` напрямую.
-- `Shared` module-level правила обновлены и допускают public client contracts/DTOs/adapters без бизнес-логики.
+- Для CRM read flow использовать локальные `final readonly` DTO в `Vehicles/Features/Catalog/Domain/DTOs/Vehicle/Crm/`.
+- Repository может читать через `DB::table(...)` или feature-local Eloquent внутри Infrastructure, но на выходе возвращает DTO/`Collection<int, DTO>`.
+- `VehicleData` оставить для entity snapshots в mutation/read сценариях, не натягивать на CRM list/detail projection.
+- Формирование массивов/wire DTO вынести из repository в отдельный presenter/mapper или в тонкий controller-level boundary.
 
 Open questions:
-- Какой контракт возврата нужен CRM HTTP endpoints после выноса `VehicleCrmController`: оставить текущий JSON payload полностью совместимым или ввести explicit response DTO.
-- Логирование нарушения инварианта в `WiperSpecificationService`: делать через PSR logger в Application или вынести в вызывающий сценарий.
+- Нужен ли отдельный presenter port/interface или достаточно concrete helper рядом с `VehicleCrmController`.
+- Стоит ли добавить feature-local Eloquent models `Feature`/`FeatureValue`, если options останутся простыми SQL reads.
 
 ## Commit Plan
 
-- **Commit 1** (after tasks 1-3): `refactor: move crm vehicle reads behind use cases`
-- **Commit 2** (after tasks 4-5): `refactor: route local import requests through ports`
-- **Commit 3** (after tasks 6-8): `refactor: remove application logging facade debt`
+- **Commit 1** (after tasks 1-3): `refactor: introduce crm read dto contracts`
+- **Commit 2** (after tasks 4-5): `refactor: move crm response mapping to presentation boundary`
 
 ## Tasks
 
-### Phase 1: Vehicles CRM read boundary
+### Phase 1: Зафиксировать локальный контракт CRM read
 
-- [x] Task 1: Проверить уже начатые изменения вокруг CRM read flow и не перетереть чужую работу.
-  Files: `app/Modules/Vehicles/Features/Catalog/Presentation/Http/Controllers/VehicleCrmController.php`,
-  `app/Modules/Vehicles/Features/Catalog/Application/UseCases/Vehicle/*VehicleForCrmUseCase.php`,
-  `app/Modules/Vehicles/Features/Catalog/Domain/Contracts/*`,
-  `app/Modules/Vehicles/Features/Catalog/Infrastructure/Repositories/VehicleCrmReadRepository.php`,
-  `app/Modules/Vehicles/Features/Catalog/Infrastructure/Providers/CatalogServiceProvider.php`.
-  Logging requirements: не добавлять новые логи на этом шаге; только инвентаризация поведения,
-  совместимости JSON и существующих DI bindings.
+- [x] Task 1: Инвентаризировать текущий внешний JSON shape CRM endpoints и существующие wire DTO.
+  Files: `app/Modules/Vehicles/Features/Catalog/Presentation/Http/Controllers/VehicleCrmController.php`, `app/Modules/Vehicles/Features/Catalog/Infrastructure/Repositories/VehicleCrmReadRepository.php`, `tests/Feature/Vehicles/Catalog/VehicleCrmReadApiTest.php`, `vendor/pkmstudio/dan-wire-contracts/src/Vehicles/Modules/Vehicles/Features/Catalog/Read/DTO/*`.
+  Expected behavior: явно понять поля `index`, `show`, `search`, `features`, `feature-values`, `detail-templates`, `manufacturers` и не потерять совместимость ответа.
+  Logging requirements: новых runtime-логов не добавлять; successful read API не должен логироваться. Если во время реализации обнаружится несовместимый payload shape, фиксировать это тестом, а не логом.
 
-- [x] Task 2: Завершить вынос SQL/filter/search/sort/pagination из `VehicleCrmController` в
-  Application use cases и `VehicleCrmReadRepositoryInterface`.
-  Expected behavior: controller выполняет guard/request parsing, вызывает use case port и возвращает
-  прежнюю JSON-форму `data/meta`; repository инкапсулирует `DB::table`, joins, filters, search,
-  sorting и pagination.
-  Logging requirements: WARN/ERROR не нужны для успешных read-запросов; при невозможности собрать
-  query из входных параметров использовать обычный validation/response flow без шумного логирования.
+- [x] Task 2: Добавить локальные Domain DTO для CRM read projections.
+  Files to create: `app/Modules/Vehicles/Features/Catalog/Domain/DTOs/Vehicle/Crm/VehicleCrmListItemDTO.php`, `VehicleCrmDetailDTO.php`, `VehicleCrmSearchItemDTO.php`, `VehicleCrmPaginationMetaDTO.php`, `VehicleCrmPageDTO.php`, `VehicleCrmModificationDTO.php`, `VehicleCrmEngineDTO.php`, `VehicleCrmPartSpecificationDTO.php`, `VehicleCrmFeatureOptionDTO.php`, `VehicleCrmFeatureValueOptionDTO.php`, `VehicleCrmDetailTemplateOptionDTO.php`, `VehicleCrmManufacturerOptionDTO.php`.
+  Expected behavior: DTO описывают сценарный read projection, а не entity snapshot; классы `final readonly`, без Laravel/Eloquent/wire dependencies, с докблоками по правилам проекта.
+  Logging requirements: DTO не логируют. Не добавлять `Log`/facade/PSR logger в Domain.
 
-- [x] Task 3: Добавить или обновить focused tests для CRM endpoints/repository behavior.
-  Files: `tests/Feature` или `tests/Unit` по существующей структуре проекта.
-  Expected behavior: покрыть list/show/search, unauthorized guard, not found, фильтры, поиск и sort.
-  Logging requirements: тесты не должны зависеть от логов; если добавляются проверки ошибок,
-  логирование проверять только там, где оно является контрактом поведения.
+- [x] Task 3: Обновить repository/use case contracts на возврат локальных DTO.
+  Files: `app/Modules/Vehicles/Features/Catalog/Domain/Contracts/Repositories/VehicleCrmReadRepositoryInterface.php`, `app/Modules/Vehicles/Features/Catalog/Domain/Contracts/UseCases/Vehicle/ListVehiclesForCrmUseCaseInterface.php`, `ShowVehicleForCrmUseCaseInterface.php`, `SearchVehiclesForCrmUseCaseInterface.php`, `app/Modules/Vehicles/Features/Catalog/Application/UseCases/Vehicle/*VehicleForCrmUseCase.php`.
+  Expected behavior: `paginate()` возвращает `VehicleCrmPageDTO`, `find()` возвращает `?VehicleCrmDetailDTO`, `search()` и options возвращают `Collection<int, ...DTO>` или typed DTO containers; Application больше не оперирует `array<string, mixed>` для CRM read flow.
+  Logging requirements: новых логов не добавлять; use cases остаются thin orchestration без логирования успешных read operations.
 
-### Phase 2: Shared local import request boundary
+### Phase 2: Перенести mapping из repository к Presentation boundary
 
-- [x] Task 4: Спроектировать port/use case для публикации локального import request без прямого
-  `RabbitMQPublisher`/`Storage` в Presentation.
-  Files: `app/Modules/Shared` или более точный feature/module после выбора владельца сценария.
-  Expected behavior: command парсит `path/disk/user-id/operation-id`, вызывает Application port;
-  storage existence и broker publish выполняются через Infrastructure adapters.
-  Logging requirements: INFO при успешной публикации, ERROR/WARN при невозможности найти файл или
-  опубликовать сообщение; не логировать секреты и содержимое файлов.
+- [x] Task 4: Переписать `VehicleCrmReadRepository` на сборку локальных DTO вместо массивов/wire DTO.
+  Files: `app/Modules/Vehicles/Features/Catalog/Infrastructure/Repositories/VehicleCrmReadRepository.php`; при осознанной пользе можно добавить feature-local models/relations в `app/Modules/Vehicles/Features/Catalog/Infrastructure/Models/`.
+  Expected behavior: repository инкапсулирует SQL/Eloquent reads, filters, search, sorting, pagination и nested loads, но не импортирует `PkmStudio\DanWireContracts\...` и не вызывает `toArray()` для HTTP response shape.
+  Logging requirements: successful reads не логировать. Не добавлять предупреждения для пустых результатов или not found; это нормальный control flow для read API.
 
-- [x] Task 5: Переписать `RequestLocalImportCommand` на новый port/use case и сохранить текущую CLI
-  совместимость.
-  Files: `app/Modules/Shared/Presentation/Console/Commands/RequestLocalImportCommand.php` и новые
-  Domain/Application/Infrastructure классы выбранного владельца.
-  Expected behavior: все наследники команды работают с теми же arguments/options и публикуют тот же
-  RabbitMQ payload.
-  Logging requirements: command выводит пользовательские console messages; infrastructure adapter
-  логирует технический сбой публикации на ERROR с `event`, `routing_key`, `operation_id`, `disk`,
-  `path`.
+- [x] Task 5: Добавить boundary mapper/presenter и обновить controller на прежний JSON contract.
+  Files to create/update: `app/Modules/Vehicles/Features/Catalog/Presentation/Http/Controllers/VehicleCrmController.php`; возможно `app/Modules/Vehicles/Features/Catalog/Presentation/Http/Presenters/VehicleCrmReadPresenter.php` или `app/Modules/Vehicles/Features/Catalog/Application/Services/Vehicle/VehicleCrmReadPresenter.php` с port в `Domain/Contracts/Services/Vehicle/`, если нужен DI-паттерн.
+  Expected behavior: controller остаётся тонким: guard/request parsing/use case call/response. Presenter превращает локальные DTO в прежние arrays или `dan-wire-contracts` DTO на внешней границе. HTTP responses `data/meta`, `data`, `message` остаются совместимыми.
+  Logging requirements: не логировать успешные responses и unauthorized/not found. Если presenter встретит невозможное состояние DTO, предпочесть fail-fast exception или тестовую защиту; не скрывать ошибку WARN-логом.
 
-### Phase 3: Templates logging boundary
+### Phase 3: Проверка поведения
 
-- [x] Task 6: Убрать прямой `Log` facade из `Templates/Application/WiperSpecificationService`.
-  Files: `app/Modules/Templates/Application/WiperSpecificationService.php`,
-  `app/Modules/Templates/Domain/Contracts/*`,
-  `app/Modules/Templates/Infrastructure/Providers/TemplatesServiceProvider.php`.
-  Expected behavior: сервис остаётся чистым относительно Laravel facade; предупреждение о нескольких
-  adapter values не теряется.
-  Logging requirements: если выбран PSR logger, логировать WARN с `part_specification_id`, `side`,
-  `adapter_count`, `adapters`; если выбран вынос наружу, вызывающий сценарий логирует тот же context.
+- [x] Task 6: Обновить focused tests CRM read API и добавить контрактные проверки типов при необходимости.
+  Files: `tests/Feature/Vehicles/Catalog/VehicleCrmReadApiTest.php`; при необходимости `tests/Unit/Vehicles/Catalog/VehicleCrmReadRepositoryTest.php` или ближайшая существующая директория.
+  Expected behavior: покрыть прежние сценарии list/show/search/options, unauthorized guard, not found, filters, search, sort и shape `data/meta`; добавить регрессию, что repository/use case больше не возвращает raw arrays для основных CRM read методов.
+  Logging requirements: тесты не должны зависеть от логов; новых log assertions не добавлять, потому что логирование не является контрактом read API.
 
-- [x] Task 7: Обновить tests для `WiperSpecificationService` и затронутых callers.
-  Files: существующие `tests/Unit/Templates` или ближайшая актуальная директория тестов.
-  Expected behavior: нормализация adapters сохраняет данные; предупреждение/сигнал нарушения
-  инварианта покрыт тестом без зависимости от Laravel facade.
-  Logging requirements: в тестах использовать fake/mock logger или проверять возвращаемый сигнал,
-  если логирование вынесено наружу.
+### Phase 4: Локальная чистка затронутого кода
 
-### Phase 4: Local style cleanup near touched code
-
-- [x] Task 8: Привести только затронутые файлы к правилам докблоков, inline `new DTO(...)` и
-  многострочных именованных аргументов.
-  Files: только файлы из задач 1-7 и их непосредственные новые contracts/DTOs/tests.
-  Expected behavior: не запускать массовый formatting/refactor по 1100 файлам.
-  Logging requirements: новых логов не требуется; существующие логи оставить с понятным context и
-  без чувствительных данных.
+- [x] Task 7: Привести только затронутые файлы к локальным style rules.
+  Files: все новые DTO/presenter/contracts и изменённые CRM read controller/repository/use cases/tests.
+  Expected behavior: докблок у каждого класса/метода, многострочные именованные аргументы при нескольких параметрах, отсутствие inline `new DTO(...)` внутри вызовов кроме явно разрешённых исключений, без массового форматирования несвязанных файлов.
+  Logging requirements: новых логов не добавлять; проверить, что Domain/Application не получили Laravel `Log` facade.

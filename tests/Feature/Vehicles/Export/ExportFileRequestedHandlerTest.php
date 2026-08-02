@@ -51,7 +51,7 @@ final class ExportFileRequestedHandlerTest extends TestCase
      *
      * Шаги:
      * 1. Мокает FileExportInterface (сам адаптер) — ожидает export() с
-     *    ExportRunContextDTO(userId: 42, operationId: 'run-123') и диском 'exports' (свой конфиг,
+     *    ExportRunContextDTO(userId: 42, operationId: 'run-123') и disk 's3' (свой конфиг,
      *    не из payload), возвращает путь к «сгенерированному» файлу.
      * 2. Мокает ExportFileFactoryInterface::make — ожидает вызов с (Vehicle, isAllow: false)
      *    и возвращает мок адаптера из шага 1.
@@ -61,14 +61,19 @@ final class ExportFileRequestedHandlerTest extends TestCase
      */
     public function test_starts_vehicle_export_and_notifies_completion(): void
     {
+        config([
+            'vehicles.export.output.disk' => 's3',
+            'vehicles.export.output.directory' => 'dan-vehicles/export',
+        ]);
+
         $adapter = Mockery::mock(FileExportInterface::class);
         $adapter->shouldReceive('export')
             ->once()
             ->with(
                 Mockery::on(fn (ExportRunContextDTO $context): bool => $context->userId === 42 && $context->operationId === 'run-123'),
-                'exports',
+                's3',
             )
-            ->andReturn('exports/vehicle-catalog-run-123.xlsx');
+            ->andReturn('dan-vehicles/export/vehicle-catalog-run-123.xlsx');
 
         $factory = $this->mock(ExportFileFactoryInterface::class);
         $factory->shouldReceive('make')
@@ -84,7 +89,8 @@ final class ExportFileRequestedHandlerTest extends TestCase
                     && $payload->status === ExportCompletionStatusEnum::Completed
                     && $payload->operationId === 'run-123'
                     && $payload->exportType === ExportTypeEnum::Vehicle
-                    && $payload->path === 'exports/vehicle-catalog-run-123.xlsx';
+                    && $payload->disk === 's3'
+                    && $payload->path === 'dan-vehicles/export/vehicle-catalog-run-123.xlsx';
             }));
 
         app(ExportFileRequestedHandler::class)->handle([
@@ -136,8 +142,13 @@ final class ExportFileRequestedHandlerTest extends TestCase
      */
     public function test_duplicate_operation_id_is_skipped(): void
     {
+        config([
+            'vehicles.export.output.disk' => 's3',
+            'vehicles.export.output.directory' => 'dan-vehicles/export',
+        ]);
+
         $adapter = Mockery::mock(FileExportInterface::class);
-        $adapter->shouldReceive('export')->once()->andReturn('exports/vehicle-catalog-run-dup.xlsx');
+        $adapter->shouldReceive('export')->once()->andReturn('dan-vehicles/export/vehicle-catalog-run-dup.xlsx');
 
         $factory = $this->mock(ExportFileFactoryInterface::class);
         $factory->shouldReceive('make')->once()->andReturn($adapter);

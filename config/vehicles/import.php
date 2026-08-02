@@ -46,7 +46,8 @@ return [
     */
 
     'failures' => [
-        'disk' => env('IMPORT_FAILURES_REPORT_DISK', 'exports'),
+        'disk' => env('VEHICLES_IMPORT_FAILURES_REPORT_DISK', env('IMPORT_FAILURES_REPORT_DISK', env('FILES_DISK', 's3'))),
+        'directory' => env('VEHICLES_IMPORT_FAILURES_REPORT_DIRECTORY', 'dan-vehicles/import'),
 
         'cache' => [
             'keys' => [

@@ -7,8 +7,8 @@ namespace Tests\Feature\Vehicles\Import;
 use App\Modules\Vehicles\Features\Import\Application\Listeners\ReportImportResultListener;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportCompletionNotificationDTO;
-use App\Modules\Vehicles\Features\Import\Domain\Events\Vehicle\VehicleImportCompleted;
 use App\Modules\Vehicles\Features\Import\Domain\Enums\ImportCompletionStatusEnum;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Vehicle\VehicleImportCompleted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -28,15 +28,19 @@ final class ReportImportResultListenerTest extends TestCase
      * инициатора статусом CompletedWithErrors с путём к отчёту.
      *
      * Шаги:
-     * 1. Подменяет диск 'exports' на фейковый и кладёт в cache одну построчную ошибку импорта.
+     * 1. Подменяет disk 's3' на фейковый и кладёт в cache одну построчную ошибку импорта.
      * 2. Мокает FileNotificationServiceInterface — ожидает notifyImportCompleted() с
-     *    userId/operationId/errorsCount и путём, начинающимся с 'exports/import-failures'.
+     *    userId/operationId/errorsCount, disk='s3' и путём в 'dan-vehicles/import'.
      * 3. Зовёт handle() с VehicleImportCompleted(userId: 42, cacheKey, operationId: 'run-123').
      * 4. Проверяет, что cache-запись с ошибками снята после обработки.
      */
     public function test_exports_failures_and_notifies_user(): void
     {
-        Storage::fake('exports');
+        config([
+            'vehicles.import.failures.disk' => 's3',
+            'vehicles.import.failures.directory' => 'dan-vehicles/import',
+        ]);
+        Storage::fake('s3');
 
         $cacheKey = 'report_listener_test_failures';
         Cache::put($cacheKey, [
@@ -51,9 +55,10 @@ final class ReportImportResultListenerTest extends TestCase
                     fn (ImportCompletionNotificationDTO $payload) => $payload->userId === 42
                         && $payload->status === ImportCompletionStatusEnum::CompletedWithErrors
                         && $payload->operationId === 'run-123'
+                        && $payload->disk === 's3'
                         && $payload->errorsCount === 1
                         && is_string($payload->path)
-                        && str_starts_with($payload->path, 'exports/import-failures'),
+                        && str_starts_with($payload->path, 'dan-vehicles/import/import-failures'),
                 ),
             );
 
@@ -61,6 +66,29 @@ final class ReportImportResultListenerTest extends TestCase
         $listener->handle(new VehicleImportCompleted(userId: 42, cacheKey: $cacheKey, operationId: 'run-123'));
 
         $this->assertFalse(Cache::has($cacheKey));
+    }
+
+    public function test_failure_notification_payload_contains_report_disk_aliases(): void
+    {
+        $payload = new ImportCompletionNotificationDTO(
+            userId: 42,
+            status: ImportCompletionStatusEnum::CompletedWithErrors,
+            operationId: 'run-123',
+            disk: 's3',
+            errorsCount: 1,
+            path: 'dan-vehicles/import/import-failures.csv',
+        );
+
+        $this->assertSame([
+            'user_id' => 42,
+            'operation_id' => 'run-123',
+            'status' => 'completed_with_errors',
+            'disk' => 's3',
+            'errors_count' => 1,
+            'path' => 'dan-vehicles/import/import-failures.csv',
+            'failures_report_path' => 'dan-vehicles/import/import-failures.csv',
+            'failures_report_disk' => 's3',
+        ], $payload->toArray());
     }
 
     /**
@@ -76,6 +104,8 @@ final class ReportImportResultListenerTest extends TestCase
      */
     public function test_does_not_notify_when_no_failures(): void
     {
+        config(['vehicles.import.failures.disk' => 's3']);
+
         $cacheKey = 'report_listener_test_no_failures';
 
         $notifier = $this->mock(FileNotificationServiceInterface::class);
@@ -86,6 +116,7 @@ final class ReportImportResultListenerTest extends TestCase
                     fn (ImportCompletionNotificationDTO $payload) => $payload->userId === 42
                         && $payload->status === ImportCompletionStatusEnum::Completed
                         && $payload->operationId === 'run-456'
+                        && $payload->disk === null
                         && $payload->errorsCount === 0
                         && $payload->path === null,
                 ),

@@ -36,10 +36,6 @@ final class VehicleWipersSheetImport implements ShouldQueue, SkipsEmptyRows, Ski
 
     public function collection(Collection $collection): void
     {
-        Log::debug('[FIX:vehicles-import-queued] Processing vehicle wipers import chunk', [
-            'rows' => $collection->count(),
-        ]);
-
         $rowMapper = $this->rowMapper();
         $upsertWiperSpec = $this->upsertWiperSpec();
         $trimString = fn ($value) => is_string($value) ? trim($value) : $value;

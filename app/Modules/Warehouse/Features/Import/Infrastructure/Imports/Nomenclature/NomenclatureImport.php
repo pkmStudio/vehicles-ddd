@@ -169,12 +169,6 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
         /** @var NomenclatureImport $import */
         $import = $event->getConcernable();
 
-        Log::debug('[FIX:queued-import-serialization] Completed queued nomenclature import.', [
-            'operation_id' => $import->operationId,
-            'user_id' => $import->userId,
-            'cache_key' => $import->cacheKey,
-        ]);
-
         event(new NomenclatureImportCompleted(
             userId: $import->userId,
             cacheKey: $import->cacheKey,

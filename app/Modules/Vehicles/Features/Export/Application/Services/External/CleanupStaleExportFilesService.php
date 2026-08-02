@@ -22,15 +22,15 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
 
     /**
      * Ограничение по enum-префиксам и по подпапке — намеренно, а не «весь диск»:
-     * 'output.directory' на этом диске делят с другим
-     * контентом (Import кладёт туда же отчёты об ошибках, 'exports/import-failures*.csv'),
+     * 'output.directory' на этом диске может соседствовать с другим контентом
+     * (Import кладёт отчёты об ошибках в отдельный каталог dan-vehicles/import),
      * поэтому неявная зависимость от постороннего файла в той же папке — не то, ради чего
      * стоит рисковать удалением чужого файла.
      */
     public function cleanup(): int
     {
         $disk = (string) config('vehicles.export.output.disk', 'local');
-        $directory = (string) config('vehicles.export.output.directory', 'exports');
+        $directory = (string) config('vehicles.export.output.directory', 'dan-vehicles/export');
         $retentionHours = (int) config('vehicles.export.output.retention_hours', 24);
         $threshold = now()->subHours($retentionHours)->getTimestamp();
 
