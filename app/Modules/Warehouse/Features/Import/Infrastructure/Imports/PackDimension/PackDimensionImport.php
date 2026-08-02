@@ -133,11 +133,22 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
     public function registerEvents(): array
     {
         return [
-            AfterImport::class => fn () => event(new PackDimensionImportCompleted(
-                userId: $this->userId,
-                cacheKey: $this->cacheKey,
-                operationId: $this->operationId,
-            )),
+            AfterImport::class => [self::class, 'afterImport'],
         ];
+    }
+
+    /**
+     * Диспатчит событие завершения импорта после обработки queued chunks.
+     */
+    public static function afterImport(AfterImport $event): void
+    {
+        /** @var PackDimensionImport $import */
+        $import = $event->getConcernable();
+
+        event(new PackDimensionImportCompleted(
+            userId: $import->userId,
+            cacheKey: $import->cacheKey,
+            operationId: $import->operationId,
+        ));
     }
 }

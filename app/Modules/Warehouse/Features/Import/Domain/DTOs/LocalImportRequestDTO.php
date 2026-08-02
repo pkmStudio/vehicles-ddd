@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Shared\Domain\DTOs;
+namespace App\Modules\Warehouse\Features\Import\Domain\DTOs;
 
 /**
- * Описывает локальный запрос импорта, который нужно опубликовать во входящий RabbitMQ-flow.
+ * Описывает локальный запрос импорта Warehouse, который нужно опубликовать во входящий RabbitMQ-flow.
  */
 final readonly class LocalImportRequestDTO
 {

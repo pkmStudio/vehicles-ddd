@@ -17,7 +17,7 @@ final readonly class ImportFailureReporter implements ImportFailureReporterInter
             return null;
         }
 
-        $fileName = 'import-failures'.now()->format('Y-m-d-His').'.csv';
+        $fileName = 'import-failures'.now()->format('Y-m-d-His').'.xlsx';
         $disk = (string) config('vehicles.import.failures.disk', 'local');
         $directory = trim((string) config('vehicles.import.failures.directory', 'dan-vehicles/import'), '/');
         $path = $directory !== '' ? sprintf('%s/%s', $directory, $fileName) : $fileName;
@@ -26,7 +26,7 @@ final readonly class ImportFailureReporter implements ImportFailureReporterInter
             app()->makeWith(FailuresExportInterface::class, ['failures' => $failures]),
             $path,
             $disk,
-            Excel::CSV,
+            Excel::XLSX,
         );
 
         return $path;

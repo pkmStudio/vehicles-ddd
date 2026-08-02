@@ -65,11 +65,6 @@ app/Modules/
     Domain/                 # Typed declarations для details-шаблонов
     Application/            # Сборка из строк, render/presenter, template services
     Infrastructure/         # Provider bindings
-  Shared/
-    Domain/                 # Общие технические ports/DTOs без доменных терминов
-    Application/            # Технические use cases вне одного bounded context
-    Infrastructure/         # Общая техническая infrastructure
-    Presentation/           # Общие console entrypoints
 ```
 
 Типовая фича:
@@ -124,6 +119,9 @@ app/Modules/<Module>/Features/<Feature>/
 - Межфичевый sync-вызов идет через локальный `Domain/Contracts/Clients/*ClientInterface` фичи-потребителя и adapter в ее `Infrastructure/Clients`.
 - События используются только для фактов без return value; если нужен ответ сразу, это client/query contract, не event.
 - `Shared` внутри доменного модуля — публичная часть модуля, а не папка для общей бизнес-логики.
+- Верхнеуровневый `app/Modules/Shared` не используется: технические workflow, console base classes,
+  Excel helpers и adapters размещаются внутри конкретной фичи. Небольшое дублирование между
+  модулями допустимо ради изоляции bounded contexts.
 
 ## Коммуникация слоев и модулей
 
@@ -150,7 +148,6 @@ app/Modules/<Module>/Features/<Feature>/
 | `Warehouse` | Складской каталог: `Nomenclature`, `Kit`, `Type`, `PackDimension`, свойства наборов, аудит дворников, интеграция MoySklad. | Shared events, client contracts/DTOs для применяемости и export/audit-сценариев. | Потребители: `Applicability`, `Templates`, внешние интеграции. `MoySklad` остаётся под-контекстом Warehouse и не является общим API. |
 | `Applicability` | Импорт, экспорт и расчёт применяемости комплектов к автомобилям. | Сценарии расчёта/экспорта, события завершения, notification DTOs. | Потребляет публичные contracts `Vehicles` и `Warehouse`; не владеет каталогами Vehicles/Warehouse. |
 | `Templates` | Shared Kernel формы `details`: enum-словари, typed `Data`, сборка из строк и рендер в Excel. | Domain declarations + service/factory contracts, используемые другими context'ами. | Используется Vehicles/Warehouse/Applicability. Любое изменение формы `details` считается cross-context изменением. |
-| `Shared` | Общие технические workflow, ports, adapter'ы и entrypoint'ы, не принадлежащие одному доменному context'у. | Технические use cases/contracts/adapters/base classes без доменной бизнес-логики. | Не должен становиться доменным shared-kernel. Если появляется доменный термин — переносим в конкретный context или `Templates`. |
 
 Правило context map: если context'у нужен ответ прямо сейчас, он использует sync client contract и
 adapter. Если нужно сообщить факт без ответа — domain event. Прямой импорт чужих

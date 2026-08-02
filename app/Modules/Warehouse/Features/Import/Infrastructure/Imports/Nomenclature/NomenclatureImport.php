@@ -18,7 +18,6 @@ use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -47,15 +46,58 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
 
     private ?string $operationId = null;
 
+    private ?ImportNomenclatureFromRowServiceInterface $service = null;
+
+    private ?TypeRepositoryInterface $types = null;
+
+    private ?BrandRepositoryInterface $brands = null;
+
+    private ?NomenclatureRepositoryInterface $nomenclatures = null;
+
     /**
      * Получает построчный сервис импорта и справочники типов/брендов.
      */
     public function __construct(
-        private readonly ImportNomenclatureFromRowServiceInterface $service,
-        private readonly TypeRepositoryInterface $types,
-        private readonly BrandRepositoryInterface $brands,
-        private readonly NomenclatureRepositoryInterface $nomenclatures,
-    ) {}
+        ImportNomenclatureFromRowServiceInterface $service,
+        TypeRepositoryInterface $types,
+        BrandRepositoryInterface $brands,
+        NomenclatureRepositoryInterface $nomenclatures,
+    ) {
+        $this->service = $service;
+        $this->types = $types;
+        $this->brands = $brands;
+        $this->nomenclatures = $nomenclatures;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [
+            'userId' => $this->userId,
+            'operationId' => $this->operationId,
+            'cacheKey' => $this->cacheKey ?? null,
+            'lockKey' => $this->lockKey ?? null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->userId = is_int($data['userId'] ?? null) ? $data['userId'] : null;
+        $this->operationId = is_string($data['operationId'] ?? null) ? $data['operationId'] : null;
+
+        if (is_string($data['cacheKey'] ?? null)) {
+            $this->cacheKey = $data['cacheKey'];
+        }
+
+        if (is_string($data['lockKey'] ?? null)) {
+            $this->lockKey = $data['lockKey'];
+        }
+    }
 
     /**
      * Этот метод запускает Excel-импорт файла в рамках прогона, описанного контекстом.
@@ -95,19 +137,19 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
      */
     public function collection(Collection $collection): void
     {
-        $types = $this->types->all();
-        $brands = $this->brands->all();
+        $types = $this->types()->all();
+        $brands = $this->brands()->all();
 
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
             $id = isset($rowValues[0]) && trim((string) $rowValues[0]) !== '' ? (int) trim((string) $rowValues[0]) : null;
             $partNumber = trim((string) ($rowValues[5] ?? ''));
             $wasExisting = $id !== null
-                ? $this->nomenclatures->findById($id) !== null
-                : ($partNumber !== '' && $this->nomenclatures->findByPartNumber($partNumber) !== null);
+                ? $this->nomenclatures()->findById($id) !== null
+                : ($partNumber !== '' && $this->nomenclatures()->findByPartNumber($partNumber) !== null);
 
             try {
-                $nomenclature = $this->service->importFromRow($rowValues, $types, $brands);
+                $nomenclature = $this->service()->importFromRow($rowValues, $types, $brands);
                 $this->dispatchNomenclatureMutationEvent($nomenclature->toArray(), $wasExisting);
             } catch (WarehouseImportException|DetailsDataBuildException $e) {
                 $failure = new Failure(
@@ -201,5 +243,25 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
             operationId: $operationId,
             nomenclature: $nomenclature,
         ));
+    }
+
+    private function service(): ImportNomenclatureFromRowServiceInterface
+    {
+        return $this->service ??= app(ImportNomenclatureFromRowServiceInterface::class);
+    }
+
+    private function types(): TypeRepositoryInterface
+    {
+        return $this->types ??= app(TypeRepositoryInterface::class);
+    }
+
+    private function brands(): BrandRepositoryInterface
+    {
+        return $this->brands ??= app(BrandRepositoryInterface::class);
+    }
+
+    private function nomenclatures(): NomenclatureRepositoryInterface
+    {
+        return $this->nomenclatures ??= app(NomenclatureRepositoryInterface::class);
     }
 }

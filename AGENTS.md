@@ -25,7 +25,6 @@ app/
     Warehouse/       # Складской каталог, импорт/экспорт, packaging, MoySklad, audits
     Applicability/   # Импорт, экспорт и расчет применяемости
     Templates/       # Shared-kernel для details-шаблонов и Excel mapping
-    Shared/          # Общие технические ports/use cases/adapters/console entrypoints
   Providers/         # Laravel service providers верхнего уровня
   Support/           # Локальные support-классы вне бизнес-модулей
 bootstrap/           # Laravel bootstrap

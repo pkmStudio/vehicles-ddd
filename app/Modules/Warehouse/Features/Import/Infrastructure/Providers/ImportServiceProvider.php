@@ -9,17 +9,19 @@ use App\Modules\Warehouse\Features\Import\Application\Services\Kit\ImportKitFrom
 use App\Modules\Warehouse\Features\Import\Application\Services\Nomenclature\ImportNomenclatureFromRowService;
 use App\Modules\Warehouse\Features\Import\Application\Services\PackDimension\ImportPackDimensionFromRowService;
 use App\Modules\Warehouse\Features\Import\Application\Services\TypeTemplateResolver;
+use App\Modules\Warehouse\Features\Import\Application\UseCases\External\PublishLocalImportRequestUseCase;
 use App\Modules\Warehouse\Features\Import\Application\UseCases\External\StartExternalFileImportUseCase;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\PackDimensionCommandInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\KitPropertiesClientInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Factories\ImportFileFactoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\KitImportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\PackDimensionImportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Notifications\ImportNotificationServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Publishers\LocalImportRequestPublisherInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Reporting\FailuresExportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Reporting\ImportFailureStoreInterface;
@@ -34,18 +36,21 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimension\ImportPackDimensionFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Storage\ExternalImportFileStorageInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Storage\LocalImportFileStorageInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\UseCases\External\PublishLocalImportRequestUseCaseInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Clients\KitPropertiesClient;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Commands\KitCommand;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Commands\NomenclatureCommand;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Commands\PackDimensionCommand;
-use App\Modules\Warehouse\Features\Import\Infrastructure\Clients\KitPropertiesClient;
-use App\Modules\Warehouse\Features\Import\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Kit\KitImport;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Nomenclature\NomenclatureImport;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\PackDimension\PackDimensionImport;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Notifications\RabbitMqImportNotificationService;
-use App\Modules\Warehouse\Features\Import\Infrastructure\Reporting\FailuresExport;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Publishers\RabbitMqLocalImportRequestPublisher;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Reporting\CacheImportFailureStore;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Reporting\FailuresExport;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Reporting\ImportFailureReporter;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Repositories\BrandRepository;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Repositories\KitRepository;
@@ -54,6 +59,7 @@ use App\Modules\Warehouse\Features\Import\Infrastructure\Repositories\PackDimens
 use App\Modules\Warehouse\Features\Import\Infrastructure\Repositories\TypeRepository;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Services\External\ExternalImportCacheService;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Storage\LaravelExternalImportFileStorage;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Storage\LaravelLocalImportFileStorage;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -88,6 +94,7 @@ final class ImportServiceProvider extends ServiceProvider
         ImportKitFromRowServiceInterface::class => ImportKitFromRowService::class,
         ExternalImportCacheServiceInterface::class => ExternalImportCacheService::class,
         ExternalImportFileStorageInterface::class => LaravelExternalImportFileStorage::class,
+        LocalImportFileStorageInterface::class => LaravelLocalImportFileStorage::class,
     ];
 
     private const array FACTORY_BINDINGS = [
@@ -96,6 +103,7 @@ final class ImportServiceProvider extends ServiceProvider
 
     private const array USE_CASE_BINDINGS = [
         StartExternalFileImportUseCaseInterface::class => StartExternalFileImportUseCase::class,
+        PublishLocalImportRequestUseCaseInterface::class => PublishLocalImportRequestUseCase::class,
     ];
 
     private const array REPORTING_BINDINGS = [
@@ -107,6 +115,10 @@ final class ImportServiceProvider extends ServiceProvider
     private const array CLIENT_BINDINGS = [
         KitPropertiesClientInterface::class => KitPropertiesClient::class,
         TemplatesClientInterface::class => TemplatesClient::class,
+    ];
+
+    private const array PUBLISHER_BINDINGS = [
+        LocalImportRequestPublisherInterface::class => RabbitMqLocalImportRequestPublisher::class,
     ];
 
     /**
@@ -173,6 +185,13 @@ final class ImportServiceProvider extends ServiceProvider
         }
 
         foreach (self::CLIENT_BINDINGS as $interface => $implementation) {
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
+        }
+
+        foreach (self::PUBLISHER_BINDINGS as $interface => $implementation) {
             $this->app->bind(
                 abstract: $interface,
                 concrete: $implementation,

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Shared\Presentation\Console\Commands;
+namespace App\Modules\Vehicles\Features\Import\Presentation\Console\Support;
 
-use App\Modules\Shared\Domain\Contracts\UseCases\PublishLocalImportRequestUseCaseInterface;
-use App\Modules\Shared\Domain\DTOs\LocalImportRequestDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\PublishLocalImportRequestUseCaseInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\LocalImportRequestDTO;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
 /**
- * Базовая команда публикации локального файла импорта в тот же RabbitMQ-flow, что использует CRM.
+ * Базовая команда публикации локального Vehicles import file в тот же RabbitMQ-flow, что использует CRM.
  */
 abstract class RequestLocalImportCommand extends Command
 {
@@ -31,9 +31,6 @@ abstract class RequestLocalImportCommand extends Command
 
     /**
      * Удалять ли исходный файл после успешного импорта (data.cleanup_after_import).
-     * По умолчанию true — так ведёт себя штатный CRM-флоу (файл пришёл извне и не нужен после
-     * импорта). Команды ручного/операционного запуска (см. ImportNomenclature/ImportKits/
-     * ImportPackDimensions) переопределяют на false, чтобы не удалять файл оператора.
      */
     protected function cleanupAfterImport(): bool
     {

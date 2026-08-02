@@ -133,11 +133,22 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
     public function registerEvents(): array
     {
         return [
-            AfterImport::class => fn () => event(new KitImportCompleted(
-                userId: $this->userId,
-                cacheKey: $this->cacheKey,
-                operationId: $this->operationId,
-            )),
+            AfterImport::class => [self::class, 'afterImport'],
         ];
+    }
+
+    /**
+     * Диспатчит событие завершения импорта после обработки queued chunks.
+     */
+    public static function afterImport(AfterImport $event): void
+    {
+        /** @var KitImport $import */
+        $import = $event->getConcernable();
+
+        event(new KitImportCompleted(
+            userId: $import->userId,
+            cacheKey: $import->cacheKey,
+            operationId: $import->operationId,
+        ));
     }
 }

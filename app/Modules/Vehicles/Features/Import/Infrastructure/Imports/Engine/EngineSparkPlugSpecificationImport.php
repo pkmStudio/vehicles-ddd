@@ -14,6 +14,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineImportComple
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
+use LogicException;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -36,12 +37,48 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
 
     private const int SPEC_START_COLUMN = 2;
 
-    public ImportRunContextDTO $context;
+    private ?ImportRunContextDTO $context = null;
+
+    private ?UpsertSparkPlugSpecByModificationServiceInterface $service = null;
+
+    private ?TemplatesClientInterface $templates = null;
 
     public function __construct(
-        private readonly UpsertSparkPlugSpecByModificationServiceInterface $service,
-        private readonly TemplatesClientInterface $templates,
-    ) {}
+        UpsertSparkPlugSpecByModificationServiceInterface $service,
+        TemplatesClientInterface $templates,
+    ) {
+        $this->service = $service;
+        $this->templates = $templates;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [
+            'context' => $this->context,
+            'cacheKey' => $this->cacheKey ?? null,
+            'lockKey' => $this->lockKey ?? null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $context = $data['context'] ?? null;
+        $this->context = $context instanceof ImportRunContextDTO ? $context : null;
+
+        if (is_string($data['cacheKey'] ?? null)) {
+            $this->cacheKey = $data['cacheKey'];
+        }
+
+        if (is_string($data['lockKey'] ?? null)) {
+            $this->lockKey = $data['lockKey'];
+        }
+    }
 
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
@@ -76,12 +113,12 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
             }
 
             try {
-                $details = $this->templates->buildVehicleDetails(
+                $details = $this->templates()->buildVehicleDetails(
                     template: DetailTemplateEnum::SPARK_PLUGS,
                     row: $row->toArray(),
                     startIndex: self::SPEC_START_COLUMN,
                 );
-                $result = $this->service->upsertByModification((int) $msId, (int) $modId, $details);
+                $result = $this->service()->upsertByModification((int) $msId, (int) $modId, $details);
 
                 if (! $result->found) {
                     $this->onFailure(new Failure($rowNumber, 'Свечи', [$result->notFoundReason], $row->toArray()));
@@ -119,11 +156,12 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
     {
         /** @var EngineSparkPlugSpecificationImport $import */
         $import = $event->getConcernable();
+        $context = $import->context();
 
         event(new EngineImportCompleted(
-            userId: $import->context->userId,
+            userId: $context->userId,
             cacheKey: $import->cacheKey,
-            operationId: $import->context->operationId,
+            operationId: $context->operationId,
         ));
     }
 
@@ -137,5 +175,20 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         return [
             0 => $this,
         ];
+    }
+
+    private function service(): UpsertSparkPlugSpecByModificationServiceInterface
+    {
+        return $this->service ??= app(UpsertSparkPlugSpecByModificationServiceInterface::class);
+    }
+
+    private function templates(): TemplatesClientInterface
+    {
+        return $this->templates ??= app(TemplatesClientInterface::class);
+    }
+
+    private function context(): ImportRunContextDTO
+    {
+        return $this->context ?? throw new LogicException('Engine spark plug import context is not initialized.');
     }
 }

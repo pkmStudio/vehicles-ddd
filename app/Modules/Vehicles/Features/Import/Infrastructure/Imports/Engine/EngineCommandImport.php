@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EngineCommandImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineCommandImported;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Mappers\EngineSheetRowMapper;
@@ -76,9 +76,12 @@ final class EngineCommandImport implements EngineCommandImportInterface, ShouldQ
     public function registerEvents(): array
     {
         return [
-            AfterImport::class => function () {
-                event(new EngineCommandImported);
-            },
+            AfterImport::class => [self::class, 'afterImport'],
         ];
+    }
+
+    public static function afterImport(): void
+    {
+        event(new EngineCommandImported);
     }
 }

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Shared\Application\UseCases;
+namespace App\Modules\Warehouse\Features\Import\Application\UseCases\External;
 
-use App\Modules\Shared\Domain\Contracts\Files\LocalImportFileStorageInterface;
-use App\Modules\Shared\Domain\Contracts\Publishers\LocalImportRequestPublisherInterface;
-use App\Modules\Shared\Domain\Contracts\UseCases\PublishLocalImportRequestUseCaseInterface;
-use App\Modules\Shared\Domain\DTOs\LocalImportRequestDTO;
-use App\Modules\Shared\Domain\DTOs\LocalImportRequestResultDTO;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Publishers\LocalImportRequestPublisherInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\Storage\LocalImportFileStorageInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Contracts\UseCases\External\PublishLocalImportRequestUseCaseInterface;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\LocalImportRequestDTO;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\LocalImportRequestResultDTO;
 use Psr\Log\LoggerInterface;
 
 /**
- * Проверяет локальный файл и публикует import request через порт транспорта.
+ * Проверяет локальный Warehouse import file и публикует import request через порт транспорта.
  */
 final readonly class PublishLocalImportRequestUseCase implements PublishLocalImportRequestUseCaseInterface
 {
@@ -27,11 +27,6 @@ final readonly class PublishLocalImportRequestUseCase implements PublishLocalImp
 
     /**
      * Проверяет входные параметры, существование файла и публикует RabbitMQ-request.
-     *
-     * Шаги:
-     * 1. Проверить userId и относительный path.
-     * 2. Проверить Storage disk и существование файла через порт.
-     * 3. Опубликовать request через publisher port и вернуть console-friendly result.
      */
     public function execute(LocalImportRequestDTO $request): LocalImportRequestResultDTO
     {
@@ -48,7 +43,7 @@ final readonly class PublishLocalImportRequestUseCase implements PublishLocalImp
         }
 
         if (! $this->storage->fileExists($request->disk, $request->path)) {
-            $this->logger->warning('Локальный файл импорта не найден.', [
+            $this->logger->warning('Локальный файл импорта Warehouse не найден.', [
                 'event' => $request->eventName,
                 'routing_key' => $request->routingKey,
                 'operation_id' => $request->operationId,

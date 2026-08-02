@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Presentation\Console\Commands;
 
-use App\Modules\Shared\Presentation\Console\Commands\RequestLocalImportCommand;
 use App\Modules\Vehicles\Features\Import\Domain\Enums\ExternalImportTypeEnum;
+use App\Modules\Vehicles\Features\Import\Presentation\Console\Support\RequestLocalImportCommand;
 
 final class RequestManufacturerImport extends RequestLocalImportCommand
 {

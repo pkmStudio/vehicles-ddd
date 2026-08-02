@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Import\Presentation\Console\Commands;
 
-use App\Modules\Shared\Presentation\Console\Commands\RequestLocalImportCommand;
 use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportTypeEnum;
+use App\Modules\Warehouse\Features\Import\Presentation\Console\Support\RequestLocalImportCommand;
 
 /**
  * Ручной/операционный запуск импорта упаковочных размеров Warehouse: тот же RabbitMQ-flow, что и

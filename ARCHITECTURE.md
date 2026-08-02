@@ -30,7 +30,8 @@ Presentation ──▶ Application ──▶ Domain
 
 - **Domain** — декларации фичи: Contracts (порты) + ModelData (`spatie/laravel-data`) + DTOs +
   Enums (фиче-специфичные) + Events + Templates-декларации. Без фреймворковой инфраструктуры.
-- **Application** знает только Domain своей фичи (+ Domain-контракты фичи `Templates`/`Shared`).
+- **Application** знает только Domain своей фичи (+ Domain-контракты `Templates` как shared-kernel
+  и module-level `<Module>/Shared` через локальные adapters).
   Оркестрация и правила: Services, UseCases (точки входа), Factories, тонкие Listeners.
 - **Infrastructure** реализует порты фичи: Eloquent-**Models**, Repositories, Commands,
   Excel-Imports/Exports, Notifications, Providers. Тащит фреймворк/внешний мир.
@@ -69,8 +70,11 @@ Services/UseCases. Если доменное правило становится
 
 ### Module `Shared` и межфичевые границы
 
-`Shared/` внутри `Warehouse` или `Vehicles` — публичная часть модуля, а не папка для удобного
-складывания общего кода.
+`Shared/` внутри `Warehouse`, `Vehicles` или `Applicability` — публичная часть конкретного модуля,
+а не папка для удобного складывания общего кода. Верхнеуровневый `app/Modules/Shared` не
+используется: технические workflow, console base classes, Excel helpers и adapters размещаются
+внутри конкретной фичи. Небольшое дублирование между модулями допустимо ради изоляции bounded
+contexts.
 
 В `Shared` можно класть:
 
@@ -164,14 +168,13 @@ Application фичи-потребителя зависит только от с�
 | `Warehouse` | Складской каталог: `Nomenclature`, `Kit`, `Type`, `PackDimension`, свойства наборов, аудит дворников, интеграция MoySklad. | Shared events, client contracts/DTOs для применяемости и export/audit-сценариев. | Потребители: `Applicability`, `Templates`, внешние интеграции. `MoySklad` остаётся под-контекстом Warehouse и не является общим API. |
 | `Applicability` | Импорт, экспорт и расчёт применяемости комплектов к автомобилям. | Сценарии расчёта/экспорта, события завершения, notification DTOs. | Потребляет публичные contracts `Vehicles` и `Warehouse`; не владеет каталогами Vehicles/Warehouse. |
 | `Templates` | Shared Kernel формы `details`: enum-словари, typed `Data`, сборка из строк и рендер в Excel. | Domain declarations + service/factory contracts, используемые другими context'ами. | Используется Vehicles/Warehouse/Applicability. Любое изменение формы `details` считается cross-context изменением. |
-| `Shared` | Общие технические workflow, ports, adapter'ы и entrypoint'ы, не принадлежащие одному доменному context'у. | Технические use cases/contracts/adapters/base classes без доменной бизнес-логики. | Не должен становиться доменным shared-kernel. Если появляется доменный термин — переносим в конкретный context или `Templates`. |
 
 Правило context map: если context'у нужен ответ прямо сейчас, он использует sync client contract и
 adapter. Если нужно сообщить факт без ответа — domain event. Прямой импорт чужих
 `Application\Services`, `Application\Factories`, presenters, Eloquent-моделей и feature-local
 `ModelData` запрещён.
 
-**Почему feature-first, а Enums — в `Shared`:** фичи режем по способностям (Import/Export/…),
+**Почему feature-first, а Enums — в module-level `Shared`:** фичи режем по способностям (Import/Export/…),
 каждая независима и переезжаемая. Но enum'ы — это словарь значений колонок (`$casts`), а не
 сервис и не модель с данными: дублировать их = риск рассинхрона схемы. Поэтому единая точка
 истины в `Shared/`. Eloquent-модели, наоборот, **дублируются по фичам** (каждая фича — своя

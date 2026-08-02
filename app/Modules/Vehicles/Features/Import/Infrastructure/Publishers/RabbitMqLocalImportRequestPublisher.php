@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Shared\Infrastructure\Publishers;
+namespace App\Modules\Vehicles\Features\Import\Infrastructure\Publishers;
 
-use App\Modules\Shared\Domain\Contracts\Publishers\LocalImportRequestPublisherInterface;
-use App\Modules\Shared\Domain\DTOs\LocalImportRequestDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Publishers\LocalImportRequestPublisherInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\LocalImportRequestDTO;
 use PkmStudio\RabbitTransport\DTOs\RabbitMessageDTO;
 use PkmStudio\RabbitTransport\RabbitMQPublisher;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * RabbitMQ adapter публикации локального import request.
+ * RabbitMQ adapter публикации локального Vehicles import request.
  */
 final readonly class RabbitMqLocalImportRequestPublisher implements LocalImportRequestPublisherInterface
 {
@@ -45,7 +45,7 @@ final readonly class RabbitMqLocalImportRequestPublisher implements LocalImportR
                 routingKey: $request->routingKey,
             );
         } catch (Throwable $e) {
-            $this->logger->error('Ошибка публикации RabbitMQ-запроса импорта.', [
+            $this->logger->error('Ошибка публикации RabbitMQ-запроса импорта Vehicles.', [
                 'event' => $request->eventName,
                 'routing_key' => $request->routingKey,
                 'operation_id' => $request->operationId,
@@ -58,7 +58,7 @@ final readonly class RabbitMqLocalImportRequestPublisher implements LocalImportR
         }
 
         if (! $published) {
-            $this->logger->error('RabbitMQ publisher вернул false при публикации import request.', [
+            $this->logger->error('RabbitMQ publisher вернул false при публикации Vehicles import request.', [
                 'event' => $request->eventName,
                 'routing_key' => $request->routingKey,
                 'operation_id' => $request->operationId,
@@ -69,7 +69,7 @@ final readonly class RabbitMqLocalImportRequestPublisher implements LocalImportR
             return false;
         }
 
-        $this->logger->info('RabbitMQ-запрос импорта опубликован.', [
+        $this->logger->info('RabbitMQ-запрос импорта Vehicles опубликован.', [
             'event' => $request->eventName,
             'routing_key' => $request->routingKey,
             'operation_id' => $request->operationId,

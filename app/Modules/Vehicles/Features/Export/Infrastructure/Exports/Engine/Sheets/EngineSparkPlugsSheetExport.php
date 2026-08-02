@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\Sheets;
 
-use App\Modules\Shared\Infrastructure\Exports\Concerns\StylesExportWorksheet;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\EngineExportServiceInterface;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Concerns\StylesExportWorksheet;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;

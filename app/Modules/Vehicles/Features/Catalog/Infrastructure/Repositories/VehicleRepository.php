@@ -26,6 +26,8 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
      */
     public function nextMsId(): int
     {
-        return (int) Vehicle::query()->min('ms_id') - 1;
+        $minMsId = Vehicle::query()->min('ms_id');
+
+        return min((int) ($minMsId ?? 0), 0) - 1;
     }
 }

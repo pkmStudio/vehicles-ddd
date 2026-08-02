@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Shared\Infrastructure\Files;
+namespace App\Modules\Vehicles\Features\Import\Infrastructure\Files;
 
-use App\Modules\Shared\Domain\Contracts\Files\LocalImportFileStorageInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Files\LocalImportFileStorageInterface;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Laravel Storage adapter для проверки локальных import-файлов.
+ * Laravel Storage adapter для проверки локальных Vehicles import-файлов.
  */
 final readonly class LaravelLocalImportFileStorage implements LocalImportFileStorageInterface
 {

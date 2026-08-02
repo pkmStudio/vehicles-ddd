@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Modification;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\ModificationCommandImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Modification\ModificationCommandImported;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Modification\Mappers\ModificationCommandRowMapper;
@@ -85,9 +85,12 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
     public function registerEvents(): array
     {
         return [
-            AfterImport::class => function () {
-                event(new ModificationCommandImported);
-            },
+            AfterImport::class => [self::class, 'afterImport'],
         ];
+    }
+
+    public static function afterImport(): void
+    {
+        event(new ModificationCommandImported);
     }
 }

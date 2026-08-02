@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Shared\Domain\DTOs;
+namespace App\Modules\Warehouse\Features\Import\Domain\DTOs;
 
 /**
- * Результат попытки публикации локального import request.
+ * Результат попытки публикации локального Warehouse import request.
  */
 final readonly class LocalImportRequestResultDTO
 {

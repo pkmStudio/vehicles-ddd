@@ -58,7 +58,8 @@ final class ReportImportResultListenerTest extends TestCase
                         && $payload->disk === 's3'
                         && $payload->errorsCount === 1
                         && is_string($payload->path)
-                        && str_starts_with($payload->path, 'dan-vehicles/import/import-failures'),
+                        && str_starts_with($payload->path, 'dan-vehicles/import/import-failures')
+                        && str_ends_with($payload->path, '.xlsx'),
                 ),
             );
 
@@ -66,6 +67,10 @@ final class ReportImportResultListenerTest extends TestCase
         $listener->handle(new VehicleImportCompleted(userId: 42, cacheKey: $cacheKey, operationId: 'run-123'));
 
         $this->assertFalse(Cache::has($cacheKey));
+
+        $files = Storage::disk('s3')->files('dan-vehicles/import');
+        $this->assertCount(1, $files);
+        $this->assertStringEndsWith('.xlsx', $files[0]);
     }
 
     public function test_failure_notification_payload_contains_report_disk_aliases(): void

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Shared\Infrastructure\Exports\Concerns;
+namespace App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Concerns;
 
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Fill;

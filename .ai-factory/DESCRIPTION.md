@@ -38,9 +38,11 @@
 - `app/Modules/Warehouse` — складской каталог, импорт/экспорт, packaging, kit properties, MoySklad и аудит адаптеров дворников.
 - `app/Modules/Applicability` — импорт, экспорт и расчет применяемости.
 - `app/Modules/Templates` — shared-kernel для типизированных шаблонов `details`, enum-словарей, сборки из строк и рендера в Excel.
-- `app/Modules/Shared` — общие технические ports/use cases/adapters и presentation-консольные команды, которые не принадлежат одному доменному модулю.
 
-Внутри доменных модулей целевая раскладка — `Features/<Feature>/{Domain,Application,Infrastructure,Presentation}` плюс `Shared` для публичных событий, enum-словарей и module-level инфраструктуры.
+Верхнеуровневого `app/Modules/Shared` нет: технический workflow и infrastructure helpers живут внутри
+конкретной фичи, даже если это приводит к небольшому дублированию. Внутри доменных модулей целевая
+раскладка — `Features/<Feature>/{Domain,Application,Infrastructure,Presentation}` плюс `Shared` для
+публичных событий, enum-словарей и module-level инфраструктуры.
 
 ## Архитектура
 

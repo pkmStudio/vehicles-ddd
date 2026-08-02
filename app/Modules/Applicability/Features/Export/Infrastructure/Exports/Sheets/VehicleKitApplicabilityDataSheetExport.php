@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Applicability\Features\Export\Infrastructure\Exports\Sheets;
 
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\VehicleKitApplicabilityExportServiceInterface;
-use App\Modules\Shared\Infrastructure\Exports\Concerns\StylesExportWorksheet;
+use App\Modules\Applicability\Features\Export\Infrastructure\Exports\Concerns\StylesExportWorksheet;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;

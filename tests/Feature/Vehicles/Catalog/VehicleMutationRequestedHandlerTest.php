@@ -92,7 +92,7 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
                     && $result->operation === CatalogMutationOperationEnum::Create
                     && $result->status === CatalogMutationStatusEnum::Completed
                     && $result->operationId === 'vehicle-create-auto-ms-id'
-                    && $result->externalId === 702
+                    && $result->externalId === -1
                     && $result->recordId !== null;
             }));
 
@@ -111,7 +111,7 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('vehicles', [
-            'ms_id' => 702,
+            'ms_id' => -1,
             'mfa_id' => $manufacturer->mfa_id,
             'manufacturer_id' => $manufacturer->id,
             'name' => 'Generated MS ID',

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Kit\Sheets;
 
-use App\Modules\Shared\Infrastructure\Exports\Concerns\StylesExportWorksheet;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\KitExportServiceInterface;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\KitExportFiltersDTO;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\KitExportSortDTO;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Concerns\StylesExportWorksheet;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Providers;
 
-use App\Modules\Vehicles\Features\Import\Application\Factories\ExternalFileImportFactory;
 use App\Modules\Vehicles\Features\Import\Application\Factories\EngineDataFactory;
 use App\Modules\Vehicles\Features\Import\Application\Factories\EngineModificationDataFactory;
+use App\Modules\Vehicles\Features\Import\Application\Factories\ExternalFileImportFactory;
 use App\Modules\Vehicles\Features\Import\Application\Factories\ManufacturerDataFactory;
 use App\Modules\Vehicles\Features\Import\Application\Factories\ModificationDataFactory;
 use App\Modules\Vehicles\Features\Import\Application\Factories\PartSpecificationDataFactory;
@@ -26,6 +26,7 @@ use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehi
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleFromTdRowService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\VehicleWiperSpecificationImportService;
 use App\Modules\Vehicles\Features\Import\Application\UseCases\Command\StartTecDocImportUseCase;
+use App\Modules\Vehicles\Features\Import\Application\UseCases\External\PublishLocalImportRequestUseCase;
 use App\Modules\Vehicles\Features\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineCommandInterface;
@@ -42,6 +43,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\Modification
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\PartSpecificationDataFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\VehicleDataFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Files\ImportFileStorageInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Files\LocalImportFileStorageInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EngineCommandImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EngineModificationImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EnginesCodeImportInterface;
@@ -54,9 +56,10 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\Engin
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\ManufacturerImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\VehicleMultiSheetImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Publishers\LocalImportRequestPublisherInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\FailuresExportInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailureStoreInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailureReporterInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailureStoreInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
@@ -79,6 +82,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\Upser
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\Command\StartTecDocImportUseCaseInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\PublishLocalImportRequestUseCaseInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Cache\LaravelExternalImportCacheService;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Cache\LaravelImportFailureStore;
@@ -90,6 +94,7 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Commands\ModificationCom
 use App\Modules\Vehicles\Features\Import\Infrastructure\Commands\PartSpecificationCommand;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Commands\VehicleCommand;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Files\LaravelImportFileStorage;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Files\LaravelLocalImportFileStorage;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\EngineCommandImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\EngineCrossImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\EngineMultiSheetImport;
@@ -102,6 +107,7 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Modification\Mod
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\VehicleCommandImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\VehicleMultiSheetImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Notifications\RabbitMqFileNotificationService;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Publishers\RabbitMqLocalImportRequestPublisher;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Reporting\FailuresExport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Reporting\ImportFailureReporter;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Repositories\EngineRepository;
@@ -123,6 +129,7 @@ final class ImportServiceProvider extends ServiceProvider
     private const array USE_CASE_BINDINGS = [
         StartTecDocImportUseCaseInterface::class => StartTecDocImportUseCase::class,
         StartExternalFileImportUseCaseInterface::class => StartExternalFileImportUseCase::class,
+        PublishLocalImportRequestUseCaseInterface::class => PublishLocalImportRequestUseCase::class,
     ];
 
     private const array COMMAND_BINDINGS = [
@@ -199,6 +206,11 @@ final class ImportServiceProvider extends ServiceProvider
 
     private const array FILE_BINDINGS = [
         ImportFileStorageInterface::class => LaravelImportFileStorage::class,
+        LocalImportFileStorageInterface::class => LaravelLocalImportFileStorage::class,
+    ];
+
+    private const array PUBLISHER_BINDINGS = [
+        LocalImportRequestPublisherInterface::class => RabbitMqLocalImportRequestPublisher::class,
     ];
 
     public function register(): void
@@ -242,6 +254,10 @@ final class ImportServiceProvider extends ServiceProvider
         }
 
         foreach (self::FILE_BINDINGS as $interface => $implementation) {
+            $this->app->bind($interface, $implementation);
+        }
+
+        foreach (self::PUBLISHER_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
     }

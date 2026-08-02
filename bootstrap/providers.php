@@ -1,7 +1,6 @@
 <?php
 
 use App\Modules\Applicability\Shared\Infrastructure\Providers\ApplicabilityServiceProvider;
-use App\Modules\Shared\Infrastructure\Providers\SharedServiceProvider;
 use App\Modules\Templates\Infrastructure\Providers\TemplatesServiceProvider;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Providers\CatalogServiceProvider;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Providers\ExportServiceProvider;
@@ -25,7 +24,6 @@ use App\Providers\HorizonServiceProvider;
 return [
     AuthServiceProvider::class,
     HorizonServiceProvider::class,
-    SharedServiceProvider::class,
     VehiclesServiceProvider::class,
     WarehouseServiceProvider::class,
     ApplicabilityServiceProvider::class,

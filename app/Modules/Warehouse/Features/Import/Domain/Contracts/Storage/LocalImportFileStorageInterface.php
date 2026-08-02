@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Shared\Domain\Contracts\Files;
+namespace App\Modules\Warehouse\Features\Import\Domain\Contracts\Storage;
 
 /**
- * Порт проверки локального файла импорта в Laravel Storage.
+ * Порт проверки локального файла импорта Warehouse в Laravel Storage.
  */
 interface LocalImportFileStorageInterface
 {

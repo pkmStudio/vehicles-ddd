@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\VehicleCommandImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Vehicle\VehicleCommandImported;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleTdRowMapper;
@@ -85,9 +85,12 @@ final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToColle
     public function registerEvents(): array
     {
         return [
-            AfterImport::class => function () {
-                event(new VehicleCommandImported);
-            },
+            AfterImport::class => [self::class, 'afterImport'],
         ];
+    }
+
+    public static function afterImport(): void
+    {
+        event(new VehicleCommandImported);
     }
 }

@@ -101,12 +101,20 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
     public function registerEvents(): array
     {
         return [
-            AfterImport::class => fn () => event(new KitApplicabilityImportCompleted(
-                userId: $this->userId,
-                cacheKey: $this->cacheKey,
-                operationId: $this->operationId,
-            )),
+            AfterImport::class => [self::class, 'afterImport'],
         ];
+    }
+
+    public static function afterImport(AfterImport $event): void
+    {
+        /** @var KitApplicabilityImport $import */
+        $import = $event->getConcernable();
+
+        event(new KitApplicabilityImportCompleted(
+            userId: $import->userId,
+            cacheKey: $import->cacheKey,
+            operationId: $import->operationId,
+        ));
     }
 
     /**

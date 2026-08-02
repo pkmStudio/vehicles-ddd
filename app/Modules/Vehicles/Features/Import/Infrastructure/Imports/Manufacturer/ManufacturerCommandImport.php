@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\ManufacturerCommandImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\Mappers\ManufacturerCommandRowMapper;
@@ -81,9 +81,12 @@ final class ManufacturerCommandImport implements ManufacturerCommandImportInterf
     public function registerEvents(): array
     {
         return [
-            AfterImport::class => function () {
-                event(new ManufacturerCommandImported);
-            },
+            AfterImport::class => [self::class, 'afterImport'],
         ];
+    }
+
+    public static function afterImport(): void
+    {
+        event(new ManufacturerCommandImported);
     }
 }
