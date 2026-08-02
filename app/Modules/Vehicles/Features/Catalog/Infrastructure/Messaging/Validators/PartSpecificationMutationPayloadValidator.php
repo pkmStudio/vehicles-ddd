@@ -48,8 +48,11 @@ final readonly class PartSpecificationMutationPayloadValidator
             'operation_id' => ['required', 'string', 'max:128'],
             'operation' => ['required', 'string', Rule::in($this->operations())],
             'part_specification' => ['required', 'array'],
-            'part_specification.id' => ['required', 'integer', 'min:1'],
         ];
+
+        $rules['part_specification.id'] = $operation === CatalogMutationOperationEnum::Create->value
+            ? ['nullable', 'integer', 'min:1']
+            : ['required', 'integer', 'min:1'];
 
         if ($operation === CatalogMutationOperationEnum::Create->value
             || $operation === CatalogMutationOperationEnum::Update->value) {

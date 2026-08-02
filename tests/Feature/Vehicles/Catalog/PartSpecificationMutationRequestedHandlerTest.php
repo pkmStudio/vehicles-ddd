@@ -101,6 +101,41 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseMissing('part_specifications', ['id' => 8001]);
     }
 
+    public function test_vehicle_owner_part_specification_create_message_allows_missing_id(): void
+    {
+        $this->createManufacturer(900);
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::PartSpecification
+                && $result->operation === CatalogMutationOperationEnum::Create
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->operationId === 'part-specification-create-without-id'));
+
+        $payload = $this->vehicleSpecificationPayload(
+            operationId: 'part-specification-create-without-id',
+            operation: 'create',
+            specificationId: 8002,
+            ownerExternalId: 7002,
+            vehicleName: 'Owner Vehicle Without Spec Id',
+            specificationName: 'Front wiper without spec id',
+        );
+        unset($payload['part_specification']['id']);
+
+        app(PartSpecificationMutationRequestedHandler::class)->handle($payload);
+
+        $this->assertDatabaseHas('vehicles', [
+            'ms_id' => 7002,
+            'name' => 'Owner Vehicle Without Spec Id',
+        ]);
+        $this->assertDatabaseHas('part_specifications', [
+            'partable_type' => PartableTypeEnum::VEHICLE->value,
+            'template' => DetailTemplateEnum::WIPER->value,
+            'name' => 'Front wiper without spec id',
+        ]);
+    }
+
     public function test_engine_owner_part_specification_create_message_creates_engine_owner(): void
     {
         $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);

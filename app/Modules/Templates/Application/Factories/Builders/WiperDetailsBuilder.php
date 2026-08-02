@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Templates\Application\Factories\Builders;
 
 use App\Modules\Templates\Application\Factories\DetailsRowCursor;
+use App\Modules\Templates\Domain\Contracts\EnumHelperInterface;
 use App\Modules\Templates\Domain\Enums\Wiper\FrontAdapterTypeEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\RearAdapterTypeEnum;
+use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use App\Modules\Templates\Domain\ModelData\Vehicle\WiperBackDetailsData;
 use App\Modules\Templates\Domain\ModelData\Vehicle\WiperDetailsData;
 use App\Modules\Templates\Domain\ModelData\Vehicle\WiperFrontDetailsData;
@@ -21,10 +23,39 @@ final readonly class WiperDetailsBuilder
 {
     public function build(DetailsRowCursor $cursor): WiperDetailsData
     {
+        $front = $this->buildOptionalFront($cursor);
+        $back = $this->buildOptionalBack($cursor);
+
+        if ($front === null && $back === null) {
+            throw DetailsDataBuildException::requiredField('Минимальная длина щётки');
+        }
+
         return new WiperDetailsData(
-            front: $this->buildFront($cursor),
-            back: $this->buildBack($cursor),
+            front: $front,
+            back: $back,
         );
+    }
+
+    private function buildOptionalFront(DetailsRowCursor $cursor): ?WiperFrontDetailsData
+    {
+        $cells = $this->pullCells($cursor, 6);
+
+        if ($this->allBlank($cells)) {
+            return null;
+        }
+
+        return $this->buildFront(new DetailsRowCursor($cells));
+    }
+
+    private function buildOptionalBack(DetailsRowCursor $cursor): ?WiperBackDetailsData
+    {
+        $cells = $this->pullCells($cursor, 4);
+
+        if ($this->allBlank($cells)) {
+            return null;
+        }
+
+        return $this->buildBack(new DetailsRowCursor($cells));
     }
 
     /**
@@ -62,10 +93,38 @@ final readonly class WiperDetailsBuilder
     }
 
     /**
+     * @return array<int, mixed>
+     */
+    private function pullCells(DetailsRowCursor $cursor, int $count): array
+    {
+        $cells = [];
+
+        for ($i = 0; $i < $count; $i++) {
+            $cells[] = $cursor->pullCell();
+        }
+
+        return $cells;
+    }
+
+    /**
+     * @param  array<int, mixed>  $cells
+     */
+    private function allBlank(array $cells): bool
+    {
+        foreach ($cells as $cell) {
+            if ($cell !== null && $cell !== '') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Превращает массив резолвнутых case'ов в массив их хранимых имён (`->name`) — то, что
      * реально кладётся в поле `Data`-класса и, дальше, в details JSON.
      *
-     * @param  array<int, \App\Modules\Templates\Domain\Contracts\EnumHelperInterface>  $cases
+     * @param  array<int, EnumHelperInterface>  $cases
      * @return array<int, string>
      */
     private function namesOf(array $cases): array

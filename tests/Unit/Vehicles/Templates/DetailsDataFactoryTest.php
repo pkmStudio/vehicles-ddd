@@ -80,14 +80,7 @@ final class DetailsDataFactoryTest extends TestCase
     }
 
     /**
-     * Проверяет `make()` для дворников: импорт всегда строит ОБЕ стороны (10 колонок
-     * подряд), даже если реально заполнена только одна — фильтрация по факту заполненности
-     * остаётся заботой `WiperSpecificationService::splitDetails()`, не фабрики.
-     *
-     * Шаги:
-     * 1. Зовёт `make(WIPER, ...)` со строкой, где заполнены и front, и back.
-     * 2. Проверяет, что результат содержит оба корневых ключа (`front`/`back`) с ожидаемыми полями.
-     * 3. Проверяет, что `$index` сдвинулся ровно на 10 (по числу прочитанных ячеек).
+     * Проверяет `make()` для дворников: если заполнены обе стороны, импорт строит `front` и `back`.
      */
     public function test_builds_wiper_details_for_both_sides(): void
     {
@@ -108,6 +101,49 @@ final class DetailsDataFactoryTest extends TestCase
             ],
             'back' => [
                 'length_rear' => ['min' => 400, 'max' => 420],
+                'adapter_type_rear' => ['RA'],
+                'count_wipers' => 1,
+            ],
+        ], $details);
+        $this->assertSame(10, $index);
+    }
+
+    public function test_builds_wiper_details_for_front_side_only(): void
+    {
+        $row = [
+            600, 600, 480, 480, 'Боковой зажим (Pinch tab)', 2,
+            null, null, null, null,
+        ];
+        $index = 0;
+
+        $details = $this->factory->make(DetailTemplateEnum::WIPER, $row, $index)->toArray();
+
+        $this->assertSame([
+            'front' => [
+                'length_main' => ['min' => 600, 'max' => 600],
+                'length_second' => ['min' => 480, 'max' => 480],
+                'adapter_type_front' => ['T'],
+                'count_wipers' => 2,
+            ],
+            'back' => null,
+        ], $details);
+        $this->assertSame(10, $index);
+    }
+
+    public function test_builds_wiper_details_for_back_side_only(): void
+    {
+        $row = [
+            null, null, null, null, null, null,
+            350, 350, 'RA', 1,
+        ];
+        $index = 0;
+
+        $details = $this->factory->make(DetailTemplateEnum::WIPER, $row, $index)->toArray();
+
+        $this->assertSame([
+            'front' => null,
+            'back' => [
+                'length_rear' => ['min' => 350, 'max' => 350],
                 'adapter_type_rear' => ['RA'],
                 'count_wipers' => 1,
             ],
