@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Nomenclature;
 
+use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\BrandRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
@@ -13,11 +14,11 @@ use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\NomenclatureImportCompleted;
 use App\Modules\Warehouse\Features\Import\Domain\Exceptions\WarehouseImportException;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Traits\CachesImportFailures;
-use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -156,12 +157,29 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     public function registerEvents(): array
     {
         return [
-            AfterImport::class => fn () => event(new NomenclatureImportCompleted(
-                userId: $this->userId,
-                cacheKey: $this->cacheKey,
-                operationId: $this->operationId,
-            )),
+            AfterImport::class => [self::class, 'afterImport'],
         ];
+    }
+
+    /**
+     * Диспатчит событие завершения импорта после обработки queued chunks.
+     */
+    public static function afterImport(AfterImport $event): void
+    {
+        /** @var NomenclatureImport $import */
+        $import = $event->getConcernable();
+
+        Log::debug('[FIX:queued-import-serialization] Completed queued nomenclature import.', [
+            'operation_id' => $import->operationId,
+            'user_id' => $import->userId,
+            'cache_key' => $import->cacheKey,
+        ]);
+
+        event(new NomenclatureImportCompleted(
+            userId: $import->userId,
+            cacheKey: $import->cacheKey,
+            operationId: $import->operationId,
+        ));
     }
 
     /**

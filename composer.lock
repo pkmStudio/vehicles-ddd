@@ -62,16 +62,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.389.3",
+            "version": "3.390.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "09bbb4023a14316ff2c5e568301a382f7e3465f5"
+                "reference": "a09e95bf062e15b7343f9c1362fd45c7a0dec39b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/09bbb4023a14316ff2c5e568301a382f7e3465f5",
-                "reference": "09bbb4023a14316ff2c5e568301a382f7e3465f5",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/a09e95bf062e15b7343f9c1362fd45c7a0dec39b",
+                "reference": "a09e95bf062e15b7343f9c1362fd45c7a0dec39b",
                 "shasum": ""
             },
             "require": {
@@ -153,9 +153,9 @@
             "support": {
                 "forum": "https://github.com/aws/aws-sdk-php/discussions",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.389.3"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.390.2"
             },
-            "time": "2026-07-29T18:09:38+00:00"
+            "time": "2026-07-31T18:06:07+00:00"
         },
         {
             "name": "brick/math",
@@ -4231,16 +4231,10 @@
         {
             "name": "pkmstudio/moysklad-client",
             "version": "dev-main",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pkmStudio/laravel-moysklad-client.git",
-                "reference": "b8c40d7a8ccb61d10cc7dd16b7cded6440d74535"
-            },
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pkmStudio/laravel-moysklad-client/zipball/b8c40d7a8ccb61d10cc7dd16b7cded6440d74535",
-                "reference": "b8c40d7a8ccb61d10cc7dd16b7cded6440d74535",
-                "shasum": ""
+                "type": "path",
+                "url": "../packages/moysklad-client",
+                "reference": "b8c40d7a8ccb61d10cc7dd16b7cded6440d74535"
             },
             "require": {
                 "illuminate/http": "^12.0 || ^13.0",
@@ -4253,7 +4247,6 @@
                 "orchestra/testbench": "^10.0",
                 "pestphp/pest": "^3.0"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -4276,25 +4269,18 @@
                 "MIT"
             ],
             "description": "Laravel-friendly SDK client for the MoySklad (МойСклад) JSON API v1.2: DTO APIs, retry, circuit breaker, proactive + Redis rate-limit, and optional GET cache.",
-            "support": {
-                "source": "https://github.com/pkmStudio/laravel-moysklad-client/tree/0.0.1",
-                "issues": "https://github.com/pkmStudio/laravel-moysklad-client/issues"
-            },
-            "time": "2026-07-25T09:20:05+00:00"
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "pkmstudio/rabbit-transport",
             "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pkmStudio/laravel-rabbitmq-transport.git",
-                "reference": "4833d906edd8200efcabe49668f3afc3f6df5548"
-            },
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pkmStudio/laravel-rabbitmq-transport/zipball/4833d906edd8200efcabe49668f3afc3f6df5548",
-                "reference": "4833d906edd8200efcabe49668f3afc3f6df5548",
-                "shasum": ""
+                "type": "path",
+                "url": "../packages/rabbit-transport",
+                "reference": "4833d906edd8200efcabe49668f3afc3f6df5548"
             },
             "require": {
                 "illuminate/console": "^12.0 || ^13.0",
@@ -4313,7 +4299,6 @@
             "suggest": {
                 "laravel/horizon": "Enables the Horizon-aware RabbitMQ worker (auto-registered only when Horizon is installed)."
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -4336,11 +4321,10 @@
                 "MIT"
             ],
             "description": "Generic AMQP/RabbitMQ transport for Laravel: publisher with confirms, config-driven inbox consumer and event→handler registry, optional Horizon worker.",
-            "support": {
-                "source": "https://github.com/pkmStudio/laravel-rabbitmq-transport/tree/v1.0.1",
-                "issues": "https://github.com/pkmStudio/laravel-rabbitmq-transport/issues"
-            },
-            "time": "2026-07-11T13:16:20+00:00"
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "psr/clock",
@@ -8645,16 +8629,16 @@
         },
         {
             "name": "laravel/pint",
-            "version": "v1.30.0",
+            "version": "v1.30.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/pint.git",
-                "reference": "72a0540d1aa10b6c146bda2a22f3ae003123c0ea"
+                "reference": "de440809cb86055b43e7ae979bed3baf8d29ef5a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/pint/zipball/72a0540d1aa10b6c146bda2a22f3ae003123c0ea",
-                "reference": "72a0540d1aa10b6c146bda2a22f3ae003123c0ea",
+                "url": "https://api.github.com/repos/laravel/pint/zipball/de440809cb86055b43e7ae979bed3baf8d29ef5a",
+                "reference": "de440809cb86055b43e7ae979bed3baf8d29ef5a",
                 "shasum": ""
             },
             "require": {
@@ -8666,7 +8650,7 @@
             },
             "require-dev": {
                 "composer/semver": "^3.4.4",
-                "friendsofphp/php-cs-fixer": "^3.95.17",
+                "friendsofphp/php-cs-fixer": "^3.95.18",
                 "illuminate/view": "^12.64.0",
                 "larastan/larastan": "^3.10.0",
                 "laravel-zero/framework": "^12.1.0",
@@ -8711,7 +8695,7 @@
                 "issues": "https://github.com/laravel/pint/issues",
                 "source": "https://github.com/laravel/pint"
             },
-            "time": "2026-07-28T20:48:56+00:00"
+            "time": "2026-08-01T01:14:35+00:00"
         },
         {
             "name": "mockery/mockery",
@@ -10529,5 +10513,5 @@
         "php": "^8.4"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

@@ -39,6 +39,34 @@ Presentation ──▶ Application ──▶ Domain
 Нарушение, за которым следим: Domain/Application фичи **не импортируют** `Maatwebsite\Excel`,
 конкретные пакеты брокера, фасады записи и т.п. — только через порты в `Domain/Contracts`.
 
+Отдельное правило для queued Excel imports: если adapter реализует `ShouldQueue`, его свойства
+должны оставаться сериализуемыми. Не храним в них service/repository/client/logger dependency
+graph; зависимости резолвим в `collection()` или другом worker-time методе. `registerEvents()` для
+таких imports не должен возвращать closures — используем сериализуемые callables вроде
+`[self::class, 'afterImport']`.
+
+### Принятые архитектурные компромиссы
+
+`dan-vehicles` — Laravel-сервис, а не framework-agnostic библиотека. Мы не планируем уходить от
+Laravel, поэтому в проекте допустимы осознанные framework-связки, которые упрощают ежедневную
+разработку и уже закреплены локальными правилами:
+
+- `Illuminate\Support\Collection` может быть частью портов чтения и Application-сервисов, если это
+  именно Support Collection, а не Eloquent Collection;
+- Laravel Validator/`Rule::enum(...)` допустим в Application-фабриках, которые валидируют сырую
+  строку импорта и собирают `Data`;
+- Laravel cache/events contracts допустимы в Application-сервисах orchestration/gate-сценариев,
+  если они выражают прикладное состояние workflow и не тянут Eloquent/Excel/RabbitMQ напрямую;
+- Laravel `Log`/facades в обычном Application-коде не используем напрямую: логирование — через
+  порт/PSR logger или Infrastructure-adapter. Исключения должны быть явно описаны рядом с фичей.
+
+DDD в проекте применяется **стратегически**, а не как обязательная tactical DDD-модель с жирными
+entities/aggregates. `ModelData` намеренно остаются тонкими снимками состояния, Eloquent-модели —
+анемичными Infrastructure-деталями, а бизнес-сценарии и правила живут в Application
+Services/UseCases. Если доменное правило становится самостоятельным и переиспользуемым, его можно
+выделять в domain policy/specification/value object, но не превращать Eloquent/Data в "fat model" с
+методами `import/export/create`.
+
 ### Module `Shared` и межфичевые границы
 
 `Shared/` внутри `Warehouse` или `Vehicles` — публичная часть модуля, а не папка для удобного
@@ -46,8 +74,15 @@ Presentation ──▶ Application ──▶ Domain
 
 В `Shared` можно класть:
 
+- `Domain/Contracts/Clients` — публичные client-контракты модуля для межфичевых/межмодульных
+  sync-вызовов;
+- `Domain/DTOs` — публичные DTO этих client-контрактов и module-level payload'ов;
 - `Domain/Events` — факты, которые должны слушать другие фичи этого же модуля;
 - `Domain/Enums` — только enum'ы, которые являются wire/db-контрактом между фичами;
+- `Domain/Exceptions` — публичные исключения module-level контрактов;
+- `Infrastructure/Clients` — adapter'ы, которые переводят локальный язык потребителя в публичный
+  API владельца возможности;
+- `Infrastructure/Logging` — технические module-level logging adapter'ы без бизнес-логики;
 - `Infrastructure/Database/Migrations` и `Infrastructure/Providers/<Module>ServiceProvider.php` —
   module-level инфраструктуру, общую для всех фич модуля.
 
@@ -55,7 +90,7 @@ Presentation ──▶ Application ──▶ Domain
 
 - `ModelData`;
 - Eloquent-модели;
-- repositories, commands, use cases, services;
+- repositories, commands, use cases, application services;
 - внутренние enum'ы конкретного workflow;
 - события, которые используются только внутри одной фичи.
 
@@ -118,6 +153,24 @@ Application фичи-потребителя зависит только от с�
 | `app/Modules/Warehouse/Shared/` | Общие события и module-level инфраструктура Warehouse, включая миграции. | `Domain/` + `Infrastructure/` |
 | `app/Modules/Warehouse/Features/*/` | Warehouse-фичи: `Catalog`, `Import`, `Export`, `Packaging`, `KitProperties`, `WiperAdapterAudit`, `Maintenance`, `MoySklad`. | по фиче |
 
+### Context map
+
+Физические модули `app/Modules/*` считаются bounded contexts. Отношения между ними описываем явно,
+чтобы не возникало скрытых зависимостей на чужие Application/Infrastructure классы.
+
+| Context | Чем владеет | Публичная поверхность | Зависимости / потребители |
+|---|---|---|---|
+| `Vehicles` | Каталог автомобилей: `Vehicle`, `Engine`, `Manufacturer`, `Modification`, vehicle/engine `PartSpecification`. | Shared events created/updated/deleted, client contracts/DTOs для чтения данных Vehicles. | Потребители: `Applicability`, частично `Warehouse`/export-сценарии. Не отдаёт Eloquent-модели наружу. |
+| `Warehouse` | Складской каталог: `Nomenclature`, `Kit`, `Type`, `PackDimension`, свойства наборов, аудит дворников, интеграция MoySklad. | Shared events, client contracts/DTOs для применяемости и export/audit-сценариев. | Потребители: `Applicability`, `Templates`, внешние интеграции. `MoySklad` остаётся под-контекстом Warehouse и не является общим API. |
+| `Applicability` | Импорт, экспорт и расчёт применяемости комплектов к автомобилям. | Сценарии расчёта/экспорта, события завершения, notification DTOs. | Потребляет публичные contracts `Vehicles` и `Warehouse`; не владеет каталогами Vehicles/Warehouse. |
+| `Templates` | Shared Kernel формы `details`: enum-словари, typed `Data`, сборка из строк и рендер в Excel. | Domain declarations + service/factory contracts, используемые другими context'ами. | Используется Vehicles/Warehouse/Applicability. Любое изменение формы `details` считается cross-context изменением. |
+| `Shared` | Общие технические workflow, ports, adapter'ы и entrypoint'ы, не принадлежащие одному доменному context'у. | Технические use cases/contracts/adapters/base classes без доменной бизнес-логики. | Не должен становиться доменным shared-kernel. Если появляется доменный термин — переносим в конкретный context или `Templates`. |
+
+Правило context map: если context'у нужен ответ прямо сейчас, он использует sync client contract и
+adapter. Если нужно сообщить факт без ответа — domain event. Прямой импорт чужих
+`Application\Services`, `Application\Factories`, presenters, Eloquent-моделей и feature-local
+`ModelData` запрещён.
+
 **Почему feature-first, а Enums — в `Shared`:** фичи режем по способностям (Import/Export/…),
 каждая независима и переезжаемая. Но enum'ы — это словарь значений колонок (`$casts`), а не
 сервис и не модель с данными: дублировать их = риск рассинхрона схемы. Поэтому единая точка
@@ -158,6 +211,48 @@ Application фичи-потребителя зависит только от с�
   `EnumHelperTrait::fromLabel()/fromName()` (интерфейс-маркер `EnumHelperInterface` — не порт для
   DI, а подсказка статическому анализу для `$enumClass::fromLabel(...)`, где `$enumClass` —
   `class-string`).
+
+### `Templates` как Shared Kernel
+
+`Templates` — единственный полноценный shared-kernel проекта. Он общий не потому, что туда удобно
+сложить переиспользуемый код, а потому что форма `details` является общим доменным контрактом между
+импортом, экспортом, складом, транспортом и применяемостью.
+
+Публичная поверхность `Templates`:
+
+- `Domain/ModelData` — typed snapshots формы `details`;
+- `Domain/Enums` — словари шаблонов и полей;
+- `Domain/Contracts` — порты сервисов/фабрик/презентеров, которые реально вызываются другими
+  context'ами;
+- публичные Application-реализации, доступные только через соответствующие contracts.
+
+Правила изменения:
+
+- изменение структуры `details`, порядка export/import колонок или enum-значений считается
+  cross-context изменением;
+- перед таким изменением проверяем затронутые сценарии `Vehicles Import`, `Vehicles Export`,
+  `Warehouse Import/Export`, `Applicability`;
+- feature-specific правила не переносим в `Templates`, пока их реально не используют несколько
+  context'ов;
+- `Templates` не должен зависеть от `Vehicles`, `Warehouse` или `Applicability`.
+
+### Глоссарий домена
+
+Глоссарий фиксирует ubiquitous language проекта. Он пока минимальный и должен расширяться по мере
+уточнения домена:
+
+| Термин | Значение |
+|---|---|
+| `Vehicle` | Модель/поколение автомобиля в каталоге Vehicles. |
+| `Engine` | Двигатель и связанные характеристики/группы двигателя. |
+| `Modification` | Модификация автомобиля, связывающая модель, тип и двигатель. |
+| `PartSpecification` | Спецификация детали для автомобиля/двигателя с полиморфной формой `details`. |
+| `Nomenclature` | Складская товарная позиция. |
+| `Kit` | Набор складских номенклатур. |
+| `Type` | Тип складской номенклатуры/набора. |
+| `Applicability` | Применяемость складского комплекта к автомобилю/модификации. |
+| `Template` / `details` | Типизированная форма характеристик детали, общая для import/export. |
+| `MoySklad` | Внешняя складская система; внутри проекта это под-контекст Warehouse-интеграции. |
 
 ---
 
@@ -487,6 +582,26 @@ $this->service->execute(
 
 ---
 
+## 5.1. Известные архитектурные долги
+
+Этот раздел фиксирует расхождения, которые уже обнаружены и должны быть закрыты отдельными
+изменениями. Он не отменяет целевые правила выше.
+
+К исправлению в ближайших итерациях:
+
+- Докблоки классов/методов, inline `new DTO(...)` в вызовах и многострочные именованные аргументы
+  нужно привести к правилам §5 постепенно, без больших шумных форматирующих PR.
+- Для новых queued Excel imports нужны обязательные serialization regression tests:
+  `serialize($import)` и сериализация каждого listener из `registerEvents()`.
+
+Отложено для отдельного прохода:
+
+- `Warehouse/Features/MoySklad`: отдельно проверить границы под-контекста, прямые concrete
+  Application dependencies, mapper/service ports и правила интеграции. До этого прохода не
+  смешивать MoySklad-рефакторинг с общими архитектурными исправлениями.
+
+---
+
 ## 6. Куда класть новое — шпаргалка
 
 Сначала выбери **фичу** (`Import`/`Export`/`Maintenance`/`Templates`), потом слой.
@@ -508,6 +623,7 @@ $this->service->execute(
 | Импорт из Excel по внешнему запросу (userId/runId/disk снаружи) | адаптер implements `Contracts/Imports/External/FileImportInterface`; DTO-контекст → `ImportRunContextDTO` |
 | Входящую команду от брокера (RabbitMQ) | `Import/Infrastructure/Messaging/Handlers/` (+ `Messaging/Validators/`) → зовёт `UseCase` |
 | Экспорт в Excel | адаптер → `Export/Infrastructure/Exports/<Entity>/`; порт → `Contracts/Exports/`; сборка строк → `Export/Application/Services/Rows|Expanders/` |
+| Queued Excel import | adapter остаётся в `Infrastructure/Imports`; constructor/saved state только scalar/DTO/value state; services/repositories/clients/loggers резолвятся во время job; listeners без closures |
 | Внешнее уведомление/интеграцию | порт → `Domain/Contracts/Notifications/`, реализация → `Infrastructure/Notifications/` (внутри — пакет rabbit-transport) |
 | Разовый фикс каталога | `Maintenance/` (команда в `Presentation/Console/Commands/` + `Application/Services/`; Eloquent напрямую, без Repository) |
 | Artisan-команду / HTTP-эндпоинт | `<Feature>/Presentation/Console/Commands/` или `Http/Controllers/` (тонко) |

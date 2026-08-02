@@ -6,7 +6,7 @@ namespace App\Modules\Templates\Application;
 
 use App\Modules\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
 use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
-use Illuminate\Support\Facades\Log;
+use Psr\Log\LoggerInterface;
 
 /**
  * Доменное правило структуры деталей дворников ТС.
@@ -18,6 +18,13 @@ use Illuminate\Support\Facades\Log;
  */
 final readonly class WiperSpecificationService implements WiperSpecificationServiceInterface
 {
+    /**
+     * Получает optional PSR logger для предупреждений о нарушениях инвариантов.
+     */
+    public function __construct(
+        private ?LoggerInterface $logger = null,
+    ) {}
+
     /**
      * Сторона по корневым ключам: front / back / null (нет данных либо присутствуют обе).
      *
@@ -99,7 +106,7 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
         $adapters = $this->normalizeAdapters($rawAdapters);
 
         if (count($adapters) > 1) {
-            Log::warning('В adapter_type_* найдено более одного значения для ТС', [
+            $this->logger?->warning('В adapter_type_* найдено более одного значения для ТС', [
                 'part_specification_id' => $partSpecificationId,
                 'side' => $side,
                 'adapter_count' => count($adapters),

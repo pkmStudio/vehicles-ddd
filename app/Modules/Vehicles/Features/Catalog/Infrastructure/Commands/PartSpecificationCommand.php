@@ -7,6 +7,7 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\PartSpecification;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -24,7 +25,9 @@ final readonly class PartSpecificationCommand implements PartSpecificationComman
     public function create(PartSpecificationData $data): PartSpecificationData
     {
         $createPartSpecification = fn (): PartSpecificationData => PartSpecificationData::from(
-            PartSpecification::query()->create($data->toArray()),
+            PartSpecification::query()->create(
+                $data->id === null ? Arr::except($data->toArray(), ['id']) : $data->toArray(),
+            ),
         );
 
         return DB::transaction($createPartSpecification);

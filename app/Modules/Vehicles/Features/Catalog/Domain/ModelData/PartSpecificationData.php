@@ -22,7 +22,7 @@ final class PartSpecificationData extends Data
      * @param  array<string, mixed>  $details
      */
     public function __construct(
-        public readonly int $id,
+        public readonly ?int $id,
         public readonly PartableTypeEnum $partableType,
         public readonly int $partableId,
         public readonly DetailTemplateEnum $template,

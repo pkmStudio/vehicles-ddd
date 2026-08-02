@@ -1,8 +1,7 @@
 <?php
 
-use App\Providers\AuthServiceProvider;
-use App\Providers\HorizonServiceProvider;
 use App\Modules\Applicability\Shared\Infrastructure\Providers\ApplicabilityServiceProvider;
+use App\Modules\Shared\Infrastructure\Providers\SharedServiceProvider;
 use App\Modules\Templates\Infrastructure\Providers\TemplatesServiceProvider;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Providers\CatalogServiceProvider;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Providers\ExportServiceProvider;
@@ -18,12 +17,15 @@ use App\Modules\Warehouse\Features\KitProperties\Infrastructure\Providers\KitPro
 use App\Modules\Warehouse\Features\Maintenance\Infrastructure\Providers\MaintenanceServiceProvider as WarehouseMaintenanceServiceProvider;
 use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Providers\MoySkladServiceProvider as WarehouseMoySkladServiceProvider;
 use App\Modules\Warehouse\Features\Packaging\Infrastructure\Providers\PackagingServiceProvider;
-use App\Modules\Warehouse\Shared\Infrastructure\Providers\WarehouseServiceProvider;
 use App\Modules\Warehouse\Features\WiperAdapterAudit\Infrastructure\Providers\WiperAdapterAuditServiceProvider;
+use App\Modules\Warehouse\Shared\Infrastructure\Providers\WarehouseServiceProvider;
+use App\Providers\AuthServiceProvider;
+use App\Providers\HorizonServiceProvider;
 
 return [
     AuthServiceProvider::class,
     HorizonServiceProvider::class,
+    SharedServiceProvider::class,
     VehiclesServiceProvider::class,
     WarehouseServiceProvider::class,
     ApplicabilityServiceProvider::class,

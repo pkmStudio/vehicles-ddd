@@ -60,7 +60,7 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
         return new CreatePartSpecificationRequestDTO(
             userId: (int) $payload['user_id'],
             operationId: (string) $payload['operation_id'],
-            id: (int) $specification['id'],
+            id: isset($specification['id']) ? (int) $specification['id'] : null,
             owner: $this->owner($specification),
             template: DetailTemplateEnum::from((string) $specification['template']),
             details: $specification['details'],

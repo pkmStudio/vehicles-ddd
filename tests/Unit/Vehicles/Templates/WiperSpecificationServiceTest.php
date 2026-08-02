@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace Tests\Unit\Vehicles\Templates;
 
 use App\Modules\Templates\Application\WiperSpecificationService;
+use Psr\Log\AbstractLogger;
+use Stringable;
 use Tests\TestCase;
 
 final class WiperSpecificationServiceTest extends TestCase
 {
     private WiperSpecificationService $service;
 
+    /**
+     * Creates the default service instance without a logger for baseline tests.
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -154,6 +159,51 @@ final class WiperSpecificationServiceTest extends TestCase
         $this->assertSame(['A2'], $parts[1]['details']['front']['adapter_type_front']);
         $this->assertSame('back', $parts[2]['side']);
         $this->assertSame(['B1'], $parts[2]['details']['back']['adapter_type_rear']);
+    }
+
+    /**
+     * Проверяет, что сервис пишет предупреждение через PSR logger, а не через Laravel facade.
+     *
+     * Шаги:
+     * 1. Создать сервис с fake PSR logger.
+     * 2. Передать спецификацию с несколькими adapter values.
+     * 3. Проверить уровень, сообщение и structured context предупреждения.
+     */
+    public function test_split_specification_logs_multiple_vehicle_adapters_with_psr_logger(): void
+    {
+        $logger = new class extends AbstractLogger
+        {
+            /**
+             * @var list<array{level: mixed, message: string, context: array<string, mixed>}>
+             */
+            public array $records = [];
+
+            /**
+             * Сохраняет log record для последующих assertions.
+             */
+            public function log($level, string|Stringable $message, array $context = []): void
+            {
+                $this->records[] = [
+                    'level' => $level,
+                    'message' => (string) $message,
+                    'context' => $context,
+                ];
+            }
+        };
+
+        $service = new WiperSpecificationService($logger);
+
+        $service->splitSpecification([
+            'front' => ['adapter_type_front' => ['A1', 'A2']],
+        ], 321);
+
+        $this->assertCount(1, $logger->records);
+        $this->assertSame('warning', $logger->records[0]['level']);
+        $this->assertSame('В adapter_type_* найдено более одного значения для ТС', $logger->records[0]['message']);
+        $this->assertSame(321, $logger->records[0]['context']['part_specification_id']);
+        $this->assertSame('front', $logger->records[0]['context']['side']);
+        $this->assertSame(2, $logger->records[0]['context']['adapter_count']);
+        $this->assertSame(['A1', 'A2'], $logger->records[0]['context']['adapters']);
     }
 
     /**

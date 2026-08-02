@@ -7,6 +7,7 @@ namespace Tests\Feature\Vehicles\Import;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\EngineSparkPlugSpecificationImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineImportCompleted;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\EngineSparkPlugSpecificationImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Engine;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Modification;
@@ -24,6 +25,21 @@ use Tests\TestCase;
 final class EngineSparkPlugSpecificationImportTest extends TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * Проверяет, что queued import adapter не держит несериализуемые зависимости.
+     */
+    public function test_import_adapter_is_serializable_for_queued_chunks(): void
+    {
+        $import = app(EngineSparkPlugSpecificationImportInterface::class);
+
+        $this->assertInstanceOf(EngineSparkPlugSpecificationImport::class, $import);
+        $this->assertIsString(serialize($import));
+
+        foreach ($import->registerEvents() as $listener) {
+            $this->assertIsString(serialize($listener));
+        }
+    }
 
     /**
      * Проверяет внешний (Rabbit/HTTP-триггер) импорт спецификации свечей зажигания «по

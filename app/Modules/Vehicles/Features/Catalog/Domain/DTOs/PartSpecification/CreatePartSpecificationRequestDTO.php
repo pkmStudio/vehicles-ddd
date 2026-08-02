@@ -19,7 +19,7 @@ final readonly class CreatePartSpecificationRequestDTO
     public function __construct(
         public int $userId,
         public string $operationId,
-        public int $id,
+        public ?int $id,
         public PartSpecificationOwnerDTO $owner,
         public DetailTemplateEnum $template,
         public array $details,

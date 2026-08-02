@@ -31,6 +31,9 @@ use App\Modules\Vehicles\Features\Catalog\Application\UseCases\PartSpecification
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\PartSpecification\UpdatePartSpecificationUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\CreateVehicleUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\DeleteVehicleUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\ListVehiclesForCrmUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\SearchVehiclesForCrmUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\ShowVehicleForCrmUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\StartVehicleMutationUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\UpdateVehicleUseCase;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineCommandInterface;
@@ -49,6 +52,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRe
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmReadRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationNotificationServiceInterface;
@@ -73,20 +77,24 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\PartSpecific
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\PartSpecification\UpdatePartSpecificationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\CreateVehicleUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\DeleteVehicleUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\ListVehiclesForCrmUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\SearchVehiclesForCrmUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\ShowVehicleForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\StartVehicleMutationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\UpdateVehicleUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Cache\LaravelCatalogMutationCacheService;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\EngineCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\EngineModificationCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\ManufacturerCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\ModificationCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\PartSpecificationCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\VehicleCommand;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Cache\LaravelCatalogMutationCacheService;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Notifications\RabbitMqCatalogMutationNotificationService;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\EngineRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\ManufacturerRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\ModificationRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\PartSpecificationRepository;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrmReadRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -100,6 +108,9 @@ final class CatalogServiceProvider extends ServiceProvider
         CreateVehicleUseCaseInterface::class => CreateVehicleUseCase::class,
         UpdateVehicleUseCaseInterface::class => UpdateVehicleUseCase::class,
         DeleteVehicleUseCaseInterface::class => DeleteVehicleUseCase::class,
+        ListVehiclesForCrmUseCaseInterface::class => ListVehiclesForCrmUseCase::class,
+        ShowVehicleForCrmUseCaseInterface::class => ShowVehicleForCrmUseCase::class,
+        SearchVehiclesForCrmUseCaseInterface::class => SearchVehiclesForCrmUseCase::class,
         StartManufacturerMutationUseCaseInterface::class => StartManufacturerMutationUseCase::class,
         CreateManufacturerUseCaseInterface::class => CreateManufacturerUseCase::class,
         UpdateManufacturerUseCaseInterface::class => UpdateManufacturerUseCase::class,
@@ -138,6 +149,7 @@ final class CatalogServiceProvider extends ServiceProvider
 
     private const array REPOSITORY_BINDINGS = [
         VehicleRepositoryInterface::class => VehicleRepository::class,
+        VehicleCrmReadRepositoryInterface::class => VehicleCrmReadRepository::class,
         ManufacturerRepositoryInterface::class => ManufacturerRepository::class,
         EngineRepositoryInterface::class => EngineRepository::class,
         ModificationRepositoryInterface::class => ModificationRepository::class,

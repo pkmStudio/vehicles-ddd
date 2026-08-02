@@ -44,7 +44,8 @@
   экспорт.
 - Создан пакет wire contracts: `/home/user/projects/packages/dan-wire-contracts`, composer package
   `pkmstudio/dan-wire-contracts`. Внутри `src` только сервисные границы `Vehicles`, `CRM`, `Parse`;
-  для `Vehicles` добавлены DTO команд и результатов по Catalog/Warehouse/Applicability.
+  для `Vehicles` структура приведена к виду сервиса:
+  `Vehicles/Modules/{Vehicles|Warehouse|Applicability}/Features/{Feature}/DTO`.
 - В `dan-center` переведены на Rabbit:
   - Vehicles import/export;
   - Engines import/export каталога;
@@ -60,6 +61,31 @@
 - В `dan-vehicles` начат REST read API для CRM: `VehicleCrmController` в feature `Catalog`,
   endpoints `GET /api/v1/vehicles`, `GET /api/v1/vehicles/{id}`, `GET /api/v1/vehicles/search`.
 - В `dan-center` добавлен тонкий REST client для Vehicles read API.
+- `VehicleCrmController` в `dan-vehicles` разгружен: query/filter/search/sort вынесены в
+  Catalog Application use cases и Infrastructure repository.
+- В `dan-center` добавлен отдельный REST-backed Filament resource `VehiclesRest` для сравнения со
+  старым экраном. Старый `Vehicles` resource оставлен на Eloquent с прежними routes
+  `/vehicles`, `/vehicles/create`, `/vehicles/{record}/edit`; REST-прототип доступен отдельно по
+  `/vehicles-rest` и использует `Table::records(...)`.
+- Для Vehicles в `dan-center` добавлены минимальные Rabbit-backed actions create/edit/delete.
+  Это промежуточный CRUD без старой Eloquent form с repeaters; nested-сценарии остаются отдельной
+  задачей.
+- Vehicles Filament table дополнительно разгружен: общие import/export toolbar actions вынесены в
+  `VehiclesToolbarActions`, а Rabbit create/edit/delete actions вынесены в
+  `VehiclesRestMutationActions`. REST table теперь остается в основном декларацией колонок,
+  фильтров и datasource.
+- Vehicles detail REST расширен вложенными данными: `modifications` с привязанными `engines` и
+  `part_specifications` с feature/template/details.
+- В `dan-center` для Vehicles восстановлена форма в стиле старого Filament resource:
+  `Section/Grid/Repeater/Select/TextInput` для основных данных, параметров деталей, модификаций и
+  моторов. Эта форма подключена в отдельном `VehiclesRest` resource; данные hydrate-ятся из REST
+  detail, а сохранение идет через Rabbit commands.
+- Для REST-backed формы Vehicles добавлены option endpoints в `dan-vehicles`:
+  features, feature values и detail templates. Select-ы больше не должны читать вынесенные
+  справочники из локальных Eloquent-моделей `dan-center`.
+- Локальная Docker-связка настроена так, чтобы `dan-center` видел `dan-vehicles` по текущему
+  `DAN_VEHICLES_BASE_URL=http://dan-vehicles`: nginx `dan-vehicles` получил alias `dan-vehicles` в
+  `dan-shared`, app `dan-center` подключен к `dan-shared`.
 - В README пакета и плане зафиксировано правило DTO ownership: wire DTO ответа принадлежит
   публичному контракту сервиса, который публикует API/event; consumer не дублирует wire DTO, а
   маппит его в локальный UI/Application DTO при необходимости.
@@ -72,8 +98,8 @@
   catalog mutations/create/update/delete и сервисные destructive actions пока не переведены.
 - `dan-center` умеет получать result event и слать notification, но постоянный worker/Horizon для
   `crm.inbox` нужно закрепить в docker/deploy, чтобы не запускать `php artisan horizon` вручную.
-- REST read-side начат только для CRM Vehicles. Filament tables пока остаются на старых
-  Eloquent-моделях `dan-center`.
+- REST read-side начат только для CRM Vehicles. Filament table для Vehicles уже читает REST,
+  остальные вынесенные домены пока остаются на старых Eloquent-моделях `dan-center`.
 
 ### Следующие задачи
 
@@ -81,16 +107,21 @@
 2. Повторить `rabbit-transport:setup` в stage/prod после новых bindings, особенно для
    `crm.applicability.calculate`. Локально setup уже выполнен.
 3. Перевести runtime-код на DTO/enums из `pkmstudio/dan-wire-contracts`.
-4. Отрефакторить `dan-center`: убрать бизнес-сборку payload/операций из Filament table files в
-   отдельные integration/application services. Текущий вариант допустим как промежуточный, но
-   Filament должен остаться тонким UI-слоем.
-5. Отрефакторить `dan-vehicles` REST read API: сейчас `VehicleCrmController` содержит query/filter
-   logic, что нарушает архитектуру. Нужно вынести функционал в Catalog Application query use cases,
-   DTO/mappers/resources, а controller оставить тонким HTTP adapter.
-6. Довести REST read API до Warehouse/Applicability и добавить контрактные тесты.
-7. Сделать прототип REST-backed Filament table без Eloquent для `Vehicles`.
+4. Продолжить рефакторинг `dan-center`: убрать бизнес-сборку payload/операций из всех Filament
+   table/page files в отдельные integration/application services. Для Vehicles первый шаг сделан,
+   но Filament должен остаться тонким UI-слоем и в остальных вынесенных доменах.
+5. Довести REST read API до Warehouse/Applicability и добавить контрактные тесты.
+6. На базе готового Vehicles REST-backed table отточить UX/permissions/cache invalidation и затем
+   переносить остальные сущности по аналогии.
+7. Перевести runtime-код Vehicles vertical slice на DTO/enums из `pkmstudio/dan-wire-contracts`.
 8. Инвентаризировать все оставшиеся зависимости `dan-center` от `App\Models\Vehicles` и
    `App\Models\Warehouse` за пределами уже тронутого export action.
+9. Доработать контракт `PART_SPECIFICATION_CREATE_REQUESTED`: сейчас create требует
+   `part_specification.id`, поэтому Filament вынужден просить ID у пользователя. Целевой вариант —
+   server-generated id или отдельный внешний идентификатор.
+10. Довести dynamic details формы до полного набора шаблонов по сущностям: для Vehicle сейчас
+    восстановлен wiper-шаблон, остальные шаблоны относятся к Engine и должны появиться в
+    соответствующем REST-backed ресурсе Engines.
 
 ## Что найдено
 
@@ -196,8 +227,9 @@ REST не должен выполнять create/update/delete/import/export.
     остаются локальными для фичи;
   - handler в `dan-vehicles` должен адаптировать wire DTO из пакета в локальный request DTO.
 - **DTO ответа принадлежит публичному контракту сервиса, который публикует API/event**:
-  - REST response `VehicleCrmResource` лежит в `Vehicles/Catalog/Read/DTO`, потому что форму ответа
-    определяет `dan-vehicles`;
+  - REST response `VehicleCrmResource` лежит в
+    `Vehicles/Modules/Vehicles/Features/Catalog/Read/DTO`, потому что форму ответа определяет
+    `dan-vehicles`;
   - `dan-center` не дублирует wire DTO, а при необходимости маппит его в локальный UI/Application
     DTO.
 
@@ -206,11 +238,11 @@ REST не должен выполнять create/update/delete/import/export.
 ```text
 packages/dan-wire-contracts
   src/Vehicles/
-    Catalog/{Import,Export}/DTO/*
-    Warehouse/{Import,Export}/DTO/*
-    Applicability/{Import,Export,Calculation}/DTO/*
-    Results/DTO/*
-    Shared/{DTO,Enums}/*
+    Modules/
+      Vehicles/Features/{Catalog,Import,Export}/...
+      Warehouse/Features/{Import,Export}/...
+      Applicability/Features/{Import,Export,Calculation}/...
+    Shared/{DTO,Enums,Results}/...
   src/CRM/
   src/Parse/
 ```
@@ -529,7 +561,7 @@ Filament из коробки ожидает Eloquent query, но projection/read
 
 1. [x] Добавить `routes/api.php` и мягкий service-to-service auth через `DAN_VEHICLES_READ_API_KEY`.
 2. [x] Реализовать CRM read endpoints для Vehicles в `Catalog/Presentation/Http/Controllers/VehicleCrmController`.
-3. [ ] Отрефакторить `VehicleCrmController`: вынести query/filter/search/sort из controller в
+3. [x] Отрефакторить `VehicleCrmController`: вынести query/filter/search/sort из controller в
    Catalog Application read use cases и DTO/resource mappers.
 4. [ ] Реализовать read endpoints для Warehouse.
 5. [ ] Реализовать read endpoints для Applicability.
@@ -537,33 +569,44 @@ Filament из коробки ожидает Eloquent query, но projection/read
 
 ### Фаза 6. Filament read migration
 
-Статус: не начато.
+Статус: начато на Vehicles.
 
 1. [ ] Отрефакторить текущие `dan-center` Filament actions: вынести публикацию Rabbit payload,
    upload в S3 и notification orchestration из table/page classes в отдельные сервисы.
+   Для Vehicles часть сделана: toolbar import/export actions и REST create/edit/delete actions
+   вынесены из table classes в отдельные action classes.
 2. [ ] Заменить `Resource::$model` паттерн для вынесенных доменов на custom Filament pages.
-3. [ ] Реализовать REST paginator/filter adapter:
+3. [x] Реализовать REST paginator/filter adapter для Vehicles:
    - `page`;
    - `per_page`;
    - `sort`;
    - `search`;
-   - `filter[...]`;
-   - `include[]`.
+   - `filter[...]`.
 4. [ ] Переписать list screens `Vehicles`, `Engines`, `Nomenclatures`, `Kits`.
+   Для Vehicles сделан отдельный REST resource `VehiclesRest` рядом со старым Eloquent resource,
+   чтобы сравнить функционал перед заменой.
 5. [ ] Переписать view/edit screens на REST snapshot.
+   Для Vehicles view реализован как REST-backed modal snapshot; detail REST уже показывает
+   modifications/engines и part specifications. Edit-форма Vehicles восстановлена через
+   Section/Grid/Repeater на REST state; nested save для part specifications идет Rabbit-командами.
 6. [ ] Для select/search полей использовать async REST option endpoints.
 7. [x] Не создавать projection/read replica tables в `dan-center`.
 
 ### Фаза 7. Filament write migration
 
-Статус: не начато.
+Статус: начато на Vehicles.
 
 1. [ ] Переписать create/edit/delete страниц Vehicles/Engines на Rabbit commands.
+   Для Vehicles добавлены минимальные table actions create/edit/delete через Rabbit; полноценные
+   страницы и nested-сценарии еще не перенесены.
 2. [ ] Переписать create/edit/delete Warehouse entities на Rabbit commands.
 3. [ ] Nested repeaters заменить на explicit actions/sections:
    - `PartSpecification` CRUD;
    - `Kit` composition update;
    - applicability manual attach/sync.
+   Для Vehicles начато: просмотр part specifications и добавление part specification через Rabbit
+   перенесены внутрь edit-формы как Repeater. Модификации с моторами отображаются Repeater-ом
+   read-only; их write-сценарии нужно довести отдельно.
 4. [ ] Result events отправляют Filament notifications и при необходимости инвалидируют локальный
    HTTP cache.
 
@@ -597,11 +640,12 @@ Filament из коробки ожидает Eloquent query, но projection/read
 7. [x] Перевести import Vehicles на Rabbit.
 8. [x] Перевести Warehouse/Applicability heavy actions на Rabbit, где есть готовые команды.
 9. [ ] Поднять read REST для `Warehouse` list/detail.
-10. [ ] Сделать прототип одной REST-backed Filament table без Eloquent, например `Vehicles`.
+10. [x] Сделать прототип одной REST-backed Filament table без Eloquent, например `Vehicles`.
 11. [x] Создать отдельный package wire-contracts.
 12. [ ] Перевести runtime-код обоих сервисов на DTO/enums из `pkmstudio/dan-wire-contracts`.
 13. [ ] Отрефакторить `dan-center`, чтобы Filament files не содержали бизнес-логику интеграции.
-14. [ ] Отрефакторить `dan-vehicles`, чтобы REST controllers не содержали query/business logic.
+    Начато на Vehicles: toolbar actions и REST mutation actions вынесены из table classes.
+14. [x] Отрефакторить `dan-vehicles`, чтобы REST controllers не содержали query/business logic.
 15. [x] Убрать `userId` из `KitApplicabilityRecalculated` и use case расчета применяемости.
 
 ## Вопросы

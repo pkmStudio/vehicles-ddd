@@ -7,6 +7,7 @@ namespace Tests\Feature\Warehouse\Import;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\NomenclatureImportCompleted;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Nomenclature\NomenclatureImport;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Models\Brand;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Models\Nomenclature;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Models\Type;
@@ -30,6 +31,21 @@ final class NomenclatureImportTest extends TestCase
     {
         Cache::flush();
         parent::tearDown();
+    }
+
+    /**
+     * Проверяет, что queued import adapter и его event listeners сериализуемы.
+     */
+    public function test_import_adapter_is_serializable_for_queued_chunks(): void
+    {
+        $import = app(NomenclatureImportInterface::class);
+
+        $this->assertInstanceOf(NomenclatureImport::class, $import);
+        $this->assertIsString(serialize($import));
+
+        foreach ($import->registerEvents() as $listener) {
+            $this->assertIsString(serialize($listener));
+        }
     }
 
     /**

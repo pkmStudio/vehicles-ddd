@@ -15,8 +15,8 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\CreatePa
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use Throwable;
 
 /**
@@ -53,7 +53,9 @@ final readonly class CreatePartSpecificationUseCase implements CreatePartSpecifi
         }
 
         try {
-            $existingSpecification = $this->specifications->findById($request->id);
+            $existingSpecification = $request->id === null
+                ? null
+                : $this->specifications->findById($request->id);
 
             if ($existingSpecification !== null) {
                 return $this->results->rejected(
@@ -61,7 +63,7 @@ final readonly class CreatePartSpecificationUseCase implements CreatePartSpecifi
                     operationId: $request->operationId,
                     entity: CatalogEntityEnum::PartSpecification,
                     operation: CatalogMutationOperationEnum::Create,
-                    externalId: $request->id,
+                    externalId: $this->externalId($request),
                     reason: CatalogMutationRejectReasonEnum::AlreadyExists,
                 );
             }
@@ -73,7 +75,7 @@ final readonly class CreatePartSpecificationUseCase implements CreatePartSpecifi
                     operationId: $request->operationId,
                     entity: CatalogEntityEnum::PartSpecification,
                     operation: CatalogMutationOperationEnum::Create,
-                    externalId: $request->id,
+                    externalId: $this->externalId($request),
                     reason: $resolution->rejectReason ?? CatalogMutationRejectReasonEnum::OwnerNotFound,
                 );
             }
@@ -112,10 +114,15 @@ final readonly class CreatePartSpecificationUseCase implements CreatePartSpecifi
                 operationId: $request->operationId,
                 entity: CatalogEntityEnum::PartSpecification,
                 operation: CatalogMutationOperationEnum::Create,
-                externalId: $request->id,
+                externalId: $this->externalId($request),
             );
 
             throw $e;
         }
+    }
+
+    private function externalId(CreatePartSpecificationRequestDTO $request): int
+    {
+        return $request->id ?? $request->owner->externalId;
     }
 }
