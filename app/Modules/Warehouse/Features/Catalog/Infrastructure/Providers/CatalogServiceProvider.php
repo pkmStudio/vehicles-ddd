@@ -17,13 +17,13 @@ use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\CreateKitUse
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\DeleteKitUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\StartKitMutationUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\UpdateKitUseCase;
-use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\CreateNomenclatureUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Crm\ListNomenclaturesForCrmUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Crm\SearchNomenclaturesForCrmUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Crm\ShowNomenclatureForCrmUseCase;
-use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\DeleteNomenclatureUseCase;
-use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\StartNomenclatureMutationUseCase;
-use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\UpdateNomenclatureUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Mutations\CreateNomenclatureUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Mutations\DeleteNomenclatureUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Mutations\StartNomenclatureMutationUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Mutations\UpdateNomenclatureUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\CreatePackDimensionUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\DeletePackDimensionUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\StartPackDimensionMutationUseCase;
@@ -39,7 +39,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\Nomenclatu
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\PackDimensionMutationRequestFactoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitRepositoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmReadRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeRepositoryInterface;
@@ -54,13 +54,13 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\CreateK
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\DeleteKitUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\StartKitMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\UpdateKitUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\CreateNomenclatureUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\ListNomenclaturesForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\SearchNomenclaturesForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\ShowNomenclatureForCrmUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\DeleteNomenclatureUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\StartNomenclatureMutationUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\UpdateNomenclatureUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\CreateNomenclatureUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\DeleteNomenclatureUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\StartNomenclatureMutationUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\UpdateNomenclatureUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\CreatePackDimensionUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\DeletePackDimensionUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\StartPackDimensionMutationUseCaseInterface;
@@ -73,7 +73,7 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands\PackDimension
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Notifications\RabbitMqWarehouseCatalogMutationNotificationService;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\BrandRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\KitRepository;
-use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrmReadRepository;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\NomenclatureCrmRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\PackDimensionRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\TypeRepository;
@@ -125,7 +125,7 @@ final class CatalogServiceProvider extends ServiceProvider
         BrandRepositoryInterface::class => BrandRepository::class,
         TypeRepositoryInterface::class => TypeRepository::class,
         NomenclatureRepositoryInterface::class => NomenclatureRepository::class,
-        NomenclatureCrmReadRepositoryInterface::class => NomenclatureCrmReadRepository::class,
+        NomenclatureCrmRepositoryInterface::class => NomenclatureCrmRepository::class,
         PackDimensionRepositoryInterface::class => PackDimensionRepository::class,
         KitRepositoryInterface::class => KitRepository::class,
     ];

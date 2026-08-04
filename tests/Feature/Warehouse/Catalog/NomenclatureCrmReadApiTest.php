@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse\Catalog;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmReadRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmListItemDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmOptionDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmPageDTO;
@@ -170,10 +170,10 @@ final class NomenclatureCrmReadApiTest extends TestCase
             partNumber: 'DUR-060L',
         );
 
-        $repository = app(NomenclatureCrmReadRepositoryInterface::class);
+        $repository = app(NomenclatureCrmRepositoryInterface::class);
         $query = new NomenclatureCrmReadQueryDTO(perPage: 10);
         $page = $repository->paginate($query);
-        $detail = $repository->find((int) $nomenclature->id);
+        $detail = $repository->findById((int) $nomenclature->id);
         $search = $repository->search('Denso');
         $types = $repository->typeOptions('Дворники');
 

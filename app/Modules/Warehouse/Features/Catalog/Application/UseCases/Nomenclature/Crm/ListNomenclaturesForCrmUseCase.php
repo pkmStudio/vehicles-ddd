@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Crm;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmReadRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\ListNomenclaturesForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmOptionDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmPageDTO;
@@ -17,7 +17,7 @@ use Illuminate\Support\Collection;
 final readonly class ListNomenclaturesForCrmUseCase implements ListNomenclaturesForCrmUseCaseInterface
 {
     public function __construct(
-        private NomenclatureCrmReadRepositoryInterface $nomenclatures,
+        private NomenclatureCrmRepositoryInterface $nomenclatures,
     ) {}
 
     public function execute(NomenclatureCrmReadQueryDTO $query): NomenclatureCrmPageDTO

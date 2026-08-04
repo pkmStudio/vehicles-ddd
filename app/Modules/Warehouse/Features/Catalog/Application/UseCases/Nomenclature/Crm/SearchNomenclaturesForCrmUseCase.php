@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Crm;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmReadRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\SearchNomenclaturesForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmSearchItemDTO;
 use Illuminate\Support\Collection;
@@ -15,7 +15,7 @@ use Illuminate\Support\Collection;
 final readonly class SearchNomenclaturesForCrmUseCase implements SearchNomenclaturesForCrmUseCaseInterface
 {
     public function __construct(
-        private NomenclatureCrmReadRepositoryInterface $nomenclatures,
+        private NomenclatureCrmRepositoryInterface $nomenclatures,
     ) {}
 
     /**
