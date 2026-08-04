@@ -39,4 +39,8 @@ return [
         'read_api_key' => env('DAN_VEHICLES_READ_API_KEY', ''),
     ],
 
+    'dan_catalog' => [
+        'read_api_key' => env('DAN_CATALOG_READ_API_KEY', ''),
+    ],
+
 ];

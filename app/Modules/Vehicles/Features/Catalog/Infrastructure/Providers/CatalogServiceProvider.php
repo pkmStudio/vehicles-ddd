@@ -19,10 +19,13 @@ use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Engine\StartEngin
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Engine\UpdateEngineUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Manufacturer\CreateManufacturerUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Manufacturer\DeleteManufacturerUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Manufacturer\ListManufacturersForCatalogUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Manufacturer\StartManufacturerMutationUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Manufacturer\UpdateManufacturerUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Modification\CreateModificationUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Modification\DeleteModificationUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Modification\ListVehicleModificationsForCatalogUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Modification\ShowModificationForCatalogUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Modification\StartModificationMutationUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Modification\UpdateModificationUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\PartSpecification\CreatePartSpecificationUseCase;
@@ -31,6 +34,7 @@ use App\Modules\Vehicles\Features\Catalog\Application\UseCases\PartSpecification
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\PartSpecification\UpdatePartSpecificationUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\CreateVehicleUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\DeleteVehicleUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\ListManufacturerVehiclesForCatalogUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\ListVehiclesForCrmUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\SearchVehiclesForCrmUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Vehicle\ShowVehicleForCrmUseCase;
@@ -65,10 +69,13 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Engine\Start
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Engine\UpdateEngineUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Manufacturer\CreateManufacturerUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Manufacturer\DeleteManufacturerUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Manufacturer\ListManufacturersForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Manufacturer\StartManufacturerMutationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Manufacturer\UpdateManufacturerUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Modification\CreateModificationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Modification\DeleteModificationUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Modification\ListVehicleModificationsForCatalogUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Modification\ShowModificationForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Modification\StartModificationMutationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Modification\UpdateModificationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\PartSpecification\CreatePartSpecificationUseCaseInterface;
@@ -77,6 +84,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\PartSpecific
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\PartSpecification\UpdatePartSpecificationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\CreateVehicleUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\DeleteVehicleUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\ListManufacturerVehiclesForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\ListVehiclesForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\SearchVehiclesForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\ShowVehicleForCrmUseCaseInterface;
@@ -109,12 +117,14 @@ final class CatalogServiceProvider extends ServiceProvider
         UpdateVehicleUseCaseInterface::class => UpdateVehicleUseCase::class,
         DeleteVehicleUseCaseInterface::class => DeleteVehicleUseCase::class,
         ListVehiclesForCrmUseCaseInterface::class => ListVehiclesForCrmUseCase::class,
+        ListManufacturerVehiclesForCatalogUseCaseInterface::class => ListManufacturerVehiclesForCatalogUseCase::class,
         ShowVehicleForCrmUseCaseInterface::class => ShowVehicleForCrmUseCase::class,
         SearchVehiclesForCrmUseCaseInterface::class => SearchVehiclesForCrmUseCase::class,
         StartManufacturerMutationUseCaseInterface::class => StartManufacturerMutationUseCase::class,
         CreateManufacturerUseCaseInterface::class => CreateManufacturerUseCase::class,
         UpdateManufacturerUseCaseInterface::class => UpdateManufacturerUseCase::class,
         DeleteManufacturerUseCaseInterface::class => DeleteManufacturerUseCase::class,
+        ListManufacturersForCatalogUseCaseInterface::class => ListManufacturersForCatalogUseCase::class,
         StartEngineMutationUseCaseInterface::class => StartEngineMutationUseCase::class,
         CreateEngineUseCaseInterface::class => CreateEngineUseCase::class,
         UpdateEngineUseCaseInterface::class => UpdateEngineUseCase::class,
@@ -123,6 +133,8 @@ final class CatalogServiceProvider extends ServiceProvider
         CreateModificationUseCaseInterface::class => CreateModificationUseCase::class,
         UpdateModificationUseCaseInterface::class => UpdateModificationUseCase::class,
         DeleteModificationUseCaseInterface::class => DeleteModificationUseCase::class,
+        ListVehicleModificationsForCatalogUseCaseInterface::class => ListVehicleModificationsForCatalogUseCase::class,
+        ShowModificationForCatalogUseCaseInterface::class => ShowModificationForCatalogUseCase::class,
         StartPartSpecificationMutationUseCaseInterface::class => StartPartSpecificationMutationUseCase::class,
         CreatePartSpecificationUseCaseInterface::class => CreatePartSpecificationUseCase::class,
         UpdatePartSpecificationUseCaseInterface::class => UpdatePartSpecificationUseCase::class,
