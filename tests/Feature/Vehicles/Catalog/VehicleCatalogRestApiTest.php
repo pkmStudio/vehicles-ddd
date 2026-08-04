@@ -25,12 +25,12 @@ final class VehicleCatalogRestApiTest extends TestCase
     {
         config(['services.dan_catalog.read_api_key' => 'catalog-secret']);
 
-        $this->getJson('/api/v1/manufacturers')
+        $this->getJson('/api/v1/catalog/manufacturers')
             ->assertUnauthorized()
             ->assertJsonPath('message', 'Unauthorized.');
 
         $this->withHeader('X-Service-Key', 'catalog-secret')
-            ->getJson('/api/v1/manufacturers')
+            ->getJson('/api/v1/catalog/manufacturers')
             ->assertOk();
     }
 
@@ -44,7 +44,7 @@ final class VehicleCatalogRestApiTest extends TestCase
         $this->createVehicle($audi, msId: 1002, name: 'A4', isAllow: true);
         $this->createVehicle($hidden, msId: 1003, name: 'Secret', isAllow: false);
 
-        $this->getJson('/api/v1/manufacturers')
+        $this->getJson('/api/v1/catalog/manufacturers')
             ->assertOk()
             ->assertJsonCount(2, 'data')
             ->assertJsonPath('data.0.name', 'Audi')
@@ -58,7 +58,7 @@ final class VehicleCatalogRestApiTest extends TestCase
         $allowed = $this->createVehicle($manufacturer, msId: 2001, name: 'Octavia', isAllow: true);
         $this->createVehicle($manufacturer, msId: 2002, name: 'Hidden', isAllow: false);
 
-        $this->getJson("/api/v1/manufacturers/{$manufacturer->id}/vehicles")
+        $this->getJson("/api/v1/catalog/manufacturers/{$manufacturer->id}/vehicles")
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $allowed->id)
@@ -66,7 +66,7 @@ final class VehicleCatalogRestApiTest extends TestCase
             ->assertJsonPath('data.0.manufacturer_id', $manufacturer->id)
             ->assertJsonMissing(['name' => 'Hidden']);
 
-        $this->getJson('/api/v1/manufacturers/999999/vehicles')
+        $this->getJson('/api/v1/catalog/manufacturers/999999/vehicles')
             ->assertNotFound()
             ->assertJsonPath('message', 'Manufacturer not found.');
     }
@@ -87,7 +87,7 @@ final class VehicleCatalogRestApiTest extends TestCase
             description: '1.4 TSI',
         );
 
-        $this->getJson("/api/v1/vehicles/{$vehicle->id}/modifications")
+        $this->getJson("/api/v1/catalog/vehicles/{$vehicle->id}/modifications")
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $modificationId)
@@ -95,7 +95,7 @@ final class VehicleCatalogRestApiTest extends TestCase
             ->assertJsonPath('data.0.mod_id', 7001)
             ->assertJsonPath('data.0.description', '1.4 TSI');
 
-        $this->getJson("/api/v1/modifications/{$modificationId}")
+        $this->getJson("/api/v1/catalog/modifications/{$modificationId}")
             ->assertOk()
             ->assertJsonPath('data.manufacturer.id', $manufacturer->id)
             ->assertJsonPath('data.manufacturer.mfa_id', 111)
@@ -103,7 +103,7 @@ final class VehicleCatalogRestApiTest extends TestCase
             ->assertJsonPath('data.vehicle.ms_id', 3001)
             ->assertJsonPath('data.modification.id', $modificationId);
 
-        $this->getJson('/api/v1/modifications/999999')
+        $this->getJson('/api/v1/catalog/modifications/999999')
             ->assertNotFound()
             ->assertJsonPath('message', 'Modification not found.');
     }
@@ -114,11 +114,11 @@ final class VehicleCatalogRestApiTest extends TestCase
         $vehicle = $this->createVehicle($manufacturer, msId: 4001, name: 'Hidden', isAllow: false);
         $modificationId = $this->createModification($vehicle, modId: 8001);
 
-        $this->getJson("/api/v1/vehicles/{$vehicle->id}/modifications")
+        $this->getJson("/api/v1/catalog/vehicles/{$vehicle->id}/modifications")
             ->assertNotFound()
             ->assertJsonPath('message', 'Vehicle not found.');
 
-        $this->getJson("/api/v1/modifications/{$modificationId}")
+        $this->getJson("/api/v1/catalog/modifications/{$modificationId}")
             ->assertNotFound()
             ->assertJsonPath('message', 'Modification not found.');
     }

@@ -5,13 +5,15 @@ use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\VehicleC
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
-    Route::get('manufacturers', [VehicleCatalogController::class, 'manufacturers']);
-    Route::get('manufacturers/{manufacturer}/vehicles', [VehicleCatalogController::class, 'vehicles'])
-        ->whereNumber('manufacturer');
-    Route::get('vehicles/{vehicle}/modifications', [VehicleCatalogController::class, 'modifications'])
-        ->whereNumber('vehicle');
-    Route::get('modifications/{modification}', [VehicleCatalogController::class, 'showModification'])
-        ->whereNumber('modification');
+    Route::prefix('catalog')->group(function (): void {
+        Route::get('manufacturers', [VehicleCatalogController::class, 'manufacturers']);
+        Route::get('manufacturers/{manufacturer}/vehicles', [VehicleCatalogController::class, 'vehicles'])
+            ->whereNumber('manufacturer');
+        Route::get('vehicles/{vehicle}/modifications', [VehicleCatalogController::class, 'modifications'])
+            ->whereNumber('vehicle');
+        Route::get('modifications/{modification}', [VehicleCatalogController::class, 'showModification'])
+            ->whereNumber('modification');
+    });
 
     Route::get('vehicles/options/features', [VehicleCrmController::class, 'features']);
     Route::get('vehicles/options/feature-values', [VehicleCrmController::class, 'featureValues']);
