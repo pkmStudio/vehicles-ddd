@@ -64,6 +64,7 @@ final class VehicleCatalogRestApiTest extends TestCase
             ->assertJsonPath('data.0.id', $allowed->id)
             ->assertJsonPath('data.0.ms_id', 2001)
             ->assertJsonPath('data.0.manufacturer_id', $manufacturer->id)
+            ->assertJsonPath('data.0.type_carcase', CarcaseTypeEnum::HATCHBACK->value)
             ->assertJsonMissing(['name' => 'Hidden']);
 
         $this->getJson('/api/v1/catalog/manufacturers/999999/vehicles')
@@ -101,6 +102,7 @@ final class VehicleCatalogRestApiTest extends TestCase
             ->assertJsonPath('data.manufacturer.mfa_id', 111)
             ->assertJsonPath('data.vehicle.id', $vehicle->id)
             ->assertJsonPath('data.vehicle.ms_id', 3001)
+            ->assertJsonPath('data.vehicle.type_carcase', CarcaseTypeEnum::HATCHBACK->value)
             ->assertJsonPath('data.modification.id', $modificationId);
 
         $this->getJson('/api/v1/catalog/modifications/999999')

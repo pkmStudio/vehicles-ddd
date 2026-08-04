@@ -19,6 +19,7 @@ final readonly class CatalogVehicleDTO
         public ?string $localizedName,
         public ?string $generation,
         public ?string $generationShort,
+        public string $typeCarcase,
         public ?int $yearFrom,
         public ?int $yearTo,
     ) {}
@@ -33,6 +34,7 @@ final readonly class CatalogVehicleDTO
             localizedName: $vehicle->localizedName,
             generation: $vehicle->generation,
             generationShort: $vehicle->generationShort,
+            typeCarcase: $vehicle->typeCarcase->value,
             yearFrom: $vehicle->generationYearFrom,
             yearTo: $vehicle->generationYearTo,
         );
@@ -49,6 +51,7 @@ final readonly class CatalogVehicleDTO
             'localized_name' => $this->localizedName,
             'generation' => $this->generation,
             'generation_short' => $this->generationShort,
+            'type_carcase' => $this->typeCarcase,
             'year_from' => $this->yearFrom,
             'year_to' => $this->yearTo,
         ];
