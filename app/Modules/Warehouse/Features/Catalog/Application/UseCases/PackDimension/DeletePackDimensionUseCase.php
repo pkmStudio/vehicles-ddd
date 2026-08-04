@@ -6,6 +6,7 @@ namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimens
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\PackDimensionCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogCascadeDeleteServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\DeletePackDimensionUseCaseInterface;
@@ -28,6 +29,7 @@ final readonly class DeletePackDimensionUseCase implements DeletePackDimensionUs
     public function __construct(
         private PackDimensionRepositoryInterface $packDimensions,
         private PackDimensionCommandInterface $command,
+        private WarehouseCatalogCascadeDeleteServiceInterface $cascade,
         private WarehouseCatalogMutationCacheServiceInterface $cache,
         private WarehouseCatalogMutationResultServiceInterface $results,
     ) {}
@@ -56,6 +58,7 @@ final readonly class DeletePackDimensionUseCase implements DeletePackDimensionUs
                 );
             }
 
+            $this->cascade->deleteKitsByPackDimensionId($request->id);
             $this->command->deleteById($request->id);
 
             event(new PackDimensionDeleted(

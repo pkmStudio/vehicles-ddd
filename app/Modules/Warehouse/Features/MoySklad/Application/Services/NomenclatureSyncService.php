@@ -11,6 +11,7 @@ use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Repositories\Nomenc
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Services\NomenclatureSyncServiceInterface;
 use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductDTO;
 use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductPayloadDTO;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\NomenclatureIntegrationLookupDTO;
 use App\Modules\Warehouse\Features\MoySklad\Domain\Enums\MoySkladIntegrationStatusEnum;
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureIntegrationData;
 use Psr\Log\LoggerInterface;
@@ -57,7 +58,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
             return;
         }
 
-        $integration = $this->integrations->findByNomenclatureId($nomenclature->id)
+        $integration = $this->integrations->find(NomenclatureIntegrationLookupDTO::byNomenclatureId($nomenclature->id))
             ?? $this->integrationCommand->createPendingForNomenclature($nomenclature->id);
 
         $productFolderMeta = $this->productFolderResolver->resolve($nomenclature);
@@ -98,7 +99,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         }
 
         $externalCode = $this->mapper->externalCodeForNomenclatureId($nomenclatureId);
-        $integration = $this->integrations->findForDelete($nomenclatureId, $externalCode, $integrationId);
+        $integration = $this->integrations->find(NomenclatureIntegrationLookupDTO::forDelete($nomenclatureId, $externalCode, $integrationId));
         $productId = $this->productMatchResolver->resolveDeleteProductId($nomenclatureId, $partNumber, $externalId, $integration);
 
         if ($productId === null) {

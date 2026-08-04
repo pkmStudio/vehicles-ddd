@@ -6,6 +6,7 @@ namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureIntegrationDeletionContextDTO;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
 use Illuminate\Support\Collection;
@@ -17,24 +18,22 @@ use Illuminate\Support\Facades\DB;
 final readonly class NomenclatureRepository implements NomenclatureRepositoryInterface
 {
     /**
-     * Возвращает номенклатуру по id или null.
+     * Возвращает номенклатуру по typed lookup-критерию или null.
      */
-    public function findById(int $id): ?NomenclatureData
+    public function find(NomenclatureLookupDTO $lookup): ?NomenclatureData
     {
-        $nomenclature = Nomenclature::query()
-            ->with(['type', 'brand'])
-            ->find($id);
+        $query = Nomenclature::query();
 
-        return NomenclatureData::optional($nomenclature);
-    }
+        if ($lookup->id !== null) {
+            $nomenclature = $query
+                ->with(['type', 'brand'])
+                ->find($lookup->id);
 
-    /**
-     * Возвращает первую номенклатуру по артикулу или null.
-     */
-    public function findByPartNumber(string $partNumber): ?NomenclatureData
-    {
-        $nomenclature = Nomenclature::query()
-            ->where('part_number', $partNumber)
+            return NomenclatureData::optional($nomenclature);
+        }
+
+        $nomenclature = $query
+            ->where('part_number', $lookup->partNumber)
             ->first();
 
         return NomenclatureData::optional($nomenclature);
@@ -57,6 +56,20 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
     }
 
     /**
+     * Возвращает ids номенклатур бренда.
+     *
+     * @return Collection<int, int>
+     */
+    public function findIdsByBrandId(int $brandId): Collection
+    {
+        return Nomenclature::query()
+            ->where('brand_id', $brandId)
+            ->pluck('id')
+            ->map($this->toInteger(...))
+            ->values();
+    }
+
+    /**
      * Возвращает integration contexts перед физическим удалением номенклатуры.
      *
      * @return Collection<int, NomenclatureIntegrationDeletionContextDTO>
@@ -74,5 +87,10 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
             ->where('nomenclature_id', $id)
             ->get(['id', 'provider', 'external_id', 'external_code'])
             ->map($toDeletionContext);
+    }
+
+    private function toInteger(mixed $id): int
+    {
+        return (int) $id;
     }
 }

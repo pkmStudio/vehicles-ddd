@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogCascadeDeleteServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\DeleteVehicleUseCaseInterface;
@@ -27,7 +27,7 @@ final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterfa
      */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
-        private VehicleCommandInterface $command,
+        private CatalogCascadeDeleteServiceInterface $cascade,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
     ) {}
@@ -62,7 +62,7 @@ final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterfa
                 );
             }
 
-            $this->command->deleteByMsId($request->msId);
+            $this->cascade->deleteVehiclesByIds([(int) $vehicle->id]);
             event(new VehicleDeleted(
                 userId: $request->userId,
                 operationId: $request->operationId,

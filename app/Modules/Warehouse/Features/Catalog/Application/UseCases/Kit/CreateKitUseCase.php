@@ -12,6 +12,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCa
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\CreateKitUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\CreateKitRequestDTO;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\KitProperties\KitPropertiesDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
@@ -90,7 +91,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
                 );
             }
 
-            $duplicate = $this->kits->findByImportHash($properties->importHash);
+            $duplicate = $this->kits->find(KitLookupDTO::byImportHash($properties->importHash));
             if ($duplicate !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,

@@ -17,10 +17,11 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class VehicleData extends Data
 {
     /**
-     * @param  ManufacturerData|null  $manufacturer  заполняется Repository::forMainSheet()/forWiperSheet()
-     * @param  self|null  $parent  заполняется Repository::forMainSheet()/forWiperSheet() (один уровень, без внуков)
+     * @param  ManufacturerData|null  $manufacturer  заполняется Repository::forSheet()
+     * @param  self|null  $parent  заполняется Repository::forSheet() (один уровень, без внуков)
      * @param  Collection<int, PartSpecificationData>|null  $partSpecifications  заполняется только
-     *                                                       Repository::forWiperSheet() (шаблон wiper, с featureValue)
+     *                                                                           Repository::forSheet(VehicleExportSheetEnum::Wiper)
+     *                                                                           (шаблон wiper, с featureValue)
      */
     public function __construct(
         public readonly int $msId,

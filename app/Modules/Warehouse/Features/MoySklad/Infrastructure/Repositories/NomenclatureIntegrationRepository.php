@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\MoySklad\Infrastructure\Repositories;
 
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Repositories\NomenclatureIntegrationRepositoryInterface;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\NomenclatureIntegrationLookupDTO;
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureIntegrationData;
 use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\NomenclatureIntegration;
 
@@ -14,37 +15,32 @@ use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\NomenclatureIn
 final readonly class NomenclatureIntegrationRepository implements NomenclatureIntegrationRepositoryInterface
 {
     /**
-     * Возвращает связь номенклатуры с МойСклад или null.
+     * Возвращает integration-state МойСклад по typed lookup-критерию или null.
      */
-    public function findByNomenclatureId(int $nomenclatureId): ?NomenclatureIntegrationData
+    public function find(NomenclatureIntegrationLookupDTO $lookup): ?NomenclatureIntegrationData
     {
-        $integration = NomenclatureIntegration::query()
-            ->where('provider', NomenclatureIntegration::PROVIDER)
-            ->where('nomenclature_id', $nomenclatureId)
-            ->first();
-
-        return NomenclatureIntegrationData::optional($integration);
-    }
-
-    /**
-     * Находит связь для delete workflow по явному id, локальному id или externalCode.
-     */
-    public function findForDelete(int $nomenclatureId, string $externalCode, ?int $integrationId = null): ?NomenclatureIntegrationData
-    {
-        if ($integrationId !== null) {
+        if ($lookup->integrationId !== null) {
             $integration = NomenclatureIntegration::query()
                 ->where('provider', NomenclatureIntegration::PROVIDER)
-                ->find($integrationId);
+                ->find($lookup->integrationId);
 
             return NomenclatureIntegrationData::optional($integration);
         }
 
+        $query = NomenclatureIntegration::query()
+            ->where('provider', NomenclatureIntegration::PROVIDER)
+            ->where('nomenclature_id', $lookup->nomenclatureId);
+
+        if ($lookup->externalCode === null) {
+            return NomenclatureIntegrationData::optional($query->first());
+        }
+
         $integration = NomenclatureIntegration::query()
             ->where('provider', NomenclatureIntegration::PROVIDER)
-            ->where(function ($query) use ($nomenclatureId, $externalCode): void {
+            ->where(function ($query) use ($lookup): void {
                 $query
-                    ->where('nomenclature_id', $nomenclatureId)
-                    ->orWhere('external_code', $externalCode);
+                    ->where('nomenclature_id', $lookup->nomenclatureId)
+                    ->orWhere('external_code', $lookup->externalCode);
             })
             ->first();
 

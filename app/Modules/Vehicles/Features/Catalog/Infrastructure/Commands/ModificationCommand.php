@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\EngineModification;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Modification;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -17,10 +15,6 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class ModificationCommand implements ModificationCommandInterface
 {
-    public function __construct(
-        private EngineModificationCommandInterface $engineModifications,
-    ) {}
-
     /**
      * Создает запись модификаций.
      *
@@ -69,16 +63,10 @@ final readonly class ModificationCommand implements ModificationCommandInterface
     public function deleteByModIdAndType(int $modId, string $type): void
     {
         DB::transaction(function () use ($modId, $type): void {
-            $modification = Modification::query()
+            Modification::query()
                 ->where('mod_id', $modId)
                 ->where('type', $type)
-                ->first();
-
-            if ($modification === null) {
-                return;
-            }
-
-            $this->deleteByIds([(int) $modification->id]);
+                ->delete();
         });
     }
 
@@ -92,15 +80,6 @@ final readonly class ModificationCommand implements ModificationCommandInterface
         }
 
         DB::transaction(function () use ($ids): void {
-            $toIntegerId = fn (mixed $id): int => (int) $id;
-
-            $engineModificationIds = EngineModification::query()
-                ->whereIn('modification_id', $ids)
-                ->pluck('id')
-                ->map($toIntegerId)
-                ->all();
-
-            $this->engineModifications->deleteByIds($engineModificationIds);
             Modification::query()->whereIn('id', $ids)->delete();
         });
     }

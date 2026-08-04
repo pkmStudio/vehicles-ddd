@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
 
@@ -14,23 +15,20 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
 final readonly class BrandRepository implements BrandRepositoryInterface
 {
     /**
-     * Возвращает бренд по id или null.
+     * Возвращает бренд по typed lookup-критерию или null.
      */
-    public function findById(int $id): ?BrandData
+    public function find(BrandLookupDTO $lookup): ?BrandData
     {
-        return BrandData::optional(Brand::query()->find($id));
-    }
+        $query = Brand::query();
 
-    /**
-     * Возвращает первый бренд с таким именем без учёта регистра.
-     */
-    public function findByName(string $name): ?BrandData
-    {
-        $brand = Brand::query()
-            ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($name))])
+        if ($lookup->id !== null) {
+            return BrandData::optional($query->find($lookup->id));
+        }
+
+        $brand = $query
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim((string) $lookup->name))])
             ->first();
 
         return BrandData::optional($brand);
     }
-
 }

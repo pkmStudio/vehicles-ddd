@@ -49,6 +49,39 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
     }
 
     /**
+     * Возвращает ids ТС производителя.
+     *
+     * @return Collection<int, int>
+     */
+    public function findIdsByManufacturerId(int $manufacturerId): Collection
+    {
+        return Vehicle::query()
+            ->where('manufacturer_id', $manufacturerId)
+            ->pluck('id')
+            ->map($this->toInteger(...))
+            ->values();
+    }
+
+    /**
+     * Возвращает ids дочерних ТС по parent ids.
+     *
+     * @param  array<int, int>  $parentIds
+     * @return Collection<int, int>
+     */
+    public function findChildIdsByParentIds(array $parentIds): Collection
+    {
+        if ($parentIds === []) {
+            return collect();
+        }
+
+        return Vehicle::query()
+            ->whereIn('parent_id', $parentIds)
+            ->pluck('id')
+            ->map($this->toInteger(...))
+            ->values();
+    }
+
+    /**
      * Возвращает следующий свободный внешний идентификатор автомобиля.
      */
     public function nextMsId(): int
@@ -56,5 +89,10 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
         $minMsId = Vehicle::query()->min('ms_id');
 
         return min((int) ($minMsId ?? 0), 0) - 1;
+    }
+
+    private function toInteger(mixed $id): int
+    {
+        return (int) $id;
     }
 }

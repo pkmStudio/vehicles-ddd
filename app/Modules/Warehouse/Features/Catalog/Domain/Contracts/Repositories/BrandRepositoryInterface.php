@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories;
 
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
 
 /**
@@ -12,13 +13,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
 interface BrandRepositoryInterface
 {
     /**
-     * Возвращает бренд по id или null.
+     * Возвращает бренд по typed lookup-критерию или null.
      */
-    public function findById(int $id): ?BrandData;
-
-    /**
-     * Возвращает первый бренд с таким именем или null.
-     */
-    public function findByName(string $name): ?BrandData;
-
+    public function find(BrandLookupDTO $lookup): ?BrandData;
 }

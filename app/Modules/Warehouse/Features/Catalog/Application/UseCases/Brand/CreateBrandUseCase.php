@@ -9,13 +9,14 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRe
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\CreateBrandUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\CreateBrandRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Modules\Warehouse\Shared\Domain\Events\Brand\BrandCreated;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
+use App\Modules\Warehouse\Shared\Domain\Events\Brand\BrandCreated;
 use Throwable;
 
 /**
@@ -51,7 +52,7 @@ final readonly class CreateBrandUseCase implements CreateBrandUseCaseInterface
         }
 
         try {
-            $existingBrand = $this->brands->findByName($request->name);
+            $existingBrand = $this->brands->find(BrandLookupDTO::byName($request->name));
 
             if ($existingBrand !== null) {
                 return $this->results->rejected(

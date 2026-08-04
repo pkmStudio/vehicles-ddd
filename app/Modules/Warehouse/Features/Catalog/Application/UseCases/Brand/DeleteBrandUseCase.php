@@ -6,9 +6,11 @@ namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\BrandCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogCascadeDeleteServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\DeleteBrandUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\DeleteBrandRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
@@ -28,6 +30,7 @@ final readonly class DeleteBrandUseCase implements DeleteBrandUseCaseInterface
     public function __construct(
         private BrandRepositoryInterface $brands,
         private BrandCommandInterface $command,
+        private WarehouseCatalogCascadeDeleteServiceInterface $cascade,
         private WarehouseCatalogMutationCacheServiceInterface $cache,
         private WarehouseCatalogMutationResultServiceInterface $results,
     ) {}
@@ -44,7 +47,7 @@ final readonly class DeleteBrandUseCase implements DeleteBrandUseCaseInterface
         }
 
         try {
-            $brand = $this->brands->findById($request->id);
+            $brand = $this->brands->find(BrandLookupDTO::byId($request->id));
             if ($brand === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
@@ -56,6 +59,7 @@ final readonly class DeleteBrandUseCase implements DeleteBrandUseCaseInterface
                 );
             }
 
+            $this->cascade->deleteNomenclaturesByBrandId($request->id);
             $this->command->deleteById($request->id);
 
             event(new BrandDeleted(

@@ -12,6 +12,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\Wip
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\WiperExportRowDTO;
+use App\Modules\Vehicles\Features\Export\Domain\Enums\VehicleExportSheetEnum;
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
@@ -43,7 +44,7 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
      */
     public function getMainRows(bool $isAllow): Collection
     {
-        return $this->vehicles->forMainSheet($isAllow);
+        return $this->vehicles->forSheet(VehicleExportSheetEnum::Main, $isAllow);
     }
 
     /**
@@ -67,7 +68,7 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
      */
     public function getWiperRows(bool $isAllow): Collection
     {
-        return $this->expander->expand($this->vehicles->forWiperSheet($isAllow));
+        return $this->expander->expand($this->vehicles->forSheet(VehicleExportSheetEnum::Wiper, $isAllow));
     }
 
     /**

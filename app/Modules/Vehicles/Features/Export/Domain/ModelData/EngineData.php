@@ -14,9 +14,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class EngineData extends Data
 {
     /**
-     * @param  Collection<int, PartSpecificationData>|null  $partSpecifications  заполняется
-     *                                                       только Repository::forSparkPlugSheet()
-     *                                                       (с eager load шаблона sparkPlugs)
+     * @param  Collection<int, PartSpecificationData>|null  $partSpecifications  заполняется только
+     *                                                                           Repository::forSheet(EngineExportSheetEnum::SparkPlug)
+     *                                                                           (с eager load шаблона sparkPlugs)
      */
     public function __construct(
         public readonly int $engId,

@@ -8,6 +8,7 @@ use App\Modules\Warehouse\Features\Catalog\Application\Factories\BrandMutationRe
 use App\Modules\Warehouse\Features\Catalog\Application\Factories\KitMutationRequestFactory;
 use App\Modules\Warehouse\Features\Catalog\Application\Factories\NomenclatureMutationRequestFactory;
 use App\Modules\Warehouse\Features\Catalog\Application\Factories\PackDimensionMutationRequestFactory;
+use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogCascadeDeleteService;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogMutationResultService;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\CreateBrandUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\DeleteBrandUseCase;
@@ -43,6 +44,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\Nomencl
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogCascadeDeleteServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationNotificationServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
@@ -131,6 +133,7 @@ final class CatalogServiceProvider extends ServiceProvider
     ];
 
     private const array SERVICE_BINDINGS = [
+        WarehouseCatalogCascadeDeleteServiceInterface::class => WarehouseCatalogCascadeDeleteService::class,
         WarehouseCatalogMutationCacheServiceInterface::class => WarehouseCatalogMutationCacheService::class,
         WarehouseCatalogMutationNotificationServiceInterface::class => RabbitMqWarehouseCatalogMutationNotificationService::class,
         WarehouseCatalogMutationResultServiceInterface::class => WarehouseCatalogMutationResultService::class,

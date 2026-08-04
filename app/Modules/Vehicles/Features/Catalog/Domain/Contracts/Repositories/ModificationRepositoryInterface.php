@@ -28,4 +28,20 @@ interface ModificationRepositoryInterface
      * @return Collection<int, ModificationData>
      */
     public function findByVehicleId(int $vehicleId): Collection;
+
+    /**
+     * Возвращает ids модификаций по vehicle ids.
+     *
+     * @param  array<int, int>  $vehicleIds
+     * @return Collection<int, int>
+     */
+    public function findIdsByVehicleIds(array $vehicleIds): Collection;
+
+    /**
+     * Возвращает ids связок модификаций с двигателями.
+     *
+     * @param  array<int, int>  $modificationIds
+     * @return Collection<int, int>
+     */
+    public function findEngineModificationIdsByModificationIds(array $modificationIds): Collection;
 }

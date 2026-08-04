@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\PackDimensionCommandInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\PackDimensionData;
-use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Kit;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\PackDimension;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -17,10 +15,6 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class PackDimensionCommand implements PackDimensionCommandInterface
 {
-    public function __construct(
-        private KitCommandInterface $kits,
-    ) {}
-
     /**
      * Создаёт упаковочный размер внутри транзакции.
      */
@@ -53,15 +47,6 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
     public function deleteById(int $id): void
     {
         DB::transaction(function () use ($id): void {
-            $toIntegerId = fn (mixed $id): int => (int) $id;
-
-            $kitIds = Kit::query()
-                ->where('pack_dimension_id', $id)
-                ->pluck('id')
-                ->map($toIntegerId)
-                ->all();
-
-            $this->kits->deleteByIds($kitIds);
             PackDimension::query()->whereKey($id)->delete();
         });
     }

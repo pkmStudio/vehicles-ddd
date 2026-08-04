@@ -4,22 +4,23 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\UpdateKitUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\UpdateKitRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\KitProperties\KitPropertiesDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Modules\Warehouse\Shared\Domain\Events\Kit\KitUpdated;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Shared\Domain\Events\Kit\KitUpdated;
 use InvalidArgumentException;
 use Throwable;
 use UnexpectedValueException;
@@ -60,7 +61,7 @@ final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
         }
 
         try {
-            $existingKit = $this->kits->findById($request->id);
+            $existingKit = $this->kits->find(KitLookupDTO::byId($request->id));
 
             if ($existingKit === null) {
                 return $this->results->rejected(
@@ -106,7 +107,7 @@ final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
                 );
             }
 
-            $duplicate = $this->kits->findByImportHash($properties->importHash);
+            $duplicate = $this->kits->find(KitLookupDTO::byImportHash($properties->importHash));
             if ($duplicate !== null && $duplicate->id !== $request->id) {
                 return $this->results->rejected(
                     userId: $request->userId,

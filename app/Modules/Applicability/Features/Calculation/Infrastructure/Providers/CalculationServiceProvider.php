@@ -7,7 +7,6 @@ namespace App\Modules\Applicability\Features\Calculation\Infrastructure\Provider
 use App\Modules\Applicability\Features\Calculation\Application\Listeners\ReportCalculationResultListener;
 use App\Modules\Applicability\Features\Calculation\Application\Services\ApplicabilityServiceFactory;
 use App\Modules\Applicability\Features\Calculation\Application\Services\KitApplicabilityCalculator;
-use App\Modules\Applicability\Features\Calculation\Application\Services\TypeTemplateResolver;
 use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\WiperAdapterExtractor;
 use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\WiperApplicabilityService;
 use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\WiperDataExtractor;
@@ -23,7 +22,6 @@ use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Reporting\Ca
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\ApplicabilityServiceFactoryInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\ExternalCalculationContextServiceInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\KitApplicabilityCalculatorInterface;
-use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperAdapterExtractorInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperApplicabilityServiceInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperDataExtractorInterface;
@@ -56,7 +54,6 @@ final class CalculationServiceProvider extends ServiceProvider
     private const array SERVICE_BINDINGS = [
         ApplicabilityServiceFactoryInterface::class => ApplicabilityServiceFactory::class,
         KitApplicabilityCalculatorInterface::class => KitApplicabilityCalculator::class,
-        TypeTemplateResolverInterface::class => TypeTemplateResolver::class,
         WiperApplicabilityServiceInterface::class => WiperApplicabilityService::class,
         WiperDataExtractorInterface::class => WiperDataExtractor::class,
         WiperLengthExtractorInterface::class => WiperLengthExtractor::class,

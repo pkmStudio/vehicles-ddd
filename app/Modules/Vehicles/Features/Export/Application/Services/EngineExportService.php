@@ -11,6 +11,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\EngineExportS
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\PartSpecificationExportRowDTO;
+use App\Modules\Vehicles\Features\Export\Domain\Enums\EngineExportSheetEnum;
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use Illuminate\Support\Collection;
@@ -39,7 +40,7 @@ final readonly class EngineExportService implements EngineExportServiceInterface
      */
     public function getMainRows(): Collection
     {
-        return $this->engines->all();
+        return $this->engines->forSheet(EngineExportSheetEnum::Main);
     }
 
     /**
@@ -63,7 +64,7 @@ final readonly class EngineExportService implements EngineExportServiceInterface
      */
     public function getSparkPlugRows(): Collection
     {
-        return $this->expander->expand($this->engines->forSparkPlugSheet());
+        return $this->expander->expand($this->engines->forSheet(EngineExportSheetEnum::SparkPlug));
     }
 
     /**

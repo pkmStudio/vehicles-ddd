@@ -10,6 +10,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCa
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\DeleteNomenclatureUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\DeleteNomenclatureRequestDTO;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
@@ -44,7 +45,7 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
         }
 
         try {
-            $nomenclature = $this->nomenclatures->findById($request->id);
+            $nomenclature = $this->nomenclatures->find(NomenclatureLookupDTO::byId($request->id));
             if ($nomenclature === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

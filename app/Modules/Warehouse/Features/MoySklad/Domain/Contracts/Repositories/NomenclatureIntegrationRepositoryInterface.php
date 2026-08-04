@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Repositories;
 
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\NomenclatureIntegrationLookupDTO;
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureIntegrationData;
 
 /**
@@ -12,12 +13,7 @@ use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureIntegra
 interface NomenclatureIntegrationRepositoryInterface
 {
     /**
-     * Возвращает связь номенклатуры с МойСклад или null.
+     * Возвращает integration-state МойСклад по typed lookup-критерию или null.
      */
-    public function findByNomenclatureId(int $nomenclatureId): ?NomenclatureIntegrationData;
-
-    /**
-     * Находит связь для delete workflow по явному id, локальному id или externalCode.
-     */
-    public function findForDelete(int $nomenclatureId, string $externalCode, ?int $integrationId = null): ?NomenclatureIntegrationData;
+    public function find(NomenclatureIntegrationLookupDTO $lookup): ?NomenclatureIntegrationData;
 }

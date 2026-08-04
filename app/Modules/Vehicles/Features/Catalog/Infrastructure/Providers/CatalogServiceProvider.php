@@ -10,6 +10,7 @@ use App\Modules\Vehicles\Features\Catalog\Application\Factories\ModificationMuta
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\PartSpecificationMutationRequestFactory;
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\PartSpecificationOwnerResolverFactory;
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\VehicleMutationRequestFactory;
+use App\Modules\Vehicles\Features\Catalog\Application\Services\CatalogCascadeDeleteService;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\CatalogMutationResultService;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification\EnginePartSpecificationOwnerResolver;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification\PartSpecificationDetailsWritePolicy;
@@ -61,6 +62,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\Modifica
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogCascadeDeleteServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
@@ -176,6 +178,7 @@ final class CatalogServiceProvider extends ServiceProvider
     ];
 
     private const array SERVICE_BINDINGS = [
+        CatalogCascadeDeleteServiceInterface::class => CatalogCascadeDeleteService::class,
         CatalogMutationCacheServiceInterface::class => LaravelCatalogMutationCacheService::class,
         CatalogMutationNotificationServiceInterface::class => RabbitMqCatalogMutationNotificationService::class,
         CatalogMutationResultServiceInterface::class => CatalogMutationResultService::class,

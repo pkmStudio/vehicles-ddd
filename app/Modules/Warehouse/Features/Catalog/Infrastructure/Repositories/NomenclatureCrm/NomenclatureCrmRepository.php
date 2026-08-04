@@ -85,30 +85,14 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
      */
     public function typeOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection
     {
-        $builder = DB::table('types')
-            ->select(['id', 'name', 'char'])
-            ->orderBy('id');
-
-        if ($id !== null) {
-            $builder->where('id', $id);
-        } elseif ($query !== null && trim($query) !== '') {
-            $search = trim($query);
-            $builder->where(function (Builder $builder) use ($search): void {
-                $builder
-                    ->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('char', 'ilike', "%{$search}%");
-
-                if (is_numeric($search)) {
-                    $builder->orWhere('id', (int) $search);
-                }
-            });
-        }
-
-        return $builder
-            ->limit(min(max($limit, 1), self::OPTION_LIMIT))
-            ->get()
-            ->map(fn (object $type): NomenclatureCrmOptionDTO => $this->typeOptionFactory->make($type))
-            ->values();
+        return $this->optionRows(
+            table: 'types',
+            orderBy: 'id',
+            query: $query,
+            id: $id,
+            limit: $limit,
+            mapper: fn (object $type): NomenclatureCrmOptionDTO => $this->typeOptionFactory->make($type),
+        );
     }
 
     /**
@@ -116,30 +100,64 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
      */
     public function brandOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection
     {
-        $builder = DB::table('brands')
+        return $this->optionRows(
+            table: 'brands',
+            orderBy: 'name',
+            query: $query,
+            id: $id,
+            limit: $limit,
+            mapper: fn (object $brand): NomenclatureCrmOptionDTO => $this->brandOptionFactory->make($brand),
+        );
+    }
+
+    /**
+     * @param  callable(object): NomenclatureCrmOptionDTO  $mapper
+     * @return Collection<int, NomenclatureCrmOptionDTO>
+     */
+    private function optionRows(
+        string $table,
+        string $orderBy,
+        ?string $query,
+        ?int $id,
+        int $limit,
+        callable $mapper,
+    ): Collection {
+        $builder = DB::table($table)
             ->select(['id', 'name', 'char'])
-            ->orderBy('name');
+            ->orderBy($orderBy);
 
-        if ($id !== null) {
-            $builder->where('id', $id);
-        } elseif ($query !== null && trim($query) !== '') {
-            $search = trim($query);
-            $builder->where(function (Builder $builder) use ($search): void {
-                $builder
-                    ->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('char', 'ilike', "%{$search}%");
-
-                if (is_numeric($search)) {
-                    $builder->orWhere('id', (int) $search);
-                }
-            });
-        }
+        $this->applyOptionLookup($builder, $query, $id);
 
         return $builder
             ->limit(min(max($limit, 1), self::OPTION_LIMIT))
             ->get()
-            ->map(fn (object $brand): NomenclatureCrmOptionDTO => $this->brandOptionFactory->make($brand))
+            ->map($mapper)
             ->values();
+    }
+
+    private function applyOptionLookup(Builder $builder, ?string $query, ?int $id): void
+    {
+        if ($id !== null) {
+            $builder->where('id', $id);
+
+            return;
+        }
+
+        if ($query === null || trim($query) === '') {
+            return;
+        }
+
+        $search = trim($query);
+
+        $builder->where(function (Builder $builder) use ($search): void {
+            $builder
+                ->where('name', 'ilike', "%{$search}%")
+                ->orWhere('char', 'ilike', "%{$search}%");
+
+            if (is_numeric($search)) {
+                $builder->orWhere('id', (int) $search);
+            }
+        });
     }
 
     private function baseQuery(): Builder

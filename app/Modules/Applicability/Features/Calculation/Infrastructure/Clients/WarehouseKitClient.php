@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Applicability\Features\Calculation\Infrastructure\Clients;
 
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\WarehouseKitClientInterface;
-use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\KitData;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\NomenclatureData;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\TypeData;
@@ -21,7 +20,6 @@ final readonly class WarehouseKitClient implements WarehouseKitClientInterface
 {
     public function __construct(
         private PublicWarehouseApplicabilityClientInterface $warehouse,
-        private TypeTemplateResolverInterface $templates,
     ) {}
 
     /**
@@ -74,17 +72,11 @@ final readonly class WarehouseKitClient implements WarehouseKitClientInterface
             return null;
         }
 
-        $typeData = new TypeData(
+        return new TypeData(
             name: $type->name,
             char: $type->char,
             id: $type->id,
-        );
-
-        return new TypeData(
-            name: $typeData->name,
-            char: $typeData->char,
-            id: $typeData->id,
-            template: $this->templates->resolve($typeData),
+            template: $type->template,
         );
     }
 }
