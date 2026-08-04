@@ -29,9 +29,11 @@
 
 ## Логирование
 
-- Использовать Laravel logging (`Log::error`, `Log::warning`, `Log::info`) в infrastructure adapters, message handlers и интеграционных workflow.
+- Не использовать production `info`/`debug` logs для нормального успешного бизнес-потока.
+- Использовать `Log::warning`/`Log::error` в infrastructure adapters, message handlers и интеграционных workflow только для actionable аномалий и сбоев.
 - Не протаскивать фасады логирования в Domain.
 - Лог-сообщения для входящих интеграций должны содержать контекст: тип события/import, `runId`, `userId`, file path или operation id, когда они доступны.
+- `$this->info()` в Artisan-командах считается console output, не production log.
 
 ## Тесты
 
@@ -40,3 +42,12 @@
 - Unit-тесты живут в `tests/Unit/<Module>/<Feature>`.
 - Общие test helpers и traits размещать в `tests/Concerns`.
 - CSV/Excel фикстуры хранить в `tests/Fixtures`.
+- Feature-тесты — основной уровень для бизнес-сценариев и доменно видимых исходов.
+- Unit-тесты оставлять для чистых правил, deterministic algorithms, validation/mapping edge cases и узких architecture regressions.
+- Не добавлять пустые framework examples и brittle mock tests, которые проверяют только порядок вызовов repositories/commands без бизнес-исхода.
+
+## DTO и границы
+
+- DTO могут иметь простой `toArray()`/`fromArray()`, если это механическая сериализация собственного состояния.
+- Validation, defaults, config lookup, HTTP/RabbitMQ aliases, Eloquent/paginator/external payload mapping и сборка из нескольких объектов остаются в factory, presenter или Infrastructure adapter.
+- Public shared events должны нести scalar fields или typed event payload DTO/value objects, не raw массивы сущностей.

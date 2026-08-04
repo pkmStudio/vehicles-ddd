@@ -89,7 +89,7 @@ app/Modules/<Module>/Features/<Feature>/
   Application/
     UseCases/               # Точки входа сценариев
     Services/               # Правила и orchestration
-    Factories/              # Row mapping, selectors, Data builders
+    Factories/              # Row mapping and Data builders; adapter selectors live in Infrastructure
     Listeners/              # Тонкие реакции на domain events
   Infrastructure/
     Models/                 # Feature-local Eloquent models
@@ -97,6 +97,7 @@ app/Modules/<Module>/Features/<Feature>/
     Commands/               # Write adapters
     Imports/                # Excel import adapters
     Exports/                # Excel export adapters
+    Factories/              # Import/export adapter selectors
     Messaging/              # RabbitMQ handlers/validators
     Notifications/          # RabbitMQ/S3/other outbound adapters
     Providers/              # DI/event bindings
@@ -115,6 +116,9 @@ app/Modules/<Module>/Features/<Feature>/
   cache/events orchestration, но не должен напрямую работать с Eloquent, Excel, RabbitMQ, S3 или
   filesystem adapters.
 - `Infrastructure` реализует ports из `Domain/Contracts` и содержит Eloquent, Excel, RabbitMQ, S3, cache, filesystem и framework code.
+- Выбор конкретных import/export Excel adapters по enum/типу запроса находится в
+  `Infrastructure/Factories` или provider closures за domain-портом; Application/use case не
+  владеет adapter-specific constructor parameters.
 - `Presentation` парсит вход, валидирует entrypoint-level параметры и вызывает use case/service port.
 - Межфичевый sync-вызов идет через локальный `Domain/Contracts/Clients/*ClientInterface` фичи-потребителя и adapter в ее `Infrastructure/Clients`.
 - События используются только для фактов без return value; если нужен ответ сразу, это client/query contract, не event.
@@ -136,6 +140,8 @@ app/Modules/<Module>/Features/<Feature>/
   методе, а `registerEvents()` не использует closures.
 - Excel export: adapter в `Infrastructure/Exports` читает данные через Repository и собирает строки через Application services/factories.
 - Maintenance-фичи могут ходить в Eloquent напрямую из своих services/commands, если это осознанный разовый catalog fix без reusable Repository boundary.
+- Public shared events несут scalar fields или typed event payload DTO/value objects, не raw
+  `array` payload'ы сущностей/интеграций.
 
 ## Context Map
 
@@ -159,6 +165,10 @@ adapter. Если нужно сообщить факт без ответа — d
 ### Domain
 
 - Хранит ports, DTO/Data, enums, events и domain exceptions.
+- DTO могут иметь простой `toArray()`/`fromArray()` для механической сериализации собственного
+  состояния. HTTP/RabbitMQ defaults, validation, config lookup, Eloquent/paginator/external payload
+  mapping и сборка из нескольких объектов остаются в Presentation/Infrastructure factory,
+  presenter или adapter.
 - `ModelData` — снимки строк/сущностей через `spatie/laravel-data`; enum-поля типизируются реальными enum-классами.
 - `ModelData` не содержит import/export/create/update методов и не превращается в rich entity.
   Бизнес-сценарии остаются в Application.
@@ -182,6 +192,9 @@ adapter. Если нужно сообщить факт без ответа — d
   state; application services, repositories, clients и loggers резолвятся во время выполнения job.
 - Event listeners для queued imports регистрируются как сериализуемые callables, например
   `[self::class, 'afterImport']`, а не closure.
+- Production `info`/`debug` logs не используются для нормального успешного потока; оставляем
+  `warning`/`error` только для actionable интеграционных аномалий и сбоев. `$this->info()` в
+  Artisan commands считается console output.
 
 ### Presentation
 
@@ -233,11 +246,14 @@ adapter. Если нужно сообщить факт без ответа — d
 - Для новых queued Excel imports нужны обязательные serialization regression tests: `serialize($import)`
   и сериализация каждого listener из `registerEvents()`.
 
-Отложено для отдельного прохода:
+## Тестовая стратегия
 
-- `Warehouse/Features/MoySklad`: отдельно проверить границы под-контекста, прямые concrete
-  Application dependencies, mapper/service ports и правила интеграции. До этого прохода не
-  смешивать MoySklad-рефакторинг с общими архитектурными исправлениями.
+- Feature-тесты покрывают бизнес-сценарии через реальные boundaries: handlers/use cases/DB/Excel,
+  files/cache, create/update/delete/reject/idempotency/cascade/export-row outcomes.
+- Unit-тесты оставляем для чистых правил, deterministic algorithms, validation/mapping edge cases и
+  narrow architecture regressions вроде queued import serialization.
+- Пустые framework examples и brittle tests, которые проверяют только порядок mock-вызовов
+  repositories/commands без бизнес-исхода, удаляются или заменяются feature/domain-rule coverage.
 
 ## Куда класть новое
 
@@ -246,6 +262,7 @@ adapter. Если нужно сообщить факт без ответа — d
 | Новый сценарий с внешним триггером | `<Feature>/Application/UseCases/<Group>/` + port в `Domain/Contracts/UseCases/` |
 | Новое прикладное правило | `<Feature>/Application/Services/<Entity>/` + port в `Domain/Contracts/Services/<Entity>/` |
 | Валидация и сборка Data из строки | `<Feature>/Application/Factories/` + port в `Domain/Contracts/Factories/` |
+| Выбор import/export adapter-а по enum/типу входящего запроса | port в `Domain/Contracts/Factories/`, adapter в `<Feature>/Infrastructure/Factories/` или provider closure |
 | Read query к БД | port в `Domain/Contracts/Repositories/`, adapter в `Infrastructure/Repositories/` |
 | Запись в БД | port в `Domain/Contracts/Commands/`, adapter в `Infrastructure/Commands/` |
 | Excel import | adapter в `Infrastructure/Imports`, post-row service в `Application/Services` |
