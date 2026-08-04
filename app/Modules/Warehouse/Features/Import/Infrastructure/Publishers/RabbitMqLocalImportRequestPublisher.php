@@ -25,7 +25,7 @@ final readonly class RabbitMqLocalImportRequestPublisher implements LocalImportR
     ) {}
 
     /**
-     * Публикует request в RabbitMQ и логирует технический результат.
+     * Публикует request в RabbitMQ и логирует только ошибки публикации.
      */
     public function publish(LocalImportRequestDTO $request): bool
     {
@@ -68,14 +68,6 @@ final readonly class RabbitMqLocalImportRequestPublisher implements LocalImportR
 
             return false;
         }
-
-        $this->logger->info('RabbitMQ-запрос импорта Warehouse опубликован.', [
-            'event' => $request->eventName,
-            'routing_key' => $request->routingKey,
-            'operation_id' => $request->operationId,
-            'disk' => $request->disk,
-            'path' => $request->path,
-        ]);
 
         return true;
     }

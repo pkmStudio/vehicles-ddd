@@ -25,7 +25,7 @@ final readonly class ReportCalculationResultListener
     ) {}
 
     /**
-     * Сохраняет CSV с ошибками расчета и логирует итог запуска.
+     * Сохраняет CSV с ошибками расчета и логирует только запуски с ошибками.
      */
     public function handle(KitApplicabilityRecalculated $event): void
     {
@@ -47,14 +47,6 @@ final readonly class ReportCalculationResultListener
         ));
 
         if ($reportPath === null) {
-            $this->logger->info('Applicability calculation completed', [
-                'operation_id' => $event->operationId,
-                'processed_kits' => $event->result->processedKits,
-                'calculated_kits' => $event->result->calculatedKits,
-                'skipped_kits' => $event->result->skippedKits,
-                'failed_kits' => $event->result->failedKits,
-            ]);
-
             return;
         }
 
