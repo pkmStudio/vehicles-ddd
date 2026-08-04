@@ -39,12 +39,47 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
 
     private ?string $operationId = null;
 
+    private ?ImportKitFromRowServiceInterface $service = null;
+
     /**
      * Получает построчный сервис импорта наборов.
      */
     public function __construct(
-        private readonly ImportKitFromRowServiceInterface $service,
-    ) {}
+        ImportKitFromRowServiceInterface $service,
+    ) {
+        $this->service = $service;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [
+            'userId' => $this->userId,
+            'operationId' => $this->operationId,
+            'cacheKey' => $this->cacheKey ?? null,
+            'lockKey' => $this->lockKey ?? null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->userId = is_int($data['userId'] ?? null) ? $data['userId'] : null;
+        $this->operationId = is_string($data['operationId'] ?? null) ? $data['operationId'] : null;
+        $this->service = null;
+
+        if (is_string($data['cacheKey'] ?? null)) {
+            $this->cacheKey = $data['cacheKey'];
+        }
+
+        if (is_string($data['lockKey'] ?? null)) {
+            $this->lockKey = $data['lockKey'];
+        }
+    }
 
     /**
      * Этот метод запускает Excel-импорт файла в рамках прогона, описанного контекстом.
@@ -81,11 +116,13 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
      */
     public function collection(Collection $collection): void
     {
+        $service = $this->service();
+
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
 
             try {
-                $this->service->importFromRow($rowValues);
+                $service->importFromRow($rowValues);
             } catch (WarehouseImportException $e) {
                 $failure = new Failure(
                     row: $indexRow + $this->startRow(),
@@ -150,5 +187,10 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
             cacheKey: $import->cacheKey,
             operationId: $import->operationId,
         ));
+    }
+
+    private function service(): ImportKitFromRowServiceInterface
+    {
+        return $this->service ??= app(ImportKitFromRowServiceInterface::class);
     }
 }

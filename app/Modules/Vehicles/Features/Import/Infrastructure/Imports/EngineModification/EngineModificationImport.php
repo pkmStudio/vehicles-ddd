@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\EngineModification;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\EngineModification\LinkEngineModificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EngineModificationImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\EngineModification\LinkEngineModificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\EngineModification\Mappers\EngineModificationCommandRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -24,10 +24,34 @@ use Maatwebsite\Excel\Validators\Failure;
  */
 final class EngineModificationImport implements EngineModificationImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithStartRow
 {
+    private ?LinkEngineModificationFromRowServiceInterface $service = null;
+
+    private ?EngineModificationCommandRowMapper $rowMapper = null;
+
     public function __construct(
-        private readonly LinkEngineModificationFromRowServiceInterface $service,
-        private readonly EngineModificationCommandRowMapper $rowMapper,
-    ) {}
+        LinkEngineModificationFromRowServiceInterface $service,
+        EngineModificationCommandRowMapper $rowMapper,
+    ) {
+        $this->service = $service;
+        $this->rowMapper = $rowMapper;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->service = null;
+        $this->rowMapper = null;
+    }
 
     public function import(string $path): void
     {
@@ -41,12 +65,15 @@ final class EngineModificationImport implements EngineModificationImportInterfac
 
     public function collection(Collection $collection): void
     {
+        $rowMapper = $this->rowMapper();
+        $service = $this->service();
+
         foreach ($collection as $index => $row) {
             $rowValues = $row->toArray();
             try {
-                $engineModificationRow = $this->rowMapper->map($rowValues);
+                $engineModificationRow = $rowMapper->map($rowValues);
 
-                $this->service->linkFromRow($engineModificationRow);
+                $service->linkFromRow($engineModificationRow);
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', $e->errors(), $rowValues));
             }
@@ -68,5 +95,15 @@ final class EngineModificationImport implements EngineModificationImportInterfac
     public function startRow(): int
     {
         return 2;
+    }
+
+    private function service(): LinkEngineModificationFromRowServiceInterface
+    {
+        return $this->service ??= app(LinkEngineModificationFromRowServiceInterface::class);
+    }
+
+    private function rowMapper(): EngineModificationCommandRowMapper
+    {
+        return $this->rowMapper ??= app(EngineModificationCommandRowMapper::class);
     }
 }

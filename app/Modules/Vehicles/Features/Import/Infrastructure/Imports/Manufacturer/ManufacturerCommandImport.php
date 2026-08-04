@@ -27,10 +27,34 @@ use Maatwebsite\Excel\Validators\Failure;
  */
 final class ManufacturerCommandImport implements ManufacturerCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
+    private ?UpsertManufacturerFromRowServiceInterface $service = null;
+
+    private ?ManufacturerCommandRowMapper $rowMapper = null;
+
     public function __construct(
-        private readonly UpsertManufacturerFromRowServiceInterface $service,
-        private readonly ManufacturerCommandRowMapper $rowMapper,
-    ) {}
+        UpsertManufacturerFromRowServiceInterface $service,
+        ManufacturerCommandRowMapper $rowMapper,
+    ) {
+        $this->service = $service;
+        $this->rowMapper = $rowMapper;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->service = null;
+        $this->rowMapper = null;
+    }
 
     public function import(string $path): void
     {
@@ -44,12 +68,15 @@ final class ManufacturerCommandImport implements ManufacturerCommandImportInterf
 
     public function collection(Collection $collection): void
     {
+        $rowMapper = $this->rowMapper();
+        $service = $this->service();
+
         foreach ($collection as $index => $row) {
             $rowValues = $row->toArray();
             try {
-                $manufacturerRow = $this->rowMapper->map($rowValues);
+                $manufacturerRow = $rowMapper->map($rowValues);
 
-                $this->service->upsertFromRow($manufacturerRow);
+                $service->upsertFromRow($manufacturerRow);
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(new Failure(
                     $index + $this->startRow(),
@@ -88,5 +115,15 @@ final class ManufacturerCommandImport implements ManufacturerCommandImportInterf
     public static function afterImport(): void
     {
         event(new ManufacturerCommandImported);
+    }
+
+    private function service(): UpsertManufacturerFromRowServiceInterface
+    {
+        return $this->service ??= app(UpsertManufacturerFromRowServiceInterface::class);
+    }
+
+    private function rowMapper(): ManufacturerCommandRowMapper
+    {
+        return $this->rowMapper ??= app(ManufacturerCommandRowMapper::class);
     }
 }

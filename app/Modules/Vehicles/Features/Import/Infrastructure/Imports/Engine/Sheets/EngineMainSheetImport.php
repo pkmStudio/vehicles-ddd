@@ -23,25 +23,52 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
 {
     use CachesImportFailures;
 
+    private ?UpsertEngineFromSheetServiceInterface $service = null;
+
+    private ?EngineMainSheetRowMapper $rowMapper = null;
+
     public function __construct(
         string $cacheKey,
         string $lockKey,
-        private readonly UpsertEngineFromSheetServiceInterface $service,
-        private readonly EngineMainSheetRowMapper $rowMapper,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = $lockKey;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [
+            'cacheKey' => $this->cacheKey,
+            'lockKey' => $this->lockKey,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->cacheKey = (string) $data['cacheKey'];
+        $this->lockKey = (string) $data['lockKey'];
+        $this->service = null;
+        $this->rowMapper = null;
+    }
+
     public function collection(Collection $collection): void
     {
+        $rowMapper = $this->rowMapper();
+        $service = $this->service();
+
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
             try {
-                DB::transaction(function () use ($rowValues): void {
-                    $engineRow = $this->rowMapper->map($rowValues);
+                DB::transaction(function () use ($rowMapper, $rowValues, $service): void {
+                    $engineRow = $rowMapper->map($rowValues);
 
-                    $this->service->upsertFromRow($engineRow);
+                    $service->upsertFromRow($engineRow);
                 });
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(
@@ -59,5 +86,15 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
     public function startRow(): int
     {
         return 2;
+    }
+
+    private function service(): UpsertEngineFromSheetServiceInterface
+    {
+        return $this->service ??= app(UpsertEngineFromSheetServiceInterface::class);
+    }
+
+    private function rowMapper(): EngineMainSheetRowMapper
+    {
+        return $this->rowMapper ??= app(EngineMainSheetRowMapper::class);
     }
 }

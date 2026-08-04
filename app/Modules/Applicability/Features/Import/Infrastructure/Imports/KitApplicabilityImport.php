@@ -32,10 +32,49 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
 
     private ?string $operationId = null;
 
+    private ?ImportKitApplicabilityRowServiceInterface $service = null;
+
+    private ?CacheFactory $cache = null;
+
     public function __construct(
-        private readonly ImportKitApplicabilityRowServiceInterface $service,
-        private readonly CacheFactory $cache,
-    ) {}
+        ImportKitApplicabilityRowServiceInterface $service,
+        CacheFactory $cache,
+    ) {
+        $this->service = $service;
+        $this->cache = $cache;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [
+            'userId' => $this->userId,
+            'operationId' => $this->operationId,
+            'cacheKey' => $this->cacheKey ?? null,
+            'lockKey' => $this->lockKey ?? null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->userId = is_int($data['userId'] ?? null) ? $data['userId'] : null;
+        $this->operationId = is_string($data['operationId'] ?? null) ? $data['operationId'] : null;
+        $this->service = null;
+        $this->cache = null;
+
+        if (is_string($data['cacheKey'] ?? null)) {
+            $this->cacheKey = $data['cacheKey'];
+        }
+
+        if (is_string($data['lockKey'] ?? null)) {
+            $this->lockKey = $data['lockKey'];
+        }
+    }
 
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
@@ -59,6 +98,8 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
 
     public function collection(Collection $collection): void
     {
+        $service = $this->service();
+
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
 
@@ -67,7 +108,7 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
             }
 
             try {
-                $this->service->importFromRow($rowValues);
+                $service->importFromRow($rowValues);
             } catch (ImportRowValidationException $exception) {
                 $this->onFailure(new Failure(
                     row: $indexRow + $this->startRow(),
@@ -132,6 +173,11 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
      */
     protected function cache(): CacheFactory
     {
-        return $this->cache;
+        return $this->cache ??= app(CacheFactory::class);
+    }
+
+    private function service(): ImportKitApplicabilityRowServiceInterface
+    {
+        return $this->service ??= app(ImportKitApplicabilityRowServiceInterface::class);
     }
 }

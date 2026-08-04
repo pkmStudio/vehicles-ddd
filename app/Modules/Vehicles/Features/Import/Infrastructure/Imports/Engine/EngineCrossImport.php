@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\AssignEngineGroupServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\EngineCrossImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\AssignEngineGroupServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
+use LogicException;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -34,11 +35,45 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
 {
     use CachesImportFailures;
 
-    public ImportRunContextDTO $context;
+    private ?ImportRunContextDTO $context = null;
+
+    private ?AssignEngineGroupServiceInterface $service = null;
 
     public function __construct(
-        private readonly AssignEngineGroupServiceInterface $service,
-    ) {}
+        AssignEngineGroupServiceInterface $service,
+    ) {
+        $this->service = $service;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [
+            'context' => $this->context,
+            'cacheKey' => $this->cacheKey ?? null,
+            'lockKey' => $this->lockKey ?? null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $context = $data['context'] ?? null;
+        $this->context = $context instanceof ImportRunContextDTO ? $context : null;
+        $this->service = null;
+
+        if (is_string($data['cacheKey'] ?? null)) {
+            $this->cacheKey = $data['cacheKey'];
+        }
+
+        if (is_string($data['lockKey'] ?? null)) {
+            $this->lockKey = $data['lockKey'];
+        }
+    }
 
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
@@ -71,7 +106,7 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         }
 
         foreach ($this->parseCodes($rawCodes) as $code) {
-            $result = $this->service->assignGroup($code, $groupId);
+            $result = $this->service()->assignGroup($code, $groupId);
 
             if (! $result->found) {
                 $this->onFailure(new Failure(
@@ -116,11 +151,12 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
     {
         /** @var EngineCrossImport $import */
         $import = $event->getConcernable();
+        $context = $import->context();
 
         event(new EngineCrossImportCompleted(
-            userId: $import->context->userId,
+            userId: $context->userId,
             cacheKey: $import->cacheKey,
-            operationId: $import->context->operationId,
+            operationId: $context->operationId,
         ));
     }
 
@@ -134,5 +170,15 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         return [
             0 => $this,
         ];
+    }
+
+    private function service(): AssignEngineGroupServiceInterface
+    {
+        return $this->service ??= app(AssignEngineGroupServiceInterface::class);
+    }
+
+    private function context(): ImportRunContextDTO
+    {
+        return $this->context ?? throw new LogicException('Engine cross import context is not initialized.');
     }
 }

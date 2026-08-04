@@ -27,14 +27,38 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
 
     private const int SPEC_START_COLUMN = 9;
 
+    private ?UpsertEngineSparkPlugSpecServiceInterface $service = null;
+
+    private ?TemplatesClientInterface $templates = null;
+
     public function __construct(
         string $cacheKey,
         string $lockKey,
-        private readonly UpsertEngineSparkPlugSpecServiceInterface $service,
-        private readonly TemplatesClientInterface $templates,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = $lockKey;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [
+            'cacheKey' => $this->cacheKey,
+            'lockKey' => $this->lockKey,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->cacheKey = (string) $data['cacheKey'];
+        $this->lockKey = (string) $data['lockKey'];
+        $this->service = null;
+        $this->templates = null;
     }
 
     /**
@@ -42,6 +66,9 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
      */
     public function collection(Collection $collection): void
     {
+        $templates = $this->templates();
+        $service = $this->service();
+
         foreach ($collection as $indexRow => $row) {
             $engId = $row[0] ?? null;
 
@@ -59,14 +86,14 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
             }
 
             try {
-                DB::transaction(function () use ($rowValues, $engId, $indexRow): void {
-                    $details = $this->templates->buildVehicleDetails(
+                DB::transaction(function () use ($engId, $indexRow, $rowValues, $service, $templates): void {
+                    $details = $templates->buildVehicleDetails(
                         template: DetailTemplateEnum::SPARK_PLUGS,
                         row: $rowValues,
                         startIndex: self::SPEC_START_COLUMN,
                     );
 
-                    $spec = $this->service->upsertByEngine((int) $engId, $details);
+                    $spec = $service->upsertByEngine((int) $engId, $details);
 
                     if (! $spec) {
                         $this->onFailure(new Failure(
@@ -93,5 +120,15 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
     public function startRow(): int
     {
         return 2;
+    }
+
+    private function service(): UpsertEngineSparkPlugSpecServiceInterface
+    {
+        return $this->service ??= app(UpsertEngineSparkPlugSpecServiceInterface::class);
+    }
+
+    private function templates(): TemplatesClientInterface
+    {
+        return $this->templates ??= app(TemplatesClientInterface::class);
     }
 }

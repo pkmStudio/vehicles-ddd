@@ -13,6 +13,7 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\Map
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
+use LogicException;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -33,12 +34,50 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
 {
     use CachesImportFailures;
 
-    public ImportRunContextDTO $context;
+    private ?ImportRunContextDTO $context = null;
+
+    private ?UpsertManufacturerFromSheetServiceInterface $service = null;
+
+    private ?ManufacturerSheetRowMapper $rowMapper = null;
 
     public function __construct(
-        private readonly UpsertManufacturerFromSheetServiceInterface $service,
-        private readonly ManufacturerSheetRowMapper $rowMapper,
-    ) {}
+        UpsertManufacturerFromSheetServiceInterface $service,
+        ManufacturerSheetRowMapper $rowMapper,
+    ) {
+        $this->service = $service;
+        $this->rowMapper = $rowMapper;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [
+            'context' => $this->context,
+            'cacheKey' => $this->cacheKey ?? null,
+            'lockKey' => $this->lockKey ?? null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $context = $data['context'] ?? null;
+        $this->context = $context instanceof ImportRunContextDTO ? $context : null;
+        $this->service = null;
+        $this->rowMapper = null;
+
+        if (is_string($data['cacheKey'] ?? null)) {
+            $this->cacheKey = $data['cacheKey'];
+        }
+
+        if (is_string($data['lockKey'] ?? null)) {
+            $this->lockKey = $data['lockKey'];
+        }
+    }
 
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
@@ -56,11 +95,14 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
 
     public function collection(Collection $collection): void
     {
+        $rowMapper = $this->rowMapper();
+        $service = $this->service();
+
         foreach ($collection as $index => $row) {
             $rowValues = $row->toArray();
             try {
-                $manufacturerRow = $this->rowMapper->map($rowValues);
-                $this->service->upsertFromRow($manufacturerRow);
+                $manufacturerRow = $rowMapper->map($rowValues);
+                $service->upsertFromRow($manufacturerRow);
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(new Failure(
                     row: $index + $this->startRow(),
@@ -88,11 +130,12 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
     {
         /** @var ManufacturerImport $import */
         $import = $event->getConcernable();
+        $context = $import->context();
 
         event(new ManufacturerImportCompleted(
-            userId: $import->context->userId,
+            userId: $context->userId,
             cacheKey: $import->cacheKey,
-            operationId: $import->context->operationId,
+            operationId: $context->operationId,
         ));
     }
 
@@ -106,5 +149,20 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
         return [
             0 => $this,
         ];
+    }
+
+    private function service(): UpsertManufacturerFromSheetServiceInterface
+    {
+        return $this->service ??= app(UpsertManufacturerFromSheetServiceInterface::class);
+    }
+
+    private function rowMapper(): ManufacturerSheetRowMapper
+    {
+        return $this->rowMapper ??= app(ManufacturerSheetRowMapper::class);
+    }
+
+    private function context(): ImportRunContextDTO
+    {
+        return $this->context ?? throw new LogicException('Manufacturer import context is not initialized.');
     }
 }

@@ -27,10 +27,34 @@ use Maatwebsite\Excel\Validators\Failure;
  */
 final class EngineCommandImport implements EngineCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
+    private ?UpsertEngineFromSheetServiceInterface $service = null;
+
+    private ?EngineSheetRowMapper $rowMapper = null;
+
     public function __construct(
-        private readonly UpsertEngineFromSheetServiceInterface $service,
-        private readonly EngineSheetRowMapper $rowMapper,
-    ) {}
+        UpsertEngineFromSheetServiceInterface $service,
+        EngineSheetRowMapper $rowMapper,
+    ) {
+        $this->service = $service;
+        $this->rowMapper = $rowMapper;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->service = null;
+        $this->rowMapper = null;
+    }
 
     public function import(string $path): void
     {
@@ -44,12 +68,15 @@ final class EngineCommandImport implements EngineCommandImportInterface, ShouldQ
 
     public function collection(Collection $collection): void
     {
+        $rowMapper = $this->rowMapper();
+        $service = $this->service();
+
         foreach ($collection as $index => $row) {
             $rowValues = $row->toArray();
             try {
-                $engineRow = $this->rowMapper->map($rowValues);
+                $engineRow = $rowMapper->map($rowValues);
 
-                $this->service->upsertFromRow($engineRow);
+                $service->upsertFromRow($engineRow);
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(new Failure($index + $this->startRow(), 'Двигатель', $e->errors(), $rowValues));
             }
@@ -83,5 +110,15 @@ final class EngineCommandImport implements EngineCommandImportInterface, ShouldQ
     public static function afterImport(): void
     {
         event(new EngineCommandImported);
+    }
+
+    private function service(): UpsertEngineFromSheetServiceInterface
+    {
+        return $this->service ??= app(UpsertEngineFromSheetServiceInterface::class);
+    }
+
+    private function rowMapper(): EngineSheetRowMapper
+    {
+        return $this->rowMapper ??= app(EngineSheetRowMapper::class);
     }
 }

@@ -27,10 +27,34 @@ use Maatwebsite\Excel\Validators\Failure;
  */
 final class ModificationCommandImport implements ModificationCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
+    private ?UpsertModificationFromRowServiceInterface $service = null;
+
+    private ?ModificationCommandRowMapper $rowMapper = null;
+
     public function __construct(
-        private readonly UpsertModificationFromRowServiceInterface $service,
-        private readonly ModificationCommandRowMapper $rowMapper,
-    ) {}
+        UpsertModificationFromRowServiceInterface $service,
+        ModificationCommandRowMapper $rowMapper,
+    ) {
+        $this->service = $service;
+        $this->rowMapper = $rowMapper;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->service = null;
+        $this->rowMapper = null;
+    }
 
     public function import(string $path): void
     {
@@ -44,12 +68,15 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
 
     public function collection(Collection $collection): void
     {
+        $rowMapper = $this->rowMapper();
+        $service = $this->service();
+
         foreach ($collection as $index => $row) {
             $line = $index + $this->startRow();
             $rowValues = $row->toArray();
             try {
-                $modificationRow = $this->rowMapper->map($rowValues);
-                $modification = $this->service->upsertFromRow($modificationRow);
+                $modificationRow = $rowMapper->map($rowValues);
+                $modification = $service->upsertFromRow($modificationRow);
 
                 if (! $modification) {
                     $this->fail($line, "ТС ms_id={$modificationRow->msId} не найдено", $rowValues);
@@ -92,5 +119,15 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
     public static function afterImport(): void
     {
         event(new ModificationCommandImported);
+    }
+
+    private function service(): UpsertModificationFromRowServiceInterface
+    {
+        return $this->service ??= app(UpsertModificationFromRowServiceInterface::class);
+    }
+
+    private function rowMapper(): ModificationCommandRowMapper
+    {
+        return $this->rowMapper ??= app(ModificationCommandRowMapper::class);
     }
 }
