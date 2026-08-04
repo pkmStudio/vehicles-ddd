@@ -7,7 +7,6 @@ namespace App\Modules\Templates\Application\Factories\Builders\Nomenclature;
 use App\Modules\Templates\Application\Factories\DetailsRowCursor;
 use App\Modules\Templates\Application\Traits\BuildsNomenclatureMetrics;
 use App\Modules\Templates\Domain\Enums\PositionEnum;
-use App\Modules\Templates\Domain\Enums\Wiper\ConstructionEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\FrontAdapterTypeEnum;
 use App\Modules\Templates\Domain\ModelData\Nomenclature\WiperAdapterDetailsData;
 
@@ -26,7 +25,6 @@ final readonly class WiperAdapterDetailsBuilder
 
         return new WiperAdapterDetailsData(
             position: $cursor->pullRequiredLabel(PositionEnum::class, 'Расположение')->name,
-            construction: $cursor->pullRequiredLabel(ConstructionEnum::class, 'Конструкция')->name,
             adapterTypeFront: array_map(
                 $toName,
                 $cursor->pullRequiredMultiLabel(FrontAdapterTypeEnum::class, 'Тип крепления передних'),

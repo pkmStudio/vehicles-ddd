@@ -165,7 +165,6 @@ final readonly class NomenclatureDetailsDataPresenter implements NomenclatureDet
             ],
             NomenclatureDetailTemplateEnum::WIPER_ADAPTER => [
                 'Расположение' => $this->labels(PositionEnum::class),
-                'Конструкция' => $this->labels(ConstructionEnum::class),
                 'Тип крепления передних' => $this->labels(FrontAdapterTypeEnum::class),
             ],
             NomenclatureDetailTemplateEnum::TIE_ROD => [
