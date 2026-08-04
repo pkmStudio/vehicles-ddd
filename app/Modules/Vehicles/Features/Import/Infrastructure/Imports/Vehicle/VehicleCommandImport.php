@@ -27,11 +27,6 @@ use Maatwebsite\Excel\Validators\Failure;
  */
 final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToCollection, VehicleCommandImportInterface, WithChunkReading, WithEvents, WithStartRow
 {
-    public function __construct(
-        private readonly UpsertVehicleFromTdRowServiceInterface $service,
-        private readonly VehicleTdRowMapper $rowMapper,
-    ) {}
-
     public function import(string $path): void
     {
         Excel::import($this, $path);
@@ -44,12 +39,15 @@ final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToColle
 
     public function collection(Collection $collection): void
     {
+        $service = app(UpsertVehicleFromTdRowServiceInterface::class);
+        $rowMapper = app(VehicleTdRowMapper::class);
+
         foreach ($collection as $index => $row) {
             $line = $index + $this->startRow();
             $rowValues = $row->toArray();
             try {
-                $vehicleRow = $this->rowMapper->map($rowValues);
-                $vehicle = $this->service->upsertFromRow($vehicleRow);
+                $vehicleRow = $rowMapper->map($rowValues);
+                $vehicle = $service->upsertFromRow($vehicleRow);
 
                 if (! $vehicle) {
                     $this->fail($line, "Производитель mfa_id={$vehicleRow->mfaId} не найден", $rowValues);

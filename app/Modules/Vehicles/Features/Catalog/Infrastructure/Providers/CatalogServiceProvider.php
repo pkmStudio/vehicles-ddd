@@ -12,7 +12,9 @@ use App\Modules\Vehicles\Features\Catalog\Application\Factories\PartSpecificatio
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\VehicleMutationRequestFactory;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\CatalogMutationResultService;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification\EnginePartSpecificationOwnerResolver;
+use App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification\PartSpecificationDetailsWritePolicy;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification\VehiclePartSpecificationOwnerResolver;
+use App\Modules\Vehicles\Features\Catalog\Application\Services\Vehicle\VehicleMutationWritePolicy;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Manufacturer\ListManufacturersForCatalogUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Modification\ListVehicleModificationsForCatalogUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Modification\ShowModificationForCatalogUseCase;
@@ -63,7 +65,9 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutat
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\PartSpecification\EnginePartSpecificationOwnerResolverInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\PartSpecification\PartSpecificationDetailsWritePolicyInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\PartSpecification\VehiclePartSpecificationOwnerResolverInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\Vehicle\VehicleMutationWritePolicyInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Manufacturer\ListManufacturersForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ListVehicleModificationsForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ShowModificationForCatalogUseCaseInterface;
@@ -177,6 +181,8 @@ final class CatalogServiceProvider extends ServiceProvider
         CatalogMutationResultServiceInterface::class => CatalogMutationResultService::class,
         VehiclePartSpecificationOwnerResolverInterface::class => VehiclePartSpecificationOwnerResolver::class,
         EnginePartSpecificationOwnerResolverInterface::class => EnginePartSpecificationOwnerResolver::class,
+        VehicleMutationWritePolicyInterface::class => VehicleMutationWritePolicy::class,
+        PartSpecificationDetailsWritePolicyInterface::class => PartSpecificationDetailsWritePolicy::class,
     ];
 
     /**

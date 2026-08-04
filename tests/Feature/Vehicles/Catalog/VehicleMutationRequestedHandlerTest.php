@@ -79,6 +79,33 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
         ]);
     }
 
+    public function test_create_vehicle_message_forces_od_provider(): void
+    {
+        $manufacturer = $this->createManufacturer();
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Vehicle
+                && $result->operation === CatalogMutationOperationEnum::Create
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->operationId === 'vehicle-create-provider-forced'));
+
+        app(VehicleMutationRequestedHandler::class)->handle($this->vehiclePayload(
+            operationId: 'vehicle-create-provider-forced',
+            operation: 'create',
+            msId: 507,
+            mfaId: $manufacturer->mfa_id,
+            name: 'Provider forced',
+            provider: ProviderEnum::TD,
+        ));
+
+        $this->assertDatabaseHas('vehicles', [
+            'ms_id' => 507,
+            'provider' => ProviderEnum::OD->value,
+        ]);
+    }
+
     public function test_create_vehicle_message_generates_ms_id_when_missing(): void
     {
         $manufacturer = $this->createManufacturer();
@@ -147,6 +174,114 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseHas('vehicles', [
             'ms_id' => 502,
             'name' => 'New name',
+            'is_allow' => true,
+        ]);
+    }
+
+    public function test_update_od_vehicle_allows_catalog_managed_fields(): void
+    {
+        $existingManufacturer = $this->createManufacturer(21);
+        $incomingManufacturer = $this->createManufacturer(22);
+        $incomingParent = $this->createVehicle(
+            msId: 620,
+            manufacturer: $incomingManufacturer,
+            provider: ProviderEnum::OD,
+        );
+        $this->createVehicle(
+            msId: 621,
+            manufacturer: $existingManufacturer,
+            name: 'OD old name',
+            provider: ProviderEnum::OD,
+            generation: 'Old generation',
+            typeCarcase: CarcaseTypeEnum::HATCHBACK,
+        );
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Vehicle
+                && $result->operation === CatalogMutationOperationEnum::Update
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->operationId === 'vehicle-update-od-managed'));
+
+        app(VehicleMutationRequestedHandler::class)->handle($this->vehiclePayload(
+            operationId: 'vehicle-update-od-managed',
+            operation: 'update',
+            msId: 621,
+            mfaId: $incomingManufacturer->mfa_id,
+            name: 'OD new name',
+            provider: ProviderEnum::TD,
+            parentMsId: $incomingParent->ms_id,
+            generation: 'New generation',
+            typeCarcase: CarcaseTypeEnum::SALOON,
+        ));
+
+        $this->assertDatabaseHas('vehicles', [
+            'ms_id' => 621,
+            'manufacturer_id' => $incomingManufacturer->id,
+            'mfa_id' => $incomingManufacturer->mfa_id,
+            'parent_id' => $incomingParent->id,
+            'name' => 'OD new name',
+            'generation' => 'New generation',
+            'type_carcase' => CarcaseTypeEnum::SALOON->value,
+            'provider' => ProviderEnum::OD->value,
+        ]);
+    }
+
+    public function test_update_td_vehicle_keeps_locked_fields_and_updates_common_fields(): void
+    {
+        $existingManufacturer = $this->createManufacturer(11);
+        $incomingManufacturer = $this->createManufacturer(12);
+        $existingParent = $this->createVehicle(
+            msId: 610,
+            manufacturer: $existingManufacturer,
+            provider: ProviderEnum::TD,
+        );
+        $incomingParent = $this->createVehicle(
+            msId: 611,
+            manufacturer: $incomingManufacturer,
+            provider: ProviderEnum::OD,
+        );
+        $this->createVehicle(
+            msId: 612,
+            manufacturer: $existingManufacturer,
+            parentId: $existingParent->id,
+            name: 'TD old name',
+            provider: ProviderEnum::TD,
+            generation: 'TD generation',
+            typeCarcase: CarcaseTypeEnum::SALOON,
+        );
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Vehicle
+                && $result->operation === CatalogMutationOperationEnum::Update
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->operationId === 'vehicle-update-td-locked'));
+
+        app(VehicleMutationRequestedHandler::class)->handle($this->vehiclePayload(
+            operationId: 'vehicle-update-td-locked',
+            operation: 'update',
+            msId: 612,
+            mfaId: $incomingManufacturer->mfa_id,
+            name: 'TD new name',
+            isAllow: true,
+            provider: ProviderEnum::OD,
+            parentMsId: $incomingParent->ms_id,
+            generation: 'Incoming generation',
+            typeCarcase: CarcaseTypeEnum::HATCHBACK,
+        ));
+
+        $this->assertDatabaseHas('vehicles', [
+            'ms_id' => 612,
+            'manufacturer_id' => $existingManufacturer->id,
+            'mfa_id' => $existingManufacturer->mfa_id,
+            'parent_id' => $existingParent->id,
+            'name' => 'TD new name',
+            'generation' => 'TD generation',
+            'type_carcase' => CarcaseTypeEnum::SALOON->value,
+            'provider' => ProviderEnum::TD->value,
             'is_allow' => true,
         ]);
     }
@@ -284,6 +419,9 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
         Manufacturer $manufacturer,
         ?int $parentId = null,
         string $name = 'Octavia',
+        ProviderEnum $provider = ProviderEnum::OD,
+        ?string $generation = null,
+        CarcaseTypeEnum $typeCarcase = CarcaseTypeEnum::HATCHBACK,
     ): Vehicle {
         return Vehicle::query()->create([
             'parent_id' => $parentId,
@@ -293,13 +431,13 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
             'name' => $name,
             'localized_name' => null,
             'excel_table_id' => null,
-            'generation' => null,
+            'generation' => $generation,
             'generation_short' => null,
             'generation_year_from' => 2013,
             'generation_year_to' => 2020,
             'type' => VehicleTypeEnum::PC->value,
-            'type_carcase' => CarcaseTypeEnum::HATCHBACK->value,
-            'provider' => ProviderEnum::OD->value,
+            'type_carcase' => $typeCarcase->value,
+            'provider' => $provider->value,
             'steering_type' => SteeringTypeEnum::LEFT->value,
             'is_allow' => false,
         ]);
@@ -315,23 +453,34 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
         int $mfaId,
         string $name,
         bool $isAllow = false,
+        ProviderEnum $provider = ProviderEnum::OD,
+        ?int $parentMsId = null,
+        ?string $generation = null,
+        CarcaseTypeEnum $typeCarcase = CarcaseTypeEnum::HATCHBACK,
     ): array {
+        $vehicle = [
+            'ms_id' => $msId,
+            'mfa_id' => $mfaId,
+            'name' => $name,
+            'type' => VehicleTypeEnum::PC->value,
+            'type_carcase' => $typeCarcase->value,
+            'provider' => $provider->value,
+            'steering_type' => SteeringTypeEnum::LEFT->value,
+            'generation' => $generation,
+            'generation_year_from' => 2013,
+            'generation_year_to' => 2020,
+            'is_allow' => $isAllow,
+        ];
+
+        if ($parentMsId !== null) {
+            $vehicle['parent_ms_id'] = $parentMsId;
+        }
+
         return [
             'user_id' => 42,
             'operation_id' => $operationId,
             'operation' => $operation,
-            'vehicle' => [
-                'ms_id' => $msId,
-                'mfa_id' => $mfaId,
-                'name' => $name,
-                'type' => VehicleTypeEnum::PC->value,
-                'type_carcase' => CarcaseTypeEnum::HATCHBACK->value,
-                'provider' => ProviderEnum::OD->value,
-                'steering_type' => SteeringTypeEnum::LEFT->value,
-                'generation_year_from' => 2013,
-                'generation_year_to' => 2020,
-                'is_allow' => $isAllow,
-            ],
+            'vehicle' => $vehicle,
         ];
     }
 }

@@ -15,4 +15,5 @@ enum CatalogMutationRejectReasonEnum: string
     case ParentVehicleNotFound = 'parent_vehicle_not_found';
     case VehicleNotFound = 'vehicle_not_found';
     case OwnerNotFound = 'owner_not_found';
+    case InvalidDetails = 'invalid_details';
 }

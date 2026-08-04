@@ -6,6 +6,7 @@ namespace Tests\Unit\Vehicles\Import;
 
 use App\Modules\Vehicles\Features\Import\Application\Factories\VehicleDataFactory;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleFromTdRowService;
+use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\VehicleImportWritePolicy;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
@@ -17,8 +18,10 @@ use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
+use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleUpdated;
 use Illuminate\Support\Facades\Event;
 use Mockery;
+use Psr\Log\NullLogger;
 use Tests\TestCase;
 
 final class UpsertVehicleFromTdRowServiceTest extends TestCase
@@ -68,7 +71,13 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
             }))
             ->andReturn($expected);
 
-        $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers, $vehicles);
+        $service = new UpsertVehicleFromTdRowService(
+            $command,
+            new VehicleDataFactory,
+            $manufacturers,
+            $vehicles,
+            new VehicleImportWritePolicy(new NullLogger),
+        );
 
         $this->assertSame($expected, $service->upsertFromRow($this->validRow()));
 
@@ -95,7 +104,13 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
         $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
         $vehicles->shouldNotReceive('findByMsId');
 
-        $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers, $vehicles);
+        $service = new UpsertVehicleFromTdRowService(
+            $command,
+            new VehicleDataFactory,
+            $manufacturers,
+            $vehicles,
+            new VehicleImportWritePolicy(new NullLogger),
+        );
 
         $this->assertNull($service->upsertFromRow($this->validRow()));
     }
@@ -137,12 +152,86 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
             ->once()
             ->andReturnUsing(fn (VehicleData $data) => $data);
 
-        $service = new UpsertVehicleFromTdRowService($command, new VehicleDataFactory, $manufacturers, $vehicles);
+        $service = new UpsertVehicleFromTdRowService(
+            $command,
+            new VehicleDataFactory,
+            $manufacturers,
+            $vehicles,
+            new VehicleImportWritePolicy(new NullLogger),
+        );
 
         $data = $service->upsertFromRow($row);
 
         $this->assertSame(VehicleTypeEnum::MB, $data->type);
         $this->assertSame(CarcaseTypeEnum::MOTORCYCLE, $data->typeCarcase);
+    }
+
+    public function test_tecdoc_import_overwrites_existing_vehicle_as_authoritative_source(): void
+    {
+        Event::fake([VehicleUpdated::class]);
+
+        $manufacturer = new ManufacturerData(mfaId: 10, name: 'Skoda', provider: ProviderEnum::TD, id: 3);
+        $existing = new VehicleData(
+            msId: 200,
+            mfaId: 99,
+            manufacturerId: 9,
+            name: 'OD old name',
+            type: VehicleTypeEnum::PC,
+            steeringType: SteeringTypeEnum::LEFT,
+            typeCarcase: CarcaseTypeEnum::SALOON,
+            provider: ProviderEnum::OD,
+            generation: 'OD generation',
+            generationYearFrom: 2010,
+            generationYearTo: 2012,
+            parentId: 77,
+            id: 5,
+        );
+        $updated = new VehicleData(
+            msId: 200,
+            mfaId: 10,
+            manufacturerId: 3,
+            name: 'Octavia',
+            type: VehicleTypeEnum::PC,
+            steeringType: SteeringTypeEnum::LEFT,
+            typeCarcase: CarcaseTypeEnum::HATCHBACK,
+            provider: ProviderEnum::TD,
+            generation: 'A7',
+            generationYearFrom: 2013,
+            generationYearTo: 2020,
+            id: 5,
+        );
+
+        $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
+        $manufacturers->shouldReceive('findByMfaId')->once()->with(10)->andReturn($manufacturer);
+
+        $vehicles = Mockery::mock(VehicleRepositoryInterface::class);
+        $vehicles->shouldReceive('findByMsId')->once()->with(200)->andReturn($existing);
+
+        $command = Mockery::mock(VehicleCommandInterface::class);
+        $command->shouldReceive('updateByMsId')
+            ->once()
+            ->with(Mockery::on(function (VehicleData $data): bool {
+                return $data->msId === 200
+                    && $data->mfaId === 10
+                    && $data->manufacturerId === 3
+                    && $data->name === 'Octavia'
+                    && $data->typeCarcase === CarcaseTypeEnum::HATCHBACK
+                    && $data->provider === ProviderEnum::TD
+                    && $data->generation === 'A7'
+                    && $data->generationYearFrom === 2013
+                    && $data->parentId === null;
+            }))
+            ->andReturn($updated);
+
+        $service = new UpsertVehicleFromTdRowService(
+            $command,
+            new VehicleDataFactory,
+            $manufacturers,
+            $vehicles,
+            new VehicleImportWritePolicy(new NullLogger),
+        );
+
+        $this->assertSame($updated, $service->upsertFromRow($this->validRow()));
     }
 
     private function validRow(): VehicleTdRowDTO
