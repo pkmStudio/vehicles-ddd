@@ -20,5 +20,4 @@ final readonly class EngineRepository implements EngineRepositoryInterface
     {
         return EngineData::optional(Engine::query()->where('eng_id', $engId)->first());
     }
-
 }

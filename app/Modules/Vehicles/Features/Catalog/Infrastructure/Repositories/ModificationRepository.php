@@ -25,5 +25,4 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
                 ->first(),
         );
     }
-
 }

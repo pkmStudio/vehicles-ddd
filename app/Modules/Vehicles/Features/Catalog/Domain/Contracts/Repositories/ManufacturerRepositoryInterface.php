@@ -15,5 +15,4 @@ interface ManufacturerRepositoryInterface
      * Возвращает первый Data-снимок производителей по внешнему идентификатору.
      */
     public function findByMfaId(int $mfaId): ?ManufacturerData;
-
 }

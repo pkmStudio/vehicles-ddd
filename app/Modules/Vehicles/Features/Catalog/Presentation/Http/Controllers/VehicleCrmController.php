@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\ListVehiclesForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\SearchVehiclesForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Vehicle\ShowVehicleForCrmUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmOptionsUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehiclesForCrmUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\SearchVehiclesForCrmUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ShowVehicleForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,6 +26,7 @@ final readonly class VehicleCrmController
         private ListVehiclesForCrmUseCaseInterface $listVehicles,
         private ShowVehicleForCrmUseCaseInterface $showVehicle,
         private SearchVehiclesForCrmUseCaseInterface $searchVehicles,
+        private ListVehicleCrmOptionsUseCaseInterface $vehicleOptions,
     ) {}
 
     /**
@@ -91,7 +93,7 @@ final readonly class VehicleCrmController
             return $response;
         }
 
-        $features = $this->listVehicles->features();
+        $features = $this->vehicleOptions->features();
 
         return response()->json(['data' => $this->dtoCollectionToArray($features)]);
     }
@@ -106,7 +108,7 @@ final readonly class VehicleCrmController
         }
 
         $featureId = (int) $request->integer('feature_id');
-        $featureValues = $this->listVehicles->featureValues($featureId);
+        $featureValues = $this->vehicleOptions->featureValues($featureId);
 
         return response()->json(['data' => $this->dtoCollectionToArray($featureValues)]);
     }
@@ -120,7 +122,7 @@ final readonly class VehicleCrmController
             return $response;
         }
 
-        $detailTemplates = $this->listVehicles->detailTemplates();
+        $detailTemplates = $this->vehicleOptions->detailTemplates();
 
         return response()->json(['data' => $this->dtoCollectionToArray($detailTemplates)]);
     }
@@ -139,7 +141,7 @@ final readonly class VehicleCrmController
         $query = trim($request->string('q')->toString());
 
         $query = $query === '' ? null : $query;
-        $manufacturers = $this->listVehicles->manufacturers(
+        $manufacturers = $this->vehicleOptions->manufacturers(
             query: $query,
             id: $id,
             limit: $limit,

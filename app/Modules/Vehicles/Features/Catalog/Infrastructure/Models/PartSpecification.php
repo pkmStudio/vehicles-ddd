@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Models;
 
-use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 
 /**
  * Представляет Eloquent-модель таблицы спецификаций деталей внутри фичи Catalog.
