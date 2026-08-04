@@ -8,6 +8,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\Nomenclatu
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\StartNomenclatureMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\NomenclatureMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\NomenclatureMutationRequested;
 
 /**
  * Принимает RabbitMQ-сообщение мутации Warehouse-номенклатуры и запускает сценарий.
@@ -44,7 +45,7 @@ final readonly class NomenclatureMutationRequestedHandler
             return;
         }
 
-        $payload = $validator->validated();
+        $payload = NomenclatureMutationRequested::fromArray($validator->validated())->toArray();
         $requestDto = $this->factory->make($payload);
         $this->useCase->execute($requestDto);
     }

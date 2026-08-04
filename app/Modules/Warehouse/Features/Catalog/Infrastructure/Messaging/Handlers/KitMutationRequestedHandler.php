@@ -8,6 +8,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\KitMutatio
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\StartKitMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\KitMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\KitMutationRequested;
 
 /**
  * Принимает RabbitMQ-сообщение мутации Warehouse-наборов и запускает сценарий.
@@ -44,7 +45,7 @@ final readonly class KitMutationRequestedHandler
             return;
         }
 
-        $payload = $validator->validated();
+        $payload = KitMutationRequested::fromArray($validator->validated())->toArray();
         $requestDto = $this->factory->make($payload);
         $this->useCase->execute($requestDto);
     }

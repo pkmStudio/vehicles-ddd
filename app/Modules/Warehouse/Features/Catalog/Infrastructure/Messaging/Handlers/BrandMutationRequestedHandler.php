@@ -8,6 +8,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\BrandMutat
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\StartBrandMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\BrandMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\BrandMutationRequested;
 
 /**
  * Принимает RabbitMQ-сообщение мутации Warehouse-брендов и запускает сценарий.
@@ -44,7 +45,7 @@ final readonly class BrandMutationRequestedHandler
             return;
         }
 
-        $payload = $validator->validated();
+        $payload = BrandMutationRequested::fromArray($validator->validated())->toArray();
         $requestDto = $this->factory->make($payload);
         $this->useCase->execute($requestDto);
     }

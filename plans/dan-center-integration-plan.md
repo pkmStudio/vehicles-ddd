@@ -240,12 +240,23 @@ packages/dan-wire-contracts
   src/Vehicles/
     Modules/
       Vehicles/Features/{Catalog,Import,Export}/...
-      Warehouse/Features/{Import,Export}/...
+      Warehouse/Features/{Catalog,Import,Export}/...
       Applicability/Features/{Import,Export,Calculation}/...
     Shared/{DTO,Enums,Results}/...
   src/CRM/
   src/Parse/
 ```
+
+Текущее состояние пакета:
+
+- добавлены enum логических событий и routing keys для всех текущих Rabbit commands/results
+  `dan-vehicles`;
+- добавлены Rabbit request DTO для catalog mutations:
+  `Vehicle`, `Manufacturer`, `Engine`, `Modification`, `PartSpecification`, `Brand`,
+  `Nomenclature`, `PackDimension`, `Kit`;
+- добавлен общий result DTO `CatalogMutationCompleted` для
+  `VEHICLES_CATALOG_MUTATION_COMPLETED` и `WAREHOUSE_CATALOG_MUTATION_COMPLETED`;
+- добавлены package-тесты на полноту enum и round-trip основных mutation DTO.
 
 Версионирование:
 
@@ -505,9 +516,12 @@ Filament из коробки ожидает Eloquent query, но projection/read
 
 1. [x] Создать пакет `pkmstudio/dan-wire-contracts`.
 2. [x] Вынести туда базовые wire DTO/enums для текущей связки Vehicles/CRM.
+   Дополнено Rabbit DTO/enums для catalog mutations Vehicles/Warehouse и result DTO мутаций.
 3. [x] Подключить пакет в `composer.json` обоих сервисов и обновить lock-файлы.
 4. [ ] В `dan-center` заменить локальный `RabbitMessageDTO/OutboundEventsEnum` для новых интеграций на
    пакетные contracts.
+   Начато: `config/rabbit-transport.php`, result handlers/notification labels и REST-backed
+   Vehicles/Nomenclatures actions используют enum/DTO из `pkmstudio/dan-wire-contracts`.
 5. [x] Подключить `dan-center` к `pkmstudio/rabbit-transport` для новой связки с `dan-vehicles`.
 6. [ ] Включать HMAC только после того, как оба сервиса будут готовы к одинаковому envelope.
 
@@ -643,6 +657,10 @@ Filament из коробки ожидает Eloquent query, но projection/read
 10. [x] Сделать прототип одной REST-backed Filament table без Eloquent, например `Vehicles`.
 11. [x] Создать отдельный package wire-contracts.
 12. [ ] Перевести runtime-код обоих сервисов на DTO/enums из `pkmstudio/dan-wire-contracts`.
+    Начато в `dan-center`: Rabbit config, inbound result handler, VehiclesRest/NomenclaturesRest
+    mutation actions и upload/export actions используют package contracts на boundary.
+    Начато в `dan-vehicles`: catalog mutation handlers нормализуют валидированный inbound payload
+    через package request DTO; catalog mutation notification services публикуют package result DTO.
 13. [ ] Отрефакторить `dan-center`, чтобы Filament files не содержали бизнес-логику интеграции.
     Начато на Vehicles: toolbar actions и REST mutation actions вынесены из table classes.
 14. [x] Отрефакторить `dan-vehicles`, чтобы REST controllers не содержали query/business logic.

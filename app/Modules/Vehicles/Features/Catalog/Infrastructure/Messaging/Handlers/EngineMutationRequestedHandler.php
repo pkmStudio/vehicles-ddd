@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\EngineMutat
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\StartEngineMutationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validators\EngineMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Mutation\DTO\EngineMutationRequested;
 
 /**
  * Принимает RabbitMQ-сообщение мутации двигателей и запускает сценарий.
@@ -39,7 +40,7 @@ final readonly class EngineMutationRequestedHandler
             return;
         }
 
-        $payload = $validator->validated();
+        $payload = EngineMutationRequested::fromArray($validator->validated())->toArray();
         $request = $this->factory->make($payload);
         $this->useCase->execute($request);
     }

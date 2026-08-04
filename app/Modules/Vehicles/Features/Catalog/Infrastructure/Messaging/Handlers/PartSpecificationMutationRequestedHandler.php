@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\PartSpecifi
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\StartPartSpecificationMutationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validators\PartSpecificationMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Mutation\DTO\PartSpecificationMutationRequested;
 
 /**
  * Принимает RabbitMQ-сообщение мутации спецификаций деталей и запускает сценарий.
@@ -46,7 +47,7 @@ final readonly class PartSpecificationMutationRequestedHandler
             return;
         }
 
-        $payload = $validator->validated();
+        $payload = PartSpecificationMutationRequested::fromArray($validator->validated())->toArray();
         $request = $this->factory->make($payload);
         $this->useCase->execute($request);
     }

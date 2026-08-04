@@ -8,6 +8,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\PackDimens
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\StartPackDimensionMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\PackDimensionMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\PackDimensionMutationRequested;
 
 /**
  * Принимает RabbitMQ-сообщение мутации упаковочных размеров Warehouse и запускает сценарий.
@@ -44,7 +45,7 @@ final readonly class PackDimensionMutationRequestedHandler
             return;
         }
 
-        $payload = $validator->validated();
+        $payload = PackDimensionMutationRequested::fromArray($validator->validated())->toArray();
         $requestDto = $this->factory->make($payload);
         $this->useCase->execute($requestDto);
     }

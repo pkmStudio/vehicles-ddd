@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\Modificatio
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\StartModificationMutationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validators\ModificationMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Mutation\DTO\ModificationMutationRequested;
 
 /**
  * Принимает RabbitMQ-сообщение мутации модификаций и запускает сценарий.
@@ -39,7 +40,7 @@ final readonly class ModificationMutationRequestedHandler
             return;
         }
 
-        $payload = $validator->validated();
+        $payload = ModificationMutationRequested::fromArray($validator->validated())->toArray();
         $request = $this->factory->make($payload);
         $this->useCase->execute($request);
     }
