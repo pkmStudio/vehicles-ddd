@@ -30,7 +30,7 @@ final class NomenclatureCrmReadApiTest extends TestCase
     {
         config(['services.dan_vehicles.read_api_key' => 'secret-key']);
 
-        $response = $this->getJson('/api/v1/warehouse/nomenclatures');
+        $response = $this->getJson('/api/v1/crm/warehouse/nomenclatures');
 
         $response
             ->assertUnauthorized()
@@ -50,7 +50,7 @@ final class NomenclatureCrmReadApiTest extends TestCase
         $this->createNomenclature(type: $type, brand: $brand, name: 'Denso Flat', partNumber: 'DUR-050L');
         $this->createNomenclature(type: $type, brand: $otherBrand, name: 'Bosch Aero', partNumber: 'AR-600');
 
-        $response = $this->getJson("/api/v1/warehouse/nomenclatures?per_page=10&filter[brand_id][]={$brand->id}&sort=-name");
+        $response = $this->getJson("/api/v1/crm/warehouse/nomenclatures?per_page=10&filter[brand_id][]={$brand->id}&sort=-name");
 
         $response
             ->assertOk()
@@ -74,7 +74,7 @@ final class NomenclatureCrmReadApiTest extends TestCase
             partNumber: 'DUR-060L',
         );
 
-        $response = $this->getJson("/api/v1/warehouse/nomenclatures/{$nomenclature->id}");
+        $response = $this->getJson("/api/v1/crm/warehouse/nomenclatures/{$nomenclature->id}");
 
         $response
             ->assertOk()
@@ -90,7 +90,7 @@ final class NomenclatureCrmReadApiTest extends TestCase
      */
     public function test_show_returns_not_found_for_missing_nomenclature(): void
     {
-        $response = $this->getJson('/api/v1/warehouse/nomenclatures/999999');
+        $response = $this->getJson('/api/v1/crm/warehouse/nomenclatures/999999');
 
         $response
             ->assertNotFound()
@@ -109,7 +109,7 @@ final class NomenclatureCrmReadApiTest extends TestCase
         $this->createNomenclature(type: $type, brand: $brand, name: 'Denso Flat', partNumber: 'DUR-050L');
         $this->createNomenclature(type: $type, brand: $brand, name: 'Bosch Aero', partNumber: 'AR-600');
 
-        $response = $this->getJson('/api/v1/warehouse/nomenclatures/search?q=Hybrid&limit=1');
+        $response = $this->getJson('/api/v1/crm/warehouse/nomenclatures/search?q=Hybrid&limit=1');
 
         $response
             ->assertOk()
@@ -126,13 +126,13 @@ final class NomenclatureCrmReadApiTest extends TestCase
         $type = $this->createType(name: 'Дворники', char: 'WB');
         $brand = $this->createBrand(name: 'Denso', char: 'D');
 
-        $this->getJson('/api/v1/warehouse/nomenclatures/options/types?q=Дворники')
+        $this->getJson('/api/v1/crm/warehouse/nomenclatures/options/types?q=Дворники')
             ->assertOk()
             ->assertJsonPath('data.0.id', $type->id)
             ->assertJsonPath('data.0.char', 'WB')
             ->assertJsonPath('data.0.template', 'wiper');
 
-        $this->getJson('/api/v1/warehouse/nomenclatures/options/brands?q=Denso')
+        $this->getJson('/api/v1/crm/warehouse/nomenclatures/options/brands?q=Denso')
             ->assertOk()
             ->assertJsonPath('data.0.id', $brand->id)
             ->assertJsonPath('data.0.char', 'D')
@@ -149,11 +149,11 @@ final class NomenclatureCrmReadApiTest extends TestCase
             $this->createBrand(name: sprintf('Brand %02d', $i), char: 'B');
         }
 
-        $this->getJson('/api/v1/warehouse/nomenclatures/options/types?limit=60')
+        $this->getJson('/api/v1/crm/warehouse/nomenclatures/options/types?limit=60')
             ->assertOk()
             ->assertJsonCount(60, 'data');
 
-        $this->getJson('/api/v1/warehouse/nomenclatures/options/brands?limit=60')
+        $this->getJson('/api/v1/crm/warehouse/nomenclatures/options/brands?limit=60')
             ->assertOk()
             ->assertJsonCount(60, 'data');
     }

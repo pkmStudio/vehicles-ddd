@@ -35,7 +35,7 @@ final class VehicleCrmReadApiTest extends TestCase
     {
         config(['services.dan_vehicles.read_api_key' => 'secret-key']);
 
-        $response = $this->getJson('/api/v1/vehicles');
+        $response = $this->getJson('/api/v1/crm/vehicles');
 
         $response
             ->assertUnauthorized()
@@ -67,7 +67,7 @@ final class VehicleCrmReadApiTest extends TestCase
             isAllow: false,
         );
 
-        $response = $this->getJson('/api/v1/vehicles?per_page=10&filter[is_allow]=1&sort=-name');
+        $response = $this->getJson('/api/v1/crm/vehicles?per_page=10&filter[is_allow]=1&sort=-name');
 
         $response
             ->assertOk()
@@ -92,7 +92,7 @@ final class VehicleCrmReadApiTest extends TestCase
         );
         $this->createPartSpecification(vehicleId: (int) $vehicle->id);
 
-        $response = $this->getJson("/api/v1/vehicles/{$vehicle->id}");
+        $response = $this->getJson("/api/v1/crm/vehicles/{$vehicle->id}");
 
         $response
             ->assertOk()
@@ -109,7 +109,7 @@ final class VehicleCrmReadApiTest extends TestCase
      */
     public function test_show_returns_not_found_for_missing_vehicle(): void
     {
-        $response = $this->getJson('/api/v1/vehicles/999999');
+        $response = $this->getJson('/api/v1/crm/vehicles/999999');
 
         $response
             ->assertNotFound()
@@ -126,7 +126,7 @@ final class VehicleCrmReadApiTest extends TestCase
         $this->createVehicle(msId: 1202, manufacturer: $manufacturer, name: 'Octavia RS');
         $this->createVehicle(msId: 1203, manufacturer: $manufacturer, name: 'Fabia');
 
-        $response = $this->getJson('/api/v1/vehicles/search?q=Octavia&limit=1');
+        $response = $this->getJson('/api/v1/crm/vehicles/search?q=Octavia&limit=1');
 
         $response
             ->assertOk()
@@ -148,20 +148,20 @@ final class VehicleCrmReadApiTest extends TestCase
 
         $this->createFeatureValue($featureId);
 
-        $this->getJson('/api/v1/vehicles/options/features')
+        $this->getJson('/api/v1/crm/vehicles/options/features')
             ->assertOk()
             ->assertJsonPath('data.0.id', $featureId)
             ->assertJsonPath('data.0.label', 'Крепление');
 
-        $this->getJson("/api/v1/vehicles/options/feature-values?feature_id={$featureId}")
+        $this->getJson("/api/v1/crm/vehicles/options/feature-values?feature_id={$featureId}")
             ->assertOk()
             ->assertJsonPath('data.0.short_code', 'HOOK');
 
-        $this->getJson('/api/v1/vehicles/options/detail-templates')
+        $this->getJson('/api/v1/crm/vehicles/options/detail-templates')
             ->assertOk()
             ->assertJsonPath('data.0.id', 'wiper');
 
-        $this->getJson('/api/v1/vehicles/options/manufacturers?q=Skoda')
+        $this->getJson('/api/v1/crm/vehicles/options/manufacturers?q=Skoda')
             ->assertOk()
             ->assertJsonPath('data.0.id', $manufacturer->id)
             ->assertJsonPath('data.0.mfa_id', 111)
