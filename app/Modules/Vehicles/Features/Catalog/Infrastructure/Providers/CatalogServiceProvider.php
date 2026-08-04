@@ -53,7 +53,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRe
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmReadRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationNotificationServiceInterface;
@@ -96,7 +96,7 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\EngineRepo
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\ManufacturerRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\ModificationRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\PartSpecificationRepository;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrmReadRepository;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\VehicleCrmRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -152,7 +152,7 @@ final class CatalogServiceProvider extends ServiceProvider
 
     private const array REPOSITORY_BINDINGS = [
         VehicleRepositoryInterface::class => VehicleRepository::class,
-        VehicleCrmReadRepositoryInterface::class => VehicleCrmReadRepository::class,
+        VehicleCrmRepositoryInterface::class => VehicleCrmRepository::class,
         ManufacturerRepositoryInterface::class => ManufacturerRepository::class,
         EngineRepositoryInterface::class => EngineRepository::class,
         ModificationRepositoryInterface::class => ModificationRepository::class,

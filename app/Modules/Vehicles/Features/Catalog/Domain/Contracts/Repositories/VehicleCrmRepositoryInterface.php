@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailTemplateOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureValueOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmManufacturerOptionDTO;
@@ -15,9 +14,9 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQuer
 use Illuminate\Support\Collection;
 
 /**
- * Read-порт CRM API каталога Vehicles.
+ * Repository-порт CRM API каталога Vehicles.
  */
-interface VehicleCrmReadRepositoryInterface
+interface VehicleCrmRepositoryInterface
 {
     /**
      * Возвращает постраничную CRM projection автомобилей.
@@ -27,7 +26,7 @@ interface VehicleCrmReadRepositoryInterface
     /**
      * Возвращает detail projection автомобиля или null.
      */
-    public function find(int $id): ?VehicleCrmDetailDTO;
+    public function findById(int $id): ?VehicleCrmDetailDTO;
 
     /**
      * Возвращает compact search options автомобилей.
@@ -49,13 +48,6 @@ interface VehicleCrmReadRepositoryInterface
      * @return Collection<int, VehicleCrmFeatureValueOptionDTO>
      */
     public function featureValueOptions(int $featureId): Collection;
-
-    /**
-     * Возвращает detail template options.
-     *
-     * @return Collection<int, VehicleCrmDetailTemplateOptionDTO>
-     */
-    public function detailTemplateOptions(): Collection;
 
     /**
      * Возвращает manufacturer options.

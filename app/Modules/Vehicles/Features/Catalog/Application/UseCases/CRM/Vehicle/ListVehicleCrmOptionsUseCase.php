@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmReadRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmOptionsUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailTemplateOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
@@ -18,10 +18,10 @@ use Illuminate\Support\Collection;
 final readonly class ListVehicleCrmOptionsUseCase implements ListVehicleCrmOptionsUseCaseInterface
 {
     /**
-     * Получает read repository порт Vehicles CRM.
+     * Получает repository-порт Vehicles CRM.
      */
     public function __construct(
-        private VehicleCrmReadRepositoryInterface $vehicles,
+        private VehicleCrmRepositoryInterface $vehicles,
     ) {}
 
     /**
@@ -51,7 +51,12 @@ final readonly class ListVehicleCrmOptionsUseCase implements ListVehicleCrmOptio
      */
     public function detailTemplates(): Collection
     {
-        return $this->vehicles->detailTemplateOptions();
+        return collect([
+            new VehicleCrmDetailTemplateOptionDTO(
+                id: 'wiper',
+                label: 'Щетки стеклоочистителя',
+            ),
+        ]);
     }
 
     /**

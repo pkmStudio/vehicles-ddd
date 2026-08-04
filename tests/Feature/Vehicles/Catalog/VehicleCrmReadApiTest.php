@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Catalog;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmReadRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
@@ -182,10 +182,10 @@ final class VehicleCrmReadApiTest extends TestCase
         $featureId = $this->createFeature();
         $this->createFeatureValue($featureId);
 
-        $repository = app(VehicleCrmReadRepositoryInterface::class);
+        $repository = app(VehicleCrmRepositoryInterface::class);
         $query = new VehicleCrmReadQueryDTO(perPage: 10);
         $page = $repository->paginate($query);
-        $detail = $repository->find((int) $vehicle->id);
+        $detail = $repository->findById((int) $vehicle->id);
         $search = $repository->search('Kodiaq');
         $features = $repository->featureOptions();
 

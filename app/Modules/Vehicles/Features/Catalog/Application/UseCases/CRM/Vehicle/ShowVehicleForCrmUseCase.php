@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmReadRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ShowVehicleForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
 
@@ -14,10 +14,10 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDeta
 final readonly class ShowVehicleForCrmUseCase implements ShowVehicleForCrmUseCaseInterface
 {
     /**
-     * Получает read repository порт Vehicles CRM.
+     * Получает repository-порт Vehicles CRM.
      */
     public function __construct(
-        private VehicleCrmReadRepositoryInterface $vehicles,
+        private VehicleCrmRepositoryInterface $vehicles,
     ) {}
 
     /**
@@ -25,6 +25,6 @@ final readonly class ShowVehicleForCrmUseCase implements ShowVehicleForCrmUseCas
      */
     public function execute(int $id): ?VehicleCrmDetailDTO
     {
-        return $this->vehicles->find($id);
+        return $this->vehicles->findById($id);
     }
 }
