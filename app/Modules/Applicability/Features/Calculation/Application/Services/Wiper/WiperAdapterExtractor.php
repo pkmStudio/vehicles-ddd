@@ -6,6 +6,7 @@ namespace App\Modules\Applicability\Features\Calculation\Application\Services\Wi
 
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperAdapterExtractorInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperAdaptersDTO;
+use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperNomenclatureDetailsDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\Enums\WiperKitPositionEnum;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\KitData;
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
@@ -58,11 +59,12 @@ final readonly class WiperAdapterExtractor implements WiperAdapterExtractorInter
 
         foreach ($kit->nomenclatures as $nomenclature) {
             if ($nomenclature->template === NomenclatureDetailTemplateEnum::WIPER) {
-                $allAdapters[] = $this->adapterList($nomenclature->details[$adapterField] ?? []);
+                $allAdapters[] = WiperNomenclatureDetailsDTO::fromArray($nomenclature->details)->adaptersByField($adapterField);
             }
 
             if ($nomenclature->template === NomenclatureDetailTemplateEnum::WIPER_ADAPTER) {
-                $adapters = $this->adapterList($nomenclature->details[WiperSideEnum::FRONT->adapterField()] ?? []);
+                $adapters = WiperNomenclatureDetailsDTO::fromArray($nomenclature->details)
+                    ->adapters(WiperSideEnum::FRONT);
                 $allAdapters[] = $adapters;
                 $putAdapters[] = $adapters;
             }
@@ -100,16 +102,5 @@ final readonly class WiperAdapterExtractor implements WiperAdapterExtractorInter
             allAdapters: array_values(array_unique($resultAdapters)),
             putAdapters: $putAdapters,
         );
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function adapterList(mixed $value): array
-    {
-        $value = is_array($value) ? $value : [];
-        $value = array_map(static fn (mixed $adapter): string => trim((string) $adapter), $value);
-
-        return array_values(array_filter($value, static fn (string $adapter): bool => $adapter !== ''));
     }
 }

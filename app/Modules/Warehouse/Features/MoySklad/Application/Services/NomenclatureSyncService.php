@@ -9,8 +9,9 @@ use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Commands\Nomenclatu
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Repositories\NomenclatureIntegrationRepositoryInterface;
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Services\NomenclatureSyncServiceInterface;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductDTO;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductPayloadDTO;
 use App\Modules\Warehouse\Features\MoySklad\Domain\Enums\MoySkladIntegrationStatusEnum;
-use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureIntegrationData;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -29,6 +30,9 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         private NomenclatureIntegrationRepositoryInterface $integrations,
         private NomenclatureIntegrationCommandInterface $integrationCommand,
         private NomenclatureProductMapper $mapper,
+        private ProductFolderResolver $productFolderResolver,
+        private ProductMatchResolver $productMatchResolver,
+        private ProductPayloadHasher $payloadHasher,
         private LoggerInterface $logger,
     ) {}
 
@@ -56,7 +60,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         $integration = $this->integrations->findByNomenclatureId($nomenclature->id)
             ?? $this->integrationCommand->createPendingForNomenclature($nomenclature->id);
 
-        $productFolderMeta = $this->resolveProductFolderMeta($nomenclature);
+        $productFolderMeta = $this->productFolderResolver->resolve($nomenclature);
         $payload = $this->mapper->map($nomenclature, $productFolderMeta);
         $payloadHash = $this->payloadHash($payload);
         $shouldSkipUpdate = $this->shouldSkipUpdate($integration, $payloadHash);
@@ -66,7 +70,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         }
 
         try {
-            $product = $this->saveProduct($integration, $nomenclature, $payload, $productFolderMeta);
+            $product = $this->productMatchResolver->saveProduct($integration, $nomenclature, $payload, $productFolderMeta);
             $this->markSyncSuccess($integration, $product, $payload, $payloadHash);
         } catch (Throwable $e) {
             $this->markSyncFailure($integration, $e);
@@ -95,7 +99,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 
         $externalCode = $this->mapper->externalCodeForNomenclatureId($nomenclatureId);
         $integration = $this->integrations->findForDelete($nomenclatureId, $externalCode, $integrationId);
-        $productId = $this->resolveDeleteProductId($nomenclatureId, $partNumber, $externalId, $integration);
+        $productId = $this->productMatchResolver->resolveDeleteProductId($nomenclatureId, $partNumber, $externalId, $integration);
 
         if ($productId === null) {
             $this->logger->warning('MoySklad: товар для удаления не найден, операция пропущена.', [
@@ -131,29 +135,12 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 
     /**
      * Рассчитывает hash payload для тестов.
-     */
-    public function payloadHash(array $payload): string
-    {
-        return sha1((string) json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-    }
-
-    /**
-     * Определяет meta папки товара по типу номенклатуры.
      *
-     * @return array<string, mixed>
+     * @param  array<string, mixed>|MoySkladProductPayloadDTO  $payload
      */
-    private function resolveProductFolderMeta(NomenclatureData $nomenclature): array
+    public function payloadHash(array|MoySkladProductPayloadDTO $payload): string
     {
-        if (! (bool) config('warehouse.moysklad.nomenclature_sync.product_folders.enabled', true)) {
-            return [];
-        }
-
-        $typeName = trim((string) ($nomenclature->type?->name ?? ''));
-        if ($typeName === '') {
-            return [];
-        }
-
-        return $this->client->ensureProductFolderMetaByName($typeName);
+        return $this->payloadHasher->hash($payload);
     }
 
     /**
@@ -168,67 +155,21 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
     }
 
     /**
-     * Создаёт или обновляет товар: сначала по сохранённому external_id, затем через поиск.
-     *
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $productFolderMeta
-     * @return array<string, mixed>
-     */
-    private function saveProduct(NomenclatureIntegrationData $integration, NomenclatureData $nomenclature, array $payload, array $productFolderMeta): array
-    {
-        if (is_string($integration->externalId) && $integration->externalId !== '') {
-            return $this->client->updateById($integration->externalId, $payload);
-        }
-
-        return $this->findOrCreateProduct($nomenclature, $payload, $productFolderMeta, updateExisting: true);
-    }
-
-    /**
-     * Находит подходящий товар по артикулу/externalCode или создаёт новый.
-     *
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $productFolderMeta
-     * @return array<string, mixed>
-     */
-    private function findOrCreateProduct(NomenclatureData $nomenclature, array $payload, array $productFolderMeta, bool $updateExisting = false): array
-    {
-        $folderId = $this->resolveFolderId($productFolderMeta);
-
-        $existing = $this->client->findByArticle($nomenclature->partNumber);
-        $existingMatchesFolder = $existing !== null && $this->matchesFolder($existing, $folderId);
-
-        if ($existingMatchesFolder) {
-            return $updateExisting
-                ? $this->client->updateById((string) $existing['id'], $payload)
-                : $existing;
-        }
-
-        $externalCode = $this->mapper->externalCodeForNomenclatureId((int) $nomenclature->id);
-        $existingByExternalCode = $this->client->findByExternalCode($externalCode);
-        if ($existingByExternalCode !== null) {
-            return $updateExisting
-                ? $this->client->updateById((string) $existingByExternalCode['id'], $payload)
-                : $existingByExternalCode;
-        }
-
-        return $this->client->create($payload);
-    }
-
-    /**
      * Записывает успешный результат синхронизации в `nomenclature_integrations`.
-     *
-     * @param  array<string, mixed>  $product
-     * @param  array<string, mixed>  $payload
      */
-    private function markSyncSuccess(NomenclatureIntegrationData $integration, array $product, array $payload, string $payloadHash): void
-    {
-        $externalId = $product['id'] ?? null;
-        $externalCode = $product['externalCode'] ?? ($payload['externalCode'] ?? null);
+    private function markSyncSuccess(
+        NomenclatureIntegrationData $integration,
+        MoySkladProductDTO $product,
+        MoySkladProductPayloadDTO $payload,
+        string $payloadHash,
+    ): void {
+        $externalId = $product->id;
+        $externalCode = $product->externalCode ?? $payload->externalCode;
 
         $this->integrationCommand->markSynced(
             integration: $integration,
-            externalId: is_string($externalId) ? $externalId : null,
-            externalCode: is_string($externalCode) ? $externalCode : null,
+            externalId: $externalId,
+            externalCode: $externalCode,
             payloadHash: $payloadHash,
         );
     }
@@ -239,70 +180,6 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
     private function markSyncFailure(NomenclatureIntegrationData $integration, Throwable $e): void
     {
         $this->integrationCommand->markFailed($integration, $e->getMessage());
-    }
-
-    /**
-     * Определяет id товара МойСклад для удаления по externalId, integration, externalCode или артикулу.
-     */
-    private function resolveDeleteProductId(int $nomenclatureId, string $partNumber, ?string $externalId, ?NomenclatureIntegrationData $integration): ?string
-    {
-        if (is_string($externalId) && $externalId !== '') {
-            return $externalId;
-        }
-
-        if (is_string($integration?->externalId) && $integration->externalId !== '') {
-            return $integration->externalId;
-        }
-
-        $externalCode = $this->mapper->externalCodeForNomenclatureId($nomenclatureId);
-        $foundByExternalCode = $this->client->findByExternalCode($externalCode);
-        $externalCodeId = is_array($foundByExternalCode) ? ($foundByExternalCode['id'] ?? null) : null;
-        if (is_string($externalCodeId) && $externalCodeId !== '') {
-            return $externalCodeId;
-        }
-
-        $foundByArticle = $this->client->findByArticle($partNumber);
-        $articleId = is_array($foundByArticle) ? ($foundByArticle['id'] ?? null) : null;
-
-        return is_string($articleId) && $articleId !== '' ? $articleId : null;
-    }
-
-    /**
-     * Извлекает id папки товара из meta.href.
-     *
-     * @param  array<string, mixed>  $productFolderMeta
-     */
-    private function resolveFolderId(array $productFolderMeta): ?string
-    {
-        $href = $productFolderMeta['meta']['href'] ?? null;
-        if (! is_string($href) || $href === '') {
-            return null;
-        }
-
-        $parts = parse_url($href);
-        $path = $parts['path'] ?? null;
-        if (! is_string($path) || $path === '') {
-            return null;
-        }
-
-        $segments = explode('/', trim($path, '/'));
-        $id = end($segments);
-
-        return is_string($id) && $id !== '' ? $id : null;
-    }
-
-    /**
-     * Проверяет принадлежность товара ожидаемой папке; без папки любой найденный товар подходит.
-     *
-     * @param  array<string, mixed>  $product
-     */
-    private function matchesFolder(array $product, ?string $folderId): bool
-    {
-        if ($folderId === null) {
-            return true;
-        }
-
-        return $this->client->productMatchesFolder($product, $folderId);
     }
 
     /**

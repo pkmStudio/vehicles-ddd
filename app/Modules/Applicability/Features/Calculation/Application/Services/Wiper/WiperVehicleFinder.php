@@ -82,7 +82,7 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
 
                 $sideData = $this->templates->vehicleWiperSideData($specification->details, $side->value);
 
-                return $this->checkAdapters($this->adapterList($sideData[$side->adapterField()] ?? []), $adapters);
+                return $this->checkAdapters($sideData->adapters($side), $adapters);
             })
             ->values();
     }
@@ -107,15 +107,6 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
         }
 
         return $result;
-    }
-
-    /** @return array<int, string> */
-    private function adapterList(mixed $value): array
-    {
-        $value = is_array($value) ? $value : [$value];
-        $value = array_map(static fn (mixed $adapter): string => trim((string) $adapter), $value);
-
-        return array_values(array_filter($value, static fn (string $adapter): bool => $adapter !== ''));
     }
 
     /** @param array<int, mixed> $values */

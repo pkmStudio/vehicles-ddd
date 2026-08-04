@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\MoySklad\Infrastructure\Clients;
 
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Clients\MoySkladProductClientInterface;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductDTO;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductFolderMetaDTO;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductPayloadDTO;
 use Illuminate\Support\Facades\Cache;
 use PkmStudio\MoySkladClient\Endpoints\ProductEndpoint;
 use PkmStudio\MoySkladClient\Endpoints\ProductFolderEndpoint;
@@ -25,33 +28,33 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
     /**
      * Делегирует поиск товара по артикулу в пакетный ProductEndpoint.
      */
-    public function findByArticle(string $article): ?array
+    public function findByArticle(string $article): ?MoySkladProductDTO
     {
-        return $this->products->findByArticle($article);
+        return $this->productFromArray($this->products->findByArticle($article));
     }
 
     /**
      * Делегирует поиск товара по externalCode в пакетный ProductEndpoint.
      */
-    public function findByExternalCode(string $externalCode): ?array
+    public function findByExternalCode(string $externalCode): ?MoySkladProductDTO
     {
-        return $this->products->findByExternalCode($externalCode);
+        return $this->productFromArray($this->products->findByExternalCode($externalCode));
     }
 
     /**
      * Делегирует создание товара в пакетный ProductEndpoint.
      */
-    public function create(array $payload): array
+    public function create(MoySkladProductPayloadDTO $payload): MoySkladProductDTO
     {
-        return $this->products->create($payload);
+        return MoySkladProductDTO::fromArray($this->products->create($payload->toArray()));
     }
 
     /**
      * Делегирует обновление товара по id в пакетный ProductEndpoint.
      */
-    public function updateById(string $id, array $payload): array
+    public function updateById(string $id, MoySkladProductPayloadDTO $payload): MoySkladProductDTO
     {
-        return $this->products->updateById($id, $payload);
+        return MoySkladProductDTO::fromArray($this->products->updateById($id, $payload->toArray()));
     }
 
     /**
@@ -65,15 +68,17 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
     /**
      * Создаёт/находит папку товара по имени и возвращает её meta-блок.
      */
-    public function ensureProductFolderMetaByName(string $name): array
+    public function ensureProductFolderMetaByName(string $name): MoySkladProductFolderMetaDTO
     {
         $resolveProductFolderMeta = fn (): array => $this->resolveProductFolderMetaByName($name);
 
-        return Cache::remember(
+        $meta = Cache::remember(
             'warehouse:moysklad:product_folder_meta:'.md5($name),
             (int) config('warehouse.moysklad.nomenclature_sync.product_folders.cache_ttl_seconds', 3600),
             $resolveProductFolderMeta,
         );
+
+        return is_array($meta) ? MoySkladProductFolderMetaDTO::fromArray($meta) : MoySkladProductFolderMetaDTO::empty();
     }
 
     /**
@@ -92,8 +97,16 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
     /**
      * Проверяет принадлежность товара ожидаемой папке через пакетный ProductFolderEndpoint.
      */
-    public function productMatchesFolder(array $product, string $folderId): bool
+    public function productMatchesFolder(MoySkladProductDTO $product, string $folderId): bool
     {
-        return $this->productFolders->containsProduct($product, $folderId);
+        return $this->productFolders->containsProduct($product->toArray(), $folderId);
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $product
+     */
+    private function productFromArray(?array $product): ?MoySkladProductDTO
+    {
+        return $product === null ? null : MoySkladProductDTO::fromArray($product);
     }
 }

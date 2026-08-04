@@ -6,6 +6,7 @@ namespace App\Modules\Applicability\Features\Calculation\Application\Services\Wi
 
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperLengthExtractorInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperLengthDTO;
+use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperNomenclatureDetailsDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\Enums\WiperKitPositionEnum;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\KitData;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\NomenclatureData;
@@ -27,16 +28,16 @@ final readonly class WiperLengthExtractor implements WiperLengthExtractorInterfa
     {
         $first = $this->wiperBySort($kit, 0);
         $isDoubleSku = $first->quantityInPak === 2;
+        $firstDetails = $this->wiperDetails($first);
 
         if ($isDoubleSku) {
-            $lengthMain = $first->details['length_main'] ?? null;
-            $lengthSecond = $first->details['length_second'] ?? null;
+            $lengthMain = $firstDetails->lengthMain();
+            $lengthSecond = $firstDetails->lengthSecond();
         } else {
             $second = $this->wiperBySort($kit, 1);
-            $mainField = $position === WiperKitPositionEnum::BACK ? 'length_rear' : 'length_main';
-            $secondField = $position === WiperKitPositionEnum::BACK ? 'length_rear' : 'length_main';
-            $lengthMain = $first->details[$mainField] ?? null;
-            $lengthSecond = $second->details[$secondField] ?? null;
+            $secondDetails = $this->wiperDetails($second);
+            $lengthMain = $this->lengthForPosition($firstDetails, $position);
+            $lengthSecond = $this->lengthForPosition($secondDetails, $position);
         }
 
         return new WiperLengthDTO(
@@ -49,10 +50,10 @@ final readonly class WiperLengthExtractor implements WiperLengthExtractorInterfa
     private function extractForOneWiper(KitData $kit, WiperKitPositionEnum $position): WiperLengthDTO
     {
         $wiper = $this->wiperBySort($kit, 0);
-        $field = $position === WiperKitPositionEnum::BACK ? 'length_rear' : 'length_main';
+        $details = $this->wiperDetails($wiper);
 
         return new WiperLengthDTO(
-            lengthMain: (int) ($wiper->details[$field] ?? null),
+            lengthMain: (int) $this->lengthForPosition($details, $position),
             lengthSecond: null,
             countWipers: 1,
         );
@@ -64,8 +65,8 @@ final readonly class WiperLengthExtractor implements WiperLengthExtractorInterfa
         $second = $this->wiperBySort($kit, 2);
 
         return new WiperLengthDTO(
-            lengthMain: (int) ($main->details['length_main'] ?? null),
-            lengthSecond: (int) ($second->details['length_main'] ?? null),
+            lengthMain: (int) $this->wiperDetails($main)->lengthMain(),
+            lengthSecond: (int) $this->wiperDetails($second)->lengthMain(),
             countWipers: 3,
         );
     }
@@ -79,5 +80,15 @@ final readonly class WiperLengthExtractor implements WiperLengthExtractorInterfa
         }
 
         throw new RuntimeException("Wiper nomenclature with sort {$sort} not found for kit {$kit->id}");
+    }
+
+    private function wiperDetails(NomenclatureData $nomenclature): WiperNomenclatureDetailsDTO
+    {
+        return WiperNomenclatureDetailsDTO::fromArray($nomenclature->details);
+    }
+
+    private function lengthForPosition(WiperNomenclatureDetailsDTO $details, WiperKitPositionEnum $position): ?int
+    {
+        return $position === WiperKitPositionEnum::BACK ? $details->lengthRear() : $details->lengthMain();
     }
 }
