@@ -6,7 +6,6 @@ namespace App\Modules\Templates\Application\Services\Presenters\Nomenclature;
 
 use App\Modules\Templates\Application\Traits\RendersNomenclatureMetrics;
 use App\Modules\Templates\Domain\Enums\PositionEnum;
-use App\Modules\Templates\Domain\Enums\Wiper\ConstructionEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\FrontAdapterTypeEnum;
 use App\Modules\Templates\Domain\ModelData\Nomenclature\WiperAdapterDetailsData;
 
@@ -17,14 +16,13 @@ final readonly class WiperAdapterDetailsPresenter
 
     public function headings(): array
     {
-        return ['Расположение', 'Конструкция', 'Тип крепления передних', ...$this->metricsHeadings()];
+        return ['Расположение', 'Тип крепления передних', ...$this->metricsHeadings()];
     }
 
     public function cells(WiperAdapterDetailsData $data): array
     {
         return [
             $this->nameToLabelCell(PositionEnum::class, $data->position),
-            $this->nameToLabelCell(ConstructionEnum::class, $data->construction),
             $this->namesToLabelString($data->adapterTypeFront, FrontAdapterTypeEnum::class),
             ...$this->metricsCells($data->metrics),
         ];

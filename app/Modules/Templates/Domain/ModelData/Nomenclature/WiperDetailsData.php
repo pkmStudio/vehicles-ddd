@@ -23,9 +23,9 @@ final class WiperDetailsData extends AbstractDetailsData
         public readonly string $category,
         public readonly string $construction,
         public readonly string $season,
-        public readonly int $lengthMain,
-        public readonly int $lengthSecond,
-        public readonly int $lengthRear,
+        public readonly ?int $lengthMain,
+        public readonly ?int $lengthSecond,
+        public readonly ?int $lengthRear,
         /** @var array<int, string> */
         public readonly array $adapterTypeFront,
         /** @var array<int, string> */

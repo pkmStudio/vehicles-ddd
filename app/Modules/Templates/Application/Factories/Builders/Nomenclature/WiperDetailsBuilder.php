@@ -6,6 +6,7 @@ namespace App\Modules\Templates\Application\Factories\Builders\Nomenclature;
 
 use App\Modules\Templates\Application\Factories\DetailsRowCursor;
 use App\Modules\Templates\Application\Traits\ParsesBooleanCells;
+use App\Modules\Templates\Domain\Contracts\EnumHelperInterface;
 use App\Modules\Templates\Domain\Enums\PositionEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\CategoryEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\ConstructionEnum;
@@ -13,6 +14,7 @@ use App\Modules\Templates\Domain\Enums\Wiper\FrontAdapterTypeEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\RearAdapterTypeEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\SeasonEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\SteeringCompatibilityEnum;
+use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use App\Modules\Templates\Domain\ModelData\Nomenclature\WiperDetailsData;
 
 /**
@@ -27,16 +29,28 @@ final readonly class WiperDetailsBuilder
 
     public function build(DetailsRowCursor $cursor): WiperDetailsData
     {
+        $position = $cursor->pullRequiredLabel(PositionEnum::class, 'Расположение')->name;
+        $category = $cursor->pullRequiredLabel(CategoryEnum::class, 'Категория')->name;
+        $construction = $cursor->pullRequiredLabel(ConstructionEnum::class, 'Конструкция')->name;
+        $season = $cursor->pullRequiredLabel(SeasonEnum::class, 'Сезон')->name;
+        $lengthMain = $cursor->pullIntCell();
+        $lengthSecond = $cursor->pullIntCell();
+        $lengthRear = $cursor->pullIntCell();
+
+        if ($lengthMain === null && $lengthRear === null) {
+            throw DetailsDataBuildException::requiredField('Длина водительской или длина задней');
+        }
+
         return new WiperDetailsData(
-            position: $cursor->pullRequiredLabel(PositionEnum::class, 'Расположение')->name,
-            category: $cursor->pullRequiredLabel(CategoryEnum::class, 'Категория')->name,
-            construction: $cursor->pullRequiredLabel(ConstructionEnum::class, 'Конструкция')->name,
-            season: $cursor->pullRequiredLabel(SeasonEnum::class, 'Сезон')->name,
-            lengthMain: $cursor->pullRequiredIntCell('Длина водительской'),
-            lengthSecond: $cursor->pullRequiredIntCell('Длина пассажирской'),
-            lengthRear: $cursor->pullRequiredIntCell('Длина задней'),
-            adapterTypeFront: $this->namesOf($cursor->pullRequiredMultiLabel(FrontAdapterTypeEnum::class, 'Тип крепления передних')),
-            adapterTypeRear: $this->namesOf($cursor->pullRequiredMultiLabel(RearAdapterTypeEnum::class, 'Тип крепления задней')),
+            position: $position,
+            category: $category,
+            construction: $construction,
+            season: $season,
+            lengthMain: $lengthMain,
+            lengthSecond: $lengthSecond,
+            lengthRear: $lengthRear,
+            adapterTypeFront: $this->namesOf($cursor->pullMultiLabel(FrontAdapterTypeEnum::class)),
+            adapterTypeRear: $this->namesOf($cursor->pullMultiLabel(RearAdapterTypeEnum::class)),
             coating: $cursor->pullRequiredStringCell('Покрытие'),
             wearSensor: $this->pullRequiredBoolLabel($cursor, 'Датчик износа'),
             spoiler: $this->pullRequiredBoolLabel($cursor, 'Спойлер'),
@@ -47,7 +61,7 @@ final readonly class WiperDetailsBuilder
     }
 
     /**
-     * @param  array<int, \App\Modules\Templates\Domain\Contracts\EnumHelperInterface>  $cases
+     * @param  array<int, EnumHelperInterface>  $cases
      * @return array<int, string>
      */
     private function namesOf(array $cases): array

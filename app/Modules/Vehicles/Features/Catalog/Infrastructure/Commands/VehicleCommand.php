@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\PartSpecificationCommandInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Modification;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\PartSpecification;

@@ -12,14 +12,13 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
  * Форма шаблона `wiperAdapter` (Nomenclature). Портируется декларативно 1-в-1 из
  * `WiperAdapterTemplate` dan-center, без тестового покрытия — подключение к реальному
  * Import/Export ещё не сделано. В отличие от `WiperDetailsData` — только передний адаптер, без
- * заднего и без сезона/конструкции щётки как таковой.
+ * заднего и без характеристик самой щётки.
  */
 #[MapName(SnakeCaseMapper::class)]
 final class WiperAdapterDetailsData extends AbstractDetailsData
 {
     public function __construct(
         public readonly string $position,
-        public readonly string $construction,
         /** @var array<int, string> */
         public readonly array $adapterTypeFront,
         public readonly NomenclatureMetricsData $metrics,

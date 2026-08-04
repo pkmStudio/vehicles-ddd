@@ -15,5 +15,4 @@ interface EngineRepositoryInterface
      * Возвращает первый Data-снимок двигателей по внешнему идентификатору.
      */
     public function findByEngId(int $engId): ?EngineData;
-
 }
