@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Applicability\Features\Import\Application\Factories;
+namespace App\Modules\Applicability\Features\Import\Infrastructure\Factories;
 
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Factories\ImportFileFactoryInterface;
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Imports\FileImportInterface;

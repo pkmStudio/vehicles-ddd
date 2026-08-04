@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * Принимает RabbitMQ payload запроса Warehouse-импорта и передаёт его в UseCase. Один Handler на
  * оба типа (Nomenclature/PackDimension) — конкретный Excel-адаптер выбирается по data.import_type
- * (см. Application\Factories\ImportFileFactory).
+ * (см. Infrastructure\Factories\ImportFileFactory).
  */
 final readonly class ImportFileRequestedHandler
 {

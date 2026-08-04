@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Vehicles\Features\Export\Application\Factories;
+namespace App\Modules\Vehicles\Features\Export\Infrastructure\Factories;
 
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\FileExportInterface;
@@ -11,16 +11,10 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Factories\ExportFileFa
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
 
 /**
- * Маппит тип экспорта на конкретный Excel-адаптер. $isAllow — бизнес-фильтр,
- * применим только к Vehicle (см. VehicleMultiSheetExport); резолвится через
- * makeWith, а не конструкторную инъекцию, потому что это runtime-параметр
- * конкретного запроса, а не постоянная зависимость (см. sub-sheet'ы Import).
+ * Маппит тип экспорта на конкретный Excel-адаптер на Infrastructure boundary.
  */
 final readonly class ExportFileFactory implements ExportFileFactoryInterface
 {
-    /**
-     * Выбирает Excel-адаптер экспорта по типу каталога.
-     */
     public function make(ExportTypeEnum $type, bool $isAllow = false): FileExportInterface
     {
         return match ($type) {

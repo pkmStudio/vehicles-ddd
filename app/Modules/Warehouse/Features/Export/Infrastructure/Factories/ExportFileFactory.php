@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Warehouse\Features\Export\Application\Factories;
+namespace App\Modules\Warehouse\Features\Export\Infrastructure\Factories;
 
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\FileExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\KitExportInterface;
@@ -16,13 +16,10 @@ use App\Modules\Warehouse\Features\Export\Domain\Enums\ExportTypeEnum;
 use InvalidArgumentException;
 
 /**
- * Выбирает Excel-адаптер Warehouse-экспорта по типу внешнего запроса.
+ * Выбирает Excel-адаптер Warehouse-экспорта на Infrastructure boundary.
  */
 final readonly class ExportFileFactory implements ExportFileFactoryInterface
 {
-    /**
-     * Возвращает экспортный адаптер для конкретного типа Warehouse-каталога.
-     */
     public function make(
         ExportTypeEnum $type,
         ?int $typeId = null,
@@ -31,37 +28,22 @@ final readonly class ExportFileFactory implements ExportFileFactoryInterface
     ): FileExportInterface {
         return match ($type) {
             ExportTypeEnum::NomenclatureByType => app()->makeWith(
-                abstract: NomenclatureByTypeExportInterface::class,
-                parameters: [
-                    'typeId' => $typeId ?? throw new InvalidArgumentException('type_id обязателен для экспорта номенклатуры'),
-                ],
+                NomenclatureByTypeExportInterface::class,
+                ['typeId' => $typeId ?? throw new InvalidArgumentException('type_id обязателен для экспорта номенклатуры')],
             ),
-            ExportTypeEnum::PackDimension => app(
-                abstract: PackDimensionExportInterface::class,
-            ),
-            ExportTypeEnum::Kit => $this->kitExport(
-                filters: $kitFilters,
-                sort: $kitSort,
-            ),
-            ExportTypeEnum::WiperAdapterAudit => app(
-                abstract: WiperAdapterAuditExportInterface::class,
-            ),
+            ExportTypeEnum::PackDimension => app(PackDimensionExportInterface::class),
+            ExportTypeEnum::Kit => $this->kitExport($kitFilters, $kitSort),
+            ExportTypeEnum::WiperAdapterAudit => app(WiperAdapterAuditExportInterface::class),
         };
     }
 
-    /**
-     * Создаёт адаптер Kit Export с явными фильтрами и сортировкой.
-     */
     private function kitExport(?KitExportFiltersDTO $filters, ?KitExportSortDTO $sort): FileExportInterface
     {
-        $filters ??= new KitExportFiltersDTO;
-        $sort ??= new KitExportSortDTO;
-
         return app()->makeWith(
-            abstract: KitExportInterface::class,
-            parameters: [
-                'filters' => $filters,
-                'sort' => $sort,
+            KitExportInterface::class,
+            [
+                'filters' => $filters ?? new KitExportFiltersDTO,
+                'sort' => $sort ?? new KitExportSortDTO,
             ],
         );
     }

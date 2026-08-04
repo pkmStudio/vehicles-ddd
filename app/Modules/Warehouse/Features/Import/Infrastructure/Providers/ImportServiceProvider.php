@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Import\Infrastructure\Providers;
 
-use App\Modules\Warehouse\Features\Import\Application\Factories\ImportFileFactory;
 use App\Modules\Warehouse\Features\Import\Application\Services\Kit\ImportKitFromRowService;
 use App\Modules\Warehouse\Features\Import\Application\Services\Nomenclature\ImportNomenclatureFromRowService;
 use App\Modules\Warehouse\Features\Import\Application\Services\PackDimension\ImportPackDimensionFromRowService;
@@ -44,6 +43,7 @@ use App\Modules\Warehouse\Features\Import\Infrastructure\Clients\TemplatesClient
 use App\Modules\Warehouse\Features\Import\Infrastructure\Commands\KitCommand;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Commands\NomenclatureCommand;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Commands\PackDimensionCommand;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Factories\ImportFileFactory;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Kit\KitImport;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Nomenclature\NomenclatureImport;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\PackDimension\PackDimensionImport;
