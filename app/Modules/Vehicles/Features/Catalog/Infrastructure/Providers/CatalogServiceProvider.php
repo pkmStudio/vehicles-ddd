@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Providers;
 
-use App\Modules\Vehicles\Features\Catalog\Application\Factories\EngineMutationRequestFactory;
-use App\Modules\Vehicles\Features\Catalog\Application\Factories\ManufacturerMutationRequestFactory;
-use App\Modules\Vehicles\Features\Catalog\Application\Factories\ModificationMutationRequestFactory;
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\PartSpecificationMutationRequestFactory;
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\PartSpecificationOwnerResolverFactory;
-use App\Modules\Vehicles\Features\Catalog\Application\Factories\VehicleMutationRequestFactory;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\CatalogCascadeDeleteService;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\CatalogMutationResultService;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification\EnginePartSpecificationOwnerResolver;
@@ -50,12 +46,8 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\Manufacturer
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\VehicleCommandInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\EngineMutationRequestFactoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\ManufacturerMutationRequestFactoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\ModificationMutationRequestFactoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\PartSpecificationMutationRequestFactoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\PartSpecificationOwnerResolverFactoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\VehicleMutationRequestFactoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ModificationRepositoryInterface;
@@ -151,10 +143,6 @@ final class CatalogServiceProvider extends ServiceProvider
     ];
 
     private const array FACTORY_BINDINGS = [
-        VehicleMutationRequestFactoryInterface::class => VehicleMutationRequestFactory::class,
-        ManufacturerMutationRequestFactoryInterface::class => ManufacturerMutationRequestFactory::class,
-        EngineMutationRequestFactoryInterface::class => EngineMutationRequestFactory::class,
-        ModificationMutationRequestFactoryInterface::class => ModificationMutationRequestFactory::class,
         PartSpecificationMutationRequestFactoryInterface::class => PartSpecificationMutationRequestFactory::class,
         PartSpecificationOwnerResolverFactoryInterface::class => PartSpecificationOwnerResolverFactory::class,
     ];

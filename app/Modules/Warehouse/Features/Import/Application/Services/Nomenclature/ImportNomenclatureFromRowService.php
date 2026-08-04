@@ -14,6 +14,8 @@ use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationE
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
+use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
+use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use Illuminate\Support\Collection;
 
 /**
@@ -62,8 +64,13 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
      * @param  Collection<int, TypeData>  $types
      * @param  Collection<int, BrandData>  $brands
      */
-    public function importFromRow(array $row, Collection $types, Collection $brands): NomenclatureData
-    {
+    public function importFromRow(
+        array $row,
+        Collection $types,
+        Collection $brands,
+        ?int $userId = null,
+        ?string $operationId = null,
+    ): NomenclatureData {
         $typeNameKey = fn (TypeData $type): string => mb_strtoupper(trim($type->name));
         $brandNameKey = fn (BrandData $brand): string => mb_strtoupper(trim($brand->name));
 
@@ -123,17 +130,57 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
         if ($id !== null) {
             $existingById = $this->nomenclatures->findById($id);
 
-            return $existingById === null
-                ? $this->command->createWithId($data)
-                : $this->command->updateById($data);
+            if ($existingById === null) {
+                $created = $this->command->createWithId($data);
+                $this->dispatchMutationEvent($created, wasExisting: false, userId: $userId, operationId: $operationId);
+
+                return $created;
+            }
+
+            $updated = $this->command->updateById($data);
+            $this->dispatchMutationEvent($updated, wasExisting: true, userId: $userId, operationId: $operationId);
+
+            return $updated;
         }
 
         $existing = $this->nomenclatures->findByPartNumber($data->partNumber);
         if ($existing !== null) {
-            return $this->command->updateById($this->withId($data, $existing->id));
+            $updated = $this->command->updateById($this->withId($data, $existing->id));
+            $this->dispatchMutationEvent($updated, wasExisting: true, userId: $userId, operationId: $operationId);
+
+            return $updated;
         }
 
-        return $this->command->create($data);
+        $created = $this->command->create($data);
+        $this->dispatchMutationEvent($created, wasExisting: false, userId: $userId, operationId: $operationId);
+
+        return $created;
+    }
+
+    private function dispatchMutationEvent(
+        NomenclatureData $nomenclature,
+        bool $wasExisting,
+        ?int $userId,
+        ?string $operationId,
+    ): void {
+        $eventUserId = $userId ?? 0;
+        $eventOperationId = $operationId ?? 'warehouse-nomenclature-import';
+
+        if ($wasExisting) {
+            event(new NomenclatureUpdated(
+                userId: $eventUserId,
+                operationId: $eventOperationId,
+                nomenclature: $nomenclature->toArray(),
+            ));
+
+            return;
+        }
+
+        event(new NomenclatureCreated(
+            userId: $eventUserId,
+            operationId: $eventOperationId,
+            nomenclature: $nomenclature->toArray(),
+        ));
     }
 
     /**

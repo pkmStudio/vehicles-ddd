@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\BrandMutationRequestFactoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\StartBrandMutationUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandMutationRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\BrandMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
 use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\BrandMutationRequested;
@@ -20,7 +20,6 @@ final readonly class BrandMutationRequestedHandler
      */
     public function __construct(
         private StartBrandMutationUseCaseInterface $useCase,
-        private BrandMutationRequestFactoryInterface $factory,
         private BrandMutationPayloadValidator $validator,
     ) {}
 
@@ -46,7 +45,7 @@ final readonly class BrandMutationRequestedHandler
         }
 
         $payload = BrandMutationRequested::fromArray($validator->validated())->toArray();
-        $requestDto = $this->factory->make($payload);
+        $requestDto = BrandMutationRequestDTO::fromArray($payload);
         $this->useCase->execute($requestDto);
     }
 }

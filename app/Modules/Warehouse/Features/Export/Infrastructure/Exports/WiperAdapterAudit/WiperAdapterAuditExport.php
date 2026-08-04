@@ -7,6 +7,7 @@ namespace App\Modules\Warehouse\Features\Export\Infrastructure\Exports\WiperAdap
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Clients\WiperAdapterAuditClientInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\WiperAdapterAuditExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportRunContextDTO;
+use App\Modules\Warehouse\Features\Export\Domain\DTOs\WiperAdapterAudit\WiperAdapterAuditExportRowDTO;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Concerns\StylesExportWorksheet;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -66,6 +67,8 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
 
     /**
      * Возвращает готовые строки отчёта для maatwebsite/excel.
+     *
+     * @return Collection<int, WiperAdapterAuditExportRowDTO>
      */
     public function collection(): Collection
     {
@@ -75,7 +78,7 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
     /**
      * Мапит одну строку отчёта в плоский массив значений Excel.
      *
-     * @param  mixed  $row
+     * @param  WiperAdapterAuditExportRowDTO  $row
      * @return array<int, mixed>
      */
     public function map($row): array

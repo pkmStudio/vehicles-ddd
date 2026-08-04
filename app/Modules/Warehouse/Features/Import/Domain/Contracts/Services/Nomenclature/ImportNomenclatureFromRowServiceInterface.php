@@ -21,5 +21,11 @@ interface ImportNomenclatureFromRowServiceInterface
      * @param  Collection<int, TypeData>  $types
      * @param  Collection<int, BrandData>  $brands
      */
-    public function importFromRow(array $row, Collection $types, Collection $brands): NomenclatureData;
+    public function importFromRow(
+        array $row,
+        Collection $types,
+        Collection $brands,
+        ?int $userId = null,
+        ?string $operationId = null,
+    ): NomenclatureData;
 }

@@ -11,9 +11,9 @@ use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperAdapte
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperLengthDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperNomenclatureDetailsDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\Enums\WiperKitPositionEnum;
+use App\Modules\Applicability\Features\Calculation\Domain\Exceptions\InvalidWiperKitDataException;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\KitData;
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
-use RuntimeException;
 
 final readonly class WiperDataExtractor implements WiperDataExtractorInterface
 {
@@ -38,7 +38,7 @@ final readonly class WiperDataExtractor implements WiperDataExtractorInterface
         }
 
         if ($positions === []) {
-            throw new RuntimeException("No wiper position found for kit {$kit->id}");
+            throw InvalidWiperKitDataException::missingWiperPosition($kit->id);
         }
 
         if (isset($positions[WiperKitPositionEnum::BACK->value])) {

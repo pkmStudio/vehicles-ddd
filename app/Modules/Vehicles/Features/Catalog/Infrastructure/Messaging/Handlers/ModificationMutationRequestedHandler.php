@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\ModificationMutationRequestFactoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\StartModificationMutationUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\ModificationMutationRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validators\ModificationMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
 use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Mutation\DTO\ModificationMutationRequested;
@@ -20,7 +20,6 @@ final readonly class ModificationMutationRequestedHandler
      */
     public function __construct(
         private StartModificationMutationUseCaseInterface $useCase,
-        private ModificationMutationRequestFactoryInterface $factory,
         private ModificationMutationPayloadValidator $validator,
     ) {}
 
@@ -41,7 +40,7 @@ final readonly class ModificationMutationRequestedHandler
         }
 
         $payload = ModificationMutationRequested::fromArray($validator->validated())->toArray();
-        $request = $this->factory->make($payload);
+        $request = ModificationMutationRequestDTO::fromArray($payload);
         $this->useCase->execute($request);
     }
 }

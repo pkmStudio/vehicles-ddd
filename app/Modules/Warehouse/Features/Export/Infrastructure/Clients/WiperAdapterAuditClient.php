@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Export\Infrastructure\Clients;
 
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Clients\WiperAdapterAuditClientInterface;
+use App\Modules\Warehouse\Features\Export\Domain\DTOs\WiperAdapterAudit\WiperAdapterAuditExportRowDTO;
 use App\Modules\Warehouse\Features\WiperAdapterAudit\Domain\Contracts\Services\WiperAdapterAuditServiceInterface;
+use App\Modules\Warehouse\Features\WiperAdapterAudit\Domain\DTOs\WiperAdapterAuditRowDTO;
 use Illuminate\Support\Collection;
 
 /**
@@ -23,10 +25,16 @@ final readonly class WiperAdapterAuditClient implements WiperAdapterAuditClientI
     /**
      * Возвращает строки отчёта аудита адаптеров.
      *
-     * @return Collection<int, mixed>
+     * @return Collection<int, WiperAdapterAuditExportRowDTO>
      */
     public function rows(): Collection
     {
-        return $this->audit->rows();
+        return $this->audit->rows()
+            ->map(fn (WiperAdapterAuditRowDTO $row): WiperAdapterAuditExportRowDTO => new WiperAdapterAuditExportRowDTO(
+                kitId: $row->kitId,
+                kit: $row->kit,
+                mismatchedAdapters: $row->mismatchedAdapters,
+                place: $row->place,
+            ));
     }
 }

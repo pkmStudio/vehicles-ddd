@@ -28,11 +28,11 @@ final readonly class SyncUpdatedNomenclatureListener
             return;
         }
 
-        $id = $event->nomenclature['id'] ?? null;
-        if (! is_numeric($id)) {
+        $id = $event->nomenclature->id;
+        if ($id === null) {
             return;
         }
 
-        $this->dispatcher->dispatchSync((int) $id);
+        $this->dispatcher->dispatchSync($id);
     }
 }

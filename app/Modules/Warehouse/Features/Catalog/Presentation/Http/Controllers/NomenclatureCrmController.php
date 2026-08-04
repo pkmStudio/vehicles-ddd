@@ -7,10 +7,10 @@ namespace App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\ListNomenclaturesForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\SearchNomenclaturesForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\ShowNomenclatureForCrmUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureCrmReadQueryDTO;
+use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Factories\NomenclatureCrmReadQueryFactory;
+use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Presenters\NomenclatureCrmReadPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -24,6 +24,8 @@ final readonly class NomenclatureCrmController
         private ListNomenclaturesForCrmUseCaseInterface $listNomenclatures,
         private ShowNomenclatureForCrmUseCaseInterface $showNomenclature,
         private SearchNomenclaturesForCrmUseCaseInterface $searchNomenclatures,
+        private NomenclatureCrmReadQueryFactory $queryFactory,
+        private NomenclatureCrmReadPresenter $presenter,
     ) {}
 
     /**
@@ -35,10 +37,10 @@ final readonly class NomenclatureCrmController
             return $response;
         }
 
-        $query = NomenclatureCrmReadQueryDTO::fromArray($request->query());
+        $query = $this->queryFactory->make($request);
         $page = $this->listNomenclatures->execute($query);
 
-        return response()->json($page->toArray());
+        return response()->json($this->presenter->page($page));
     }
 
     /**
@@ -76,7 +78,7 @@ final readonly class NomenclatureCrmController
             limit: $limit,
         );
 
-        return response()->json(['data' => $this->dtoCollectionToArray($items)]);
+        return response()->json(['data' => $this->presenter->collection($items)]);
     }
 
     /**
@@ -98,7 +100,7 @@ final readonly class NomenclatureCrmController
             limit: $limit,
         );
 
-        return response()->json(['data' => $this->dtoCollectionToArray($types)]);
+        return response()->json(['data' => $this->presenter->collection($types)]);
     }
 
     /**
@@ -120,19 +122,7 @@ final readonly class NomenclatureCrmController
             limit: $limit,
         );
 
-        return response()->json(['data' => $this->dtoCollectionToArray($brands)]);
-    }
-
-    /**
-     * @param  Collection<int, mixed>  $items
-     * @return list<array<string, mixed>>
-     */
-    private function dtoCollectionToArray(Collection $items): array
-    {
-        return $items
-            ->map(fn (mixed $item): array => $item->toArray())
-            ->values()
-            ->all();
+        return response()->json(['data' => $this->presenter->collection($brands)]);
     }
 
     /**

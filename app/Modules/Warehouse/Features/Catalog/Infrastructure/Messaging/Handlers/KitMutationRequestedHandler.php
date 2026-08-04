@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\KitMutationRequestFactoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\StartKitMutationUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitMutationRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\KitMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
 use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\KitMutationRequested;
@@ -20,7 +20,6 @@ final readonly class KitMutationRequestedHandler
      */
     public function __construct(
         private StartKitMutationUseCaseInterface $useCase,
-        private KitMutationRequestFactoryInterface $factory,
         private KitMutationPayloadValidator $validator,
     ) {}
 
@@ -46,7 +45,7 @@ final readonly class KitMutationRequestedHandler
         }
 
         $payload = KitMutationRequested::fromArray($validator->validated())->toArray();
-        $requestDto = $this->factory->make($payload);
+        $requestDto = KitMutationRequestDTO::fromArray($payload);
         $this->useCase->execute($requestDto);
     }
 }

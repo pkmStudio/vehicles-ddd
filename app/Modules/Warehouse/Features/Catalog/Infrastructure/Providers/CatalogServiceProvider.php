@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Providers;
 
-use App\Modules\Warehouse\Features\Catalog\Application\Factories\BrandMutationRequestFactory;
-use App\Modules\Warehouse\Features\Catalog\Application\Factories\KitMutationRequestFactory;
-use App\Modules\Warehouse\Features\Catalog\Application\Factories\NomenclatureMutationRequestFactory;
-use App\Modules\Warehouse\Features\Catalog\Application\Factories\PackDimensionMutationRequestFactory;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogCascadeDeleteService;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogMutationResultService;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\CreateBrandUseCase;
@@ -34,10 +30,6 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\BrandComman
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\PackDimensionCommandInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\BrandMutationRequestFactoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\KitMutationRequestFactoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\NomenclatureMutationRequestFactoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\PackDimensionMutationRequestFactoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmRepositoryInterface;
@@ -109,13 +101,6 @@ final class CatalogServiceProvider extends ServiceProvider
         DeleteKitUseCaseInterface::class => DeleteKitUseCase::class,
     ];
 
-    private const array FACTORY_BINDINGS = [
-        BrandMutationRequestFactoryInterface::class => BrandMutationRequestFactory::class,
-        NomenclatureMutationRequestFactoryInterface::class => NomenclatureMutationRequestFactory::class,
-        PackDimensionMutationRequestFactoryInterface::class => PackDimensionMutationRequestFactory::class,
-        KitMutationRequestFactoryInterface::class => KitMutationRequestFactory::class,
-    ];
-
     private const array COMMAND_BINDINGS = [
         BrandCommandInterface::class => BrandCommand::class,
         NomenclatureCommandInterface::class => NomenclatureCommand::class,
@@ -147,7 +132,7 @@ final class CatalogServiceProvider extends ServiceProvider
      * Регистрирует все биндинги фичи Warehouse Catalog в контейнере.
      *
      * Шаги:
-     * 1) Зарегистрировать use cases, factories и commands CRUD-сценариев.
+     * 1) Зарегистрировать use cases и commands CRUD-сценариев.
      * 2) Зарегистрировать repositories, services и outbound notification adapter.
      */
     public function register(): void
@@ -167,13 +152,6 @@ final class CatalogServiceProvider extends ServiceProvider
         }
 
         foreach (self::REPOSITORY_BINDINGS as $interface => $implementation) {
-            $this->app->bind(
-                abstract: $interface,
-                concrete: $implementation,
-            );
-        }
-
-        foreach (self::FACTORY_BINDINGS as $interface => $implementation) {
             $this->app->bind(
                 abstract: $interface,
                 concrete: $implementation,

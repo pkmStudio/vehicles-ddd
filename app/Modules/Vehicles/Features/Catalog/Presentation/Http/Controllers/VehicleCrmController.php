@@ -8,10 +8,10 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehiclesForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\SearchVehiclesForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ShowVehicleForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
+use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Factories\VehicleCrmReadQueryFactory;
+use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Presenters\VehicleCrmReadPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -27,6 +27,8 @@ final readonly class VehicleCrmController
         private ShowVehicleForCrmUseCaseInterface $showVehicle,
         private SearchVehiclesForCrmUseCaseInterface $searchVehicles,
         private ListVehicleCrmOptionsUseCaseInterface $vehicleOptions,
+        private VehicleCrmReadQueryFactory $queryFactory,
+        private VehicleCrmReadPresenter $presenter,
     ) {}
 
     /**
@@ -38,12 +40,10 @@ final readonly class VehicleCrmController
             return $response;
         }
 
-        $query = VehicleCrmReadQueryDTO::fromArray($request->query());
+        $query = $this->queryFactory->make($request);
         $page = $this->listVehicles->execute($query);
 
-        return response()->json(
-            $page->toArray(),
-        );
+        return response()->json($this->presenter->page($page));
     }
 
     /**
@@ -61,7 +61,7 @@ final readonly class VehicleCrmController
             return response()->json(['message' => 'Vehicle not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json(['data' => $vehicle->toArray()]);
+        return response()->json(['data' => $this->presenter->detail($vehicle)]);
     }
 
     /**
@@ -81,7 +81,7 @@ final readonly class VehicleCrmController
             limit: $limit,
         );
 
-        return response()->json(['data' => $this->dtoCollectionToArray($items)]);
+        return response()->json(['data' => $this->presenter->collection($items)]);
     }
 
     /**
@@ -95,7 +95,7 @@ final readonly class VehicleCrmController
 
         $features = $this->vehicleOptions->features();
 
-        return response()->json(['data' => $this->dtoCollectionToArray($features)]);
+        return response()->json(['data' => $this->presenter->collection($features)]);
     }
 
     /**
@@ -110,7 +110,7 @@ final readonly class VehicleCrmController
         $featureId = (int) $request->integer('feature_id');
         $featureValues = $this->vehicleOptions->featureValues($featureId);
 
-        return response()->json(['data' => $this->dtoCollectionToArray($featureValues)]);
+        return response()->json(['data' => $this->presenter->collection($featureValues)]);
     }
 
     /**
@@ -124,7 +124,7 @@ final readonly class VehicleCrmController
 
         $detailTemplates = $this->vehicleOptions->detailTemplates();
 
-        return response()->json(['data' => $this->dtoCollectionToArray($detailTemplates)]);
+        return response()->json(['data' => $this->presenter->collection($detailTemplates)]);
     }
 
     /**
@@ -147,21 +147,7 @@ final readonly class VehicleCrmController
             limit: $limit,
         );
 
-        return response()->json(['data' => $this->dtoCollectionToArray($manufacturers)]);
-    }
-
-    /**
-     * Преобразует коллекцию CRM DTO в публичный JSON payload.
-     *
-     * @param  Collection<int, mixed>  $items
-     * @return list<array<string, mixed>>
-     */
-    private function dtoCollectionToArray(Collection $items): array
-    {
-        return $items
-            ->map(fn (mixed $item): array => $item->toArray())
-            ->values()
-            ->all();
+        return response()->json(['data' => $this->presenter->collection($manufacturers)]);
     }
 
     /**

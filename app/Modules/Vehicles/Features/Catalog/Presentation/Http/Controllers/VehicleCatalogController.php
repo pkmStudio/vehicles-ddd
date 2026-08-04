@@ -8,9 +8,9 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Manu
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ListVehicleModificationsForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ShowModificationForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Vehicle\ListManufacturerVehiclesForCatalogUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Presenters\VehicleCatalogPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -26,6 +26,7 @@ final readonly class VehicleCatalogController
         private ListManufacturerVehiclesForCatalogUseCaseInterface $listVehicles,
         private ListVehicleModificationsForCatalogUseCaseInterface $listModifications,
         private ShowModificationForCatalogUseCaseInterface $showModification,
+        private VehicleCatalogPresenter $presenter,
     ) {}
 
     /**
@@ -38,7 +39,7 @@ final readonly class VehicleCatalogController
         }
 
         return response()->json([
-            'data' => $this->dtoCollectionToArray($this->listManufacturers->execute()),
+            'data' => $this->presenter->collection($this->listManufacturers->execute()),
         ]);
     }
 
@@ -57,7 +58,7 @@ final readonly class VehicleCatalogController
             return response()->json(['message' => 'Manufacturer not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json(['data' => $this->dtoCollectionToArray($vehicles)]);
+        return response()->json(['data' => $this->presenter->collection($vehicles)]);
     }
 
     /**
@@ -75,7 +76,7 @@ final readonly class VehicleCatalogController
             return response()->json(['message' => 'Vehicle not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json(['data' => $this->dtoCollectionToArray($modifications)]);
+        return response()->json(['data' => $this->presenter->collection($modifications)]);
     }
 
     /**
@@ -93,21 +94,7 @@ final readonly class VehicleCatalogController
             return response()->json(['message' => 'Modification not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json(['data' => $context->toArray()]);
-    }
-
-    /**
-     * Преобразует коллекцию DTO в публичный JSON payload.
-     *
-     * @param  Collection<int, mixed>  $items
-     * @return list<array<string, mixed>>
-     */
-    private function dtoCollectionToArray(Collection $items): array
-    {
-        return $items
-            ->map(fn (mixed $item): array => $item->toArray())
-            ->values()
-            ->all();
+        return response()->json(['data' => $this->presenter->modificationContext($context)]);
     }
 
     /**

@@ -8,10 +8,10 @@ use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wip
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperLengthDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper\WiperNomenclatureDetailsDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\Enums\WiperKitPositionEnum;
+use App\Modules\Applicability\Features\Calculation\Domain\Exceptions\InvalidWiperKitDataException;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\KitData;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\NomenclatureData;
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
-use RuntimeException;
 
 final readonly class WiperLengthExtractor implements WiperLengthExtractorInterface
 {
@@ -79,7 +79,7 @@ final readonly class WiperLengthExtractor implements WiperLengthExtractorInterfa
             }
         }
 
-        throw new RuntimeException("Wiper nomenclature with sort {$sort} not found for kit {$kit->id}");
+        throw InvalidWiperKitDataException::missingWiperBySort($kit->id, $sort);
     }
 
     private function wiperDetails(NomenclatureData $nomenclature): WiperNomenclatureDetailsDTO

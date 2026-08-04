@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\PackDimensionMutationRequestFactoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\StartPackDimensionMutationUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\PackDimensionMutationRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\PackDimensionMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
 use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\PackDimensionMutationRequested;
@@ -20,7 +20,6 @@ final readonly class PackDimensionMutationRequestedHandler
      */
     public function __construct(
         private StartPackDimensionMutationUseCaseInterface $useCase,
-        private PackDimensionMutationRequestFactoryInterface $factory,
         private PackDimensionMutationPayloadValidator $validator,
     ) {}
 
@@ -46,7 +45,7 @@ final readonly class PackDimensionMutationRequestedHandler
         }
 
         $payload = PackDimensionMutationRequested::fromArray($validator->validated())->toArray();
-        $requestDto = $this->factory->make($payload);
+        $requestDto = PackDimensionMutationRequestDTO::fromArray($payload);
         $this->useCase->execute($requestDto);
     }
 }

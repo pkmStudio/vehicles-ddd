@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\NomenclatureMutationRequestFactoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\StartNomenclatureMutationUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureMutationRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\NomenclatureMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
 use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\NomenclatureMutationRequested;
@@ -20,7 +20,6 @@ final readonly class NomenclatureMutationRequestedHandler
      */
     public function __construct(
         private StartNomenclatureMutationUseCaseInterface $useCase,
-        private NomenclatureMutationRequestFactoryInterface $factory,
         private NomenclatureMutationPayloadValidator $validator,
     ) {}
 
@@ -46,7 +45,7 @@ final readonly class NomenclatureMutationRequestedHandler
         }
 
         $payload = NomenclatureMutationRequested::fromArray($validator->validated())->toArray();
-        $requestDto = $this->factory->make($payload);
+        $requestDto = NomenclatureMutationRequestDTO::fromArray($payload);
         $this->useCase->execute($requestDto);
     }
 }

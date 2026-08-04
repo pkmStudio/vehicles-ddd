@@ -7,15 +7,12 @@ namespace App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Nomenclat
 use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\BrandRepositoryInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature\ImportNomenclatureFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\NomenclatureImportCompleted;
 use App\Modules\Warehouse\Features\Import\Domain\Exceptions\WarehouseImportException;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Traits\CachesImportFailures;
-use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
-use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
@@ -52,8 +49,6 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
 
     private ?BrandRepositoryInterface $brands = null;
 
-    private ?NomenclatureRepositoryInterface $nomenclatures = null;
-
     /**
      * Получает построчный сервис импорта и справочники типов/брендов.
      */
@@ -61,12 +56,10 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
         ImportNomenclatureFromRowServiceInterface $service,
         TypeRepositoryInterface $types,
         BrandRepositoryInterface $brands,
-        NomenclatureRepositoryInterface $nomenclatures,
     ) {
         $this->service = $service;
         $this->types = $types;
         $this->brands = $brands;
-        $this->nomenclatures = $nomenclatures;
     }
 
     /**
@@ -142,15 +135,16 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
 
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
-            $id = isset($rowValues[0]) && trim((string) $rowValues[0]) !== '' ? (int) trim((string) $rowValues[0]) : null;
             $partNumber = trim((string) ($rowValues[5] ?? ''));
-            $wasExisting = $id !== null
-                ? $this->nomenclatures()->findById($id) !== null
-                : ($partNumber !== '' && $this->nomenclatures()->findByPartNumber($partNumber) !== null);
 
             try {
-                $nomenclature = $this->service()->importFromRow($rowValues, $types, $brands);
-                $this->dispatchNomenclatureMutationEvent($nomenclature->toArray(), $wasExisting);
+                $this->service()->importFromRow(
+                    row: $rowValues,
+                    types: $types,
+                    brands: $brands,
+                    userId: $this->userId,
+                    operationId: $this->operationId,
+                );
             } catch (WarehouseImportException|DetailsDataBuildException $e) {
                 $failure = new Failure(
                     row: $indexRow + $this->startRow(),
@@ -218,33 +212,6 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
         ));
     }
 
-    /**
-     * Диспатчит публичный факт изменения номенклатуры для внешних фич, например MoySklad.
-     *
-     * @param  array<string, mixed>  $nomenclature
-     */
-    private function dispatchNomenclatureMutationEvent(array $nomenclature, bool $wasExisting): void
-    {
-        $userId = $this->userId ?? 0;
-        $operationId = $this->operationId ?? 'warehouse-nomenclature-import';
-
-        if ($wasExisting) {
-            event(new NomenclatureUpdated(
-                userId: $userId,
-                operationId: $operationId,
-                nomenclature: $nomenclature,
-            ));
-
-            return;
-        }
-
-        event(new NomenclatureCreated(
-            userId: $userId,
-            operationId: $operationId,
-            nomenclature: $nomenclature,
-        ));
-    }
-
     private function service(): ImportNomenclatureFromRowServiceInterface
     {
         return $this->service ??= app(ImportNomenclatureFromRowServiceInterface::class);
@@ -258,10 +225,5 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     private function brands(): BrandRepositoryInterface
     {
         return $this->brands ??= app(BrandRepositoryInterface::class);
-    }
-
-    private function nomenclatures(): NomenclatureRepositoryInterface
-    {
-        return $this->nomenclatures ??= app(NomenclatureRepositoryInterface::class);
     }
 }
