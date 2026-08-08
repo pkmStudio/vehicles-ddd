@@ -11,11 +11,11 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\Nomencla
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureCrmReadQueryDTO;
 use Illuminate\Support\Collection;
 
-interface NomenclatureCrmReadRepositoryInterface
+interface NomenclatureCrmRepositoryInterface
 {
     public function paginate(NomenclatureCrmReadQueryDTO $query): NomenclatureCrmPageDTO;
 
-    public function find(int $id): ?NomenclatureCrmListItemDTO;
+    public function findById(int $id): ?NomenclatureCrmListItemDTO;
 
     /**
      * @return Collection<int, NomenclatureCrmSearchItemDTO>

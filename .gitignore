@@ -27,3 +27,5 @@ Homestead.yaml
 Thumbs.db
 
 /.claude
+/.ai-factory/plans
+/.ai-factory/PLAN.md

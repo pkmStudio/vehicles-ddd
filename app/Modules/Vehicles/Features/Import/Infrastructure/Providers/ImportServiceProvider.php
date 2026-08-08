@@ -24,6 +24,7 @@ use App\Modules\Vehicles\Features\Import\Application\Services\Modification\Upser
 use App\Modules\Vehicles\Features\Import\Application\Services\Reporting\ReportImportResultService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleFromSheetService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleFromTdRowService;
+use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\VehicleImportWritePolicy;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\VehicleWiperSpecificationImportService;
 use App\Modules\Vehicles\Features\Import\Application\UseCases\Command\StartTecDocImportUseCase;
 use App\Modules\Vehicles\Features\Import\Application\UseCases\External\PublishLocalImportRequestUseCase;
@@ -80,6 +81,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Reporting\ReportImportResultServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleImportWritePolicyInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\Command\StartTecDocImportUseCaseInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\PublishLocalImportRequestUseCaseInterface;
@@ -196,6 +198,7 @@ final class ImportServiceProvider extends ServiceProvider
         UpsertModificationFromRowServiceInterface::class => UpsertModificationFromRowService::class,
         UpsertVehicleFromSheetServiceInterface::class => UpsertVehicleFromSheetService::class,
         UpsertVehicleFromTdRowServiceInterface::class => UpsertVehicleFromTdRowService::class,
+        VehicleImportWritePolicyInterface::class => VehicleImportWritePolicy::class,
         VehicleWiperSpecificationImportServiceInterface::class => VehicleWiperSpecificationImportService::class,
         LinkEngineModificationFromRowServiceInterface::class => LinkEngineModificationFromRowService::class,
     ];

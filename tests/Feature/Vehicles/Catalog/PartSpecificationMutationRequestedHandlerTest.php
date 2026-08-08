@@ -13,6 +13,8 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReas
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationStatusEnum;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\PartSpecificationMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\PartSpecification;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
@@ -134,6 +136,78 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
             'template' => DetailTemplateEnum::WIPER->value,
             'name' => 'Front wiper without spec id',
         ]);
+    }
+
+    public function test_vehicle_wiper_details_are_normalized_before_write(): void
+    {
+        $this->createManufacturer(900);
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::PartSpecification
+                && $result->operation === CatalogMutationOperationEnum::Create
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->operationId === 'part-specification-details-normalized'));
+
+        $payload = $this->vehicleSpecificationPayload(
+            operationId: 'part-specification-details-normalized',
+            operation: 'create',
+            specificationId: 8701,
+            ownerExternalId: 7701,
+            vehicleName: 'Details Normalized Owner',
+            specificationName: 'Normalized front wiper',
+        );
+        $payload['part_specification']['details'] = [
+            'position' => 'front',
+            'front' => [
+                'length' => 650,
+                'adapter_type_front' => ['A1', '', null],
+                'comment' => '',
+            ],
+        ];
+
+        app(PartSpecificationMutationRequestedHandler::class)->handle($payload);
+
+        $details = PartSpecification::query()->findOrFail(8701)->details;
+
+        $this->assertSame([
+            'front' => [
+                'length' => 650,
+                'adapter_type_front' => ['A1'],
+            ],
+        ], $details);
+    }
+
+    public function test_invalid_vehicle_wiper_details_are_rejected_before_owner_resolution(): void
+    {
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::PartSpecification
+                && $result->operation === CatalogMutationOperationEnum::Create
+                && $result->status === CatalogMutationStatusEnum::Rejected
+                && $result->reason === CatalogMutationRejectReasonEnum::InvalidDetails->value
+                && $result->errors[0]['rule'] === 'single_side'));
+
+        $payload = $this->vehicleSpecificationPayload(
+            operationId: 'part-specification-invalid-details-before-owner',
+            operation: 'create',
+            specificationId: 8702,
+            ownerExternalId: 7702,
+            vehicleName: 'Invalid Details Owner',
+            specificationName: 'Invalid details spec',
+            mfaId: 999,
+        );
+        $payload['part_specification']['details'] = [
+            'front' => ['length' => 650],
+            'back' => ['length' => 350],
+        ];
+
+        app(PartSpecificationMutationRequestedHandler::class)->handle($payload);
+
+        $this->assertDatabaseMissing('vehicles', ['ms_id' => 7702]);
+        $this->assertDatabaseMissing('part_specifications', ['id' => 8702]);
     }
 
     public function test_engine_owner_part_specification_create_message_creates_engine_owner(): void
@@ -293,6 +367,64 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseMissing('part_specifications', ['id' => 8501]);
     }
 
+    public function test_vehicle_owner_payload_keeps_locked_fields_for_existing_td_vehicle(): void
+    {
+        $existingManufacturer = $this->createManufacturer(901);
+        $incomingManufacturer = $this->createManufacturer(902);
+        $existingParent = $this->createVehicle(
+            msId: 7601,
+            manufacturer: $existingManufacturer,
+            provider: ProviderEnum::TD,
+        );
+        $incomingParent = $this->createVehicle(
+            msId: 7602,
+            manufacturer: $incomingManufacturer,
+            provider: ProviderEnum::OD,
+        );
+        $this->createVehicle(
+            msId: 7603,
+            manufacturer: $existingManufacturer,
+            parentId: $existingParent->id,
+            name: 'TD owner old',
+            provider: ProviderEnum::TD,
+            generation: 'TD owner generation',
+            typeCarcase: CarcaseTypeEnum::SALOON,
+        );
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::PartSpecification
+                && $result->operation === CatalogMutationOperationEnum::Create
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->operationId === 'part-specification-owner-td-locked'));
+
+        app(PartSpecificationMutationRequestedHandler::class)->handle($this->vehicleSpecificationPayload(
+            operationId: 'part-specification-owner-td-locked',
+            operation: 'create',
+            specificationId: 8601,
+            ownerExternalId: 7603,
+            vehicleName: 'TD owner new',
+            specificationName: 'TD owner spec',
+            mfaId: $incomingManufacturer->mfa_id,
+            provider: ProviderEnum::OD,
+            parentMsId: $incomingParent->ms_id,
+            generation: 'Incoming owner generation',
+            typeCarcase: CarcaseTypeEnum::HATCHBACK,
+        ));
+
+        $this->assertDatabaseHas('vehicles', [
+            'ms_id' => 7603,
+            'manufacturer_id' => $existingManufacturer->id,
+            'mfa_id' => $existingManufacturer->mfa_id,
+            'parent_id' => $existingParent->id,
+            'name' => 'TD owner new',
+            'generation' => 'TD owner generation',
+            'type_carcase' => CarcaseTypeEnum::SALOON->value,
+            'provider' => ProviderEnum::TD->value,
+        ]);
+    }
+
     public function test_part_specification_mutation_events_have_unique_names_and_same_handler(): void
     {
         $this->assertSame([PartSpecificationMutationRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.PART_SPECIFICATION_CREATE_REQUESTED'));
@@ -309,6 +441,35 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
         ]);
     }
 
+    private function createVehicle(
+        int $msId,
+        Manufacturer $manufacturer,
+        ?int $parentId = null,
+        string $name = 'Octavia',
+        ProviderEnum $provider = ProviderEnum::OD,
+        ?string $generation = null,
+        CarcaseTypeEnum $typeCarcase = CarcaseTypeEnum::HATCHBACK,
+    ): Vehicle {
+        return Vehicle::query()->create([
+            'parent_id' => $parentId,
+            'manufacturer_id' => $manufacturer->id,
+            'mfa_id' => $manufacturer->mfa_id,
+            'ms_id' => $msId,
+            'name' => $name,
+            'localized_name' => null,
+            'excel_table_id' => null,
+            'generation' => $generation,
+            'generation_short' => null,
+            'generation_year_from' => 2013,
+            'generation_year_to' => 2020,
+            'type' => VehicleTypeEnum::PC->value,
+            'type_carcase' => $typeCarcase->value,
+            'provider' => $provider->value,
+            'steering_type' => SteeringTypeEnum::LEFT->value,
+            'is_allow' => false,
+        ]);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -319,7 +480,26 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
         int $ownerExternalId,
         string $vehicleName,
         string $specificationName,
+        int $mfaId = 900,
+        ProviderEnum $provider = ProviderEnum::OD,
+        ?int $parentMsId = null,
+        ?string $generation = null,
+        CarcaseTypeEnum $typeCarcase = CarcaseTypeEnum::HATCHBACK,
     ): array {
+        $vehicle = [
+            'mfa_id' => $mfaId,
+            'name' => $vehicleName,
+            'type' => VehicleTypeEnum::PC->value,
+            'type_carcase' => $typeCarcase->value,
+            'provider' => $provider->value,
+            'steering_type' => SteeringTypeEnum::LEFT->value,
+            'generation' => $generation,
+        ];
+
+        if ($parentMsId !== null) {
+            $vehicle['parent_ms_id'] = $parentMsId;
+        }
+
         return [
             'user_id' => 42,
             'operation_id' => $operationId,
@@ -329,14 +509,7 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
                 'owner' => [
                     'type' => PartableTypeEnum::VEHICLE->value,
                     'external_id' => $ownerExternalId,
-                    'vehicle' => [
-                        'mfa_id' => 900,
-                        'name' => $vehicleName,
-                        'type' => VehicleTypeEnum::PC->value,
-                        'type_carcase' => CarcaseTypeEnum::HATCHBACK->value,
-                        'provider' => ProviderEnum::OD->value,
-                        'steering_type' => SteeringTypeEnum::LEFT->value,
-                    ],
+                    'vehicle' => $vehicle,
                 ],
                 'template' => DetailTemplateEnum::WIPER->value,
                 'details' => ['front' => ['length' => 650]],

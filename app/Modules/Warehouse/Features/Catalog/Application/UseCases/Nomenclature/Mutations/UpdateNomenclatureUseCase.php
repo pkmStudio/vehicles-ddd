@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature;
+namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Mutations;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
@@ -10,20 +10,20 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\Nomencl
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\CreateNomenclatureUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\CreateNomenclatureRequestDTO;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\UpdateNomenclatureUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\UpdateNomenclatureRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use Throwable;
 
 /**
- * Выполняет создание Warehouse-номенклатуры из внешнего сообщения.
+ * Выполняет обновление Warehouse-номенклатуры из внешнего сообщения.
  */
-final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseCaseInterface
+final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseCaseInterface
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
@@ -38,15 +38,15 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
     ) {}
 
     /**
-     * Создаёт номенклатуру, если type/brand существуют и артикул свободен.
+     * Обновляет номенклатуру, если запись существует, type/brand существуют и артикул не занят.
      *
      * Шаги:
-     * 1) Принять operationId через cache, чтобы повтор брокера не создал дубль.
-     * 2) Проверить существование type/brand и уникальность артикула.
-     * 3) Собрать NomenclatureData, записать номенклатуру через Command и отправить доменный факт.
+     * 1) Принять operationId через cache, чтобы повтор брокера не выполнил обновление дважды.
+     * 2) Проверить существование записи, type/brand и отсутствие конфликта по артикулу.
+     * 3) Собрать NomenclatureData с identity, обновить запись через Command и отправить доменный факт.
      * 4) Вернуть completed-результат; на технической ошибке снять cache-флаг и пробросить исключение.
      */
-    public function execute(CreateNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
+    public function execute(UpdateNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
 
@@ -55,6 +55,20 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
         }
 
         try {
+            $existingNomenclature = $this->nomenclatures->findById($request->id);
+
+            if ($existingNomenclature === null) {
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: WarehouseCatalogEntityEnum::Nomenclature,
+                    operation: WarehouseCatalogMutationOperationEnum::Update,
+                    reason: WarehouseCatalogMutationRejectReasonEnum::NotFound,
+                    recordId: $request->id,
+                    businessKey: $request->partNumber,
+                );
+            }
+
             $type = $this->types->findById($request->typeId);
 
             if ($type === null) {
@@ -62,8 +76,9 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
                     userId: $request->userId,
                     operationId: $request->operationId,
                     entity: WarehouseCatalogEntityEnum::Nomenclature,
-                    operation: WarehouseCatalogMutationOperationEnum::Create,
+                    operation: WarehouseCatalogMutationOperationEnum::Update,
                     reason: WarehouseCatalogMutationRejectReasonEnum::TypeNotFound,
+                    recordId: $request->id,
                     businessKey: $request->partNumber,
                 );
             }
@@ -75,29 +90,30 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
                     userId: $request->userId,
                     operationId: $request->operationId,
                     entity: WarehouseCatalogEntityEnum::Nomenclature,
-                    operation: WarehouseCatalogMutationOperationEnum::Create,
+                    operation: WarehouseCatalogMutationOperationEnum::Update,
                     reason: WarehouseCatalogMutationRejectReasonEnum::BrandNotFound,
+                    recordId: $request->id,
                     businessKey: $request->partNumber,
                 );
             }
 
-            $existingNomenclature = $this->nomenclatures->findByPartNumber($request->partNumber);
-
-            if ($existingNomenclature !== null) {
+            $samePartNumberNomenclature = $this->nomenclatures->findByPartNumber($request->partNumber);
+            if ($samePartNumberNomenclature !== null && $samePartNumberNomenclature->id !== $request->id) {
                 return $this->results->rejected(
                     userId: $request->userId,
                     operationId: $request->operationId,
                     entity: WarehouseCatalogEntityEnum::Nomenclature,
-                    operation: WarehouseCatalogMutationOperationEnum::Create,
+                    operation: WarehouseCatalogMutationOperationEnum::Update,
                     reason: WarehouseCatalogMutationRejectReasonEnum::AlreadyExists,
+                    recordId: $request->id,
                     businessKey: $request->partNumber,
                 );
             }
 
             $data = $this->data($request);
-            $nomenclature = $this->command->create($data);
+            $nomenclature = $this->command->update($data);
 
-            event(new NomenclatureCreated(
+            event(new NomenclatureUpdated(
                 userId: $request->userId,
                 operationId: $request->operationId,
                 nomenclature: $nomenclature->toArray(),
@@ -107,7 +123,7 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
                 userId: $request->userId,
                 operationId: $request->operationId,
                 entity: WarehouseCatalogEntityEnum::Nomenclature,
-                operation: WarehouseCatalogMutationOperationEnum::Create,
+                operation: WarehouseCatalogMutationOperationEnum::Update,
                 recordId: $nomenclature->id,
                 businessKey: $nomenclature->partNumber,
             );
@@ -117,7 +133,8 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
                 userId: $request->userId,
                 operationId: $request->operationId,
                 entity: WarehouseCatalogEntityEnum::Nomenclature,
-                operation: WarehouseCatalogMutationOperationEnum::Create,
+                operation: WarehouseCatalogMutationOperationEnum::Update,
+                recordId: $request->id,
                 businessKey: $request->partNumber,
             );
 
@@ -128,7 +145,7 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
     /**
      * Собирает Data-снимок номенклатуры для Command.
      */
-    private function data(CreateNomenclatureRequestDTO $request): NomenclatureData
+    private function data(UpdateNomenclatureRequestDTO $request): NomenclatureData
     {
         return new NomenclatureData(
             typeId: $request->typeId,
@@ -143,6 +160,7 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
             quantityPak: $request->quantityPak,
             quantityInPak: $request->quantityInPak,
             details: $request->details,
+            id: $request->id,
         );
     }
 }

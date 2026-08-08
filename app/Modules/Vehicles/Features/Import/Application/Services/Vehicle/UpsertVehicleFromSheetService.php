@@ -11,7 +11,10 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\VehicleDataF
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleImportWritePolicyInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleImportWriteContextDTO;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Enums\VehicleImportSourceEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
@@ -41,6 +44,7 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
         private VehicleRepositoryInterface $vehicles,
         private ManufacturerRepositoryInterface $manufacturers,
         private ManufacturerCommandInterface $manufacturerCommand,
+        private VehicleImportWritePolicyInterface $writePolicy,
     ) {}
 
     /**
@@ -88,9 +92,22 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
         ]);
 
         $existing = $this->vehicles->findByMsId($data->msId);
+        $writeContext = new VehicleImportWriteContextDTO(
+            source: VehicleImportSourceEnum::ManualSheet,
+            sourceProvider: $data->provider,
+            operationId: self::VEHICLE_OPERATION_ID,
+            msId: $data->msId,
+            rowIdentifier: (string) ($row->msId ?? $row->name ?? $data->msId),
+        );
+        $writeData = $this->writePolicy->apply(
+            incoming: $data,
+            existing: $existing,
+            context: $writeContext,
+        );
+
         $vehicle = $existing === null
-            ? $this->command->create($data)
-            : $this->command->updateByMsId($data);
+            ? $this->command->create($writeData)
+            : $this->command->updateByMsId($writeData);
 
         event($existing === null
             ? new VehicleCreated(self::IMPORT_USER_ID, self::VEHICLE_OPERATION_ID, $vehicle->toArray())

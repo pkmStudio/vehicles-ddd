@@ -8,10 +8,12 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\VehicleComma
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\PartSpecification\VehiclePartSpecificationOwnerResolverInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\Vehicle\VehicleMutationWritePolicyInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpecificationOwnerDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpecificationOwnerResolutionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpecificationOwnerVehicleDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\ResolvedPartSpecificationOwnerDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleMutationWriteContextDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
@@ -28,6 +30,7 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
         private VehicleRepositoryInterface $vehicles,
         private ManufacturerRepositoryInterface $manufacturers,
         private VehicleCommandInterface $command,
+        private VehicleMutationWritePolicyInterface $writePolicy,
     ) {}
 
     /**
@@ -53,18 +56,27 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
             );
         }
 
-        $vehicleData = $this->vehicleData(
+        $incomingData = $this->vehicleData(
             msId: $owner->externalId,
             payload: $owner->vehicle,
-            id: $existing->id,
+            existing: $existing,
         );
 
-        if ($vehicleData instanceof CatalogMutationRejectReasonEnum) {
+        if ($incomingData instanceof CatalogMutationRejectReasonEnum) {
             return new PartSpecificationOwnerResolutionDTO(
                 owner: null,
-                rejectReason: $vehicleData,
+                rejectReason: $incomingData,
             );
         }
+
+        $writeContext = new VehicleMutationWriteContextDTO(
+            ownerExternalId: $owner->externalId,
+        );
+        $vehicleData = $this->writePolicy->applyForUpdate(
+            incoming: $incomingData,
+            existing: $existing,
+            context: $writeContext,
+        );
 
         $vehicle = $this->command->update($vehicleData);
 
@@ -91,17 +103,25 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
             );
         }
 
-        $vehicleData = $this->vehicleData(
+        $incomingData = $this->vehicleData(
             msId: $owner->externalId,
             payload: $owner->vehicle,
         );
 
-        if ($vehicleData instanceof CatalogMutationRejectReasonEnum) {
+        if ($incomingData instanceof CatalogMutationRejectReasonEnum) {
             return new PartSpecificationOwnerResolutionDTO(
                 owner: null,
-                rejectReason: $vehicleData,
+                rejectReason: $incomingData,
             );
         }
+
+        $writeContext = new VehicleMutationWriteContextDTO(
+            ownerExternalId: $owner->externalId,
+        );
+        $vehicleData = $this->writePolicy->applyForCreate(
+            incoming: $incomingData,
+            context: $writeContext,
+        );
 
         $vehicle = $this->command->create($vehicleData);
 
@@ -122,26 +142,36 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
     private function vehicleData(
         int $msId,
         PartSpecificationOwnerVehicleDTO $payload,
-        ?int $id = null,
+        ?VehicleData $existing = null,
     ): VehicleData|CatalogMutationRejectReasonEnum {
-        $manufacturer = $this->manufacturers->findByMfaId($payload->mfaId);
-        if ($manufacturer === null) {
-            return CatalogMutationRejectReasonEnum::ManufacturerNotFound;
+        $writesCatalogManagedFields = $existing === null
+            || $this->writePolicy->allowsCatalogManagedFields($existing);
+        $manufacturerId = $existing?->manufacturerId;
+
+        if ($writesCatalogManagedFields) {
+            $manufacturer = $this->manufacturers->findByMfaId($payload->mfaId);
+            if ($manufacturer === null) {
+                return CatalogMutationRejectReasonEnum::ManufacturerNotFound;
+            }
+            $manufacturerId = (int) $manufacturer->id;
         }
 
-        $parentId = null;
-        if ($payload->parentMsId !== null) {
-            $parent = $this->vehicles->findByMsId($payload->parentMsId);
-            if ($parent === null) {
-                return CatalogMutationRejectReasonEnum::ParentVehicleNotFound;
+        $parentId = $existing?->parentId;
+        if ($writesCatalogManagedFields) {
+            $parentId = null;
+            if ($payload->parentMsId !== null) {
+                $parent = $this->vehicles->findByMsId($payload->parentMsId);
+                if ($parent === null) {
+                    return CatalogMutationRejectReasonEnum::ParentVehicleNotFound;
+                }
+                $parentId = $parent->id;
             }
-            $parentId = $parent->id;
         }
 
         return new VehicleData(
             msId: $msId,
             mfaId: $payload->mfaId,
-            manufacturerId: (int) $manufacturer->id,
+            manufacturerId: (int) $manufacturerId,
             name: $payload->name,
             type: $payload->type,
             steeringType: $payload->steeringType,
@@ -155,7 +185,7 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
             localizedName: $payload->localizedName,
             generationShort: $payload->generationShort,
             isAllow: $payload->isAllow,
-            id: $id,
+            id: $existing?->id,
         );
     }
 

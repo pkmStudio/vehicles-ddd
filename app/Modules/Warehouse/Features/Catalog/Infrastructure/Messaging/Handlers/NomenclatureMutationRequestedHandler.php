@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\NomenclatureMutationRequestFactoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\StartNomenclatureMutationUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\StartNomenclatureMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\NomenclatureMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
 
