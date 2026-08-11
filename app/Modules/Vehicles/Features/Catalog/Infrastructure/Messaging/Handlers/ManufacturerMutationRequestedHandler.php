@@ -19,6 +19,11 @@ final readonly class ManufacturerMutationRequestedHandler
 {
     /**
      * Инициализирует зависимости класса через контейнер.
+     *
+     * Шаги:
+     * 1. Получает use case мутации производителя.
+     * 2. Получает validator входящего RabbitMQ payload.
+     * 3. Получает reporter для contract mismatch результата.
      */
     public function __construct(
         private StartManufacturerMutationUseCaseInterface $useCase,
@@ -27,6 +32,14 @@ final readonly class ManufacturerMutationRequestedHandler
     ) {}
 
     /**
+     * Обрабатывает входящее RabbitMQ-сообщение мутации производителя.
+     *
+     * Шаги:
+     * 1. Валидирует raw payload сообщения.
+     * 2. Публикует failed-result при ошибке validation или несовместимом wire payload.
+     * 3. Собирает локальный DTO запроса из валидированных данных.
+     * 4. Передает DTO во входной use case сценария.
+     *
      * @param  array<string, mixed>  $data
      */
     public function handle(array $data): void

@@ -19,6 +19,10 @@ final readonly class VehicleCrmController
 {
     /**
      * Получает use case ports CRM read API.
+     *
+     * Шаги:
+     * 1. Получает CRM client, query factory и presenters из контейнера.
+     * 2. Сохраняет зависимости для обработки HTTP read endpoints.
      */
     public function __construct(
         private VehicleCrmClientInterface $vehicles,
@@ -29,6 +33,11 @@ final readonly class VehicleCrmController
 
     /**
      * Возвращает постраничный список ТС для CRM.
+     *
+     * Шаги:
+     * 1. Собирает `VehicleCrmReadQueryDTO` из HTTP request.
+     * 2. Запрашивает страницу данных через CRM client.
+     * 3. Преобразует page DTO в HTTP response shape.
      */
     public function index(Request $request): JsonResponse
     {
@@ -40,6 +49,11 @@ final readonly class VehicleCrmController
 
     /**
      * Возвращает detail-снимок ТС для CRM.
+     *
+     * Шаги:
+     * 1. Запрашивает detail DTO по id через CRM client.
+     * 2. Возвращает `404`, если автомобиль не найден.
+     * 3. Преобразует найденный DTO в HTTP response shape.
      */
     public function show(int $id): JsonResponse
     {
@@ -54,6 +68,11 @@ final readonly class VehicleCrmController
 
     /**
      * Возвращает compact options для поиска ТС.
+     *
+     * Шаги:
+     * 1. Нормализует search query и limit из HTTP request.
+     * 2. Запрашивает compact options через CRM client.
+     * 3. Возвращает collection в стандартном `data` wrapper.
      */
     public function search(Request $request): JsonResponse
     {
@@ -70,6 +89,10 @@ final readonly class VehicleCrmController
 
     /**
      * Возвращает feature options для CRM-формы.
+     *
+     * Шаги:
+     * 1. Запрашивает feature options через CRM client.
+     * 2. Возвращает collection в стандартном `data` wrapper.
      */
     public function features(): JsonResponse
     {
@@ -80,6 +103,11 @@ final readonly class VehicleCrmController
 
     /**
      * Возвращает feature value options для CRM-формы.
+     *
+     * Шаги:
+     * 1. Извлекает `feature_id` из HTTP request.
+     * 2. Запрашивает feature value options через CRM client.
+     * 3. Возвращает collection в стандартном `data` wrapper.
      */
     public function featureValues(Request $request): JsonResponse
     {
@@ -91,6 +119,10 @@ final readonly class VehicleCrmController
 
     /**
      * Возвращает detail template options для CRM-формы.
+     *
+     * Шаги:
+     * 1. Запрашивает detail template options через CRM client.
+     * 2. Возвращает collection в стандартном `data` wrapper.
      */
     public function detailTemplates(): JsonResponse
     {
@@ -101,6 +133,11 @@ final readonly class VehicleCrmController
 
     /**
      * Возвращает manufacturer options для CRM-формы.
+     *
+     * Шаги:
+     * 1. Нормализует selected id, search query и limit из HTTP request.
+     * 2. Запрашивает manufacturer options через CRM client.
+     * 3. Возвращает collection в стандартном `data` wrapper.
      */
     public function manufacturers(Request $request): JsonResponse
     {

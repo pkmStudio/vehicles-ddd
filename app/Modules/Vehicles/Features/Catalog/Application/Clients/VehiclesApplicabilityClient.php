@@ -11,10 +11,25 @@ use Illuminate\Support\Collection;
 
 final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilityClientInterface
 {
+    /**
+     * Инициализирует read client Vehicles для Applicability.
+     *
+     * Шаги:
+     * 1. Получает repository port owner-слоя Vehicles Catalog.
+     * 2. Сохраняет port как единственный источник read-данных для client.
+     */
     public function __construct(
         private VehiclesApplicabilityRepositoryInterface $vehicles,
     ) {}
 
+    /**
+     * Возвращает передние спецификации дворников для расчета применяемости.
+     *
+     * Шаги:
+     * 1. Принимает нормализованные параметры длины и количества щеток.
+     * 2. Делегирует read-запрос repository port.
+     * 3. Возвращает collection DTO без SQL внутри client.
+     */
     public function frontWiperSpecifications(int $lengthMain, ?int $lengthSecond, int $countWipers): Collection
     {
         return $this->vehicles->frontWiperSpecifications(
@@ -24,6 +39,14 @@ final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilit
         );
     }
 
+    /**
+     * Возвращает задние спецификации дворников для расчета применяемости.
+     *
+     * Шаги:
+     * 1. Принимает нормализованные параметры длины и количества щеток.
+     * 2. Делегирует read-запрос repository port.
+     * 3. Возвращает collection DTO без SQL внутри client.
+     */
     public function rearWiperSpecifications(int $lengthMain, int $countWipers): Collection
     {
         return $this->vehicles->rearWiperSpecifications(
@@ -32,6 +55,15 @@ final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilit
         );
     }
 
+    /**
+     * Разрешает внутренний id модификации по внешним `ms_id` и `mod_id`.
+     *
+     * Шаги:
+     * 1. Ищет Vehicle по `ms_id` через repository port.
+     * 2. Пытается найти модификацию внутри найденного Vehicle.
+     * 3. При отсутствии прямого совпадения проверяет parent Vehicle.
+     * 4. Выбрасывает `VehicleApplicabilityException`, если модель или модификация не найдены.
+     */
     public function resolveModificationIdByMsAndModId(int $msId, int $modId): int
     {
         $vehicle = $this->vehicles->findVehicleByMsId($msId);
@@ -53,6 +85,14 @@ final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilit
         throw new VehicleApplicabilityException("Модификация (ms_id: {$vehicle->msId}, mod_id: {$modId}) не найдена.");
     }
 
+    /**
+     * Ищет модификацию у родительской модели Vehicles.
+     *
+     * Шаги:
+     * 1. Разрешает `parentId` во внешний `parent_ms_id`.
+     * 2. Ищет модификацию по `parent_ms_id` и `mod_id`.
+     * 3. Возвращает найденный id или выбрасывает доменное исключение client boundary.
+     */
     private function resolveParentModificationId(int $vehicleMsId, int $parentId, int $modId): int
     {
         $parentMsId = $this->vehicles->findVehicleMsIdById($parentId);

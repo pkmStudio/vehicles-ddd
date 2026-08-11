@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Providers;
 
+use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\KitCrmClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\NomenclatureCrmClient;
+use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\PackDimensionCrmClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogCascadeDeleteService;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogMutationResultService;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\CreateBrandUseCase;
@@ -12,6 +14,8 @@ use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\DeleteBran
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\StartBrandMutationUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\UpdateBrandUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\CreateKitUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\Crm\ListKitsForCrmUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\Crm\ShowKitForCrmUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\DeleteKitUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\StartKitMutationUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\UpdateKitUseCase;
@@ -23,20 +27,26 @@ use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Mut
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Mutations\StartNomenclatureMutationUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Mutations\UpdateNomenclatureUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\CreatePackDimensionUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\Crm\ListPackDimensionsForCrmUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\Crm\ShowPackDimensionForCrmUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\DeletePackDimensionUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\StartPackDimensionMutationUseCase;
 use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\UpdatePackDimensionUseCase;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\NomenclatureCrmClientInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\PackDimensionCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\BrandCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\PackDimensionCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\Applicability\WarehouseApplicabilityRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogCascadeDeleteServiceInterface;
@@ -48,6 +58,8 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\Delet
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\StartBrandMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\UpdateBrandUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\CreateKitUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\Crm\ListKitsForCrmUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\Crm\ShowKitForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\DeleteKitUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\StartKitMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\UpdateKitUseCaseInterface;
@@ -59,6 +71,8 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclatur
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\StartNomenclatureMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\UpdateNomenclatureUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\CreatePackDimensionUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\Crm\ListPackDimensionsForCrmUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\Crm\ShowPackDimensionForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\DeletePackDimensionUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\StartPackDimensionMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\UpdatePackDimensionUseCaseInterface;
@@ -70,9 +84,11 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands\PackDimension
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Notifications\RabbitMqWarehouseCatalogMutationNotificationService;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\Applicability\WarehouseApplicabilityRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\BrandRepository;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\KitCrmRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\KitRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\NomenclatureCrmRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureRepository;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\PackDimensionCrmRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\PackDimensionRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\TypeRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Services\WarehouseCatalogMutationCacheService;
@@ -95,6 +111,10 @@ final class CatalogServiceProvider extends ServiceProvider
         ListNomenclaturesForCrmUseCaseInterface::class => ListNomenclaturesForCrmUseCase::class,
         ShowNomenclatureForCrmUseCaseInterface::class => ShowNomenclatureForCrmUseCase::class,
         SearchNomenclaturesForCrmUseCaseInterface::class => SearchNomenclaturesForCrmUseCase::class,
+        ListKitsForCrmUseCaseInterface::class => ListKitsForCrmUseCase::class,
+        ShowKitForCrmUseCaseInterface::class => ShowKitForCrmUseCase::class,
+        ListPackDimensionsForCrmUseCaseInterface::class => ListPackDimensionsForCrmUseCase::class,
+        ShowPackDimensionForCrmUseCaseInterface::class => ShowPackDimensionForCrmUseCase::class,
         StartPackDimensionMutationUseCaseInterface::class => StartPackDimensionMutationUseCase::class,
         CreatePackDimensionUseCaseInterface::class => CreatePackDimensionUseCase::class,
         UpdatePackDimensionUseCaseInterface::class => UpdatePackDimensionUseCase::class,
@@ -117,6 +137,8 @@ final class CatalogServiceProvider extends ServiceProvider
         TypeRepositoryInterface::class => TypeRepository::class,
         NomenclatureRepositoryInterface::class => NomenclatureRepository::class,
         NomenclatureCrmRepositoryInterface::class => NomenclatureCrmRepository::class,
+        KitCrmRepositoryInterface::class => KitCrmRepository::class,
+        PackDimensionCrmRepositoryInterface::class => PackDimensionCrmRepository::class,
         PackDimensionRepositoryInterface::class => PackDimensionRepository::class,
         KitRepositoryInterface::class => KitRepository::class,
         WarehouseApplicabilityRepositoryInterface::class => WarehouseApplicabilityRepository::class,
@@ -132,6 +154,8 @@ final class CatalogServiceProvider extends ServiceProvider
     private const array CLIENT_BINDINGS = [
         KitPropertiesClientInterface::class => KitPropertiesClient::class,
         NomenclatureCrmClientInterface::class => NomenclatureCrmClient::class,
+        KitCrmClientInterface::class => KitCrmClient::class,
+        PackDimensionCrmClientInterface::class => PackDimensionCrmClient::class,
     ];
 
     /**

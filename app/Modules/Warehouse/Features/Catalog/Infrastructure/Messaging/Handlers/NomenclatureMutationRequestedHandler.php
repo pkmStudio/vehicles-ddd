@@ -19,6 +19,11 @@ final readonly class NomenclatureMutationRequestedHandler
 {
     /**
      * Инициализирует use case, factory и validator.
+     *
+     * Шаги:
+     * 1. Получает use case мутации номенклатуры.
+     * 2. Получает validator входящего RabbitMQ payload.
+     * 3. Получает reporter для contract mismatch результата.
      */
     public function __construct(
         private StartNomenclatureMutationUseCaseInterface $useCase,
@@ -28,6 +33,12 @@ final readonly class NomenclatureMutationRequestedHandler
 
     /**
      * Валидирует payload, собирает DTO и запускает сценарий мутации номенклатуры.
+     *
+     * Шаги:
+     * 1. Валидирует raw payload сообщения.
+     * 2. Публикует failed-result при ошибке validation или несовместимом wire payload.
+     * 3. Собирает локальный DTO запроса из валидированных данных.
+     * 4. Передает DTO во входной use case сценария.
      *
      * @param  array<string, mixed>  $data
      */

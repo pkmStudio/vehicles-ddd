@@ -19,6 +19,12 @@ final readonly class PartSpecificationMutationRequestedHandler
 {
     /**
      * Инициализирует зависимости класса через контейнер.
+     *
+     * Шаги:
+     * 1. Получает use case мутации спецификации детали.
+     * 2. Получает factory локального DTO запроса.
+     * 3. Получает validator входящего RabbitMQ payload.
+     * 4. Получает reporter для contract mismatch результата.
      */
     public function __construct(
         private StartPartSpecificationMutationUseCaseInterface $useCase,
@@ -31,9 +37,10 @@ final readonly class PartSpecificationMutationRequestedHandler
      * Обрабатывает входящее RabbitMQ-сообщение мутации спецификаций деталей.
      *
      * Шаги:
-     * 1) Провалидировать payload сообщения.
-     * 2) Собрать DTO запроса из валидированных данных.
-     * 3) Передать DTO во входной use case сценария.
+     * 1. Валидирует raw payload сообщения.
+     * 2. Публикует failed-result при ошибке validation или несовместимом wire payload.
+     * 3. Собирает локальный DTO запроса через feature factory.
+     * 4. Передает DTO во входной use case сценария.
      *
      * @param  array<string, mixed>  $data
      */

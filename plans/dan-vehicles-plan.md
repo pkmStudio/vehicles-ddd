@@ -1,6 +1,6 @@
 # План `dan-vehicles`
 
-Дата актуализации: 2026-08-11.
+Дата актуализации: 2026-08-12.
 
 ## Принятые решения
 
@@ -20,6 +20,11 @@
 - Генерация enum из справочников остается отдельной темой в `plans/enum-generator.md`.
 - `VehicleCrmReadQueryFactory` и `NomenclatureCrmReadQueryFactory` остаются feature-local. Общий
   parser для `page/per_page/search/sort/filter` не вводим, чтобы не связывать независимые read API.
+- У production-методов должны быть PHPDoc-блоки. Для use case/service/adapter/repository/command/
+  factory/presenter/controller/listener/handler/job методов PHPDoc описывает назначение и содержит
+  блок `Шаги:` с нумерованным алгоритмом. Для простых DTO/Data/Enum helpers допускается короткий
+  PHPDoc без `Шаги:`, если метод является механическим `toArray()/fromArray()`, enum helper или
+  простым value accessor.
 
 ## Порядок реализации
 
@@ -424,3 +429,66 @@ Presentation/Http/Controllers/*Controller
    - Как локально проверить `dan-vehicles` flow вместе с `dan-center`.
 
 4. [x] После переключения сущностей удалить старые deprecated планы/документы и не держать параллельные источники правды.
+
+5. [ ] Выровнять PHPDoc у методов по архитектурному правилу.
+   - Добавить PHPDoc к production-методам, где его нет.
+   - Для сценарных и инфраструктурных методов добавить `Шаги:` с нумерованным алгоритмом.
+   - Простые DTO/Data/Enum helpers не перегружать искусственными шагами, но оставить краткое
+     описание назначения/формата, если метод публичный.
+   - После аудита пройти модули последовательно: `Vehicles`, `Warehouse`, `Applicability`,
+     `Templates`, затем support/bootstrap слой.
+
+   Найденные отклонения по аудиту 2026-08-12:
+
+   Прогресс:
+
+   - [x] Выровнены PHPDoc/`Шаги:` в текущих catalog mutation handler/reporter файлах, которые
+     менялись в рамках wire-contract boundary cleanup:
+     `Vehicles/Features/Catalog/Infrastructure/Messaging/*`,
+     `Warehouse/Features/Catalog/Infrastructure/Messaging/*`.
+   - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles` read clients и REST controllers текущего среза:
+     `VehicleCrmClient`, `VehicleCatalogClient`, `VehiclesApplicabilityClient`,
+     `VehicleCrmController`, `VehicleCatalogController`.
+   - [x] Выровнены PHPDoc/`Шаги:` в новом Warehouse CRM read срезе для `Kit` и
+     `PackDimension`, а также в соседних Warehouse Catalog contracts: application clients,
+     use cases, client/repository ports, HTTP controllers, read query factories, presenters и
+     SQL repositories.
+
+   - `Vehicles`: проверено 1168 методов; 472 метода без PHPDoc, 580 методов имеют PHPDoc без
+     `Шаги:`, 116 методов уже соответствуют правилу.
+     - Основной долг без PHPDoc: `Import` 269, `Export` 81, `Catalog` 76, `Maintenance` 12
+       regular-методов. `Maintenance` пока не исправлять до отдельного разбора, но долг оставить
+       видимым.
+     - Крупные зоны: `Features/Import/Infrastructure/Imports/*`, `Application/Clients/CRM`,
+       `Infrastructure/Repositories/*`, mutation use cases, export services.
+     - DTO/Data/Enum: 34 метода без PHPDoc и 118 методов с PHPDoc без `Шаги:`; исправлять
+       облегченным правилом без искусственного алгоритма.
+
+   - `Warehouse`: проверено 893 метода; 133 метода без PHPDoc, 721 метод имеет PHPDoc без
+     `Шаги:`.
+     - Основной долг без PHPDoc: clients 25, repositories 24, console commands 18, services 12,
+       import/export 12, contracts 10, messaging 4, use cases 5, providers 2.
+     - Основной долг без `Шаги:`: contracts 168, services 111, use cases 62, import/export 50,
+       repositories 44, messaging 36, models 35, clients 13, console 9, jobs 9, events 13.
+     - DTO/Data/Enum: 12 методов без PHPDoc и 104 метода с PHPDoc без `Шаги:`; исправлять
+       облегченным правилом.
+
+   - `Applicability`: основная часть долга находится в `Features/Calculation`, `Features/Export`
+     и `Features/Import`.
+     - Без PHPDoc: 175 regular-методов.
+     - PHPDoc без `Шаги:`: 51 regular-метод.
+     - Крупные зоны: `Wiper*` services, `KitApplicabilityCalculator`, calculation/import/export
+       clients, jobs, validators, providers, repositories, cache/reporting/storage adapters,
+       import/export handlers.
+
+   - `Templates`: долг находится в application shared-kernel API и detail-template сборке.
+     - Без PHPDoc: 119 regular-методов.
+     - PHPDoc без `Шаги:`: 49 regular-методов.
+     - Крупные зоны: `TemplatesClient`, builders, factories, presenters, presenter traits,
+       `WiperSpecificationService`, `DetailsRowCursor`, domain contracts и
+       `TemplatesServiceProvider`.
+
+   - `Applicability` + `Templates` DTO/Data/Enum суммарно: 51 метод без PHPDoc и 15 методов с
+     PHPDoc без `Шаги:`. Это в основном `__construct`, `fromArray()`, `toArray()`, enum helpers и
+     value accessors; для них применить короткий PHPDoc или оставить без `Шаги:`, если сигнатура
+     полностью самодокументирующаяся и метод не является сценарным.

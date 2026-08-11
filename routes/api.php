@@ -2,7 +2,9 @@
 
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\VehicleCatalogController;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\VehicleCrmController;
+use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\KitCrmController;
 use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\NomenclatureCrmController;
+use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\PackDimensionCrmController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -37,6 +39,20 @@ Route::prefix('v1')->group(function (): void {
                 Route::get('search', [NomenclatureCrmController::class, 'search']);
                 Route::get('{id}', [NomenclatureCrmController::class, 'show'])->whereNumber('id');
                 Route::get('/', [NomenclatureCrmController::class, 'index']);
+            });
+
+            Route::prefix('warehouse/kits')->group(function (): void {
+                Route::get('options/nomenclatures', [KitCrmController::class, 'nomenclatures']);
+                Route::get('options/pack-dimensions', [KitCrmController::class, 'packDimensions']);
+                Route::get('options/types', [KitCrmController::class, 'types']);
+                Route::get('{id}', [KitCrmController::class, 'show'])->whereNumber('id');
+                Route::get('/', [KitCrmController::class, 'index']);
+            });
+
+            Route::prefix('warehouse/pack-dimensions')->group(function (): void {
+                Route::get('options/types', [PackDimensionCrmController::class, 'types']);
+                Route::get('{id}', [PackDimensionCrmController::class, 'show'])->whereNumber('id');
+                Route::get('/', [PackDimensionCrmController::class, 'index']);
             });
         });
 });

@@ -13,11 +13,19 @@ interface BrandRepositoryInterface
 {
     /**
      * Возвращает бренд по внутреннему идентификатору или null.
+     *
+     * Шаги:
+     * 1. Принять внутренний id бренда.
+     * 2. Вернуть `BrandData` или `null`, если запись не найдена.
      */
     public function findById(int $id): ?BrandData;
 
     /**
      * Возвращает бренд по имени или null.
+     *
+     * Шаги:
+     * 1. Принять точное имя бренда.
+     * 2. Вернуть `BrandData` или `null`, если запись не найдена.
      */
     public function findByName(string $name): ?BrandData;
 }

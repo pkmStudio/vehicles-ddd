@@ -17,6 +17,10 @@ final readonly class VehicleCatalogController
 {
     /**
      * Получает use case ports read API каталога.
+     *
+     * Шаги:
+     * 1. Получает catalog client и presenters из контейнера.
+     * 2. Сохраняет зависимости для обработки HTTP read endpoints.
      */
     public function __construct(
         private VehicleCatalogClientInterface $catalog,
@@ -26,6 +30,10 @@ final readonly class VehicleCatalogController
 
     /**
      * Возвращает производителей с разрешёнными ТС.
+     *
+     * Шаги:
+     * 1. Запрашивает список производителей через catalog client.
+     * 2. Возвращает collection в стандартном `data` wrapper.
      */
     public function manufacturers(): JsonResponse
     {
@@ -36,6 +44,11 @@ final readonly class VehicleCatalogController
 
     /**
      * Возвращает разрешённые ТС производителя.
+     *
+     * Шаги:
+     * 1. Запрашивает автомобили производителя через catalog client.
+     * 2. Возвращает `404`, если производитель не найден.
+     * 3. Возвращает collection в стандартном `data` wrapper.
      */
     public function vehicles(int $manufacturer): JsonResponse
     {
@@ -50,6 +63,11 @@ final readonly class VehicleCatalogController
 
     /**
      * Возвращает модификации разрешённого ТС.
+     *
+     * Шаги:
+     * 1. Запрашивает модификации автомобиля через catalog client.
+     * 2. Возвращает `404`, если автомобиль не найден.
+     * 3. Возвращает collection в стандартном `data` wrapper.
      */
     public function modifications(int $vehicle): JsonResponse
     {
@@ -64,6 +82,11 @@ final readonly class VehicleCatalogController
 
     /**
      * Возвращает модификацию с её ТС и производителем.
+     *
+     * Шаги:
+     * 1. Запрашивает detail context модификации через catalog client.
+     * 2. Возвращает `404`, если модификация не найдена.
+     * 3. Преобразует context DTO в HTTP response shape.
      */
     public function showModification(int $modification): JsonResponse
     {

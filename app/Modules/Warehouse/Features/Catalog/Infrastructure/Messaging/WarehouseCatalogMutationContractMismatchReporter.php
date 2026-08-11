@@ -19,11 +19,26 @@ final readonly class WarehouseCatalogMutationContractMismatchReporter
 {
     private const string MESSAGE = 'Payload is incompatible with current dan-vehicles contract. Update dan-wire-contracts version.';
 
+    /**
+     * Инициализирует publisher failed-result событий Warehouse Catalog.
+     *
+     * Шаги:
+     * 1. Получает notification port из контейнера.
+     * 2. Сохраняет port для последующей публикации результата.
+     */
     public function __construct(
         private WarehouseCatalogMutationNotificationServiceInterface $notifier,
     ) {}
 
     /**
+     * Публикует failed-result, если payload содержит минимальные поля корреляции.
+     *
+     * Шаги:
+     * 1. Извлекает `user_id`, `operation_id` и `operation` из payload.
+     * 2. Пропускает публикацию, если по payload нельзя собрать валидный result event.
+     * 3. Определяет record id сущности по типу Warehouse catalog entity.
+     * 4. Публикует `WarehouseCatalogMutationResultDTO` со статусом `failed` и reason `contract_mismatch`.
+     *
      * @param  array<string, mixed>  $payload
      * @param  array<int, string>  $invalidKeys
      */
@@ -53,6 +68,13 @@ final readonly class WarehouseCatalogMutationContractMismatchReporter
     }
 
     /**
+     * Достает record id из вложенного payload конкретной сущности.
+     *
+     * Шаги:
+     * 1. Выбирает ключ вложенной сущности по Warehouse catalog entity.
+     * 2. Возвращает `null`, если payload сущности отсутствует или имеет неверный тип.
+     * 3. Нормализует найденное значение `id` в `int|null`.
+     *
      * @param  array<string, mixed>  $payload
      */
     private function recordId(WarehouseCatalogEntityEnum $entity, array $payload): ?int
@@ -73,6 +95,14 @@ final readonly class WarehouseCatalogMutationContractMismatchReporter
         return $this->integerOrNull($entityPayload['id'] ?? null);
     }
 
+    /**
+     * Нормализует operation из payload в enum мутации Warehouse Catalog.
+     *
+     * Шаги:
+     * 1. Приводит входное значение к строке.
+     * 2. Пытается собрать `WarehouseCatalogMutationOperationEnum`.
+     * 3. Возвращает `null`, если значение не входит в wire-contract enum.
+     */
     private function operationOrNull(mixed $operation): ?WarehouseCatalogMutationOperationEnum
     {
         try {
@@ -82,6 +112,13 @@ final readonly class WarehouseCatalogMutationContractMismatchReporter
         }
     }
 
+    /**
+     * Нормализует nullable scalar значение в integer.
+     *
+     * Шаги:
+     * 1. Отбрасывает `null` и пустую строку как отсутствие значения.
+     * 2. Приводит непустое значение к `int`.
+     */
     private function integerOrNull(mixed $value): ?int
     {
         if ($value === null || $value === '') {
@@ -91,6 +128,13 @@ final readonly class WarehouseCatalogMutationContractMismatchReporter
         return (int) $value;
     }
 
+    /**
+     * Нормализует nullable scalar значение в непустую строку.
+     *
+     * Шаги:
+     * 1. Приводит значение к строке и убирает внешние пробелы.
+     * 2. Возвращает `null`, если после нормализации строка пустая.
+     */
     private function stringOrNull(mixed $value): ?string
     {
         $value = is_string($value) ? trim($value) : (string) $value;
