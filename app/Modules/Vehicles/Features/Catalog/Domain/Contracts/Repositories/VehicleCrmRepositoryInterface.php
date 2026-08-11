@@ -20,16 +20,28 @@ interface VehicleCrmRepositoryInterface
 {
     /**
      * Возвращает постраничную CRM projection автомобилей.
+     *
+     * Шаги:
+     * 1. Принять read-query DTO.
+     * 2. Вернуть page DTO, совместимый с CRM boundary.
      */
     public function paginate(VehicleCrmReadQueryDTO $query): VehicleCrmPageDTO;
 
     /**
      * Возвращает detail projection автомобиля или null.
+     *
+     * Шаги:
+     * 1. Принять внутренний id автомобиля.
+     * 2. Вернуть detail DTO или `null`, если запись не найдена.
      */
     public function findById(int $id): ?VehicleCrmDetailDTO;
 
     /**
      * Возвращает compact search options автомобилей.
+     *
+     * Шаги:
+     * 1. Принять строку поиска и limit.
+     * 2. Вернуть collection search DTO.
      *
      * @return Collection<int, VehicleCrmSearchItemDTO>
      */
@@ -38,6 +50,10 @@ interface VehicleCrmRepositoryInterface
     /**
      * Возвращает feature options.
      *
+     * Шаги:
+     * 1. Прочитать доступные характеристики автомобилей.
+     * 2. Вернуть collection option DTO.
+     *
      * @return Collection<int, VehicleCrmFeatureOptionDTO>
      */
     public function featureOptions(): Collection;
@@ -45,12 +61,20 @@ interface VehicleCrmRepositoryInterface
     /**
      * Возвращает feature value options.
      *
+     * Шаги:
+     * 1. Принять id характеристики.
+     * 2. Вернуть collection option DTO значений характеристики.
+     *
      * @return Collection<int, VehicleCrmFeatureValueOptionDTO>
      */
     public function featureValueOptions(int $featureId): Collection;
 
     /**
      * Возвращает manufacturer options.
+     *
+     * Шаги:
+     * 1. Принять optional search query, selected id и limit.
+     * 2. Вернуть collection option DTO производителей.
      *
      * @return Collection<int, VehicleCrmManufacturerOptionDTO>
      */

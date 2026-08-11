@@ -453,6 +453,9 @@ Presentation/Http/Controllers/*Controller
      `PackDimension`, а также в соседних Warehouse Catalog contracts: application clients,
      use cases, client/repository ports, HTTP controllers, read query factories, presenters и
      SQL repositories.
+   - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Catalog` repository slice:
+     domain repository ports, Eloquent repositories, `VehiclesApplicabilityRepository`,
+     `VehicleCrmRepository` и его DTO factories.
 
    - `Vehicles`: проверено 1168 методов; 472 метода без PHPDoc, 580 методов имеют PHPDoc без
      `Шаги:`, 116 методов уже соответствуют правилу.

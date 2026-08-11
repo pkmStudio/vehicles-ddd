@@ -6,8 +6,19 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\Vehi
 
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmSearchItemDTO;
 
+/**
+ * Маппит SQL projection автомобиля в CRM search item DTO.
+ */
 final readonly class VehicleCrmSearchItemDTOFactory
 {
+    /**
+     * Создает search item DTO автомобиля.
+     *
+     * Шаги:
+     * 1. Принимает SQL projection автомобиля.
+     * 2. Собирает человекочитаемый label.
+     * 3. Возвращает compact DTO для autocomplete.
+     */
     public function make(object $vehicle): VehicleCrmSearchItemDTO
     {
         return new VehicleCrmSearchItemDTO(
@@ -18,6 +29,14 @@ final readonly class VehicleCrmSearchItemDTOFactory
         );
     }
 
+    /**
+     * Собирает label автомобиля для CRM autocomplete.
+     *
+     * Шаги:
+     * 1. Берет идентификатор, производителя, модель и поколение из projection.
+     * 2. Добавляет localized name и годы выпуска.
+     * 3. Возвращает форматированную строку label.
+     */
     private function label(object $vehicle): string
     {
         return sprintf(

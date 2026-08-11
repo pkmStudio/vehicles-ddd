@@ -7,9 +7,19 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\Vehi
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmModificationDTO;
 use Illuminate\Support\Collection;
 
+/**
+ * Маппит SQL projection модификации в CRM DTO.
+ */
 final readonly class VehicleCrmModificationDTOFactory
 {
     /**
+     * Создает DTO модификации с вложенными двигателями.
+     *
+     * Шаги:
+     * 1. Принимает SQL projection модификации.
+     * 2. Приводит scalar поля projection к типам DTO.
+     * 3. Добавляет collection связанных двигателей.
+     *
      * @param  Collection<int, mixed>  $engines
      */
     public function make(object $modification, Collection $engines): VehicleCrmModificationDTO

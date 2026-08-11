@@ -17,6 +17,10 @@ final readonly class ManufacturerRepository implements ManufacturerRepositoryInt
 {
     /**
      * Возвращает производителя по внутреннему идентификатору.
+     *
+     * Шаги:
+     * 1. Делегирует lookup общему поиску по колонке `id`.
+     * 2. Возвращает `ManufacturerData` или `null`.
      */
     public function findById(int $id): ?ManufacturerData
     {
@@ -25,6 +29,10 @@ final readonly class ManufacturerRepository implements ManufacturerRepositoryInt
 
     /**
      * Возвращает первый Data-снимок производителей по внешнему идентификатору.
+     *
+     * Шаги:
+     * 1. Делегирует lookup общему поиску по колонке `mfa_id`.
+     * 2. Возвращает `ManufacturerData` или `null`.
      */
     public function findByMfaId(int $mfaId): ?ManufacturerData
     {
@@ -33,6 +41,11 @@ final readonly class ManufacturerRepository implements ManufacturerRepositoryInt
 
     /**
      * Возвращает производителей, у которых есть разрешённые ТС.
+     *
+     * Шаги:
+     * 1. Выбирает производителей, id которых встречается у разрешенных Vehicles.
+     * 2. Сортирует результат по имени и id.
+     * 3. Преобразует collection моделей в collection `ManufacturerData`.
      *
      * @return Collection<int, ManufacturerData>
      */
@@ -52,6 +65,14 @@ final readonly class ManufacturerRepository implements ManufacturerRepositoryInt
         return ManufacturerData::collect($manufacturers, Collection::class);
     }
 
+    /**
+     * Выполняет общий lookup производителя по числовой колонке.
+     *
+     * Шаги:
+     * 1. Фильтрует производителей по переданной колонке и значению.
+     * 2. Берет первую найденную запись.
+     * 3. Преобразует модель в `ManufacturerData` или возвращает `null`.
+     */
     private function findByColumn(string $column, int $value): ?ManufacturerData
     {
         return ManufacturerData::optional(

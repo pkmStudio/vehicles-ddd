@@ -17,6 +17,11 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
 {
     /**
      * Возвращает первый Data-снимок спецификаций деталей по внешнему идентификатору.
+     *
+     * Шаги:
+     * 1. Фильтрует PartSpecification по id.
+     * 2. Берет первую найденную запись.
+     * 3. Преобразует модель в `PartSpecificationData` или возвращает `null`.
      */
     public function findById(int $id): ?PartSpecificationData
     {
@@ -25,6 +30,11 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
 
     /**
      * Возвращает ids спецификаций по владельцу.
+     *
+     * Шаги:
+     * 1. Возвращает пустую collection для пустого списка owner ids.
+     * 2. Фильтрует спецификации по типу и id владельца.
+     * 3. Нормализует найденные ids в integer collection.
      *
      * @param  array<int, int>  $partableIds
      * @return Collection<int, int>
@@ -43,6 +53,13 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
             ->values();
     }
 
+    /**
+     * Нормализует id из database scalar в integer.
+     *
+     * Шаги:
+     * 1. Принимает scalar значение id из Eloquent result.
+     * 2. Возвращает значение, приведенное к `int`.
+     */
     private function toInteger(mixed $id): int
     {
         return (int) $id;

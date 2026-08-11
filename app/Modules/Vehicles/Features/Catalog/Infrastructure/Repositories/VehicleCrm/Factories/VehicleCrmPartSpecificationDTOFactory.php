@@ -6,8 +6,19 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\Vehi
 
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPartSpecificationDTO;
 
+/**
+ * Маппит SQL projection спецификации детали в CRM DTO.
+ */
 final readonly class VehicleCrmPartSpecificationDTOFactory
 {
+    /**
+     * Создает DTO спецификации детали из SQL projection.
+     *
+     * Шаги:
+     * 1. Принимает SQL projection спецификации с feature metadata.
+     * 2. Приводит scalar поля projection к типам DTO.
+     * 3. Нормализует JSON details в массив.
+     */
     public function make(object $specification): VehicleCrmPartSpecificationDTO
     {
         return new VehicleCrmPartSpecificationDTO(
@@ -29,6 +40,13 @@ final readonly class VehicleCrmPartSpecificationDTOFactory
     }
 
     /**
+     * Нормализует JSON details из SQL result в массив.
+     *
+     * Шаги:
+     * 1. Возвращает value как есть, если это уже массив.
+     * 2. Возвращает пустой массив для пустого или нестрокового значения.
+     * 3. Декодирует JSON-строку и возвращает массив либо пустой fallback.
+     *
      * @return array<string, mixed>
      */
     private function details(mixed $value): array

@@ -15,11 +15,19 @@ interface PartSpecificationRepositoryInterface
 {
     /**
      * Возвращает Data-снимок спецификации детали по id.
+     *
+     * Шаги:
+     * 1. Принять внутренний id спецификации детали.
+     * 2. Вернуть `PartSpecificationData` или `null`, если запись не найдена.
      */
     public function findById(int $id): ?PartSpecificationData;
 
     /**
      * Возвращает ids спецификаций по владельцу.
+     *
+     * Шаги:
+     * 1. Принять тип владельца и список его id.
+     * 2. Вернуть collection внутренних id спецификаций деталей.
      *
      * @param  array<int, int>  $partableIds
      * @return Collection<int, int>

@@ -26,10 +26,17 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * SQL read adapter for CRM catalog endpoints.
+ * SQL read adapter CRM API каталога Vehicles.
  */
 final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterface
 {
+    /**
+     * Инициализирует factories для mapping CRM projections.
+     *
+     * Шаги:
+     * 1. Получает factories search item, page, detail, modification и part specification DTO.
+     * 2. Сохраняет dependencies для mapping SQL rows в локальные DTO.
+     */
     public function __construct(
         private VehicleCrmSearchItemDTOFactory $searchItemFactory,
         private VehicleCrmPageDTOFactory $pageFactory,
@@ -39,7 +46,13 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     ) {}
 
     /**
-     * Returns a filtered page of vehicles with pagination metadata as local DTO.
+     * Читает постраничный список автомобилей для CRM.
+     *
+     * Шаги:
+     * 1. Собирает базовый query builder автомобилей.
+     * 2. Применяет filters, search и sort из read-query DTO.
+     * 3. Выполняет pagination.
+     * 4. Маппит строки БД в DTO страницы.
      */
     public function paginate(VehicleCrmReadQueryDTO $query): VehicleCrmPageDTO
     {
@@ -62,7 +75,13 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * Returns one vehicle with nested CRM details as local DTO.
+     * Читает detail-снимок автомобиля по id.
+     *
+     * Шаги:
+     * 1. Добавляет фильтр по внутреннему id к базовому query builder.
+     * 2. Возвращает `null`, если автомобиль не найден.
+     * 3. Загружает вложенные модификации и спецификации деталей.
+     * 4. Собирает detail DTO через factory.
      */
     public function findById(int $id): ?VehicleCrmDetailDTO
     {
@@ -82,7 +101,13 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * Returns compact vehicle suggestions for CRM autocomplete.
+     * Читает compact search options автомобилей для CRM autocomplete.
+     *
+     * Шаги:
+     * 1. Собирает базовый query builder автомобилей.
+     * 2. Применяет search-фильтр.
+     * 3. Ограничивает результат безопасным limit.
+     * 4. Маппит строки БД в search item DTO.
      *
      * @return Collection<int, VehicleCrmSearchItemDTO>
      */
@@ -101,7 +126,12 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * Returns available vehicle features for CRM filters.
+     * Читает feature options автомобилей для CRM filters.
+     *
+     * Шаги:
+     * 1. Фильтрует features по entity type `vehicle`.
+     * 2. Сортирует результат по названию.
+     * 3. Маппит строки БД в option DTO.
      *
      * @return Collection<int, VehicleCrmFeatureOptionDTO>
      */
@@ -116,7 +146,12 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * Returns available values for one feature.
+     * Читает feature value options одной характеристики.
+     *
+     * Шаги:
+     * 1. Возвращает пустую collection для невалидного feature id.
+     * 2. Фильтрует feature values по feature id.
+     * 3. Сортирует и маппит строки БД в option DTO.
      *
      * @return Collection<int, VehicleCrmFeatureValueOptionDTO>
      */
@@ -135,7 +170,13 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * Returns manufacturer options for CRM forms.
+     * Читает manufacturer options для CRM forms.
+     *
+     * Шаги:
+     * 1. Собирает query builder производителей.
+     * 2. Применяет selected id или search-фильтр.
+     * 3. Ограничивает результат безопасным limit.
+     * 4. Маппит строки БД в option DTO.
      *
      * @return Collection<int, VehicleCrmManufacturerOptionDTO>
      */
@@ -167,7 +208,12 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * Builds the common vehicle read query with manufacturer and parent fields.
+     * Собирает общий vehicle query для CRM read API.
+     *
+     * Шаги:
+     * 1. Открывает query builder таблицы `vehicles`.
+     * 2. Подключает parent vehicle и производителя.
+     * 3. Выбирает поля projection, нужные list/detail/search сценариям.
      */
     private function baseQuery(): Builder
     {
@@ -198,7 +244,12 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * Applies CRM filters to the base vehicle query.
+     * Применяет CRM filters к vehicle query.
+     *
+     * Шаги:
+     * 1. Применяет multi-value фильтры manufacturer/type/provider.
+     * 2. Применяет текстовые фильтры name/manufacturer_name.
+     * 3. Применяет boolean-фильтр `is_allow`.
      *
      * @param  array<string, mixed>  $filters
      */
@@ -231,7 +282,13 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * Applies a full-text-like search over vehicle and manufacturer columns.
+     * Применяет search по автомобилям и производителям.
+     *
+     * Шаги:
+     * 1. Нормализует поисковую строку.
+     * 2. Пропускает пустой search.
+     * 3. Ищет по названию, производителю, поколению и localized name.
+     * 4. Для числового search дополнительно проверяет `ms_id`.
      */
     private function applySearch(Builder $query, ?string $search): void
     {
@@ -255,7 +312,12 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * Applies a whitelisted CRM sort expression.
+     * Применяет whitelisted CRM sort expression.
+     *
+     * Шаги:
+     * 1. Определяет направление по префиксу `-`.
+     * 2. Переводит публичное имя поля в SQL column.
+     * 3. Добавляет `order by` к query builder.
      */
     private function applySort(Builder $query, string $sort): void
     {
@@ -280,7 +342,13 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * Loads modifications and attached engines for a CRM vehicle card.
+     * Читает модификации и двигатели для CRM detail автомобиля.
+     *
+     * Шаги:
+     * 1. Загружает модификации автомобиля в стабильном порядке.
+     * 2. Возвращает пустую collection, если модификаций нет.
+     * 3. Загружает двигатели, сгруппированные по id модификации.
+     * 4. Маппит каждую модификацию с ее двигателями в DTO.
      *
      * @return Collection<int, VehicleCrmModificationDTO>
      */
@@ -331,7 +399,12 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * Loads vehicle part specifications for CRM detail views.
+     * Читает спецификации деталей автомобиля для CRM detail views.
+     *
+     * Шаги:
+     * 1. Загружает vehicle part specifications с feature/feature value metadata.
+     * 2. Сортирует результат по template и id.
+     * 3. Маппит строки БД в part specification DTO.
      *
      * @return Collection<int, VehicleCrmPartSpecificationDTO>
      */

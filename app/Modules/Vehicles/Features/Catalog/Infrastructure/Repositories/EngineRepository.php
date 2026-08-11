@@ -17,6 +17,11 @@ final readonly class EngineRepository implements EngineRepositoryInterface
 {
     /**
      * Возвращает первый Data-снимок двигателей по внешнему идентификатору.
+     *
+     * Шаги:
+     * 1. Фильтрует Engines по внешнему `eng_id`.
+     * 2. Берет первую найденную запись.
+     * 3. Преобразует модель в `EngineData` или возвращает `null`.
      */
     public function findByEngId(int $engId): ?EngineData
     {
@@ -25,6 +30,11 @@ final readonly class EngineRepository implements EngineRepositoryInterface
 
     /**
      * Возвращает ids связок двигателя с модификациями.
+     *
+     * Шаги:
+     * 1. Фильтрует связки по внутреннему id двигателя.
+     * 2. Забирает только колонку `id`.
+     * 3. Нормализует значения в integer collection.
      *
      * @return Collection<int, int>
      */
@@ -37,6 +47,13 @@ final readonly class EngineRepository implements EngineRepositoryInterface
             ->values();
     }
 
+    /**
+     * Нормализует id из database scalar в integer.
+     *
+     * Шаги:
+     * 1. Принимает scalar значение id из Eloquent result.
+     * 2. Возвращает значение, приведенное к `int`.
+     */
     private function toInteger(mixed $id): int
     {
         return (int) $id;
