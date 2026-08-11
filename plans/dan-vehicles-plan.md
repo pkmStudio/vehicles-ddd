@@ -8,8 +8,14 @@
 - Read-сценарии между `dan-center` и `dan-vehicles` идут по REST.
 - Write/heavy-сценарии идут через RabbitMQ: import, export, calculation, create, update, delete.
 - Межсервисная корреляция идет через `operation_id`.
-- `pkmstudio/dan-wire-contracts` является справочником wire DTO/enums на REST/Rabbit границе.
-- Внутри домена используются локальные DTO/Data. Wire DTO используются только на REST/Rabbit границе.
+- `pkmstudio/dan-wire-contracts` является справочником публичных wire DTO/enums для REST/Rabbit.
+- Внутри `dan-vehicles` используются локальные DTO/Data. Package DTO не являются внутренними
+  DTO сервиса и не протаскиваются в Domain/Application.
+- Для контрактов, которыми владеет `dan-vehicles`, runtime owner-сервиса может сразу переводить
+  raw REST/Rabbit payload в локальный DTO через свой validator/factory. Package DTO используются
+  потребителями (`dan-center`) и contract tests, чтобы проверить совместимость публичного wire shape.
+- Если входящий payload не переводится в локальный DTO, boundary должен вернуть/publish ошибку
+  несовместимости контракта с рекомендацией обновить версию `dan-wire-contracts`.
 - `KitGrouping` не делаем и не держим в backlog.
 - Генерация enum из справочников остается отдельной темой в `plans/enum-generator.md`.
 - `VehicleCrmReadQueryFactory` и `NomenclatureCrmReadQueryFactory` остаются feature-local. Общий
@@ -29,11 +35,23 @@
 
 ## 1. Transport и wire contracts
 
-1. Довести runtime-переход на `pkmstudio/dan-wire-contracts`.
-   - Inbound Rabbit handlers должны нормализовать вход через package DTO там, где контракт уже есть.
-   - Outbound result events должны публиковаться через package DTO/enums.
-   - REST read endpoints должны отдавать согласованный wire shape.
-   - Package DTO не протаскивать глубоко в доменные use cases; на входе маппить в локальные DTO/Data.
+1. Довести использование `pkmstudio/dan-wire-contracts` как published contract reference.
+   - Runtime внутри `dan-vehicles`: входящие REST/Rabbit payload валидируются на boundary и сразу
+     переводятся в локальные DTO/Data, без обязательного создания package DTO.
+   - [x] Catalog mutation Rabbit handlers (`Vehicles` и `Warehouse`) переведены с runtime
+     `package DTO -> local DTO` на прямой `validated payload -> local DTO/factory`.
+   - [x] Для несовместимого catalog mutation payload добавлен failed result с
+     `reason=contract_mismatch` и рекомендацией обновить `dan-wire-contracts`, если payload
+     содержит `user_id`, `operation_id` и валидный `operation`.
+   - Runtime у потребителей (`dan-center`): для запросов к `dan-vehicles` использовать package DTO
+     контрактов `Vehicles`, потому что принимающей стороной является `dan-vehicles`.
+   - Исходящие result events/REST responses `dan-vehicles` должны иметь wire shape, совместимый с
+     package DTO/enums; проверять это contract tests.
+   - Когда `dan-vehicles` будет отправлять запрос в CRM, использовать package DTO из namespace CRM,
+     потому что принимающей стороной будет CRM.
+   - Package DTO не протаскивать в Domain/Application use cases.
+   - Для несовместимого payload ввести явную boundary-ошибку/failed result с message вроде:
+     `Payload is incompatible with current dan-vehicles contract. Update dan-wire-contracts version.`
 
 2. Проверить полноту пакета `dan-wire-contracts`.
    - Vehicles: import/export, catalog mutations, CRM read DTO.
@@ -46,6 +64,8 @@
    - Тестировать реальные sample payload из `dan-center` против handlers `dan-vehicles`.
    - Тестировать реальные result payload из `dan-vehicles`.
    - Тестировать REST response shape для endpoints, которые использует `dan-center`.
+   - Проверять совместимость локальных validators/factories и response presenters с package DTO,
+     но не делать package DTO обязательной runtime-прокладкой внутри owner-сервиса.
 
 4. Закрыть REST-auth на стороне API через middleware из раздела 8.
    - Не держать auth guard внутри controllers.

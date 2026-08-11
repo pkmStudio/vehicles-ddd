@@ -6,9 +6,11 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handler
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\StartModificationMutationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\ModificationMutationRequestDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\CatalogMutationContractMismatchReporter;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validators\ModificationMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
-use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Mutation\DTO\ModificationMutationRequested;
+use Throwable;
 
 /**
  * Принимает RabbitMQ-сообщение мутации модификаций и запускает сценарий.
@@ -21,6 +23,7 @@ final readonly class ModificationMutationRequestedHandler
     public function __construct(
         private StartModificationMutationUseCaseInterface $useCase,
         private ModificationMutationPayloadValidator $validator,
+        private CatalogMutationContractMismatchReporter $contractMismatchReporter,
     ) {}
 
     /**
@@ -32,15 +35,29 @@ final readonly class ModificationMutationRequestedHandler
         $validationFailed = $validator->fails();
 
         if ($validationFailed) {
+            $invalidKeys = array_keys($validator->errors()->toArray());
             Log::error('RabbitMQ: Modification mutation payload validation failed', [
-                'invalid_keys' => array_keys($validator->errors()->toArray()),
+                'invalid_keys' => $invalidKeys,
             ]);
+            $this->contractMismatchReporter->report(CatalogEntityEnum::Modification, $data, $invalidKeys);
 
             return;
         }
 
-        $payload = ModificationMutationRequested::fromArray($validator->validated())->toArray();
-        $request = ModificationMutationRequestDTO::fromArray($payload);
+        $payload = $validator->validated();
+
+        try {
+            $request = ModificationMutationRequestDTO::fromArray($payload);
+        } catch (Throwable $e) {
+            Log::error('RabbitMQ: Modification mutation payload contract mismatch', [
+                'operation_id' => $payload['operation_id'] ?? null,
+                'exception' => $e,
+            ]);
+            $this->contractMismatchReporter->report(CatalogEntityEnum::Modification, $payload, ['payload']);
+
+            return;
+        }
+
         $this->useCase->execute($request);
     }
 }

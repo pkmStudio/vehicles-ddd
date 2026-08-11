@@ -6,9 +6,11 @@ namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handle
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\StartKitMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitMutationRequestDTO;
+use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\KitMutationPayloadValidator;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\WarehouseCatalogMutationContractMismatchReporter;
 use Illuminate\Support\Facades\Log;
-use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\KitMutationRequested;
+use Throwable;
 
 /**
  * Принимает RabbitMQ-сообщение мутации Warehouse-наборов и запускает сценарий.
@@ -21,6 +23,7 @@ final readonly class KitMutationRequestedHandler
     public function __construct(
         private StartKitMutationUseCaseInterface $useCase,
         private KitMutationPayloadValidator $validator,
+        private WarehouseCatalogMutationContractMismatchReporter $contractMismatchReporter,
     ) {}
 
     /**
@@ -34,18 +37,32 @@ final readonly class KitMutationRequestedHandler
         $validationFailed = $validator->fails();
 
         if ($validationFailed) {
+            $invalidKeys = array_keys($validator->errors()->toArray());
             Log::error(
                 message: 'RabbitMQ: Warehouse kit mutation payload validation failed',
                 context: [
-                    'invalid_keys' => array_keys($validator->errors()->toArray()),
+                    'invalid_keys' => $invalidKeys,
                 ],
             );
+            $this->contractMismatchReporter->report(WarehouseCatalogEntityEnum::Kit, $data, $invalidKeys);
 
             return;
         }
 
-        $payload = KitMutationRequested::fromArray($validator->validated())->toArray();
-        $requestDto = KitMutationRequestDTO::fromArray($payload);
+        $payload = $validator->validated();
+
+        try {
+            $requestDto = KitMutationRequestDTO::fromArray($payload);
+        } catch (Throwable $e) {
+            Log::error('RabbitMQ: Warehouse kit mutation payload contract mismatch', [
+                'operation_id' => $payload['operation_id'] ?? null,
+                'exception' => $e,
+            ]);
+            $this->contractMismatchReporter->report(WarehouseCatalogEntityEnum::Kit, $payload, ['payload']);
+
+            return;
+        }
+
         $this->useCase->execute($requestDto);
     }
 }

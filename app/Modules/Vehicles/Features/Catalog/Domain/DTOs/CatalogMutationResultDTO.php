@@ -22,7 +22,7 @@ final readonly class CatalogMutationResultDTO
         public CatalogEntityEnum $entity,
         public CatalogMutationOperationEnum $operation,
         public CatalogMutationStatusEnum $status,
-        public int $externalId,
+        public ?int $externalId = null,
         public ?int $recordId = null,
         public ?string $reason = null,
         public array $errors = [],

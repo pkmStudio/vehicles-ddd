@@ -6,9 +6,11 @@ namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handle
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\StartBrandMutationUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandMutationRequestDTO;
+use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\BrandMutationPayloadValidator;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\WarehouseCatalogMutationContractMismatchReporter;
 use Illuminate\Support\Facades\Log;
-use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\BrandMutationRequested;
+use Throwable;
 
 /**
  * Принимает RabbitMQ-сообщение мутации Warehouse-брендов и запускает сценарий.
@@ -21,6 +23,7 @@ final readonly class BrandMutationRequestedHandler
     public function __construct(
         private StartBrandMutationUseCaseInterface $useCase,
         private BrandMutationPayloadValidator $validator,
+        private WarehouseCatalogMutationContractMismatchReporter $contractMismatchReporter,
     ) {}
 
     /**
@@ -34,18 +37,32 @@ final readonly class BrandMutationRequestedHandler
         $validationFailed = $validator->fails();
 
         if ($validationFailed) {
+            $invalidKeys = array_keys($validator->errors()->toArray());
             Log::error(
                 message: 'RabbitMQ: Warehouse brand mutation payload validation failed',
                 context: [
-                    'invalid_keys' => array_keys($validator->errors()->toArray()),
+                    'invalid_keys' => $invalidKeys,
                 ],
             );
+            $this->contractMismatchReporter->report(WarehouseCatalogEntityEnum::Brand, $data, $invalidKeys);
 
             return;
         }
 
-        $payload = BrandMutationRequested::fromArray($validator->validated())->toArray();
-        $requestDto = BrandMutationRequestDTO::fromArray($payload);
+        $payload = $validator->validated();
+
+        try {
+            $requestDto = BrandMutationRequestDTO::fromArray($payload);
+        } catch (Throwable $e) {
+            Log::error('RabbitMQ: Warehouse brand mutation payload contract mismatch', [
+                'operation_id' => $payload['operation_id'] ?? null,
+                'exception' => $e,
+            ]);
+            $this->contractMismatchReporter->report(WarehouseCatalogEntityEnum::Brand, $payload, ['payload']);
+
+            return;
+        }
+
         $this->useCase->execute($requestDto);
     }
 }

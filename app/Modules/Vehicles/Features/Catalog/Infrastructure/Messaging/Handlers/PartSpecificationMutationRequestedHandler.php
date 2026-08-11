@@ -6,9 +6,11 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handler
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\PartSpecificationMutationRequestFactoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\StartPartSpecificationMutationUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\CatalogMutationContractMismatchReporter;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validators\PartSpecificationMutationPayloadValidator;
 use Illuminate\Support\Facades\Log;
-use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Mutation\DTO\PartSpecificationMutationRequested;
+use Throwable;
 
 /**
  * Принимает RabbitMQ-сообщение мутации спецификаций деталей и запускает сценарий.
@@ -22,6 +24,7 @@ final readonly class PartSpecificationMutationRequestedHandler
         private StartPartSpecificationMutationUseCaseInterface $useCase,
         private PartSpecificationMutationRequestFactoryInterface $factory,
         private PartSpecificationMutationPayloadValidator $validator,
+        private CatalogMutationContractMismatchReporter $contractMismatchReporter,
     ) {}
 
     /**
@@ -40,15 +43,29 @@ final readonly class PartSpecificationMutationRequestedHandler
         $validationFailed = $validator->fails();
 
         if ($validationFailed) {
+            $invalidKeys = array_keys($validator->errors()->toArray());
             Log::error('RabbitMQ: PartSpecification mutation payload validation failed', [
-                'invalid_keys' => array_keys($validator->errors()->toArray()),
+                'invalid_keys' => $invalidKeys,
             ]);
+            $this->contractMismatchReporter->report(CatalogEntityEnum::PartSpecification, $data, $invalidKeys);
 
             return;
         }
 
-        $payload = PartSpecificationMutationRequested::fromArray($validator->validated())->toArray();
-        $request = $this->factory->make($payload);
+        $payload = $validator->validated();
+
+        try {
+            $request = $this->factory->make($payload);
+        } catch (Throwable $e) {
+            Log::error('RabbitMQ: PartSpecification mutation payload contract mismatch', [
+                'operation_id' => $payload['operation_id'] ?? null,
+                'exception' => $e,
+            ]);
+            $this->contractMismatchReporter->report(CatalogEntityEnum::PartSpecification, $payload, ['payload']);
+
+            return;
+        }
+
         $this->useCase->execute($request);
     }
 }
