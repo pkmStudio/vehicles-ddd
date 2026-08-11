@@ -24,6 +24,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Results\DTO\CatalogMutationCompleted as WireCatalogMutationCompleted;
 use Tests\TestCase;
 
 final class CatalogMutationRequestedHandlerTest extends TestCase
@@ -42,6 +43,33 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
         Cache::flush();
 
         parent::tearDown();
+    }
+
+    public function test_catalog_mutation_result_matches_published_wire_contract(): void
+    {
+        $result = new CatalogMutationResultDTO(
+            userId: 42,
+            operationId: 'vehicles-result-wire-contract',
+            entity: CatalogEntityEnum::Vehicle,
+            operation: CatalogMutationOperationEnum::Create,
+            status: CatalogMutationStatusEnum::Completed,
+            externalId: 501,
+            recordId: 1001,
+            errors: [],
+        );
+
+        $wirePayload = WireCatalogMutationCompleted::fromArray($result->toArray())->toArray();
+
+        self::assertSame([
+            'user_id' => 42,
+            'operation_id' => 'vehicles-result-wire-contract',
+            'entity' => 'vehicle',
+            'operation' => 'create',
+            'status' => 'completed',
+            'external_id' => 501,
+            'record_id' => 1001,
+            'errors' => [],
+        ], $wirePayload);
     }
 
     public function test_manufacturer_create_update_and_delete_messages(): void

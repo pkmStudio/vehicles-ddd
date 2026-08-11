@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Warehouse\Catalog;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationNotificationServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationNotificationServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\KitProperties\KitPropertiesDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
@@ -24,6 +24,10 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\KitMutationPayload as WireKitMutationPayload;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\KitMutationRequested as WireKitMutationRequested;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Enums\CatalogMutationOperation as WireCatalogMutationOperation;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Results\DTO\CatalogMutationCompleted as WireCatalogMutationCompleted;
 use Tests\TestCase;
 
 /**
@@ -45,6 +49,33 @@ final class KitMutationRequestedHandlerTest extends TestCase
         Cache::flush();
 
         parent::tearDown();
+    }
+
+    public function test_warehouse_catalog_mutation_result_matches_published_wire_contract(): void
+    {
+        $result = new WarehouseCatalogMutationResultDTO(
+            userId: 42,
+            operationId: 'warehouse-result-wire-contract',
+            entity: WarehouseCatalogEntityEnum::Kit,
+            operation: WarehouseCatalogMutationOperationEnum::Create,
+            status: WarehouseCatalogMutationStatusEnum::Completed,
+            recordId: 1001,
+            businessKey: 'hash-wire-contract',
+            errors: [],
+        );
+
+        $wirePayload = WireCatalogMutationCompleted::fromArray($result->toArray())->toArray();
+
+        self::assertSame([
+            'user_id' => 42,
+            'operation_id' => 'warehouse-result-wire-contract',
+            'entity' => 'kit',
+            'operation' => 'create',
+            'status' => 'completed',
+            'record_id' => 1001,
+            'business_key' => 'hash-wire-contract',
+            'errors' => [],
+        ], $wirePayload);
     }
 
     public function test_kit_create_update_and_delete_messages_manage_pivot_manually(): void
@@ -116,6 +147,56 @@ final class KitMutationRequestedHandlerTest extends TestCase
 
         $this->assertDatabaseMissing('kits', ['id' => $kit->id]);
         $this->assertDatabaseMissing('kit_nomenclature', ['kit_id' => $kit->id]);
+    }
+
+    public function test_kit_create_message_accepts_published_wire_contract_payload(): void
+    {
+        [$type, $brand, $packDimension] = $this->createBaseCatalog();
+        $nomenclature = Nomenclature::query()->create($this->nomenclatureAttributes($type->id, $brand->id, 'WIRE-KIT-1'));
+
+        $kitProperties = $this->mock(KitPropertiesClientInterface::class);
+        $kitProperties->shouldReceive('build')
+            ->once()
+            ->andReturn(new KitPropertiesDTO(
+                typeId: $type->id,
+                packDimensionId: $packDimension->id,
+                weight: 100.0,
+                quantityInPackage: 1,
+                quantityPackage: 1,
+                complectation: 'WIRE-KIT-1',
+                importHash: 'hash-wire-contract',
+            ));
+
+        $notifier = $this->mock(WarehouseCatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (WarehouseCatalogMutationResultDTO $result): bool => $result->entity === WarehouseCatalogEntityEnum::Kit
+                && $result->operation === WarehouseCatalogMutationOperationEnum::Create
+                && $result->status === WarehouseCatalogMutationStatusEnum::Completed
+                && $result->operationId === 'warehouse-kit-wire-contract'
+                && $result->recordId !== null));
+
+        $message = new WireKitMutationRequested(
+            userId: 42,
+            operationId: 'warehouse-kit-wire-contract',
+            operation: WireCatalogMutationOperation::Create->value,
+            kit: new WireKitMutationPayload(
+                nomenclatureIds: [$nomenclature->id],
+                isSaleSeparately: true,
+                isActive: true,
+                guarantee: 12,
+            ),
+        );
+
+        app(KitMutationRequestedHandler::class)->handle($message->toArray());
+
+        $kit = Kit::query()->where('import_hash', 'hash-wire-contract')->firstOrFail();
+
+        $this->assertDatabaseHas('kit_nomenclature', [
+            'kit_id' => $kit->id,
+            'nomenclature_id' => $nomenclature->id,
+            'sort' => 0,
+        ]);
     }
 
     public function test_kit_create_is_rejected_when_nomenclature_is_missing(): void

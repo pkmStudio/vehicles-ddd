@@ -20,6 +20,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\NomenclatureMutationPayload as WireNomenclatureMutationPayload;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\NomenclatureMutationRequested as WireNomenclatureMutationRequested;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Enums\CatalogMutationOperation as WireCatalogMutationOperation;
 use Tests\TestCase;
 
 /**
@@ -83,6 +86,50 @@ final class NomenclatureMutationRequestedHandlerTest extends TestCase
         ]);
 
         $this->assertDatabaseMissing('nomenclatures', ['id' => $nomenclature->id]);
+    }
+
+    public function test_nomenclature_create_message_accepts_published_wire_contract_payload(): void
+    {
+        $type = Type::query()->create(['name' => 'V-Belt', 'char' => 'VB']);
+        $brand = Brand::query()->create($this->brandAttributes());
+
+        $notifier = $this->mock(WarehouseCatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (WarehouseCatalogMutationResultDTO $result): bool => $result->entity === WarehouseCatalogEntityEnum::Nomenclature
+                && $result->operation === WarehouseCatalogMutationOperationEnum::Create
+                && $result->status === WarehouseCatalogMutationStatusEnum::Completed
+                && $result->operationId === 'warehouse-nomenclature-wire-contract'
+                && $result->recordId !== null));
+
+        $message = new WireNomenclatureMutationRequested(
+            userId: 42,
+            operationId: 'warehouse-nomenclature-wire-contract',
+            operation: WireCatalogMutationOperation::Create->value,
+            nomenclature: new WireNomenclatureMutationPayload(
+                typeId: $type->id,
+                brandId: $brand->id,
+                name: 'Wire Part',
+                country: 'RU',
+                partNumber: 'WIRE-1',
+                color: 'Black',
+                weight: 100,
+                material: ['Rubber'],
+                vehicleType: ['PC'],
+                quantityPak: 1,
+                quantityInPak: 1,
+                details: [],
+            ),
+        );
+
+        app(NomenclatureMutationRequestedHandler::class)->handle($message->toArray());
+
+        $this->assertDatabaseHas('nomenclatures', [
+            'type_id' => $type->id,
+            'brand_id' => $brand->id,
+            'part_number' => 'WIRE-1',
+            'name' => 'Wire Part',
+        ]);
     }
 
     public function test_nomenclature_create_is_rejected_when_type_is_missing(): void

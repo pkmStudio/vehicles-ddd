@@ -75,6 +75,11 @@
      парсятся опубликованными `dan-wire-contracts` DTO и round-trip совпадает с wire shape.
    - [x] Добавлен first-pass contract gate для Vehicles catalog mutation: handler принимает payload,
      собранный опубликованным `VehicleMutationRequested`/`VehicleMutationPayload`.
+   - [x] Добавлен first-pass contract gate для Warehouse catalog mutation: handlers брендов,
+     номенклатур, упаковочных размеров и комплектов принимают payload, собранный опубликованными
+     DTO из `dan-wire-contracts`.
+   - [x] Добавлен first-pass contract gate для catalog mutation result events: локальные Vehicles и
+     Warehouse result DTO round-trip проходят через опубликованный `CatalogMutationCompleted` wire DTO.
 
 4. Закрыть REST-auth на стороне API через middleware из раздела 8.
    - Не держать auth guard внутри controllers.
