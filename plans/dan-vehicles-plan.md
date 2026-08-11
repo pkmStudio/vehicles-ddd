@@ -71,6 +71,10 @@
    - Тестировать REST response shape для endpoints, которые использует `dan-center`.
    - Проверять совместимость локальных validators/factories и response presenters с package DTO,
      но не делать package DTO обязательной runtime-прокладкой внутри owner-сервиса.
+   - [x] Добавлен первый contract gate для Vehicles CRM read: реальные REST list/search responses
+     парсятся опубликованными `dan-wire-contracts` DTO и round-trip совпадает с wire shape.
+   - [x] Добавлен first-pass contract gate для Vehicles catalog mutation: handler принимает payload,
+     собранный опубликованным `VehicleMutationRequested`/`VehicleMutationPayload`.
 
 4. Закрыть REST-auth на стороне API через middleware из раздела 8.
    - Не держать auth guard внутри controllers.

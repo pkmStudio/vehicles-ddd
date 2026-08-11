@@ -21,6 +21,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Mutation\DTO\VehicleMutationPayload as WireVehicleMutationPayload;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Mutation\DTO\VehicleMutationRequested as WireVehicleMutationRequested;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Enums\CatalogMutationOperation as WireCatalogMutationOperation;
 use Tests\TestCase;
 
 /**
@@ -76,6 +79,49 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
             'name' => 'Octavia',
             'type' => VehicleTypeEnum::PC->value,
             'type_carcase' => CarcaseTypeEnum::HATCHBACK->value,
+        ]);
+    }
+
+    public function test_create_vehicle_message_accepts_published_wire_contract_payload(): void
+    {
+        $manufacturer = $this->createManufacturer();
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(function (CatalogMutationResultDTO $result): bool {
+                return $result->entity === CatalogEntityEnum::Vehicle
+                    && $result->operation === CatalogMutationOperationEnum::Create
+                    && $result->status === CatalogMutationStatusEnum::Completed
+                    && $result->operationId === 'vehicle-create-wire-contract'
+                    && $result->externalId === 508
+                    && $result->recordId !== null;
+            }));
+
+        $message = new WireVehicleMutationRequested(
+            userId: 42,
+            operationId: 'vehicle-create-wire-contract',
+            operation: WireCatalogMutationOperation::Create->value,
+            vehicle: new WireVehicleMutationPayload(
+                msId: 508,
+                mfaId: $manufacturer->mfa_id,
+                name: 'Wire Karoq',
+                type: VehicleTypeEnum::PC->value,
+                typeCarcase: CarcaseTypeEnum::HATCHBACK->value,
+                provider: ProviderEnum::OD->value,
+                steeringType: SteeringTypeEnum::LEFT->value,
+                isAllow: true,
+            ),
+        );
+
+        app(VehicleMutationRequestedHandler::class)->handle($message->toArray());
+
+        $this->assertDatabaseHas('vehicles', [
+            'ms_id' => 508,
+            'mfa_id' => $manufacturer->mfa_id,
+            'manufacturer_id' => $manufacturer->id,
+            'name' => 'Wire Karoq',
+            'is_allow' => true,
         ]);
     }
 

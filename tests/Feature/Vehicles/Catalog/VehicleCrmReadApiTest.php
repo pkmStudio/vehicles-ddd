@@ -19,6 +19,9 @@ use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Read\DTO\PaginationMeta as WirePaginationMeta;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Read\DTO\VehicleCrmResource as WireVehicleCrmResource;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Read\DTO\VehicleCrmSearchItem as WireVehicleCrmSearchItem;
 use Tests\TestCase;
 
 /**
@@ -87,6 +90,31 @@ final class VehicleCrmReadApiTest extends TestCase
     }
 
     /**
+     * Проверяет, что REST list response совместим с опубликованным wire DTO.
+     */
+    public function test_index_response_matches_published_wire_contract(): void
+    {
+        $manufacturer = $this->createManufacturer(name: 'Skoda');
+        $vehicle = $this->createVehicle(
+            msId: 1004,
+            manufacturer: $manufacturer,
+            name: 'Karoq',
+            isAllow: true,
+        );
+
+        $response = $this->getJson('/api/v1/crm/vehicles?per_page=10&filter[is_allow]=1');
+
+        $response->assertOk();
+
+        $wireVehicle = WireVehicleCrmResource::fromArray($response->json('data.0'));
+        $wireMeta = WirePaginationMeta::fromArray($response->json('meta'));
+
+        self::assertSame($response->json('data.0'), $wireVehicle->toArray());
+        self::assertSame($response->json('meta'), $wireMeta->toArray());
+        self::assertSame($vehicle->id, $wireVehicle->id);
+    }
+
+    /**
      * Проверяет detail endpoint с вложенными модификациями, двигателями и спецификациями.
      */
     public function test_show_returns_vehicle_details_with_nested_read_data(): void
@@ -142,6 +170,24 @@ final class VehicleCrmReadApiTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.label', '1202 | Skoda Octavia RS III |  (2013-2020)')
             ->assertJsonPath('data.0.ms_id', 1202);
+    }
+
+    /**
+     * Проверяет, что REST search response совместим с опубликованным wire DTO.
+     */
+    public function test_search_response_matches_published_wire_contract(): void
+    {
+        $manufacturer = $this->createManufacturer(name: 'Skoda');
+        $vehicle = $this->createVehicle(msId: 1204, manufacturer: $manufacturer, name: 'Kodiaq');
+
+        $response = $this->getJson('/api/v1/crm/vehicles/search?q=Kodiaq&limit=1');
+
+        $response->assertOk();
+
+        $wireItem = WireVehicleCrmSearchItem::fromArray($response->json('data.0'));
+
+        self::assertSame($response->json('data.0'), $wireItem->toArray());
+        self::assertSame($vehicle->id, $wireItem->id);
     }
 
     /**
