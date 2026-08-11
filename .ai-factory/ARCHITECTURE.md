@@ -131,7 +131,9 @@ app/Modules/<Module>/Features/<Feature>/
 
 - Cross-feature факт внутри модуля лежит в `<Module>/Shared/Domain/Events`.
 - Внутренний факт фичи лежит в `<Feature>/Domain/Events`.
-- Request/result workflow оформляется двумя сообщениями: request/fact event и result event с `runId` или `correlationId`.
+- Межсервисный request/result workflow оформляется двумя сообщениями: request/fact event и result
+  event с `operation_id`. `runId` оставляем только для внутреннего контекста import/export run,
+  если он уже используется для cache/report state.
 - RabbitMQ inbound: `Infrastructure/Messaging/Handlers/*Handler` валидирует payload через `Messaging/Validators`, собирает DTO и вызывает use case.
 - RabbitMQ outbound: `Infrastructure/Notifications/*NotificationService` публикует explicit notification DTO.
 - Excel import: adapter в `Infrastructure/Imports` читает файл и делегирует построчную работу Application service.
@@ -140,6 +142,10 @@ app/Modules/<Module>/Features/<Feature>/
   методе, а `registerEvents()` не использует closures.
 - Excel export: adapter в `Infrastructure/Exports` читает данные через Repository и собирает строки через Application services/factories.
 - Maintenance-фичи могут ходить в Eloquent напрямую из своих services/commands, если это осознанный разовый catalog fix без reusable Repository boundary.
+- Public sync clients между фичами/модулями только читают данные. Запись выполняется через use
+  case/command или async event/result workflow, не через `*ClientInterface`.
+- Public sync clients не читают БД напрямую: они вызывают owner use case/query service или
+  repository port, SQL остаётся в `Infrastructure/Repositories`.
 - Public shared events несут scalar fields или typed event payload DTO/value objects, не raw
   `array` payload'ы сущностей/интеграций.
 
@@ -185,7 +191,9 @@ adapter. Если нужно сообщить факт без ответа — d
 ### Infrastructure
 
 - Eloquent-модели feature-local и анемичные: relations, casts, timestamps, без бизнес-логики.
-- Repository — только чтение, возвращает `Data`, `Collection<int, Data>` или `Generator<int, Data>`.
+- Repository — только чтение, возвращает `Data`, `Collection<int, Data>`, `Generator<int, Data>`
+  или узкий scalar read вроде `exists`, `count`, `nextId`, если это атомарное чтение без
+  бизнес-логики и записи.
 - Command — запись, принимает `Data`/DTO и инкапсулирует save/upsert/delete.
 - Messaging, Files, Cache, Storage, Jobs, Notifications и external clients остаются здесь.
 - Laravel Excel adapters с `ShouldQueue` должны быть сериализуемыми: свойства — только scalar/DTO/value

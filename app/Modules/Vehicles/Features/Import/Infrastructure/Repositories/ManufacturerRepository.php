@@ -12,12 +12,12 @@ final readonly class ManufacturerRepository implements ManufacturerRepositoryInt
 {
     public function findByName(string $name): ?ManufacturerData
     {
-        return ManufacturerData::optional(Manufacturer::query()->where('name', $name)->first());
+        return $this->findByColumn('name', $name);
     }
 
     public function findByMfaId(int $mfaId): ?ManufacturerData
     {
-        return ManufacturerData::optional(Manufacturer::query()->where('mfa_id', $mfaId)->first());
+        return $this->findByColumn('mfa_id', $mfaId);
     }
 
     public function findMinMfaId(): ?ManufacturerData
@@ -25,6 +25,15 @@ final readonly class ManufacturerRepository implements ManufacturerRepositoryInt
         return ManufacturerData::optional(
             Manufacturer::query()
                 ->orderBy('mfa_id')
+                ->first(),
+        );
+    }
+
+    private function findByColumn(string $column, int|string $value): ?ManufacturerData
+    {
+        return ManufacturerData::optional(
+            Manufacturer::query()
+                ->where($column, $value)
                 ->first(),
         );
     }

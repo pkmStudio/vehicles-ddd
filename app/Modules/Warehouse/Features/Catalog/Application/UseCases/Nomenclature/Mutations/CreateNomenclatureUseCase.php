@@ -11,9 +11,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeRep
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\CreateNomenclatureUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\CreateNomenclatureRequestDTO;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
@@ -70,7 +68,7 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
                 );
             }
 
-            $brand = $this->brands->find(BrandLookupDTO::byId($request->brandId));
+            $brand = $this->brands->findById($request->brandId);
 
             if ($brand === null) {
                 return $this->results->rejected(
@@ -83,7 +81,7 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
                 );
             }
 
-            $existingNomenclature = $this->nomenclatures->find(NomenclatureLookupDTO::byPartNumber($request->partNumber));
+            $existingNomenclature = $this->nomenclatures->findByPartNumber($request->partNumber);
 
             if ($existingNomenclature !== null) {
                 return $this->results->rejected(

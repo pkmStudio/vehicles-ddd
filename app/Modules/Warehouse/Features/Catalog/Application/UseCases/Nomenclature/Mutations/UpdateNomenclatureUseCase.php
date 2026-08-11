@@ -11,8 +11,6 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeRep
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\UpdateNomenclatureUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandLookupDTO;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\UpdateNomenclatureRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
@@ -57,7 +55,7 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
         }
 
         try {
-            $existingNomenclature = $this->nomenclatures->find(NomenclatureLookupDTO::byId($request->id));
+            $existingNomenclature = $this->nomenclatures->findById($request->id);
 
             if ($existingNomenclature === null) {
                 return $this->results->rejected(
@@ -85,7 +83,7 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
                 );
             }
 
-            $brand = $this->brands->find(BrandLookupDTO::byId($request->brandId));
+            $brand = $this->brands->findById($request->brandId);
 
             if ($brand === null) {
                 return $this->results->rejected(
@@ -99,7 +97,7 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
                 );
             }
 
-            $samePartNumberNomenclature = $this->nomenclatures->find(NomenclatureLookupDTO::byPartNumber($request->partNumber));
+            $samePartNumberNomenclature = $this->nomenclatures->findByPartNumber($request->partNumber);
             if ($samePartNumberNomenclature !== null && $samePartNumberNomenclature->id !== $request->id) {
                 return $this->results->rejected(
                     userId: $request->userId,

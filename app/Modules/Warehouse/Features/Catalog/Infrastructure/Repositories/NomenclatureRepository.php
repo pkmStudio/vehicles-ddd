@@ -6,7 +6,6 @@ namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureIntegrationDeletionContextDTO;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
 use Illuminate\Support\Collection;
@@ -18,25 +17,19 @@ use Illuminate\Support\Facades\DB;
 final readonly class NomenclatureRepository implements NomenclatureRepositoryInterface
 {
     /**
-     * Возвращает номенклатуру по typed lookup-критерию или null.
+     * Возвращает номенклатуру по внутреннему идентификатору или null.
      */
-    public function find(NomenclatureLookupDTO $lookup): ?NomenclatureData
+    public function findById(int $id): ?NomenclatureData
     {
-        $query = Nomenclature::query();
+        return $this->findByColumn('id', $id, ['type', 'brand']);
+    }
 
-        if ($lookup->id !== null) {
-            $nomenclature = $query
-                ->with(['type', 'brand'])
-                ->find($lookup->id);
-
-            return NomenclatureData::optional($nomenclature);
-        }
-
-        $nomenclature = $query
-            ->where('part_number', $lookup->partNumber)
-            ->first();
-
-        return NomenclatureData::optional($nomenclature);
+    /**
+     * Возвращает номенклатуру по артикулу или null.
+     */
+    public function findByPartNumber(string $partNumber): ?NomenclatureData
+    {
+        return $this->findByColumn('part_number', $partNumber);
     }
 
     /**
@@ -92,5 +85,18 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
     private function toInteger(mixed $id): int
     {
         return (int) $id;
+    }
+
+    /**
+     * @param  array<int, string>  $relations
+     */
+    private function findByColumn(string $column, int|string $value, array $relations = []): ?NomenclatureData
+    {
+        $nomenclature = Nomenclature::query()
+            ->with($relations)
+            ->where($column, $value)
+            ->first();
+
+        return NomenclatureData::optional($nomenclature);
     }
 }

@@ -6,8 +6,10 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\Vehi
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmEngineDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureValueOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmListItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmManufacturerOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmModificationDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
@@ -15,11 +17,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPart
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmSearchItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmDetailDTOFactory;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmEngineDTOFactory;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmFeatureOptionDTOFactory;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmFeatureValueOptionDTOFactory;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmListItemDTOFactory;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmManufacturerOptionDTOFactory;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmModificationDTOFactory;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmPageDTOFactory;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmPartSpecificationDTOFactory;
@@ -34,16 +31,11 @@ use Illuminate\Support\Facades\DB;
 final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterface
 {
     public function __construct(
-        private VehicleCrmListItemDTOFactory $listItemFactory,
         private VehicleCrmSearchItemDTOFactory $searchItemFactory,
         private VehicleCrmPageDTOFactory $pageFactory,
         private VehicleCrmDetailDTOFactory $detailFactory,
         private VehicleCrmModificationDTOFactory $modificationFactory,
-        private VehicleCrmEngineDTOFactory $engineFactory,
         private VehicleCrmPartSpecificationDTOFactory $partSpecificationFactory,
-        private VehicleCrmFeatureOptionDTOFactory $featureOptionFactory,
-        private VehicleCrmFeatureValueOptionDTOFactory $featureValueOptionFactory,
-        private VehicleCrmManufacturerOptionDTOFactory $manufacturerOptionFactory,
     ) {}
 
     /**
@@ -63,7 +55,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         );
 
         $items = collect($paginator->items())
-            ->map(fn (object $vehicle) => $this->listItemFactory->make($vehicle))
+            ->map(fn (object $vehicle): VehicleCrmListItemDTO => VehicleCrmListItemDTO::fromArray((array) $vehicle))
             ->values();
 
         return $this->pageFactory->make($items, $paginator);
@@ -83,7 +75,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         }
 
         return $this->detailFactory->make(
-            vehicle: $this->listItemFactory->make($vehicle),
+            vehicle: VehicleCrmListItemDTO::fromArray((array) $vehicle),
             modifications: $this->modifications((int) $vehicle->id),
             partSpecifications: $this->partSpecifications((int) $vehicle->id),
         );
@@ -118,8 +110,8 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         return DB::table('features')
             ->where('entity_type', 'vehicle')
             ->orderBy('name')
-            ->get(['id', 'name'])
-            ->map(fn (object $feature): VehicleCrmFeatureOptionDTO => $this->featureOptionFactory->make($feature))
+            ->get(['id', 'name as label'])
+            ->map(fn (object $feature): VehicleCrmFeatureOptionDTO => VehicleCrmFeatureOptionDTO::fromArray((array) $feature))
             ->values();
     }
 
@@ -137,8 +129,8 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         return DB::table('feature_values')
             ->where('feature_id', $featureId)
             ->orderBy('name')
-            ->get(['id', 'feature_id', 'name', 'short_code'])
-            ->map(fn (object $value): VehicleCrmFeatureValueOptionDTO => $this->featureValueOptionFactory->make($value))
+            ->get(['id', 'feature_id', 'name as label', 'short_code'])
+            ->map(fn (object $value): VehicleCrmFeatureValueOptionDTO => VehicleCrmFeatureValueOptionDTO::fromArray((array) $value))
             ->values();
     }
 
@@ -150,7 +142,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     public function manufacturerOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection
     {
         $builder = DB::table('manufacturers')
-            ->select(['id', 'mfa_id', 'name'])
+            ->select(['id', 'mfa_id', 'name as label'])
             ->orderBy('name');
 
         if ($id !== null) {
@@ -170,7 +162,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         return $builder
             ->limit(min(max($limit, 1), 50))
             ->get()
-            ->map(fn (object $manufacturer): VehicleCrmManufacturerOptionDTO => $this->manufacturerOptionFactory->make($manufacturer))
+            ->map(fn (object $manufacturer): VehicleCrmManufacturerOptionDTO => VehicleCrmManufacturerOptionDTO::fromArray((array) $manufacturer))
             ->values();
     }
 
@@ -330,7 +322,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         return $modifications
             ->map(function (object $modification) use ($engines): VehicleCrmModificationDTO {
                 $modificationEngines = collect($engines->get($modification->id, []))
-                    ->map(fn (object $engine) => $this->engineFactory->make($engine))
+                    ->map(fn (object $engine): VehicleCrmEngineDTO => VehicleCrmEngineDTO::fromArray((array) $engine))
                     ->values();
 
                 return $this->modificationFactory->make($modification, $modificationEngines);

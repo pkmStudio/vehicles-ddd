@@ -40,6 +40,15 @@ final class VehicleCrmReadApiTest extends TestCase
         $response
             ->assertUnauthorized()
             ->assertJsonPath('message', 'Unauthorized.');
+
+        $this->withHeader('X-Service-Key', 'wrong-key')
+            ->getJson('/api/v1/crm/vehicles')
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Unauthorized.');
+
+        $this->withHeader('X-Service-Key', 'secret-key')
+            ->getJson('/api/v1/crm/vehicles')
+            ->assertOk();
     }
 
     /**

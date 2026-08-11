@@ -12,15 +12,14 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCa
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\CreateKitUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\CreateKitRequestDTO;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\KitProperties\KitPropertiesDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
+use App\Modules\Warehouse\Features\Catalog\Domain\Exceptions\KitPropertiesCompositionException;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
-use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 use App\Modules\Warehouse\Shared\Domain\Events\Kit\KitCreated;
 use Throwable;
 
@@ -91,7 +90,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
                 );
             }
 
-            $duplicate = $this->kits->find(KitLookupDTO::byImportHash($properties->importHash));
+            $duplicate = $this->kits->findByImportHash($properties->importHash);
             if ($duplicate !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
@@ -180,7 +179,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
     ): KitPropertiesDTO|WarehouseCatalogMutationResultDTO {
         try {
             return $this->kitProperties->build($nomenclatures);
-        } catch (KitCompositionException $e) {
+        } catch (KitPropertiesCompositionException $e) {
             return $this->results->rejected(
                 userId: $request->userId,
                 operationId: $request->operationId,

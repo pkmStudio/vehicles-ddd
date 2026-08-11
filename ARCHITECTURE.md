@@ -2,13 +2,13 @@
 
 Справочник: **что куда класть, что должно быть тонким, что к какому слою/фиче относится и почему.**
 
-> Актуализация 2026-07-18: бизнес-модули перенесены в `app/Modules/*`. `Templates` живёт как
+> Актуализация 2026-08-11: бизнес-модули живут в `app/Modules/*`. `Templates` остаётся
 > отдельный shared-kernel модуль, а `Warehouse` и `Vehicles` имеют module-level `Shared/` с
 > публичными событиями и общей инфраструктурой
 > (`Shared/Infrastructure/Database/Migrations`, `Shared/Infrastructure/Providers`). Межфичевые
 > синхронные вызовы идут через локальные `Domain/Contracts/Clients/*ClientInterface` фичи-потребителя
 > и adapter в её `Infrastructure/Clients`; чужие service/factory/presenter-контракты в
-> `Application` не импортируем. Детальный план и список выполненных переносов см. `refactor-ms.md`.
+> `Application` не импортируем.
 
 Раскладка — **module-first + feature-first**. Бизнес-модули живут в `app/Modules/*`.
 У доменных модулей (`Vehicles`, `Warehouse`) сначала выбираем фичу в `Features/*`
@@ -16,9 +16,7 @@
 слой: **Domain → Application → Infrastructure → Presentation**. Общий модуль `Templates` пока
 не дробится на `Features/`, потому что внутри него нет нескольких самостоятельных фич.
 
-> История перехода layer-first → feature-first, переход на `spatie/laravel-data`, удаление
-> общей `Domain/Models` и т.п. зафиксированы в `plan.md` (§1–§3, §11). Здесь — только **целевое
-> состояние конвенций**, а не путь к нему.
+> Здесь фиксируется **целевое состояние конвенций**, а не история перехода.
 
 Правило зависимостей (Dependency Rule) действует **внутри каждой фичи**: стрелки внутрь.
 
@@ -69,6 +67,10 @@ Laravel, поэтому в проекте допустимы осознанны�
 - Production `info`/`debug` logs не используем для нормального бизнес-потока. Успешные импорты,
   экспорты, публикации и расчёты подтверждаются result DTO, events, notifications и тестами.
   Логи уровня `warning`/`error` оставляем для actionable интеграционных аномалий и сбоев.
+- Public sync clients между фичами/модулями только читают данные. Запись выполняется через use
+  case/command или async event/result workflow, не через `*ClientInterface`.
+- Public sync clients не ходят в БД напрямую: они делегируют owner use case/query service или
+  repository port. SQL остаётся в `Infrastructure/Repositories`, а не в client adapter.
 
 DDD в проекте применяется **стратегически**, а не как обязательная tactical DDD-модель с жирными
 entities/aggregates. `ModelData` намеренно остаются тонкими снимками состояния, Eloquent-модели —
@@ -131,8 +133,9 @@ types и режимы импорта/экспорта остаются в сво
 
 - cross-feature факт внутри модуля лежит в `<Module>/Shared/Domain/Events`;
 - внутренний факт фичи лежит в `<Feature>/Domain/Events`;
-- request/result workflow делается двумя событиями: request/fact event и отдельный result-event с
-  `runId`/`correlationId`;
+- межсервисный request/result workflow коррелируется через `operation_id`;
+- `runId` используется только как внутренний контекст конкретного import/export run, где он уже
+  хранит cache/report state;
 - observer'ы для межфичевой синхронизации не используем, реакция идёт через listener/use case.
 
 Синхронный вызов между фичами оформляется как public client владельца возможности и локальный
@@ -149,8 +152,10 @@ app/Modules/Vehicles/Features/Import/
 ```
 
 Application фичи-потребителя зависит только от своего локального
-`Domain/Contracts/Clients/*ClientInterface`. Adapter в `Infrastructure/Clients` уже переводит этот
-локальный язык в публичный API владельца (`Templates`, `KitProperties`, `Packaging`, ...).
+`Domain/Contracts/Clients/*ClientInterface`. Такой client — read-only sync boundary: он возвращает
+данные прямо сейчас, но не создаёт/обновляет/удаляет состояние владельца. Adapter в
+`Infrastructure/Clients` уже переводит этот локальный язык в публичный API владельца (`Templates`,
+`KitProperties`, `Packaging`, ...).
 
 Запрещённый вариант для Application-потребителя: напрямую импортировать чужие
 `Domain\Contracts\Services`, `Domain\Contracts\Factories`, `Application\Services`,
@@ -194,7 +199,7 @@ adapter. Если нужно сообщить факт без ответа — d
 сервис и не модель с данными: дублировать их = риск рассинхрона схемы. Поэтому единая точка
 истины в `Shared/`. Eloquent-модели, наоборот, **дублируются по фичам** (каждая фича — своя
 копия в `Infrastructure/Models`), потому что это деталь реализации Repository/Command, и
-независимость фич важнее отсутствия дублирования (осознанная плата — `plan.md §3`).
+независимость фич важнее отсутствия дублирования.
 
 > **Цена:** пока схема (миграции) одна на все копии, расхождения колонок между копиями
 > обнаружатся только в рантайме, не на уровне БД. Это принятый компромисс.
@@ -360,7 +365,7 @@ presenter или adapter.
 | Папка | Что лежит | Правила |
 |---|---|---|
 | `Models/` | **Eloquent-модели фичи** (своя копия набора сущностей) | **АНЕМИЧНЫЕ**: связи, `$casts`, `$timestamps`. Без бизнес-логики. Наследуют `AbstractModel` (`guarded = []`; запись идёт через Command+`Data`, фиксированный набор полей → mass-assignment безопасен). Deдуп по фичам: Import — все 8 сущностей (Command пишет во все), Export — только 5 читаемых, Maintenance — только 4. Relation-методы на **недублированные** сущности убираем (иначе мина: `Class::class` на несуществующий класс падает при первом вызове связи). |
-| `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` реализует `Contracts/Repositories/<Entity>RepositoryInterface`. Внутри `<Entity>Data::from($model)` — отдаёт **`Data`**, не модель. Возврат из Repository: `?<Entity>Data`, `Illuminate\Support\Collection<int, <Entity>Data>` или, для больших потоковых выборок, `Generator<int, <Entity>Data>`. Под `Collection` в портах/сервисах всегда понимается **Support Collection**, не `Illuminate\Database\Eloquent\Collection`; результат Eloquent `get()` сразу конвертируется через `<Entity>Data::collect($items, Collection::class)`. Скалярные read-агрегаты (`minMsId(): int`, `countBy...(): int`) не возвращаем: если значение нужно сценарию, кладём его в `Data` или возвращаем минимальный `Data`-снимок. Потоковые методы инкапсулируют чанковое чтение внутри репозитория (`lazyById`, ручной цикл `chunkById`/`where id > lastId`) и наружу делают `yield` по `Data`, чтобы не грузить всю таблицу и не отдавать Eloquent. Только запросы, без записи. (У Export есть, у Maintenance нет.) |
+| `Repositories/` | **Чтение** (CQRS-lite) | `<Entity>Repository` реализует `Contracts/Repositories/<Entity>RepositoryInterface`. Внутри `<Entity>Data::from($model)` — отдаёт **`Data`**, не модель. Возврат из Repository: `?<Entity>Data`, `Illuminate\Support\Collection<int, <Entity>Data>` или, для больших потоковых выборок, `Generator<int, <Entity>Data>`. Под `Collection` в портах/сервисах всегда понимается **Support Collection**, не `Illuminate\Database\Eloquent\Collection`; результат Eloquent `get()` сразу конвертируется через `<Entity>Data::collect($items, Collection::class)`. Узкие scalar read methods вроде `exists`, `count`, `nextId` допустимы, если это атомарное чтение для сценария без бизнес-логики и записи; не выносим их в отдельный service только ради формы. Потоковые методы инкапсулируют чанковое чтение внутри репозитория (`lazyById`, ручной цикл `chunkById`/`where id > lastId`) и наружу делают `yield` по `Data`, чтобы не грузить всю таблицу и не отдавать Eloquent. Только запросы, без записи. (У Export есть, у Maintenance нет.) |
 | `Commands/` | **Запись** (CQRS-lite) — только в фичах, где запись является частью сценария | `<Entity>Command` реализует `Contracts/Commands/<Entity>CommandInterface`. Принимают **`<Entity>Data`**. `save`/`upsert`/`delete`. `update`/`delete` принимают `Data` с обязательным `id` (identity вместо живого объекта). Из payload на запись исключают поля, которые не колонки (`Arr::except` для `engines`/`groupId` и т.п.). У read-only фич (`Export`) `Command` не заводим. |
 | `Factories/` | Adapter selector/builder реализации | Здесь живёт выбор конкретного Excel import/export adapter-а по enum/типу запроса и runtime-параметрам. Application видит только domain-порт фабрики; `match` по конкретным adapter-классам и `makeWith(...)` остаются в Infrastructure/provider boundary. |
 | `Imports/<Entity>/` | Адаптеры импорта (`maatwebsite/excel`) — **только Import** | Механика чтения: `Excel::import`, чанки, `onFailure`. На каждую строку зовёт построчный **Service** (Application). Точка входа реализует порт `Contracts/Imports/<X>Interface`. Sub-sheet'ы — внутренние, создаём `app()->makeWith(...)`, не `new`. |

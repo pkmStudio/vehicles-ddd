@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Shared\Infrastructure\Providers;
 
+use App\Modules\Warehouse\Features\Catalog\Application\Clients\WarehouseApplicabilityClient;
 use App\Modules\Warehouse\Shared\Domain\Contracts\Clients\WarehouseApplicabilityClientInterface;
-use App\Modules\Warehouse\Shared\Infrastructure\Clients\WarehouseApplicabilityClient;
 use Illuminate\Support\ServiceProvider;
 
 /**

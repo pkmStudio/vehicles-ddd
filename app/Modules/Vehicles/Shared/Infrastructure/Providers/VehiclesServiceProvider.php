@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Shared\Infrastructure\Providers;
 
+use App\Modules\Vehicles\Features\Catalog\Application\Clients\VehiclesApplicabilityClient;
 use App\Modules\Vehicles\Shared\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
-use App\Modules\Vehicles\Shared\Infrastructure\Clients\VehiclesApplicabilityClient;
 use Illuminate\Support\ServiceProvider;
 
 /**

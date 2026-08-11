@@ -19,6 +19,18 @@ final readonly class VehicleCrmManufacturerOptionDTO
     ) {}
 
     /**
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) $data['id'],
+            mfaId: (int) $data['mfa_id'],
+            label: (string) $data['label'],
+        );
+    }
+
+    /**
      * Возвращает публичный manufacturer option payload CRM.
      *
      * @return array{id: int, mfa_id: int, label: string}

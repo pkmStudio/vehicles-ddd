@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureIntegrationDeletionContextDTO;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
 use Illuminate\Support\Collection;
 
@@ -15,9 +14,14 @@ use Illuminate\Support\Collection;
 interface NomenclatureRepositoryInterface
 {
     /**
-     * Возвращает номенклатуру по typed lookup-критерию или null.
+     * Возвращает номенклатуру по внутреннему идентификатору или null.
      */
-    public function find(NomenclatureLookupDTO $lookup): ?NomenclatureData;
+    public function findById(int $id): ?NomenclatureData;
+
+    /**
+     * Возвращает номенклатуру по артикулу или null.
+     */
+    public function findByPartNumber(string $partNumber): ?NomenclatureData;
 
     /**
      * Возвращает найденные номенклатуры по id с загруженным типом, индексированные по id.

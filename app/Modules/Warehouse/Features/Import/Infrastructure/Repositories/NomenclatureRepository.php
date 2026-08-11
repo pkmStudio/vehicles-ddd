@@ -19,11 +19,7 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
      */
     public function findById(int $id): ?NomenclatureData
     {
-        $nomenclature = Nomenclature::query()
-            ->with('type')
-            ->find($id);
-
-        return NomenclatureData::optional($nomenclature);
+        return $this->findByColumn('id', $id);
     }
 
     /**
@@ -31,12 +27,7 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
      */
     public function findByPartNumber(string $partNumber): ?NomenclatureData
     {
-        $nomenclature = Nomenclature::query()
-            ->with('type')
-            ->where('part_number', $partNumber)
-            ->first();
-
-        return NomenclatureData::optional($nomenclature);
+        return $this->findByColumn('part_number', $partNumber);
     }
 
     /**
@@ -53,5 +44,15 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
             ->get();
 
         return NomenclatureData::collect($items, Collection::class)->keyBy('partNumber');
+    }
+
+    private function findByColumn(string $column, int|string $value): ?NomenclatureData
+    {
+        $nomenclature = Nomenclature::query()
+            ->with('type')
+            ->where($column, $value)
+            ->first();
+
+        return NomenclatureData::optional($nomenclature);
     }
 }

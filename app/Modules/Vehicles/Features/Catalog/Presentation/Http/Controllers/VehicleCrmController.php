@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmOptionsUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehiclesForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\SearchVehiclesForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ShowVehicleForCrmUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\VehicleCrmClientInterface;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Factories\VehicleCrmReadQueryFactory;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Presenters\VehicleCrmReadPresenter;
+use App\Support\Http\Presenters\HttpArrayPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,12 +21,10 @@ final readonly class VehicleCrmController
      * Получает use case ports CRM read API.
      */
     public function __construct(
-        private ListVehiclesForCrmUseCaseInterface $listVehicles,
-        private ShowVehicleForCrmUseCaseInterface $showVehicle,
-        private SearchVehiclesForCrmUseCaseInterface $searchVehicles,
-        private ListVehicleCrmOptionsUseCaseInterface $vehicleOptions,
+        private VehicleCrmClientInterface $vehicles,
         private VehicleCrmReadQueryFactory $queryFactory,
         private VehicleCrmReadPresenter $presenter,
+        private HttpArrayPresenter $arrays,
     ) {}
 
     /**
@@ -36,12 +32,8 @@ final readonly class VehicleCrmController
      */
     public function index(Request $request): JsonResponse
     {
-        if ($response = $this->guard($request)) {
-            return $response;
-        }
-
         $query = $this->queryFactory->make($request);
-        $page = $this->listVehicles->execute($query);
+        $page = $this->vehicles->paginate($query);
 
         return response()->json($this->presenter->page($page));
     }
@@ -49,13 +41,9 @@ final readonly class VehicleCrmController
     /**
      * Возвращает detail-снимок ТС для CRM.
      */
-    public function show(Request $request, int $id): JsonResponse
+    public function show(int $id): JsonResponse
     {
-        if ($response = $this->guard($request)) {
-            return $response;
-        }
-
-        $vehicle = $this->showVehicle->execute($id);
+        $vehicle = $this->vehicles->show($id);
 
         if ($vehicle === null) {
             return response()->json(['message' => 'Vehicle not found.'], Response::HTTP_NOT_FOUND);
@@ -69,33 +57,25 @@ final readonly class VehicleCrmController
      */
     public function search(Request $request): JsonResponse
     {
-        if ($response = $this->guard($request)) {
-            return $response;
-        }
-
         $limit = min(max((int) $request->integer('limit', 20), 1), 50);
         $query = trim($request->string('q')->toString());
 
-        $items = $this->searchVehicles->execute(
+        $items = $this->vehicles->search(
             query: $query,
             limit: $limit,
         );
 
-        return response()->json(['data' => $this->presenter->collection($items)]);
+        return response()->json(['data' => $this->arrays->collection($items)]);
     }
 
     /**
      * Возвращает feature options для CRM-формы.
      */
-    public function features(Request $request): JsonResponse
+    public function features(): JsonResponse
     {
-        if ($response = $this->guard($request)) {
-            return $response;
-        }
+        $features = $this->vehicles->features();
 
-        $features = $this->vehicleOptions->features();
-
-        return response()->json(['data' => $this->presenter->collection($features)]);
+        return response()->json(['data' => $this->arrays->collection($features)]);
     }
 
     /**
@@ -103,28 +83,20 @@ final readonly class VehicleCrmController
      */
     public function featureValues(Request $request): JsonResponse
     {
-        if ($response = $this->guard($request)) {
-            return $response;
-        }
-
         $featureId = (int) $request->integer('feature_id');
-        $featureValues = $this->vehicleOptions->featureValues($featureId);
+        $featureValues = $this->vehicles->featureValues($featureId);
 
-        return response()->json(['data' => $this->presenter->collection($featureValues)]);
+        return response()->json(['data' => $this->arrays->collection($featureValues)]);
     }
 
     /**
      * Возвращает detail template options для CRM-формы.
      */
-    public function detailTemplates(Request $request): JsonResponse
+    public function detailTemplates(): JsonResponse
     {
-        if ($response = $this->guard($request)) {
-            return $response;
-        }
+        $detailTemplates = $this->vehicles->detailTemplates();
 
-        $detailTemplates = $this->vehicleOptions->detailTemplates();
-
-        return response()->json(['data' => $this->presenter->collection($detailTemplates)]);
+        return response()->json(['data' => $this->arrays->collection($detailTemplates)]);
     }
 
     /**
@@ -132,39 +104,17 @@ final readonly class VehicleCrmController
      */
     public function manufacturers(Request $request): JsonResponse
     {
-        if ($response = $this->guard($request)) {
-            return $response;
-        }
-
         $limit = min(max((int) $request->integer('limit', 50), 1), 50);
         $id = $request->query('id') === null ? null : (int) $request->integer('id');
         $query = trim($request->string('q')->toString());
 
         $query = $query === '' ? null : $query;
-        $manufacturers = $this->vehicleOptions->manufacturers(
+        $manufacturers = $this->vehicles->manufacturers(
             query: $query,
             id: $id,
             limit: $limit,
         );
 
-        return response()->json(['data' => $this->presenter->collection($manufacturers)]);
-    }
-
-    /**
-     * Проверяет service key, если он настроен.
-     */
-    private function guard(Request $request): ?JsonResponse
-    {
-        $key = (string) config('services.dan_vehicles.read_api_key', '');
-
-        if ($key === '') {
-            return null;
-        }
-
-        if (hash_equals($key, (string) $request->header('X-Service-Key'))) {
-            return null;
-        }
-
-        return response()->json(['message' => 'Unauthorized.'], Response::HTTP_UNAUTHORIZED);
+        return response()->json(['data' => $this->arrays->collection($manufacturers)]);
     }
 }

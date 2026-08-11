@@ -10,7 +10,6 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCa
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\DeleteKitUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\DeleteKitRequestDTO;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
@@ -51,7 +50,7 @@ final readonly class DeleteKitUseCase implements DeleteKitUseCaseInterface
         }
 
         try {
-            $kit = $this->kits->find(KitLookupDTO::byId($request->id));
+            $kit = $this->kits->findById($request->id);
             if ($kit === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

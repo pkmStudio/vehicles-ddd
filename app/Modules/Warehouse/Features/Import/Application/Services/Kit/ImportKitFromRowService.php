@@ -9,10 +9,9 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\KitCommandIn
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit\ImportKitFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
-use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
-use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 
 /**
  * Резолвит состав Warehouse-набора, считает свойства через KitProperties и пишет набор.
@@ -47,11 +46,7 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
         }
 
         $ordered = $this->resolveOrderedNomenclatures($partNumbers);
-        try {
-            $properties = $this->kitProperties->build($ordered);
-        } catch (KitCompositionException $e) {
-            throw new ImportRowValidationException($e->getMessage(), previous: $e);
-        }
+        $properties = $this->kitProperties->build($ordered);
 
         if ($properties->packDimensionId === null) {
             throw ImportRowValidationException::withMessage(

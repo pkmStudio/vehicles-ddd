@@ -11,7 +11,6 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\Nomencl
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\UpdateKitUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\UpdateKitRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\KitProperties\KitPropertiesDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
@@ -61,7 +60,7 @@ final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
         }
 
         try {
-            $existingKit = $this->kits->find(KitLookupDTO::byId($request->id));
+            $existingKit = $this->kits->findById($request->id);
 
             if ($existingKit === null) {
                 return $this->results->rejected(
@@ -107,7 +106,7 @@ final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
                 );
             }
 
-            $duplicate = $this->kits->find(KitLookupDTO::byImportHash($properties->importHash));
+            $duplicate = $this->kits->findByImportHash($properties->importHash);
             if ($duplicate !== null && $duplicate->id !== $request->id) {
                 return $this->results->rejected(
                     userId: $request->userId,

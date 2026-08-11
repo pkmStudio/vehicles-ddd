@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Providers;
 
+use App\Modules\Vehicles\Features\Catalog\Application\Clients\CRM\VehicleCrmClient;
+use App\Modules\Vehicles\Features\Catalog\Application\Clients\VehicleCatalogClient;
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\PartSpecificationMutationRequestFactory;
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\PartSpecificationOwnerResolverFactory;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\CatalogCascadeDeleteService;
@@ -40,6 +42,8 @@ use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle\DeleteVehicleUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle\StartVehicleMutationUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle\UpdateVehicleUseCase;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\VehicleCatalogClientInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\VehicleCrmClientInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ManufacturerCommandInterface;
@@ -54,6 +58,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\Modifica
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehiclesApplicabilityRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogCascadeDeleteServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationNotificationServiceInterface;
@@ -104,6 +109,7 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\Modificati
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\PartSpecificationRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\VehicleCrmRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleRepository;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehiclesApplicabilityRepository;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -147,6 +153,11 @@ final class CatalogServiceProvider extends ServiceProvider
         PartSpecificationOwnerResolverFactoryInterface::class => PartSpecificationOwnerResolverFactory::class,
     ];
 
+    private const array CLIENT_BINDINGS = [
+        VehicleCatalogClientInterface::class => VehicleCatalogClient::class,
+        VehicleCrmClientInterface::class => VehicleCrmClient::class,
+    ];
+
     private const array COMMAND_BINDINGS = [
         VehicleCommandInterface::class => VehicleCommand::class,
         ManufacturerCommandInterface::class => ManufacturerCommand::class,
@@ -163,6 +174,7 @@ final class CatalogServiceProvider extends ServiceProvider
         EngineRepositoryInterface::class => EngineRepository::class,
         ModificationRepositoryInterface::class => ModificationRepository::class,
         PartSpecificationRepositoryInterface::class => PartSpecificationRepository::class,
+        VehiclesApplicabilityRepositoryInterface::class => VehiclesApplicabilityRepository::class,
     ];
 
     private const array SERVICE_BINDINGS = [
@@ -208,6 +220,13 @@ final class CatalogServiceProvider extends ServiceProvider
         }
 
         foreach (self::FACTORY_BINDINGS as $interface => $implementation) {
+            $this->app->bind(
+                abstract: $interface,
+                concrete: $implementation,
+            );
+        }
+
+        foreach (self::CLIENT_BINDINGS as $interface => $implementation) {
             $this->app->bind(
                 abstract: $interface,
                 concrete: $implementation,

@@ -12,11 +12,20 @@ final readonly class EngineRepository implements EngineRepositoryInterface
 {
     public function findByEngId(int $engId): ?EngineData
     {
-        return EngineData::optional(Engine::query()->where('eng_id', $engId)->first());
+        return $this->findByColumn('eng_id', $engId);
     }
 
     public function findByCodeEngine(string $code): ?EngineData
     {
-        return EngineData::optional(Engine::query()->where('code_engine', $code)->first());
+        return $this->findByColumn('code_engine', $code);
+    }
+
+    private function findByColumn(string $column, int|string $value): ?EngineData
+    {
+        return EngineData::optional(
+            Engine::query()
+                ->where($column, $value)
+                ->first(),
+        );
     }
 }

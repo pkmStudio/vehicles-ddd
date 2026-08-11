@@ -20,6 +20,19 @@ final readonly class VehicleCrmFeatureValueOptionDTO
     ) {}
 
     /**
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) $data['id'],
+            featureId: (int) $data['feature_id'],
+            label: (string) $data['label'],
+            shortCode: (string) $data['short_code'],
+        );
+    }
+
+    /**
      * Возвращает публичный feature value option payload CRM.
      *
      * @return array{id: int, feature_id: int, label: string, short_code: string}

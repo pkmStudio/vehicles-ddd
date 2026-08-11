@@ -9,7 +9,6 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRe
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\UpdateBrandUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\UpdateBrandRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
@@ -52,7 +51,7 @@ final readonly class UpdateBrandUseCase implements UpdateBrandUseCaseInterface
         }
 
         try {
-            $existingBrand = $this->brands->find(BrandLookupDTO::byId($request->id));
+            $existingBrand = $this->brands->findById($request->id);
 
             if ($existingBrand === null) {
                 return $this->results->rejected(
@@ -66,7 +65,7 @@ final readonly class UpdateBrandUseCase implements UpdateBrandUseCaseInterface
                 );
             }
 
-            $sameNameBrand = $this->brands->find(BrandLookupDTO::byName($request->name));
+            $sameNameBrand = $this->brands->findByName($request->name);
             if ($sameNameBrand !== null && $sameNameBrand->id !== $request->id) {
                 return $this->results->rejected(
                     userId: $request->userId,

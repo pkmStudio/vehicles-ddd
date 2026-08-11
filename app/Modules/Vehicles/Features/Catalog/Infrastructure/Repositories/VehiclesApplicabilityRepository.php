@@ -2,23 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Vehicles\Shared\Infrastructure\Clients;
+namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories;
 
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
-use App\Modules\Vehicles\Shared\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehiclesApplicabilityRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Applicability\VehicleApplicabilityLookupDTO;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Applicability\VehiclePartSpecificationForApplicabilityDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Modules\Vehicles\Shared\Domain\Exceptions\VehicleApplicabilityException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
-/**
- * Публичный синхронный клиент Vehicles для расчета и импорта применяемости.
- */
-final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilityClientInterface
+final readonly class VehiclesApplicabilityRepository implements VehiclesApplicabilityRepositoryInterface
 {
     public function frontWiperSpecifications(int $lengthMain, ?int $lengthSecond, int $countWipers): Collection
     {
@@ -47,37 +44,40 @@ final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilit
         );
     }
 
-    public function resolveModificationIdByMsAndModId(int $msId, int $modId): int
+    public function findVehicleByMsId(int $msId): ?VehicleApplicabilityLookupDTO
     {
         $vehicle = DB::table('vehicles')
             ->where('ms_id', $msId)
             ->first(['id', 'ms_id', 'parent_id']);
 
         if ($vehicle === null) {
-            throw new VehicleApplicabilityException("Модель (ms_id: {$msId}) не найдена.");
+            return null;
         }
 
-        $modification = $this->findModification((int) $vehicle->ms_id, $modId);
-        if ($modification !== null) {
-            return (int) $modification->id;
-        }
+        return new VehicleApplicabilityLookupDTO(
+            id: (int) $vehicle->id,
+            msId: (int) $vehicle->ms_id,
+            parentId: $vehicle->parent_id === null ? null : (int) $vehicle->parent_id,
+        );
+    }
 
-        $parentMsId = $vehicle->parent_id === null
-            ? null
-            : DB::table('vehicles')->where('id', (int) $vehicle->parent_id)->value('ms_id');
+    public function findVehicleMsIdById(int $id): ?int
+    {
+        $msId = DB::table('vehicles')
+            ->where('id', $id)
+            ->value('ms_id');
 
-        if ($parentMsId !== null) {
-            $modification = $this->findModification((int) $parentMsId, $modId);
-            if ($modification !== null) {
-                return (int) $modification->id;
-            }
+        return $msId === null ? null : (int) $msId;
+    }
 
-            throw new VehicleApplicabilityException(
-                "Модификация (ms_id: {$vehicle->ms_id}, mod_id: {$modId}) не найдена ни у модели, ни у родителя (parent_ms_id: {$parentMsId}).",
-            );
-        }
+    public function findModificationIdByMsAndModId(int $msId, int $modId): ?int
+    {
+        $id = DB::table('modifications')
+            ->where('ms_id', $msId)
+            ->where('mod_id', $modId)
+            ->value('id');
 
-        throw new VehicleApplicabilityException("Модификация (ms_id: {$vehicle->ms_id}, mod_id: {$modId}) не найдена.");
+        return $id === null ? null : (int) $id;
     }
 
     private function baseWiperQuery(WiperSideEnum $side): Builder
@@ -104,14 +104,6 @@ final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilit
                 details: $this->jsonArray($specification->details),
             ))
             ->values();
-    }
-
-    private function findModification(int $msId, int $modId): ?stdClass
-    {
-        return DB::table('modifications')
-            ->where('ms_id', $msId)
-            ->where('mod_id', $modId)
-            ->first(['id']);
     }
 
     /**

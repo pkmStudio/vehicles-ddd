@@ -29,6 +29,11 @@ final class VehicleCatalogRestApiTest extends TestCase
             ->assertUnauthorized()
             ->assertJsonPath('message', 'Unauthorized.');
 
+        $this->withHeader('X-Service-Key', 'wrong-secret')
+            ->getJson('/api/v1/catalog/manufacturers')
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Unauthorized.');
+
         $this->withHeader('X-Service-Key', 'catalog-secret')
             ->getJson('/api/v1/catalog/manufacturers')
             ->assertOk();

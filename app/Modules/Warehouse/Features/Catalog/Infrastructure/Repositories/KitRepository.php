@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitRepositoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitLookupDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Kit;
 use Illuminate\Support\Collection;
@@ -16,21 +15,19 @@ use Illuminate\Support\Collection;
 final readonly class KitRepository implements KitRepositoryInterface
 {
     /**
-     * Возвращает набор по typed lookup-критерию или null.
+     * Возвращает набор по внутреннему идентификатору или null.
      */
-    public function find(KitLookupDTO $lookup): ?KitData
+    public function findById(int $id): ?KitData
     {
-        $query = Kit::query();
+        return $this->findByColumn('id', $id);
+    }
 
-        if ($lookup->id !== null) {
-            return KitData::optional($query->find($lookup->id));
-        }
-
-        $kit = $query
-            ->where('import_hash', $lookup->importHash)
-            ->first();
-
-        return KitData::optional($kit);
+    /**
+     * Возвращает набор по import_hash или null.
+     */
+    public function findByImportHash(string $importHash): ?KitData
+    {
+        return $this->findByColumn('import_hash', $importHash);
     }
 
     /**
@@ -50,5 +47,14 @@ final readonly class KitRepository implements KitRepositoryInterface
     private function toInteger(mixed $id): int
     {
         return (int) $id;
+    }
+
+    private function findByColumn(string $column, int|string $value): ?KitData
+    {
+        return KitData::optional(
+            Kit::query()
+                ->where($column, $value)
+                ->first(),
+        );
     }
 }

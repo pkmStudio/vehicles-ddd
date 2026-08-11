@@ -20,7 +20,7 @@ final readonly class ManufacturerRepository implements ManufacturerRepositoryInt
      */
     public function findById(int $id): ?ManufacturerData
     {
-        return ManufacturerData::optional(Manufacturer::query()->find($id));
+        return $this->findByColumn('id', $id);
     }
 
     /**
@@ -28,7 +28,7 @@ final readonly class ManufacturerRepository implements ManufacturerRepositoryInt
      */
     public function findByMfaId(int $mfaId): ?ManufacturerData
     {
-        return ManufacturerData::optional(Manufacturer::query()->where('mfa_id', $mfaId)->first());
+        return $this->findByColumn('mfa_id', $mfaId);
     }
 
     /**
@@ -50,5 +50,14 @@ final readonly class ManufacturerRepository implements ManufacturerRepositoryInt
             ->get();
 
         return ManufacturerData::collect($manufacturers, Collection::class);
+    }
+
+    private function findByColumn(string $column, int $value): ?ManufacturerData
+    {
+        return ManufacturerData::optional(
+            Manufacturer::query()
+                ->where($column, $value)
+                ->first(),
+        );
     }
 }

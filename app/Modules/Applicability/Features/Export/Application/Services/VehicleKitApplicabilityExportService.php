@@ -6,14 +6,15 @@ namespace App\Modules\Applicability\Features\Export\Application\Services;
 
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Repositories\KitApplicabilityExportRepositoryInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\VehicleKitApplicabilityExportServiceInterface;
+use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\VehicleKitApplicabilityReferenceServiceInterface;
 use App\Modules\Applicability\Features\Export\Domain\DTOs\VehicleKitApplicabilityRowDTO;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use Illuminate\Support\Collection;
 
 final readonly class VehicleKitApplicabilityExportService implements VehicleKitApplicabilityExportServiceInterface
 {
     public function __construct(
         private KitApplicabilityExportRepositoryInterface $repository,
+        private VehicleKitApplicabilityReferenceServiceInterface $references,
     ) {}
 
     public function getRows(): Collection
@@ -54,10 +55,7 @@ final readonly class VehicleKitApplicabilityExportService implements VehicleKitA
 
     public function getReferenceRows(): Collection
     {
-        return collect(array_map(
-            static fn (CarcaseTypeEnum $case): array => [$case->value],
-            CarcaseTypeEnum::cases(),
-        ));
+        return $this->references->carcaseTypeRows();
     }
 
     public function getReferenceHeadings(): array

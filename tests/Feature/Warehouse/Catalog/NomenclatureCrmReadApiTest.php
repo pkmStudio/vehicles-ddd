@@ -35,6 +35,15 @@ final class NomenclatureCrmReadApiTest extends TestCase
         $response
             ->assertUnauthorized()
             ->assertJsonPath('message', 'Unauthorized.');
+
+        $this->withHeader('X-Service-Key', 'wrong-key')
+            ->getJson('/api/v1/crm/warehouse/nomenclatures')
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Unauthorized.');
+
+        $this->withHeader('X-Service-Key', 'secret-key')
+            ->getJson('/api/v1/crm/warehouse/nomenclatures')
+            ->assertOk();
     }
 
     /**

@@ -12,6 +12,20 @@
 - Внутри домена используются локальные DTO/Data. Wire DTO используются только на REST/Rabbit границе.
 - `KitGrouping` не делаем и не держим в backlog.
 - Генерация enum из справочников остается отдельной темой в `plans/enum-generator.md`.
+- `VehicleCrmReadQueryFactory` и `NomenclatureCrmReadQueryFactory` остаются feature-local. Общий
+  parser для `page/per_page/search/sort/filter` не вводим, чтобы не связывать независимые read API.
+
+## Порядок реализации
+
+1. Сначала выполнить архитектурную чистку из разделов 8, 9 и 10.
+   - Убрать SQL из public clients.
+   - Развести HTTP controllers, application clients, use cases и repositories.
+   - Зафиксировать architecture gate после устранения известных нарушений.
+
+2. После этого расширять REST/Rabbit функциональность из разделов 1-4.
+   - Новые endpoints и handlers должны сразу идти по целевой схеме.
+   - Новые тесты писать как feature/business scenario tests, а unit-тесты оставлять только для
+     чистых правил и узких regression gates.
 
 ## 1. Transport и wire contracts
 
@@ -33,9 +47,9 @@
    - Тестировать реальные result payload из `dan-vehicles`.
    - Тестировать REST response shape для endpoints, которые использует `dan-center`.
 
-4. Закрыть REST-auth на стороне API.
-   - Выбрать и внедрить один вариант: внутренний API key или строго закрытая docker/network зона.
-   - Если выбираем API key, добавить обязательную проверку на `/api/v1/crm/*` и catalog endpoints.
+4. Закрыть REST-auth на стороне API через middleware из раздела 8.
+   - Не держать auth guard внутри controllers.
+   - API key проверять на `/api/v1/crm/*` и catalog endpoints.
 
 5. HMAC для Rabbit включать только после полной готовности обоих сервисов к одинаковому envelope.
 
@@ -142,7 +156,7 @@
    - Export rows.
    - Result events.
 
-7. Убрать прямую зависимость Applicability Export от Vehicles enum.
+7. [x] Убрать прямую зависимость Applicability Export от Vehicles enum.
    - `Applicability/Features/Export/Application/Services/VehicleKitApplicabilityExportService`
      сейчас использует `Vehicles/Shared/Domain/Enums/Vehicle/CarcaseTypeEnum` для reference rows.
    - Если значения нужны как внешний справочник export-файла, получать их через локальный client
@@ -167,8 +181,13 @@
    - Проверить jobs/listeners после Rabbit catalog mutations.
 
 4. Типы товара и `TypeTemplateResolver`.
-   - Пока остаются текущие resolver-ы.
+   - Feature-local resolver-ы остаются в своих фичах.
+   - Общий resolver не вводить без отдельной необходимости: небольшое дублирование здесь дешевле,
+     чем лишняя связность независимых фич.
    - Если нужен стабильный enum/dictionary механизм, делать по отдельному плану `plans/enum-generator.md`.
+   - При разрезании `WarehouseApplicabilityClient` не оставлять в public client собственную копию
+     таблицы `type -> NomenclatureDetailTemplateEnum`; public client должен получить готовые DTO от
+     owner read layer.
 
 5. Убрать leakage exception-классов между фичами.
    - `Warehouse/Catalog/Application/UseCases/Kit/CreateKitUseCase` не должен импортировать
@@ -238,8 +257,8 @@ Applicability и т.п. Не делаем один глобальный client �
 
 ```text
 Presentation/Http/Controllers/*Controller
-  -> Domain/Contracts/Clients/*ReadClientInterface
-  -> Application/Clients/*ReadClient
+  -> Domain/Contracts/Clients/*CrmClientInterface или *CatalogClientInterface
+  -> Application/Clients/*CrmClient или *CatalogClient
   -> Application/UseCases или query services
   -> Domain/Contracts/Repositories
   -> Infrastructure/Repositories
@@ -249,53 +268,51 @@ Presentation/Http/Controllers/*Controller
 `Shared` переносить только те clients, которые реально являются публичным межфичевым/межмодульным
 контрактом.
 
-1. Вынести service-key проверку из HTTP controllers.
+1. [x] Вынести service-key проверку из HTTP controllers.
    - Убрать повторяющийся `guard()` из `VehicleCatalogController`, `VehicleCrmController`,
      `NomenclatureCrmController`.
-   - Сделать middleware/support adapter для проверки `X-Service-Key` по config key.
-   - На routes явно разделить ключи для catalog API и CRM API.
+   - Сделать middleware/support adapter для проверки `X-Service-Key` по имени config key.
+   - Зарегистрировать middleware alias в `bootstrap/app.php`.
+   - На `routes/api.php` явно разделить ключи для catalog API и CRM API.
+   - Добавить feature-тесты на `401` без ключа/с неверным ключом и успешный ответ с корректным ключом.
 
-2. Вынести общий парсинг read-query параметров.
-   - `VehicleCrmReadQueryFactory` и `NomenclatureCrmReadQueryFactory` сейчас одинаково читают
-     `page`, `per_page`, `search`, `sort`, `filter`.
-   - Сделать общий HTTP params parser в Presentation/support слое.
-   - Фичевые factories оставить как тонкие адаптеры, которые создают конкретные domain DTO.
-
-3. Упростить HTTP presenters.
+2. [x] Упростить HTTP presenters.
    - Выбрать единый стиль для `page`, `collection`, `detail` response shape.
    - Убрать пустые wrappers, которые только вызывают `toArray()`, либо заменить их общим
      `HttpArrayPresenter`/`PagePresenter`.
    - Не обходить presenter напрямую в controller, как сейчас делает `NomenclatureCrmController::show()`.
 
-4. Разрезать public shared clients, которые сейчас сами читают БД.
-   - `Vehicles/Shared/Infrastructure/Clients/VehiclesApplicabilityClient` должен делегировать
-     чтение в owner use case/repository Vehicles Catalog, а не строить SQL сам.
+3. [x] Разрезать public shared clients, которые сейчас сами читают БД.
+   - Public contract оставить в `Shared/Domain/Contracts/Clients`.
+   - Реализацию делать тонким `Application/Clients` owner-фичи или module shared application,
+     если client агрегирует несколько owner-сценариев.
+   - Client вызывает use cases/query services через ports; SQL остается только в
+     `Infrastructure/Repositories`.
+   - `Vehicles/Shared/Infrastructure/Clients/VehiclesApplicabilityClient` должен перестать строить
+     SQL сам.
    - Вынести текущие запросы `frontWiperSpecifications()`, `rearWiperSpecifications()`,
      `resolveModificationIdByMsAndModId()` в явные read ports/use cases/repositories owner-слоя
      Vehicles Catalog или отдельной read-фичи, если Catalog станет слишком широким.
-   - `Warehouse/Shared/Infrastructure/Clients/WarehouseApplicabilityClient` должен делегировать
-     чтение в owner use case/repository Warehouse Catalog/Kit read layer, а не строить SQL сам.
+   - `Warehouse/Shared/Infrastructure/Clients/WarehouseApplicabilityClient` должен перестать строить
+     SQL сам.
    - Вынести текущие запросы `activeApplicabilityKits()` и `kitExists()` в явные read
      ports/use cases/repositories owner-слоя Warehouse Catalog/Kit.
    - Public client оставить тонкой входной точкой модуля: перевод публичного контракта, ошибки,
      orchestration, но не SQL-query builder.
+   - Обновить provider bindings `VehiclesServiceProvider` и `WarehouseServiceProvider` на новые
+     реализации clients.
 
-5. Ввести read clients по конкретным внешним потребителям.
-   - `VehicleCrmReadClient` для CRM read сценариев Vehicles.
-   - `VehicleCatalogReadClient` для catalog/store read сценариев Vehicles.
-   - `NomenclatureCrmReadClient` для CRM read сценариев Warehouse nomenclature.
+4. [x] Ввести read clients по конкретным внешним потребителям.
+   - `VehicleCrmClient` для CRM read сценариев Vehicles.
+   - `VehicleCatalogClient` для catalog/store read сценариев Vehicles.
+   - `NomenclatureCrmClient` для CRM read сценариев Warehouse nomenclature.
    - Controllers могут вызывать эти clients вместо набора отдельных use cases, если client остается
      тонким фасадом сценариев и не содержит SQL/бизнес-правил.
    - Не смешивать в одном client методы для CRM, catalog/store и Applicability.
+   - Добавить domain contracts, application implementations и DI bindings в соответствующих
+     `CatalogServiceProvider`.
 
-6. Убрать дублирование resolver-а `type -> NomenclatureDetailTemplateEnum`.
-   - Сейчас похожая таблица соответствий есть в Import/Packaging/WiperAdapterAudit/CRM read и
-     `WarehouseApplicabilityClient`.
-   - Решить, где владелец этого правила: `Templates` shared-kernel или явный module-level
-     Warehouse contract.
-   - После выбора владельца заменить локальные копии на один публичный resolver/adapter.
-
-7. Зафиксировать strict architecture gate.
+5. [x] Зафиксировать strict architecture gate.
    - Добавить architecture tests или статический скрипт, который запрещает:
      `Domain -> Application/Infrastructure/Presentation`,
      обычный `Application -> Infrastructure/Presentation`,
@@ -303,20 +320,87 @@ Presentation/Http/Controllers/*Controller
      `Application -> другой Module`, кроме разрешенного `Templates` shared-kernel,
      `Infrastructure/Clients -> DB::/Model::query()` для public clients.
    - `Maintenance` временно занести в allowlist до отдельного разбора.
+   - Включать gate после переноса public clients и exception leakage, чтобы тест фиксировал целевое
+     состояние, а не уже известные долги.
 
-## 9. Документация и cleanup
+## 9. DTO, factories и repository API cleanup
 
-1. Обновить `ARCHITECTURE.md`.
-   - Убрать ссылки на старые `plan.md`/`refactor-ms.md`, если файлов уже нет.
+1. [x] Разрешить простую механическую сериализацию в DTO.
+   - DTO могут иметь `toArray()` и `fromArray()` для собственного состояния, enum values,
+     вложенных DTO/list DTO и простой сборки request DTO из массива.
+   - В DTO не переносить framework-зависимости: HTTP Request/Response, Rabbit classes, Validator,
+     config lookup, Eloquent/paginator mapping, DB, filesystem/external client payload adapters.
+   - Если сборка зависит от Eloquent/SQL projection, paginator, нескольких источников данных,
+     внешнего API shape или сложной нормализации, оставлять factory/adapter.
+
+2. [x] Сократить DTO factories, которые делают только механическую сборку из одного projection.
+   - Проверить и по возможности заменить на `DTO::fromArray()`:
+     `VehicleCrmEngineDTOFactory`, `VehicleCrmFeatureOptionDTOFactory`,
+     `VehicleCrmFeatureValueOptionDTOFactory`, `VehicleCrmListItemDTOFactory`,
+     `VehicleCrmManufacturerOptionDTOFactory`, `VehicleCrmPaginationMetaDTOFactory`,
+     `NomenclatureCrmBrandOptionDTOFactory`, `NomenclatureCrmPaginationMetaDTOFactory`.
+   - Оставить фабрики, если они собирают DTO из нескольких частей, paginator, collections,
+     нормализуют JSON/list fields, строят label или используют feature-local resolver.
+
+3. [x] Не резать фабрики, которые владеют реальной сборкой.
+   - Оставить как factories/adapters:
+     `VehicleCrmDetailDTOFactory`, `VehicleCrmModificationDTOFactory`,
+     `VehicleCrmPartSpecificationDTOFactory`, `VehicleCrmSearchItemDTOFactory`,
+     `VehicleCrmPageDTOFactory`, `NomenclatureCrmListItemDTOFactory`,
+     `NomenclatureCrmTypeOptionDTOFactory`, `NomenclatureCrmSearchItemDTOFactory`,
+     `NomenclatureCrmPageDTOFactory`.
+
+4. [x] Проверить похожие lookup-методы внутри одного repository.
+   - Объединять только методы с одним смыслом "найти сущность по альтернативному ключу".
+   - Кандидаты:
+     `Vehicles/Import/ManufacturerRepository::findByName()/findByMfaId()`,
+     `Vehicles/Import/EngineRepository::findByEngId()/findByCodeEngine()`,
+     `Warehouse/Import/NomenclatureRepository::findById()/findByPartNumber()`,
+     `Vehicles/Catalog/ManufacturerRepository::findById()/findByMfaId()`.
+   - Использовать typed lookup DTO там, где это снижает дублирование без потери читаемости.
+   - Не объединять методы, которые возвращают другой shape: ids, collections, paginated pages или
+     специально отфильтрованные выборки.
+
+5. [x] Уточнить допустимые scalar read methods в repositories.
+   - Разрешить узкие scalar reads вроде `exists`, `count`, `nextId`, если это атомарное чтение для
+     сценария без бизнес-логики и записи.
+   - Не превращать такие методы в отдельный service только ради формы, если repository остается
+     чистым read port.
+   - Синхронизировать это правило с root `ARCHITECTURE.md`, где сейчас есть более жесткая
+     формулировка про scalar read aggregates.
+
+## 10. Тестовый cleanup
+
+1. [x] Сначала закрыть feature-тестами бизнес-сценарии и доменные правила.
+   - REST read/write boundaries: успешный ответ, `404`, auth errors, response shape.
+   - Rabbit handlers: valid/invalid payload, idempotency по `operation_id`, result events.
+   - Import/export/calculation: бизнес-исходы, failures, файлы, rows.
+
+2. [x] После этого убрать перегруженные unit-тесты.
+   - Удалять или переписывать unit-тесты, которые проверяют только порядок mock-вызовов
+     repositories/commands без бизнес-исхода.
+   - Оставить unit-тесты для чистых правил, deterministic algorithms, validation/mapping edge cases
+     и узких architecture regression gates.
+   - Не удалять тест, пока его важный сценарий не покрыт feature/domain-rule тестом.
+
+## 11. Документация и cleanup
+
+1. [x] Обновить `ARCHITECTURE.md`.
+   - Убрать устаревшие ссылки на `plan.md`/`refactor-ms.md`.
    - Уточнить, что для межсервисных Rabbit/REST контрактов используется `operation_id`.
    - Оставить `runId` только там, где это внутренний контекст импорта, если он действительно еще используется.
+   - Зафиксировать послабление по DTO `toArray()`/`fromArray()`.
+   - Зафиксировать допустимость узких scalar read methods в repositories.
+   - Зафиксировать, что `VehicleCrmReadQueryFactory`/`NomenclatureCrmReadQueryFactory` и
+     `TypeTemplateResolver` остаются feature-local.
+   - Зафиксировать запрет SQL в public clients и отсутствие `Log::info/debug` в production code.
 
-2. Обновить `.ai-factory/ARCHITECTURE.md` теми же правилами, если нужно.
+2. [x] Обновить `.ai-factory/ARCHITECTURE.md` теми же правилами, если нужно.
 
-3. Обновить runbook.
+3. [x] Создать или обновить `docs/runbook.md`.
    - Как выполнить Rabbit setup.
    - Как проверить S3.
    - Как запустить workers.
    - Как локально проверить `dan-vehicles` flow вместе с `dan-center`.
 
-4. После переключения сущностей удалить старые deprecated планы/документы и не держать параллельные источники правды.
+4. [x] После переключения сущностей удалить старые deprecated планы/документы и не держать параллельные источники правды.

@@ -6,8 +6,10 @@ namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Clients;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\KitProperties\KitPropertiesDTO;
+use App\Modules\Warehouse\Features\Catalog\Domain\Exceptions\KitPropertiesCompositionException;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData as KitPropertiesNomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData as KitPropertiesTypeData;
 
@@ -21,10 +23,14 @@ final readonly class KitPropertiesClient implements KitPropertiesClientInterface
     {
         $toKitPropertiesNomenclature = fn (NomenclatureData $nomenclature): KitPropertiesNomenclatureData => $this->toKitPropertiesNomenclature($nomenclature);
 
-        $properties = $this->kitProperties->build(array_map(
-            $toKitPropertiesNomenclature,
-            $nomenclatures,
-        ));
+        try {
+            $properties = $this->kitProperties->build(array_map(
+                $toKitPropertiesNomenclature,
+                $nomenclatures,
+            ));
+        } catch (KitCompositionException $e) {
+            throw new KitPropertiesCompositionException($e->getMessage(), previous: $e);
+        }
 
         return new KitPropertiesDTO(
             typeId: $properties->typeId,

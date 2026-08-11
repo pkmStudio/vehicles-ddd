@@ -12,12 +12,14 @@ use App\Modules\Applicability\Features\Export\Domain\Contracts\Notifications\Exp
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Repositories\KitApplicabilityExportRepositoryInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\VehicleKitApplicabilityExportServiceInterface;
+use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\VehicleKitApplicabilityReferenceServiceInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
 use App\Modules\Applicability\Features\Export\Infrastructure\Exports\VehicleKitApplicabilityExport;
 use App\Modules\Applicability\Features\Export\Infrastructure\Factories\ExportFileFactory;
 use App\Modules\Applicability\Features\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
 use App\Modules\Applicability\Features\Export\Infrastructure\Repositories\KitApplicabilityExportRepository;
 use App\Modules\Applicability\Features\Export\Infrastructure\Services\External\ExportRunCacheService;
+use App\Modules\Applicability\Features\Export\Infrastructure\Services\VehicleKitApplicabilityReferenceService;
 use Illuminate\Support\ServiceProvider;
 
 final class ExportServiceProvider extends ServiceProvider
@@ -32,6 +34,7 @@ final class ExportServiceProvider extends ServiceProvider
 
     private const array SERVICE_BINDINGS = [
         VehicleKitApplicabilityExportServiceInterface::class => VehicleKitApplicabilityExportService::class,
+        VehicleKitApplicabilityReferenceServiceInterface::class => VehicleKitApplicabilityReferenceService::class,
         ExportRunCacheServiceInterface::class => ExportRunCacheService::class,
     ];
 

@@ -8,19 +8,20 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDeta
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmModificationDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPartSpecificationDTO;
-use Illuminate\Support\Collection;
+use App\Support\Http\Presenters\HttpArrayPresenter;
 
 final readonly class VehicleCrmReadPresenter
 {
+    public function __construct(
+        private HttpArrayPresenter $arrays,
+    ) {}
+
     /**
      * @return array{data: list<array<string, mixed>>, meta: array<string, int>}
      */
     public function page(VehicleCrmPageDTO $page): array
     {
-        return [
-            'data' => $this->collection($page->data),
-            'meta' => $page->meta->toArray(),
-        ];
+        return $this->arrays->page($page->data, $page->meta);
     }
 
     /**
@@ -28,27 +29,15 @@ final readonly class VehicleCrmReadPresenter
      */
     public function detail(VehicleCrmDetailDTO $detail): array
     {
-        return $detail->vehicle->toArray() + [
+        return $this->arrays->item($detail->vehicle) + [
             'modifications' => $detail->modifications
-                ->map(fn (VehicleCrmModificationDTO $modification): array => $modification->toArray())
+                ->map(fn (VehicleCrmModificationDTO $modification): array => $this->arrays->item($modification))
                 ->values()
                 ->all(),
             'part_specifications' => $detail->partSpecifications
-                ->map(fn (VehicleCrmPartSpecificationDTO $specification): array => $specification->toArray())
+                ->map(fn (VehicleCrmPartSpecificationDTO $specification): array => $this->arrays->item($specification))
                 ->values()
                 ->all(),
         ];
-    }
-
-    /**
-     * @param  Collection<int, mixed>  $items
-     * @return list<array<string, mixed>>
-     */
-    public function collection(Collection $items): array
-    {
-        return $items
-            ->map(fn (mixed $item): array => $item->toArray())
-            ->values()
-            ->all();
     }
 }
