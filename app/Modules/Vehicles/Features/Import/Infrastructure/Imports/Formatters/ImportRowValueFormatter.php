@@ -12,6 +12,20 @@ use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationEx
 final readonly class ImportRowValueFormatter
 {
     /**
+     * Нормализовать обязательную строковую ячейку Excel.
+     */
+    public function requiredString(string|int|float|null $value, string $field): string
+    {
+        $value = $this->nullableString($value);
+
+        if ($value === null) {
+            throw ImportRowValidationException::fromMessage("Поле {$field}: обязательно для заполнения.");
+        }
+
+        return $value;
+    }
+
+    /**
      * Нормализовать значение ячейки Excel в строку или null.
      *
      * Шаги:
@@ -28,6 +42,20 @@ final readonly class ImportRowValueFormatter
         $value = is_string($value) ? trim($value) : (string) $value;
 
         return $value === '' ? null : $value;
+    }
+
+    /**
+     * Нормализовать обязательную целочисленную ячейку Excel.
+     */
+    public function requiredInt(string|int|float|null $value, string $field): int
+    {
+        $value = $this->nullableInt($value, $field);
+
+        if ($value === null) {
+            throw ImportRowValidationException::fromMessage("Поле {$field}: обязательно для заполнения.");
+        }
+
+        return $value;
     }
 
     /**
@@ -101,19 +129,18 @@ final readonly class ImportRowValueFormatter
     }
 
     /**
-     * Нормализовать значение ячейки Excel «Да/Нет» в булево значение или null.
+     * Нормализовать значение ячейки Excel «Да/Нет» в булево значение.
      *
      * Шаги:
      * 1) Сначала нормализовать значение ячейки как строку или null.
      * 2) Сопоставить «Да» и «Нет» с булевыми значениями.
-     * 3) Выбросить исключение валидации для другого непустого значения.
+     * 3) Выбросить исключение валидации для пустого или другого непустого значения.
      */
-    public function nullableBoolFromYesNo(string|int|float|null $value, string $field): ?bool
+    public function boolFromYesNo(string|int|float|null $value, string $field): bool
     {
         $value = $this->nullableString($value);
 
         return match ($value) {
-            null => null,
             'Да' => true,
             'Нет' => false,
             default => throw ImportRowValidationException::fromMessage("Поле {$field}: ожидалось значение Да/Нет."),

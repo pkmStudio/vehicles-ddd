@@ -8,6 +8,7 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\PackDimensio
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimension\ImportPackDimensionFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\PackDimension\PackDimensionImportRowDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\PackDimensionData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
@@ -41,45 +42,23 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
      * 6) Собрать PackDimensionData.
      * 7) Если id найден в базе, обновить запись; иначе создать новую.
      *
-     * @param  array<int, string|int|float|null>  $row
      */
-    public function importFromRow(array $row): PackDimensionData
+    public function importFromRow(PackDimensionImportRowDTO $row): PackDimensionData
     {
-        $idCell = isset($row[0]) ? trim((string) $row[0]) : '';
-        $id = is_numeric($idCell) ? (int) $idCell : null;
-
-        $name = trim((string) ($row[1] ?? ''));
-        $weight = (int) ($row[2] ?? 0);
-        $width = (int) ($row[3] ?? 0);
-        $height = (int) ($row[4] ?? 0);
-        $length = (int) ($row[5] ?? 0);
-        $price = (int) ($row[6] ?? 0);
-        $type = $this->resolveType(trim((string) ($row[7] ?? '')));
-
-        if ($name === '') {
-            throw ImportRowValidationException::withMessage('Пустое название коробки');
-        }
-
-        if ($weight <= 0 || $width <= 0 || $height <= 0 || $length <= 0) {
-            throw ImportRowValidationException::withMessage('Габариты и вес должны быть больше нуля');
-        }
-
-        if ($price < 0) {
-            throw ImportRowValidationException::withMessage('Цена коробки не может быть отрицательной');
-        }
+        $type = $this->resolveType($row->type);
 
         $data = new PackDimensionData(
-            name: $name,
-            weight: $weight,
-            width: $width,
-            height: $height,
-            length: $length,
-            price: $price,
+            name: $row->name,
+            weight: $row->weight,
+            width: $row->width,
+            height: $row->height,
+            length: $row->length,
+            price: $row->price,
             typeId: (int) $type->id,
-            id: $id,
+            id: $row->id,
         );
 
-        $existing = $id === null ? null : $this->packDimensions->findById($id);
+        $existing = $row->id === null ? null : $this->packDimensions->findById($row->id);
 
         return $existing === null
             ? $this->command->create($data)

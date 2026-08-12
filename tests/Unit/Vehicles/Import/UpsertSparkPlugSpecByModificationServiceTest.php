@@ -153,6 +153,8 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
             steeringType: SteeringTypeEnum::LEFT,
             typeCarcase: CarcaseTypeEnum::HATCHBACK,
             provider: ProviderEnum::TD,
+            generation: 'A7',
+            generationYearFrom: 2013,
             parentMsId: 200,
         );
 

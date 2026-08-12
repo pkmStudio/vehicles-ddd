@@ -2037,7 +2037,7 @@ ID марки,ID модели,Модель,Поколение,Тип кузов�
 36,41688,S-Max Van,S-Max Van (Wa6),Mpv,2006,2014,PC
 36,42370,Cargo Ii,Cargo Ii,Van,2003,,CV
 36,42737,Tourneo Connect / Grand Tourneo Connect V761 Mpv,Tourneo Connect / Grand Tourneo Connect V761 Mpv (Sk),Mpv,2022,,PC
-36,42857,F,F,Van,,2000,CV
+36,42857,F,F,Van,2000,2000,CV
 36,43881,Transit Connect V761 Box Body/Mpv,Transit Connect V761 Box Body/Mpv (Skn),Mpv,2022,,PC
 36,44052,Transit Custom V710 Van,Transit Custom V710 Van (Nrn),Van,2023,,PC
 36,44053,Tourneo Custom V710 Bus,Tourneo Custom V710 Bus (Nxn),Bus,2023,,PC
@@ -8545,7 +8545,7 @@ ID марки,ID модели,Модель,Поколение,Тип кузов�
 182,39581,5800,5800,Truck Tractor,2004,,CV
 182,39582,6900,6900,Truck Tractor,2005,,CV
 182,39583,7500,7500,Van,1998,2001,CV
-182,45378,X,X,Van,,,CV
+182,45378,X,X,Van,2000,,CV
 183,1294,Accent I,Accent I (X-3),Hatchback,1994,2002,PC
 183,1295,Lantra I,Lantra I (J-1),Saloon,1990,1995,PC
 183,1296,Pony,Pony (X-2),Hatchback,1989,1995,PC
@@ -19216,7 +19216,7 @@ ID марки,ID модели,Модель,Поколение,Тип кузов�
 5480,41549,6972,6972,Bus,2009,,CV
 5480,41550,All Crn,All Crn,Bus,2010,,CV
 5480,41551,6129,6129,Bus,2013,,CV
-5480,43127,Slk,Slk,Bus,,2004,CV
+5480,43127,Slk,Slk,Bus,2000,2004,CV
 5482,40168,Cr Sport,Cr Sport,Van,2009,,PC
 5482,40169,Cross Rider,Cross Rider,Van,2009,,PC
 5482,40170,T-Truck,T-Truck,Van,2014,,PC

@@ -50,13 +50,12 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
      * Создает или обновляет автомобиль из авторитетной TecDoc строки.
      *
      * Шаги:
-     * 1) Если в строке нет `mfa_id` — вернуть null.
-     * 2) Найти производителя по `mfa_id`; если он отсутствует — вернуть null.
-     * 3) Собрать raw row array и преобразовать его в `VehicleData`.
-     * 4) Найти существующий vehicle по `ms_id`.
-     * 5) Применить TecDoc write context через write policy.
-     * 6) Выполнить create или update через command.
-     * 7) Опубликовать catalog mutation event о создании или обновлении.
+     * 1) Найти производителя по `mfa_id`; если он отсутствует — вернуть null.
+     * 2) Собрать raw row array и преобразовать его в `VehicleData`.
+     * 3) Найти существующий vehicle по `ms_id`.
+     * 4) Применить TecDoc write context через write policy.
+     * 5) Выполнить create или update через command.
+     * 6) Опубликовать catalog mutation event о создании или обновлении.
      *
      * @return VehicleData|null null, если производитель с таким mfa_id не найден
      *
@@ -64,10 +63,6 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
      */
     public function upsertFromRow(VehicleTdRowDTO $row): ?VehicleData
     {
-        if ($row->mfaId === null) {
-            return null;
-        }
-
         $manufacturer = $this->manufacturers->findByMfaId($row->mfaId);
 
         if (! $manufacturer) {

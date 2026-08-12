@@ -15,8 +15,8 @@ final readonly class VehicleKitApplicabilityRowDTO
         public ?string $excelTableId,
         public int $vehicleMsId,
         public string $vehicleName,
-        public ?string $generation,
-        public ?int $yearFrom,
+        public string $generation,
+        public int $yearFrom,
         public ?int $yearTo,
         public ?string $typeCarcase,
     ) {}

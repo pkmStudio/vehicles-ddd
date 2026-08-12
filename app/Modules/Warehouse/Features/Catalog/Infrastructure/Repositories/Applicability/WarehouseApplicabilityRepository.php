@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\Applicability;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\Applicability\WarehouseApplicabilityRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Kit;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\NomenclatureCrmTypeTemplateResolver;
 use App\Modules\Warehouse\Shared\Domain\DTOs\Applicability\WarehouseKitForApplicabilityDTO;
 use App\Modules\Warehouse\Shared\Domain\DTOs\Applicability\WarehouseNomenclatureForApplicabilityDTO;
 use App\Modules\Warehouse\Shared\Domain\DTOs\Applicability\WarehouseTypeForApplicabilityDTO;
-use Illuminate\Support\Facades\DB;
-use stdClass;
 
 final readonly class WarehouseApplicabilityRepository implements WarehouseApplicabilityRepositoryInterface
 {
@@ -36,10 +37,12 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
      */
     public function activeKits(?int $kitId = null, int $chunk = 1000): iterable
     {
-        $query = DB::table('kits')->where('is_active', true);
+        $query = Kit::query()
+            ->with(['type', 'nomenclatures.type'])
+            ->where('is_active', true);
 
         if ($kitId !== null) {
-            $query->where('id', $kitId);
+            $query->whereKey($kitId);
         }
 
         foreach ($query->lazyById($chunk) as $kit) {
@@ -55,7 +58,7 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
      */
     public function kitExists(int $kitId): bool
     {
-        return DB::table('kits')->where('id', $kitId)->exists();
+        return Kit::query()->whereKey($kitId)->exists();
     }
 
     /**
@@ -66,15 +69,15 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
      * 3) Загрузить type DTO комплекта по type_id.
      * 4) Собрать WarehouseKitForApplicabilityDTO без передачи Eloquent наружу.
      */
-    private function mapKit(stdClass $kit): WarehouseKitForApplicabilityDTO
+    private function mapKit(Kit $kit): WarehouseKitForApplicabilityDTO
     {
         return new WarehouseKitForApplicabilityDTO(
             id: (int) $kit->id,
             typeId: (int) $kit->type_id,
             quantityInPackage: (int) $kit->quantity_in_package,
             isActive: (bool) $kit->is_active,
-            nomenclatures: $this->nomenclatures((int) $kit->id),
-            type: $this->type((int) $kit->type_id),
+            nomenclatures: $this->nomenclatures($kit),
+            type: $this->type($kit->type),
         );
     }
 
@@ -88,27 +91,16 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
      *
      * @return array<int, WarehouseNomenclatureForApplicabilityDTO>
      */
-    private function nomenclatures(int $kitId): array
+    private function nomenclatures(Kit $kit): array
     {
-        return DB::table('nomenclatures')
-            ->join('kit_nomenclature', 'kit_nomenclature.nomenclature_id', '=', 'nomenclatures.id')
-            ->where('kit_nomenclature.kit_id', $kitId)
-            ->orderBy('kit_nomenclature.sort')
-            ->select([
-                'nomenclatures.id',
-                'nomenclatures.type_id',
-                'nomenclatures.quantity_in_pak',
-                'nomenclatures.details',
-                'kit_nomenclature.sort',
-            ])
-            ->get()
-            ->map(fn (stdClass $nomenclature): WarehouseNomenclatureForApplicabilityDTO => new WarehouseNomenclatureForApplicabilityDTO(
+        return $kit->nomenclatures
+            ->map(fn (Nomenclature $nomenclature): WarehouseNomenclatureForApplicabilityDTO => new WarehouseNomenclatureForApplicabilityDTO(
                 id: (int) $nomenclature->id,
                 typeId: (int) $nomenclature->type_id,
                 quantityInPak: (int) $nomenclature->quantity_in_pak,
-                details: $this->jsonArray($nomenclature->details),
-                sort: (int) $nomenclature->sort,
-                type: $this->type((int) $nomenclature->type_id),
+                details: $nomenclature->details,
+                sort: (int) $nomenclature->pivot->sort,
+                type: $this->type($nomenclature->type),
             ))
             ->all();
     }
@@ -121,10 +113,8 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
      * 3) Привести id/name/char к scalar DTO fields.
      * 4) Определить detail template через локальный resolver.
      */
-    private function type(int $typeId): ?WarehouseTypeForApplicabilityDTO
+    private function type(?Type $type): ?WarehouseTypeForApplicabilityDTO
     {
-        $type = DB::table('types')->where('id', $typeId)->first(['id', 'name', 'char']);
-
         if ($type === null) {
             return null;
         }
@@ -135,30 +125,5 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
             char: $type->char === null ? null : (string) $type->char,
             template: $this->templateResolver->resolve($type),
         );
-    }
-
-    /**
-     * Нормализует jsonb details из DB row в array.
-     * Шаги:
-     * 1) Вернуть value как есть, если DB driver уже дал array.
-     * 2) Для null/пустой/non-string вернуть пустой массив.
-     * 3) Декодировать JSON строку в associative array.
-     * 4) Вернуть пустой массив, если JSON не дал array.
-     *
-     * @return array<string, mixed>
-     */
-    private function jsonArray(mixed $value): array
-    {
-        if (is_array($value)) {
-            return $value;
-        }
-
-        if (! is_string($value) || trim($value) === '') {
-            return [];
-        }
-
-        $decoded = json_decode($value, true);
-
-        return is_array($decoded) ? $decoded : [];
     }
 }

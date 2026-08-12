@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimension;
 
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\PackDimension\PackDimensionImportRowDTO;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\PackDimensionData;
 
 /**
@@ -20,7 +21,6 @@ interface ImportPackDimensionFromRowServiceInterface
      * 3) Найти существующую запись по id.
      * 4) Обновить найденную запись или создать новую.
      *
-     * @param  array<int, mixed>  $row
      */
-    public function importFromRow(array $row): PackDimensionData;
+    public function importFromRow(PackDimensionImportRowDTO $row): PackDimensionData;
 }

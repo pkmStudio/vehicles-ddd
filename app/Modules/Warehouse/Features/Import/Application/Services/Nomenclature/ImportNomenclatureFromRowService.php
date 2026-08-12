@@ -10,6 +10,7 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\Nomenclature
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature\ImportNomenclatureFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\Nomenclature\NomenclatureImportRowDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
@@ -76,12 +77,11 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
      * 9) Если id не передан, искать существующую запись по part number.
      * 10) Создать или обновить запись и опубликовать created/updated event с import context.
      *
-     * @param  array<int, string|int|float|null>  $row
      * @param  Collection<int, TypeData>  $types
      * @param  Collection<int, BrandData>  $brands
      */
     public function importFromRow(
-        array $row,
+        NomenclatureImportRowDTO $row,
         Collection $types,
         Collection $brands,
         ?int $userId = null,
@@ -93,21 +93,19 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
         $typesByName = $types->keyBy($typeNameKey);
         $brandsByName = $brands->keyBy($brandNameKey);
 
-        $id = isset($row[0]) && trim((string) $row[0]) !== '' ? (int) trim((string) $row[0]) : null;
-
-        $typeName = mb_strtoupper(trim((string) ($row[1] ?? '')));
+        $typeName = mb_strtoupper($row->typeName);
         $type = $typesByName->get($typeName);
         if ($type === null) {
             throw ImportRowValidationException::withMessage(
-                "Тип товара «{$row[1]}» не найден. Проверьте колонку «Тип товара» (столбец B).",
+                "Тип товара «{$row->typeName}» не найден. Проверьте колонку «Тип товара» (столбец B).",
             );
         }
 
-        $brandName = mb_strtoupper(trim((string) ($row[2] ?? '')));
+        $brandName = mb_strtoupper($row->brandName);
         $brand = $brandsByName->get($brandName);
         if ($brand === null) {
             throw ImportRowValidationException::withMessage(
-                "Бренд «{$row[2]}» не найден. Проверьте колонку «Бренд» (столбец C).",
+                "Бренд «{$row->brandName}» не найден. Проверьте колонку «Бренд» (столбец C).",
             );
         }
 
@@ -118,36 +116,27 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
             );
         }
 
-        $details = $this->templates->buildNomenclatureDetails($template, $row, self::DETAILS_START_INDEX);
-        $this->validateDetails($template, $details, (string) ($row[5] ?? ''));
-
-        $weightCell = isset($row[7]) ? trim((string) $row[7]) : '';
-        if ($weightCell === '' || preg_match('/^\d+$/', $weightCell) !== 1 || (int) $weightCell <= 0) {
-            throw ImportRowValidationException::withMessage(
-                'Вес должен быть обязательным положительным целым числом в граммах. Проверьте столбец H.',
-            );
-        }
-
-        $weight = (int) $weightCell;
+        $details = $this->templates->buildNomenclatureDetails($template, $row->sourceCells, self::DETAILS_START_INDEX);
+        $this->validateDetails($template, $details, $row->partNumber);
 
         $data = new NomenclatureData(
             typeId: $type->id,
             brandId: $brand->id,
-            name: (string) ($row[3] ?? ''),
-            country: (string) ($row[4] ?? ''),
-            partNumber: trim((string) ($row[5] ?? '')),
-            color: (string) ($row[6] ?? ''),
-            weight: $weight,
-            material: $this->labelsToKeys((string) ($row[8] ?? ''), self::MATERIAL_KEYS_BY_LABEL),
-            vehicleType: $this->labelsToKeys((string) ($row[9] ?? ''), self::VEHICLE_TYPE_KEYS_BY_LABEL),
-            quantityPak: isset($row[10]) ? (int) $row[10] : 1,
-            quantityInPak: isset($row[11]) ? (int) $row[11] : 1,
+            name: $row->name,
+            country: $row->country,
+            partNumber: $row->partNumber,
+            color: $row->color,
+            weight: $row->weight,
+            material: $this->labelsToKeys($row->materialLabels, self::MATERIAL_KEYS_BY_LABEL),
+            vehicleType: $this->labelsToKeys($row->vehicleTypeLabels, self::VEHICLE_TYPE_KEYS_BY_LABEL),
+            quantityPak: $row->quantityPak,
+            quantityInPak: $row->quantityInPak,
             details: $details,
-            id: $id,
+            id: $row->id,
         );
 
-        if ($id !== null) {
-            $existingById = $this->nomenclatures->findById($id);
+        if ($row->id !== null) {
+            $existingById = $this->nomenclatures->findById($row->id);
 
             if ($existingById === null) {
                 $created = $this->command->createWithId($data);

@@ -20,10 +20,10 @@ final readonly class CatalogVehicleDTO
         public int $manufacturerId,
         public string $name,
         public ?string $localizedName,
-        public ?string $generation,
+        public string $generation,
         public ?string $generationShort,
         public string $typeCarcase,
-        public ?int $yearFrom,
+        public int $yearFrom,
         public ?int $yearTo,
     ) {}
 

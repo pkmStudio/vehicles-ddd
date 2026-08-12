@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit;
 
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\Kit\KitImportRowDTO;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\KitData;
 
 /**
@@ -20,7 +21,6 @@ interface ImportKitFromRowServiceInterface
      * 3) Собрать свойства набора и импортный hash.
      * 4) Обновить существующий набор или создать новый.
      *
-     * @param  array<int, mixed>  $row
      */
-    public function importFromRow(array $row): KitData;
+    public function importFromRow(KitImportRowDTO $row): KitData;
 }

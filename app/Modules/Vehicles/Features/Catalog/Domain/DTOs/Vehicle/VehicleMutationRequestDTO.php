@@ -60,11 +60,11 @@ final readonly class VehicleMutationRequestDTO
                 ? SteeringTypeEnum::from((string) $vehicle['steering_type'])
                 : SteeringTypeEnum::LEFT,
             parentMsId: isset($vehicle['parent_ms_id']) ? (int) $vehicle['parent_ms_id'] : null,
-            generation: isset($vehicle['generation']) ? (string) $vehicle['generation'] : null,
+            generation: (string) $vehicle['generation'],
             generationShort: isset($vehicle['generation_short']) ? (string) $vehicle['generation_short'] : null,
             localizedName: isset($vehicle['localized_name']) ? (string) $vehicle['localized_name'] : null,
             excelTableId: isset($vehicle['excel_table_id']) ? (string) $vehicle['excel_table_id'] : null,
-            generationYearFrom: isset($vehicle['generation_year_from']) ? (int) $vehicle['generation_year_from'] : null,
+            generationYearFrom: (int) $vehicle['generation_year_from'],
             generationYearTo: isset($vehicle['generation_year_to']) ? (int) $vehicle['generation_year_to'] : null,
             isAllow: (bool) ($vehicle['is_allow'] ?? false),
         );
@@ -90,11 +90,11 @@ final readonly class VehicleMutationRequestDTO
                 ? SteeringTypeEnum::from((string) $vehicle['steering_type'])
                 : SteeringTypeEnum::LEFT,
             parentMsId: isset($vehicle['parent_ms_id']) ? (int) $vehicle['parent_ms_id'] : null,
-            generation: isset($vehicle['generation']) ? (string) $vehicle['generation'] : null,
+            generation: (string) $vehicle['generation'],
             generationShort: isset($vehicle['generation_short']) ? (string) $vehicle['generation_short'] : null,
             localizedName: isset($vehicle['localized_name']) ? (string) $vehicle['localized_name'] : null,
             excelTableId: isset($vehicle['excel_table_id']) ? (string) $vehicle['excel_table_id'] : null,
-            generationYearFrom: isset($vehicle['generation_year_from']) ? (int) $vehicle['generation_year_from'] : null,
+            generationYearFrom: (int) $vehicle['generation_year_from'],
             generationYearTo: isset($vehicle['generation_year_to']) ? (int) $vehicle['generation_year_to'] : null,
             isAllow: (bool) ($vehicle['is_allow'] ?? false),
         );

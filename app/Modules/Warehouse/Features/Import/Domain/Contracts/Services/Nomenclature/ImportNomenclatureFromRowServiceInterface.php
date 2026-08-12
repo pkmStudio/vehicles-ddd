@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature;
 
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\Nomenclature\NomenclatureImportRowDTO;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
@@ -23,12 +24,11 @@ interface ImportNomenclatureFromRowServiceInterface
      * 3) Сформировать NomenclatureData из строки импорта.
      * 4) Создать или обновить запись и отправить mutation event.
      *
-     * @param  array<int, mixed>  $row
      * @param  Collection<int, TypeData>  $types
      * @param  Collection<int, BrandData>  $brands
      */
     public function importFromRow(
-        array $row,
+        NomenclatureImportRowDTO $row,
         Collection $types,
         Collection $brands,
         ?int $userId = null,

@@ -157,7 +157,7 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
      * Шаги:
      * 1) Привести обязательные поля mfa_id, name, type и type_carcase к локальным типам.
      * 2) Подставить значения provider/steering по умолчанию, если payload их не содержит.
-     * 3) Нормализовать optional generation/excel/year/is_allow поля для возможного создания владельца.
+     * 3) Нормализовать обязательные generation/year_from и optional excel/year_to/is_allow поля.
      *
      * @param  array<string, mixed>  $vehicle
      */
@@ -172,12 +172,12 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
             steeringType: isset($vehicle['steering_type'])
                 ? SteeringTypeEnum::from((string) $vehicle['steering_type'])
                 : SteeringTypeEnum::LEFT,
+            generation: (string) $vehicle['generation'],
+            generationYearFrom: (int) $vehicle['generation_year_from'],
             parentMsId: isset($vehicle['parent_ms_id']) ? (int) $vehicle['parent_ms_id'] : null,
-            generation: isset($vehicle['generation']) ? (string) $vehicle['generation'] : null,
             generationShort: isset($vehicle['generation_short']) ? (string) $vehicle['generation_short'] : null,
             localizedName: isset($vehicle['localized_name']) ? (string) $vehicle['localized_name'] : null,
             excelTableId: isset($vehicle['excel_table_id']) ? (string) $vehicle['excel_table_id'] : null,
-            generationYearFrom: isset($vehicle['generation_year_from']) ? (int) $vehicle['generation_year_from'] : null,
             generationYearTo: isset($vehicle['generation_year_to']) ? (int) $vehicle['generation_year_to'] : null,
             isAllow: (bool) ($vehicle['is_allow'] ?? false),
         );

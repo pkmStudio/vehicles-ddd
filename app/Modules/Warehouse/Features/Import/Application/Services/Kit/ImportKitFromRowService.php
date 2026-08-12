@@ -9,6 +9,7 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\KitCommandIn
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit\ImportKitFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\Kit\KitImportRowDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
@@ -48,19 +49,10 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
      * 8) Найти существующий kit по id или importHash.
      * 9) Создать новый kit или обновить найденный с тем же составом.
      *
-     * @param  array<int, mixed>  $row
      */
-    public function importFromRow(array $row): KitData
+    public function importFromRow(KitImportRowDTO $row): KitData
     {
-        $idCell = isset($row[0]) ? trim((string) $row[0]) : '';
-        $id = $idCell !== '' ? (int) $idCell : null;
-
-        $partNumbers = $this->parsePartNumbers((string) ($row[1] ?? ''));
-        if ($partNumbers === []) {
-            throw ImportRowValidationException::withMessage('Список артикулов набора пуст');
-        }
-
-        $ordered = $this->resolveOrderedNomenclatures($partNumbers);
+        $ordered = $this->resolveOrderedNomenclatures($row->partNumbers);
         $properties = $this->kitProperties->build($ordered);
 
         if ($properties->packDimensionId === null) {
@@ -79,9 +71,9 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
             packDimensionId: $properties->packDimensionId,
             typeId: $properties->typeId,
             importHash: $properties->importHash,
-            isSaleSeparately: ($row[2] ?? null) === 'Да',
-            isActive: ($row[3] ?? null) !== 'Нет',
-            id: $id,
+            isSaleSeparately: $row->isSaleSeparately,
+            isActive: $row->isActive,
+            id: $row->id,
         );
 
         $toNomenclatureId = fn (NomenclatureData $nomenclature): int => $this->nomenclatureId($nomenclature);
@@ -145,21 +137,6 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
             isActive: $data->isActive,
             id: $id,
         );
-    }
-
-    /**
-     * Разбирает `;`-список артикулов, обрезая пробелы и отбрасывая пустые куски.
-     * Шаги:
-     * 1) Разбить raw Excel cell по символу ';'.
-     * 2) Обрезать пробелы вокруг каждого артикула.
-     * 3) Отбросить пустые элементы.
-     * 4) Переиндексировать результат как ordered list.
-     *
-     * @return array<int, string>
-     */
-    private function parsePartNumbers(string $rawCell): array
-    {
-        return array_values(array_filter(array_map('trim', explode(';', $rawCell))));
     }
 
     /**

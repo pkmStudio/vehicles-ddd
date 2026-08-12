@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers;
 
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 
 /**
@@ -32,6 +33,8 @@ final readonly class VehicleSheetRowMapper
      * 3) Вернуть DTO для сервиса сохранения ТС из внешнего листа.
      *
      * @param  array<int, string|int|float|null>  $row
+     *
+     * @throws ImportRowValidationException
      */
     public function map(array $row): VehicleSheetRowDTO
     {
@@ -39,19 +42,19 @@ final readonly class VehicleSheetRowMapper
             excelTableId: $this->formatter->nullableString($row[0] ?? null),
             mfaId: $this->formatter->nullableInt($row[1] ?? null, 'mfa_id'),
             msId: $this->formatter->nullableInt($row[2] ?? null, 'ms_id'),
-            manufacturerName: $this->formatter->nullableString($row[3] ?? null),
-            name: $this->formatter->nullableString($row[4] ?? null),
+            manufacturerName: $this->formatter->requiredString($row[3] ?? null, 'manufacturer_name'),
+            name: $this->formatter->requiredString($row[4] ?? null, 'name'),
             localizedName: $this->formatter->nullableString($row[5] ?? null),
             generationShort: $this->formatter->nullableString($row[6] ?? null),
-            generation: $this->formatter->nullableString($row[7] ?? null),
-            generationYearFrom: $this->formatter->nullableInt($row[8] ?? null, 'generation_year_from'),
+            generation: $this->formatter->requiredString($row[7] ?? null, 'generation'),
+            generationYearFrom: $this->formatter->requiredInt($row[8] ?? null, 'generation_year_from'),
             generationYearTo: $this->formatter->nullableInt($row[9] ?? null, 'generation_year_to'),
-            typeCarcase: $this->formatter->nullableString($row[10] ?? null),
-            type: $this->formatter->nullableString($row[11] ?? null),
-            provider: $this->formatter->nullableString($row[12] ?? null),
+            typeCarcase: $this->formatter->requiredString($row[10] ?? null, 'type_carcase'),
+            type: $this->formatter->requiredString($row[11] ?? null, 'type'),
+            provider: $this->formatter->requiredString($row[12] ?? null, 'provider'),
             parentMsId: $this->formatter->nullableInt($row[13] ?? null, 'parent_ms_id'),
-            steeringType: $this->formatter->nullableString($row[14] ?? null),
-            isAllow: $this->formatter->nullableBoolFromYesNo($row[15] ?? null, 'is_allow'),
+            steeringType: $this->formatter->requiredString($row[14] ?? null, 'steering_type'),
+            isAllow: $this->formatter->boolFromYesNo($row[15] ?? null, 'is_allow'),
         );
     }
 }

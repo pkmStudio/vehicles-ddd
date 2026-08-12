@@ -46,7 +46,7 @@ final readonly class KitApplicabilityExportRepository implements KitApplicabilit
                         vehicleMsId: (int) $vehicle->ms_id,
                         vehicleName: (string) $vehicle->name,
                         generation: $vehicle->generation,
-                        yearFrom: $vehicle->generation_year_from === null ? null : (int) $vehicle->generation_year_from,
+                        yearFrom: (int) $vehicle->generation_year_from,
                         yearTo: $vehicle->generation_year_to === null ? null : (int) $vehicle->generation_year_to,
                         typeCarcase: $vehicle->type_carcase,
                     ));

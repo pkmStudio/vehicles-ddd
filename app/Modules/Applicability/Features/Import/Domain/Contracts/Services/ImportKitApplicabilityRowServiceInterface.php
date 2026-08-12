@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Import\Domain\Contracts\Services;
 
+use App\Modules\Applicability\Features\Import\Domain\DTOs\KitApplicabilityImportRowDTO;
+
 interface ImportKitApplicabilityRowServiceInterface
 {
     /**
@@ -14,7 +16,6 @@ interface ImportKitApplicabilityRowServiceInterface
      * 2. Проверяет внешние справочники kit и modification.
      * 3. Делегирует запись связи применяемости command boundary.
      *
-     * @param  array<int, mixed>  $row
      */
-    public function importFromRow(array $row): void;
+    public function importFromRow(KitApplicabilityImportRowDTO $row): void;
 }
