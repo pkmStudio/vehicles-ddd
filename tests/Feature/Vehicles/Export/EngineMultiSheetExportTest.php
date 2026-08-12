@@ -80,7 +80,7 @@ final class EngineMultiSheetExportTest extends TestCase
 
     /**
      * Проверяет лист свечей зажигания: у двигателя без спецификации строка всё равно
-     * присутствует (с пустыми details-колонками) — PartSpecificationRowExpander не
+     * присутствует (с пустыми details-колонками) — EngineSparkPlugSpecificationRowExpander не
      * пропускает сущности без спецификаций, а отдаёт для них null-заполненную строку.
      *
      * Шаги:

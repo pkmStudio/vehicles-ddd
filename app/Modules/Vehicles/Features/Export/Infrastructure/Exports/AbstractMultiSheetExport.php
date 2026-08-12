@@ -14,8 +14,8 @@ abstract readonly class AbstractMultiSheetExport implements WithMultipleSheets
 {
     public function export(ExportRunContextDTO $context, ?string $disk = null): string
     {
-        $disk ??= (string) config('vehicles.export.output.disk', 'local');
-        $directory = trim((string) config('vehicles.export.output.directory', 'dan-vehicles/export'), '/');
+        $disk ??= (string) config('vehicles.export.output.disk');
+        $directory = trim((string) config('vehicles.export.output.directory'), '/');
         $fileName = sprintf('%s-%s.xlsx', $this->exportType()->filePrefix(), $context->operationId);
         $path = $directory !== '' ? sprintf('%s/%s', $directory, $fileName) : $fileName;
 

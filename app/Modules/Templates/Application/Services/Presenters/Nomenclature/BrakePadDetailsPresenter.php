@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Templates\Application\Services\Presenters\Nomenclature;
 
+use App\Modules\Templates\Application\Services\Presenters\AbstractDetailsPresenter;
 use App\Modules\Templates\Application\Traits\RendersNomenclatureMetrics;
 use App\Modules\Templates\Domain\Enums\BrakePad\BrakePadTypeEnum;
 use App\Modules\Templates\Domain\Enums\BrakePad\LiningMaterialEnum;
 use App\Modules\Templates\Domain\Enums\PositionEnum;
+use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 use App\Modules\Templates\Domain\ModelData\Nomenclature\BrakePadDetailsData;
 
 /** Рендерит форму `brakePads` (Nomenclature) в плоский набор Excel-ячеек экспорта. */
-final readonly class BrakePadDetailsPresenter
+final readonly class BrakePadDetailsPresenter extends AbstractDetailsPresenter
 {
     use RendersNomenclatureMetrics;
 
@@ -20,8 +22,16 @@ final readonly class BrakePadDetailsPresenter
         return ['Расположение', 'Вид колодки', 'Материал накладок', ...$this->metricsHeadings()];
     }
 
-    public function cells(BrakePadDetailsData $data): array
+    /** @return class-string<BrakePadDetailsData> */
+    protected function dataClass(): string
     {
+        return BrakePadDetailsData::class;
+    }
+
+    public function cells(AbstractDetailsData $data): array
+    {
+        $data = $this->ensureData($data, BrakePadDetailsData::class);
+
         return [
             $this->nameToLabelCell(PositionEnum::class, $data->position),
             $this->nameToLabelCell(BrakePadTypeEnum::class, $data->brakePadsType),

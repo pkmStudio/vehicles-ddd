@@ -6,6 +6,7 @@ namespace Tests\Unit\Vehicles\Templates;
 
 use App\Modules\Templates\Application\Services\DetailsDataPresenter;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Templates\Domain\Exceptions\UnknownEnumValueException;
 use Tests\TestCase;
 
 /**
@@ -65,6 +66,19 @@ final class DetailsDataPresenterTest extends TestCase
             ['M14x1.25', '1.25', '19', '0.9', '19'],
             $this->presenter->toExportCells(DetailTemplateEnum::SPARK_PLUGS, $details),
         );
+    }
+
+    public function test_unknown_stored_enum_name_throws_instead_of_exporting_blank_cell(): void
+    {
+        $details = [
+            'thread' => ['size' => 'UNKNOWN_SIZE', 'pitch' => 'TP125', 'length' => 'TL19'],
+            'electrode' => ['gap' => 'G09'],
+            'wrench_jaw_width' => 'WJ19',
+        ];
+
+        $this->expectException(UnknownEnumValueException::class);
+
+        $this->presenter->toExportCells(DetailTemplateEnum::SPARK_PLUGS, $details);
     }
 
     /**

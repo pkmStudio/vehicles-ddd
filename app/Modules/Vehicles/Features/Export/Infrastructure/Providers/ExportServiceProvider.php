@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Export\Infrastructure\Providers;
 
 use App\Modules\Vehicles\Features\Export\Application\Services\EngineExportService;
-use App\Modules\Vehicles\Features\Export\Application\Services\Expanders\PartSpecificationRowExpander;
+use App\Modules\Vehicles\Features\Export\Application\Services\Expanders\EngineSparkPlugSpecificationRowExpander;
 use App\Modules\Vehicles\Features\Export\Application\Services\Expanders\WiperRowExpander;
 use App\Modules\Vehicles\Features\Export\Application\Services\External\CleanupStaleExportFilesService;
 use App\Modules\Vehicles\Features\Export\Application\Services\Rows\EngineExportRow;
@@ -21,7 +21,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Notifications\ExportNo
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\EngineExportServiceInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\EngineSparkPlugSpecificationRowExpanderInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\CleanupStaleExportFilesServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
@@ -59,7 +59,7 @@ final class ExportServiceProvider extends ServiceProvider
     ];
 
     private const array SERVICE_BINDINGS = [
-        PartSpecificationRowExpanderInterface::class => PartSpecificationRowExpander::class,
+        EngineSparkPlugSpecificationRowExpanderInterface::class => EngineSparkPlugSpecificationRowExpander::class,
         VehicleExportRowInterface::class => VehicleExportRow::class,
         EngineExportRowInterface::class => EngineExportRow::class,
         WiperRowExpanderInterface::class => WiperRowExpander::class,

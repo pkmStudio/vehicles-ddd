@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Templates\Application\Services\Presenters\Nomenclature;
 
+use App\Modules\Templates\Application\Services\Presenters\AbstractDetailsPresenter;
 use App\Modules\Templates\Application\Traits\FormatsExportCells;
 use App\Modules\Templates\Domain\Enums\PositionEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\CategoryEnum;
@@ -12,13 +13,14 @@ use App\Modules\Templates\Domain\Enums\Wiper\FrontAdapterTypeEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\RearAdapterTypeEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\SeasonEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\SteeringCompatibilityEnum;
+use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 use App\Modules\Templates\Domain\ModelData\Nomenclature\WiperDetailsData;
 
 /**
  * Рендерит форму `wiper` (Nomenclature) в плоский набор Excel-ячеек экспорта — характеристики
  * самого товара-щётки. Единственный шаблон Nomenclature без блока `metrics`.
  */
-final readonly class WiperDetailsPresenter
+final readonly class WiperDetailsPresenter extends AbstractDetailsPresenter
 {
     use FormatsExportCells;
 
@@ -33,8 +35,16 @@ final readonly class WiperDetailsPresenter
         ];
     }
 
-    public function cells(WiperDetailsData $data): array
+    /** @return class-string<WiperDetailsData> */
+    protected function dataClass(): string
     {
+        return WiperDetailsData::class;
+    }
+
+    public function cells(AbstractDetailsData $data): array
+    {
+        $data = $this->ensureData($data, WiperDetailsData::class);
+
         return [
             $this->nameToLabelCell(PositionEnum::class, $data->position),
             $this->nameToLabelCell(CategoryEnum::class, $data->category),

@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Templates\Application\Services\Presenters\Nomenclature;
 
+use App\Modules\Templates\Application\Services\Presenters\AbstractDetailsPresenter;
 use App\Modules\Templates\Application\Traits\RendersNomenclatureMetrics;
 use App\Modules\Templates\Domain\Enums\Filter\FilterMediaTypeEnum;
 use App\Modules\Templates\Domain\Enums\Filter\FormEnum;
 use App\Modules\Templates\Domain\Enums\Filter\PerformanceEnum;
+use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 use App\Modules\Templates\Domain\ModelData\Nomenclature\AirFilterDetailsData;
 
 /** Рендерит форму `airFilter` (Nomenclature) в плоский набор Excel-ячеек экспорта. */
-final readonly class AirFilterDetailsPresenter
+final readonly class AirFilterDetailsPresenter extends AbstractDetailsPresenter
 {
     use RendersNomenclatureMetrics;
 
@@ -20,8 +22,16 @@ final readonly class AirFilterDetailsPresenter
         return ['Исполнение фильтра', 'Форма фильтра', 'Корпус', 'Вид фильтра', ...$this->metricsHeadings()];
     }
 
-    public function cells(AirFilterDetailsData $data): array
+    /** @return class-string<AirFilterDetailsData> */
+    protected function dataClass(): string
     {
+        return AirFilterDetailsData::class;
+    }
+
+    public function cells(AbstractDetailsData $data): array
+    {
+        $data = $this->ensureData($data, AirFilterDetailsData::class);
+
         return [
             $this->nameToLabelCell(PerformanceEnum::class, $data->performance),
             $this->nameToLabelCell(FormEnum::class, $data->form),

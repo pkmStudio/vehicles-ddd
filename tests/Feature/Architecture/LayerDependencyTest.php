@@ -105,6 +105,32 @@ final class LayerDependencyTest extends TestCase
         self::assertSame([], $violations, implode(PHP_EOL, $violations));
     }
 
+    public function test_kit_properties_exceptions_do_not_leak_to_consumer_application_layers(): void
+    {
+        $ownerException = 'App\\Modules\\Warehouse\\Features\\KitProperties\\Domain\\Exceptions\\KitCompositionException';
+        $violations = [];
+
+        foreach ($this->phpFiles() as $file) {
+            $path = $file->getPathname();
+
+            if (str_contains($path, '/Warehouse/Features/KitProperties/')) {
+                continue;
+            }
+
+            if (str_contains($path, '/Warehouse/Features/') && str_contains($path, '/Infrastructure/Clients/')) {
+                continue;
+            }
+
+            foreach ($this->imports($file) as $import) {
+                if ($import === $ownerException) {
+                    $violations[] = $this->violation($file, $import);
+                }
+            }
+        }
+
+        self::assertSame([], $violations, implode(PHP_EOL, $violations));
+    }
+
     /**
      * @return iterable<int, SplFileInfo>
      */

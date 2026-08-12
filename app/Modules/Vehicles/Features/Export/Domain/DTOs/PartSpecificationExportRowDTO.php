@@ -8,7 +8,7 @@ use App\Modules\Vehicles\Features\Export\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\PartSpecificationData;
 
 /**
- * Строка листа свечей зажигания после PartSpecificationRowExpander: двигатель +
+ * Строка листа свечей зажигания после EngineSparkPlugSpecificationRowExpander: двигатель +
  * его спецификация (или null, если спецификаций нет).
  */
 final readonly class PartSpecificationExportRowDTO

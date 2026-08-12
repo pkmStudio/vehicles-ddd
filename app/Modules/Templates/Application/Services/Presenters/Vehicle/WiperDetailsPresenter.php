@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Templates\Application\Services\Presenters;
+namespace App\Modules\Templates\Application\Services\Presenters\Vehicle;
 
+use App\Modules\Templates\Application\Services\Presenters\AbstractDetailsPresenter;
 use App\Modules\Templates\Application\Traits\FormatsExportCells;
 use App\Modules\Templates\Domain\Enums\Wiper\FrontAdapterTypeEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\RearAdapterTypeEnum;
+use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 use App\Modules\Templates\Domain\ModelData\Vehicle\WiperBackDetailsData;
 use App\Modules\Templates\Domain\ModelData\Vehicle\WiperDetailsData;
 use App\Modules\Templates\Domain\ModelData\Vehicle\WiperFrontDetailsData;
@@ -16,7 +18,7 @@ use App\Modules\Templates\Domain\ModelData\Vehicle\WiperLengthRangeData;
  * Рендерит форму `wiper` (обе стороны) в плоский набор Excel-ячеек экспорта. Выделено из
  * `DetailsDataPresenter`. Простой класс без собственного порта — вызывается только оттуда.
  */
-final readonly class WiperDetailsPresenter
+final readonly class WiperDetailsPresenter extends AbstractDetailsPresenter
 {
     use FormatsExportCells;
 
@@ -56,8 +58,16 @@ final readonly class WiperDetailsPresenter
      * 2) То же самое для задней стороны.
      * 3) Разворачивает ячейки обеих сторон подряд в один плоский список.
      */
-    public function cells(WiperDetailsData $data): array
+    /** @return class-string<WiperDetailsData> */
+    protected function dataClass(): string
     {
+        return WiperDetailsData::class;
+    }
+
+    public function cells(AbstractDetailsData $data): array
+    {
+        $data = $this->ensureData($data, WiperDetailsData::class);
+
         return [
             ...$this->frontCells($data->front),
             ...$this->backCells($data->back),

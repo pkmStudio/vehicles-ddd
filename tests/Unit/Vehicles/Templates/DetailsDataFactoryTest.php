@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Templates;
 
+use App\Modules\Templates\Application\Clients\TemplatesClient;
 use App\Modules\Templates\Application\Factories\DetailsDataFactory;
+use App\Modules\Templates\Application\Factories\DetailsRowCursor;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
+use App\Modules\Templates\Domain\Exceptions\InvalidDetailsCellException;
+use App\Modules\Templates\Domain\Exceptions\UnknownTemplateException;
 use Tests\TestCase;
 
 /**
@@ -77,6 +81,14 @@ final class DetailsDataFactoryTest extends TestCase
         $this->expectException(DetailsDataBuildException::class);
 
         $this->factory->make(DetailTemplateEnum::SPARK_PLUGS, $row, $index);
+    }
+
+    public function test_unknown_vehicle_template_throws_domain_exception(): void
+    {
+        $this->expectException(UnknownTemplateException::class);
+        $this->expectExceptionMessage('Неизвестный vehicle details template: missing');
+
+        app(TemplatesClient::class)->vehicleDetailHeadings('missing');
     }
 
     /**
@@ -160,6 +172,28 @@ final class DetailsDataFactoryTest extends TestCase
         $this->expectExceptionMessage('Поле «Минимальная длина щётки» обязательно для заполнения.');
 
         $this->factory->make(DetailTemplateEnum::WIPER, $row, $index);
+    }
+
+    public function test_non_numeric_integer_cell_throws_instead_of_becoming_zero(): void
+    {
+        $row = [
+            'not-a-number', 550, 450, 500, 'Крючок (Hook / J-Hook)', 2,
+            400, 420, 'RA', 1,
+        ];
+        $index = 0;
+
+        $this->expectException(InvalidDetailsCellException::class);
+
+        $this->factory->make(DetailTemplateEnum::WIPER, $row, $index);
+    }
+
+    public function test_non_numeric_array_item_throws_instead_of_becoming_zero(): void
+    {
+        $cursor = new DetailsRowCursor(['10;bad;20']);
+
+        $this->expectException(InvalidDetailsCellException::class);
+
+        $cursor->pullFloatArray();
     }
 
     /**

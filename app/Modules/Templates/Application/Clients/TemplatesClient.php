@@ -12,6 +12,7 @@ use App\Modules\Templates\Domain\Contracts\Services\NomenclatureDetailsDataPrese
 use App\Modules\Templates\Domain\Contracts\WiperSpecificationServiceInterface;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Modules\Templates\Domain\Exceptions\UnknownTemplateException;
 
 /**
  * Синхронный public API Templates поверх внутренних builders/presenters/services.
@@ -28,24 +29,24 @@ final readonly class TemplatesClient implements TemplatesClientInterface
 
     public function vehicleDetailHeadings(string $template): array
     {
-        return $this->vehiclePresenter->headingsFor(DetailTemplateEnum::from($template));
+        return $this->vehiclePresenter->headingsFor($this->vehicleTemplate($template));
     }
 
     public function vehicleReferenceOptions(string $template): array
     {
-        return $this->vehiclePresenter->referenceOptionsFor(DetailTemplateEnum::from($template));
+        return $this->vehiclePresenter->referenceOptionsFor($this->vehicleTemplate($template));
     }
 
     public function renderVehicleDetails(string $template, array $details): array
     {
-        return $this->vehiclePresenter->toExportCells(DetailTemplateEnum::from($template), $details);
+        return $this->vehiclePresenter->toExportCells($this->vehicleTemplate($template), $details);
     }
 
     public function buildVehicleDetails(string $template, array $row, int $startIndex): array
     {
         $index = $startIndex;
 
-        return $this->vehicleFactory->make(DetailTemplateEnum::from($template), $row, $index)->toArray();
+        return $this->vehicleFactory->make($this->vehicleTemplate($template), $row, $index)->toArray();
     }
 
     public function splitVehicleWiperDetails(array $details): array
@@ -75,23 +76,34 @@ final readonly class TemplatesClient implements TemplatesClientInterface
 
     public function nomenclatureDetailHeadings(string $template): array
     {
-        return $this->nomenclaturePresenter->headingsFor(NomenclatureDetailTemplateEnum::from($template));
+        return $this->nomenclaturePresenter->headingsFor($this->nomenclatureTemplate($template));
     }
 
     public function nomenclatureReferenceOptions(string $template): array
     {
-        return $this->nomenclaturePresenter->referenceOptionsFor(NomenclatureDetailTemplateEnum::from($template));
+        return $this->nomenclaturePresenter->referenceOptionsFor($this->nomenclatureTemplate($template));
     }
 
     public function renderNomenclatureDetails(string $template, array $details): array
     {
-        return $this->nomenclaturePresenter->toExportCells(NomenclatureDetailTemplateEnum::from($template), $details);
+        return $this->nomenclaturePresenter->toExportCells($this->nomenclatureTemplate($template), $details);
     }
 
     public function buildNomenclatureDetails(string $template, array $row, int $startIndex): array
     {
         $index = $startIndex;
 
-        return $this->nomenclatureFactory->make(NomenclatureDetailTemplateEnum::from($template), $row, $index)->toArray();
+        return $this->nomenclatureFactory->make($this->nomenclatureTemplate($template), $row, $index)->toArray();
+    }
+
+    private function vehicleTemplate(string $template): DetailTemplateEnum
+    {
+        return DetailTemplateEnum::tryFrom($template) ?? throw UnknownTemplateException::vehicle($template);
+    }
+
+    private function nomenclatureTemplate(string $template): NomenclatureDetailTemplateEnum
+    {
+        return NomenclatureDetailTemplateEnum::tryFrom($template)
+            ?? throw UnknownTemplateException::nomenclature($template);
     }
 }

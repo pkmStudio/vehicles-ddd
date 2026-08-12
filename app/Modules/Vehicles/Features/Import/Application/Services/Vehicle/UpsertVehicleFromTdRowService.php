@@ -16,8 +16,6 @@ use App\Modules\Vehicles\Features\Import\Domain\Enums\VehicleImportSourceEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleUpdated;
 
@@ -57,21 +55,12 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
             return null;
         }
 
-        $type = $row->type;
-        $typeCarcase = $row->typeCarcase;
-
-        // TecDoc не даёт "Тип кузова" для мотоциклов — подставляем сами, иначе
-        // NOT NULL constraint на vehicles.type_carcase падает сырым SQL-исключением.
-        if (! $typeCarcase && $type === VehicleTypeEnum::MB->value) {
-            $typeCarcase = CarcaseTypeEnum::MOTORCYCLE->value;
-        }
-
         $data = $this->factory->make([
             'ms_id' => $row->msId,
             'mfa_id' => $row->mfaId,
             'name' => $row->name,
-            'type' => $type,
-            'type_carcase' => $typeCarcase,
+            'type' => $row->type,
+            'type_carcase' => $row->typeCarcase,
             'generation' => $row->generation,
             'generation_year_from' => $row->generationYearFrom,
             'generation_year_to' => $row->generationYearTo,

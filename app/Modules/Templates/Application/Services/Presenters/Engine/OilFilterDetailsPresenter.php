@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Templates\Application\Services\Presenters;
+namespace App\Modules\Templates\Application\Services\Presenters\Engine;
 
+use App\Modules\Templates\Application\Services\Presenters\AbstractDetailsPresenter;
 use App\Modules\Templates\Application\Traits\FormatsExportCells;
 use App\Modules\Templates\Domain\Enums\Filter\FormEnum;
 use App\Modules\Templates\Domain\Enums\Filter\OilFilterFatherEnum;
 use App\Modules\Templates\Domain\Enums\Filter\OilFilterThreadEnum;
 use App\Modules\Templates\Domain\Enums\Filter\PerformanceEnum;
+use App\Modules\Templates\Domain\Exceptions\UnknownEnumValueException;
+use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 use App\Modules\Templates\Domain\ModelData\Engine\OilFilterDetailsData;
 use App\Modules\Templates\Domain\ModelData\Engine\OilFilterMetricsData;
 
@@ -18,7 +21,7 @@ use App\Modules\Templates\Domain\ModelData\Engine\OilFilterMetricsData;
  * тестами). Выделено из `DetailsDataPresenter`, чтобы неподключённая логика не лежала в одном
  * файле с рабочей (Wiper/SparkPlug). Простой класс без собственного порта.
  */
-final readonly class OilFilterDetailsPresenter
+final readonly class OilFilterDetailsPresenter extends AbstractDetailsPresenter
 {
     use FormatsExportCells;
 
@@ -47,8 +50,16 @@ final readonly class OilFilterDetailsPresenter
      * 3) Добавляет диаметр и диаметр уплотнителя как есть.
      * 4) Добавляет ячейки вложенных размеров.
      */
-    public function cells(OilFilterDetailsData $data): array
+    /** @return class-string<OilFilterDetailsData> */
+    protected function dataClass(): string
     {
+        return OilFilterDetailsData::class;
+    }
+
+    public function cells(AbstractDetailsData $data): array
+    {
+        $data = $this->ensureData($data, OilFilterDetailsData::class);
+
         return [
             $this->nameToLabelCell(PerformanceEnum::class, $data->performance),
             $this->nameToLabelCell(FormEnum::class, $data->form),
@@ -84,6 +95,12 @@ final readonly class OilFilterDetailsPresenter
             return '';
         }
 
-        return (OilFilterThreadEnum::fromName($name) ?? OilFilterFatherEnum::fromName($name))?->value ?? '';
+        $case = OilFilterThreadEnum::fromName($name) ?? OilFilterFatherEnum::fromName($name);
+
+        if ($case === null) {
+            throw UnknownEnumValueException::name('резьбы/папы масляного фильтра', $name);
+        }
+
+        return $case->value;
     }
 }

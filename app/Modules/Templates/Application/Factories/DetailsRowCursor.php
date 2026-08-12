@@ -6,6 +6,8 @@ namespace App\Modules\Templates\Application\Factories;
 
 use App\Modules\Templates\Domain\Contracts\EnumHelperInterface;
 use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
+use App\Modules\Templates\Domain\Exceptions\InvalidDetailsCellException;
+use App\Modules\Templates\Domain\Exceptions\UnknownEnumValueException;
 
 /**
  * Курсор чтения Excel-строки для сборки `*DetailsData` из `fromImportRow()`. Держит саму строку
@@ -65,13 +67,14 @@ final class DetailsRowCursor
      * Шаги:
      * 1) Читает ячейку через `pullCell()`.
      * 2) Если значение null — возвращает null.
-     * 3) Иначе приводит значение к `int` и возвращает.
+     * 3) Иначе проверяет, что значение является целым числом, и только после этого приводит его к
+     *    `int`.
      */
     public function pullIntCell(): ?int
     {
         $value = $this->pullCell();
 
-        return $value === null ? null : (int) $value;
+        return $this->parseInt($value, 'целое число');
     }
 
     public function pullRequiredIntCell(string $field): int
@@ -114,13 +117,14 @@ final class DetailsRowCursor
      * Шаги:
      * 1) Читает ячейку через `pullCell()`.
      * 2) Если значение null — возвращает null.
-     * 3) Иначе приводит значение к `float` и возвращает.
+     * 3) Иначе проверяет, что значение является числом, и только после этого приводит его к
+     *    `float`.
      */
     public function pullFloatCell(): ?float
     {
         $value = $this->pullCell();
 
-        return $value === null ? null : (float) $value;
+        return $this->parseFloat($value, 'число');
     }
 
     public function pullRequiredFloatCell(string $field): float
@@ -209,9 +213,7 @@ final class DetailsRowCursor
      * 1) Читает сырую ячейку через `pullCell()`.
      * 2) Если ячейка пустая — возвращает пустой массив.
      * 3) Иначе разбивает строку по `;`, обрезает пробелы у каждого куска.
-     * 4) Каждый кусок приводит к `float` (воспроизводит поведение старого `DetailsBuilder` для
-     *    `array`-полей — там всегда `(float)`, даже если `itemType` в DSL был `integer`;
-     *    сознательно не чиним это несоответствие типа в рамках текущего рефакторинга).
+     * 4) Каждый непустой кусок проверяет как число и только после этого приводит к `float`.
      *
      * @return array<int, float>
      */
@@ -224,7 +226,12 @@ final class DetailsRowCursor
 
         $result = [];
         foreach (explode(';', (string) $value) as $item) {
-            $result[] = (float) trim($item);
+            $item = trim($item);
+            if ($item === '') {
+                continue;
+            }
+
+            $result[] = $this->parseFloat($item, 'числовой список');
         }
 
         return $result;
@@ -250,7 +257,8 @@ final class DetailsRowCursor
      * Шаги:
      * 1) Читает сырую ячейку через `pullCell()`.
      * 2) Если ячейка пустая — возвращает пустой массив.
-     * 3) Иначе разбивает строку по `;`, обрезает пробелы, каждый кусок приводит к `int`.
+     * 3) Иначе разбивает строку по `;`, обрезает пробелы, каждый непустой кусок проверяет как
+     *    целое число и только после этого приводит к `int`.
      *
      * @return array<int, int>
      */
@@ -263,7 +271,12 @@ final class DetailsRowCursor
 
         $result = [];
         foreach (explode(';', (string) $value) as $item) {
-            $result[] = (int) trim($item);
+            $item = trim($item);
+            if ($item === '') {
+                continue;
+            }
+
+            $result[] = $this->parseInt($item, 'числовой список');
         }
 
         return $result;
@@ -301,9 +314,37 @@ final class DetailsRowCursor
         $case = $enumClass::fromLabel((string) $label);
 
         if ($case === null) {
-            throw DetailsDataBuildException::unknownDictionaryValue($enumClass, $label);
+            throw UnknownEnumValueException::label($enumClass, $label);
         }
 
         return $case;
+    }
+
+    private function parseInt(mixed $value, string $field): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+        if ($normalized === '' || filter_var($normalized, FILTER_VALIDATE_INT) === false) {
+            throw InvalidDetailsCellException::numeric($field, $value);
+        }
+
+        return (int) $normalized;
+    }
+
+    private function parseFloat(mixed $value, string $field): ?float
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = str_replace(',', '.', trim((string) $value));
+        if ($normalized === '' || ! is_numeric($normalized)) {
+            throw InvalidDetailsCellException::numeric($field, $value);
+        }
+
+        return (float) $normalized;
     }
 }

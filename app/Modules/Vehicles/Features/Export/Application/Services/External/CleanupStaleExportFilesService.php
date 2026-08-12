@@ -29,9 +29,9 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
      */
     public function cleanup(): int
     {
-        $disk = (string) config('vehicles.export.output.disk', 'local');
-        $directory = (string) config('vehicles.export.output.directory', 'dan-vehicles/export');
-        $retentionHours = (int) config('vehicles.export.output.retention_hours', 24);
+        $disk = (string) config('vehicles.export.output.disk');
+        $directory = (string) config('vehicles.export.output.directory');
+        $retentionHours = (int) config('vehicles.export.output.retention_hours');
         $threshold = now()->subHours($retentionHours)->getTimestamp();
 
         $deleted = 0;

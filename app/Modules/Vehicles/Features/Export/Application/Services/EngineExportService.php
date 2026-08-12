@@ -8,7 +8,7 @@ use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\EngineExportServiceInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\EngineSparkPlugSpecificationRowExpanderInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\PartSpecificationExportRowDTO;
 use App\Modules\Vehicles\Features\Export\Domain\Enums\EngineExportSheetEnum;
@@ -29,7 +29,7 @@ final readonly class EngineExportService implements EngineExportServiceInterface
     public function __construct(
         private EngineRepositoryInterface $engines,
         private EngineExportRowInterface $engineRow,
-        private PartSpecificationRowExpanderInterface $expander,
+        private EngineSparkPlugSpecificationRowExpanderInterface $expander,
         private TemplatesClientInterface $templates,
     ) {
         $this->fieldHeadings = $this->templates->vehicleDetailHeadings(DetailTemplateEnum::SPARK_PLUGS);

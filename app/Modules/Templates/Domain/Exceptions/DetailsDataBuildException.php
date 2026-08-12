@@ -9,7 +9,7 @@ use DomainException;
 /**
  * Ошибка сборки typed details из импортной строки или другого внешнего представления.
  */
-final class DetailsDataBuildException extends DomainException
+class DetailsDataBuildException extends DomainException
 {
     public static function requiredField(string $field): self
     {
@@ -18,10 +18,6 @@ final class DetailsDataBuildException extends DomainException
 
     public static function unknownDictionaryValue(string $dictionary, mixed $value): self
     {
-        return new self(sprintf(
-            'Не найдено совпадение в справочнике %s. Значение: %s',
-            $dictionary,
-            $value,
-        ));
+        return UnknownEnumValueException::label($dictionary, $value);
     }
 }

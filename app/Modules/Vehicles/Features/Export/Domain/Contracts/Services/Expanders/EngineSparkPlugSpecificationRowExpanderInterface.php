@@ -8,7 +8,7 @@ use App\Modules\Vehicles\Features\Export\Domain\DTOs\PartSpecificationExportRowD
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\EngineData;
 use Illuminate\Support\Collection;
 
-interface PartSpecificationRowExpanderInterface
+interface EngineSparkPlugSpecificationRowExpanderInterface
 {
     /**
      * @param  Collection<int, EngineData>  $entities

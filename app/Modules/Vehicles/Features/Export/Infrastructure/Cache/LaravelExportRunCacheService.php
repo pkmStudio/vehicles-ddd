@@ -41,6 +41,6 @@ final readonly class LaravelExportRunCacheService implements ExportRunCacheServi
      */
     private function cacheTtlSeconds(): int
     {
-        return (int) config('vehicles.export.external.cache.ttl_seconds', 86400);
+        return (int) config('vehicles.export.external.cache.ttl_seconds');
     }
 }

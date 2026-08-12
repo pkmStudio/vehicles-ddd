@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Templates\Application\Services\Presenters;
+namespace App\Modules\Templates\Application\Services\Presenters\Engine;
 
+use App\Modules\Templates\Application\Services\Presenters\AbstractDetailsPresenter;
 use App\Modules\Templates\Application\Traits\FormatsExportCells;
 use App\Modules\Templates\Domain\Enums\Filter\FormEnum;
+use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 use App\Modules\Templates\Domain\ModelData\Engine\AirFilterDetailsData;
 
 /**
@@ -13,7 +15,7 @@ use App\Modules\Templates\Domain\ModelData\Engine\AirFilterDetailsData;
  * Import/Export сценарию — см. докблок `AirFilterDetailsData`, портируется без покрытия
  * тестами). Простой класс без собственного порта — вызывается только из `DetailsDataPresenter`.
  */
-final readonly class AirFilterDetailsPresenter
+final readonly class AirFilterDetailsPresenter extends AbstractDetailsPresenter
 {
     use FormatsExportCells;
 
@@ -22,8 +24,16 @@ final readonly class AirFilterDetailsPresenter
         return ['Форма фильтра', 'Длина (мм)', 'Ширина (мм)', 'Высота (мм)', 'Диаметр (мм)'];
     }
 
-    public function cells(AirFilterDetailsData $data): array
+    /** @return class-string<AirFilterDetailsData> */
+    protected function dataClass(): string
     {
+        return AirFilterDetailsData::class;
+    }
+
+    public function cells(AbstractDetailsData $data): array
+    {
+        $data = $this->ensureData($data, AirFilterDetailsData::class);
+
         return [
             $this->nameToLabelCell(FormEnum::class, $data->form),
             $this->floatArrayToString($data->length),

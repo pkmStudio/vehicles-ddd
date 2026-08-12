@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Templates\Application\Services\Presenters\Nomenclature;
 
+use App\Modules\Templates\Application\Services\Presenters\AbstractDetailsPresenter;
 use App\Modules\Templates\Application\Traits\RendersNomenclatureMetrics;
+use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 use App\Modules\Templates\Domain\ModelData\Nomenclature\CvJointDetailsData;
 
 /** Рендерит форму `cvJoint` (Nomenclature, ШРУС) в плоский набор Excel-ячеек экспорта. */
-final readonly class CvJointDetailsPresenter
+final readonly class CvJointDetailsPresenter extends AbstractDetailsPresenter
 {
     use RendersNomenclatureMetrics;
 
@@ -21,8 +23,16 @@ final readonly class CvJointDetailsPresenter
         ];
     }
 
-    public function cells(CvJointDetailsData $data): array
+    /** @return class-string<CvJointDetailsData> */
+    protected function dataClass(): string
     {
+        return CvJointDetailsData::class;
+    }
+
+    public function cells(AbstractDetailsData $data): array
+    {
+        $data = $this->ensureData($data, CvJointDetailsData::class);
+
         return [
             $data->thread1,
             $data->length1,

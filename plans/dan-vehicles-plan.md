@@ -223,7 +223,7 @@
      таблицы `type -> NomenclatureDetailTemplateEnum`; public client должен получить готовые DTO от
      owner read layer.
 
-5. Убрать leakage exception-классов между фичами.
+5. [x] Убрать leakage exception-классов между фичами.
    - `Warehouse/Catalog/Application/UseCases/Kit/CreateKitUseCase` не должен импортировать
      `Warehouse/KitProperties/Domain/Exceptions/KitCompositionException`.
    - `Warehouse/Import/Application/Services/Kit/ImportKitFromRowService` не должен импортировать
@@ -232,49 +232,83 @@
      `KitProperties` и переводить его в локальный exception/result DTO фичи-потребителя.
    - Application фичи-потребителя работает только со своим `Domain/Contracts/Clients` и своими
      `Domain/Exceptions`.
+   - [x] Production-код уже держит трансляцию в feature-local `Infrastructure/Clients`: Catalog
+     получает локальный `KitPropertiesCompositionException`, Import получает локальный
+     `ImportRowValidationException`.
+   - [x] Добавлен architecture regression gate, который запрещает импортировать
+     `KitProperties\Domain\Exceptions\KitCompositionException` за пределами owner-фичи и
+     разрешенных `Infrastructure/Clients` translators.
 
 ## 6. Templates
 
-1. Сделать ошибки Templates явными.
+1. [x] Сделать ошибки Templates явными.
    - Заменить сырой `Enum::from(...)` в public client на безопасную конвертацию.
    - Добавить доменные исключения для неизвестного template, некорректной ячейки и неизвестного enum value.
+   - [x] `TemplatesClient` теперь конвертирует vehicle/nomenclature template через `tryFrom(...)`
+     и выбрасывает `UnknownTemplateException`, а не сырой enum `ValueError`.
+   - [x] Для ошибок шаблонов добавлены явные `InvalidDetailsCellException`,
+     `UnknownEnumValueException` и `UnknownTemplateException`.
+   - [x] `DetailsRowCursor` и presenters используют явные исключения при неизвестных enum labels
+     и enum names.
 
-2. Сделать строгий parsing/export validation.
+2. [x] Сделать строгий parsing/export validation.
    - Не превращать нечисловые значения в `0` через `(int)`/`(float)`.
    - Не терять неизвестные enum names при export.
+   - [x] `DetailsRowCursor` валидирует integer/float cells и numeric arrays перед cast; нечисловое
+     значение больше не превращается в `0`.
+   - [x] Export presenter helpers выбрасывают `UnknownEnumValueException` для неизвестных
+     сохраненных enum names вместо пустой ячейки или пропуска значения.
 
-3. Убрать inline-вычисления в больших presenter/factory вызовах.
+3. [x] Убрать inline-вычисления в больших presenter/factory вызовах.
    - Вынести `Data::from($details)` в именованные переменные.
    - Сложные `new`/fallback выражения не держать внутри аргументов вызовов.
+   - [x] `DetailsDataPresenter` и `NomenclatureDetailsDataPresenter` больше не передают
+     `Data::from($details)` прямо в `cells(...)`; сначала собирают именованный `*DetailsData`.
 
-4. Разгрузить большие selectors.
+4. [x] Разгрузить большие selectors.
    - Рассмотреть registry/map `template => builder/presenter`.
    - `referenceOptions` перенести ближе к конкретным presenter-ам, если это снизит риск забыть новый шаблон.
+   - [x] `DetailsDataPresenter` и `NomenclatureDetailsDataPresenter` используют общий
+     `presenterFor(...)`, который возвращает `AbstractDetailsPresenter`; базовый presenter
+     отвечает за сборку typed details data и экспорт cells.
+   - [x] Сложное объединение reference options для oil-filter thread/father вынесено из match-arm
+     в именованный метод.
 
-5. Добить unit-тесты nomenclature-ветки.
+5. [x] Добить unit-тесты nomenclature-ветки.
    - Factory tests по основным шаблонам уже есть.
    - Добавить/проверить presenter tests для headings, cells, reference options и ошибок.
+   - [x] Добавлен `NomenclatureDetailsDataPresenterTest`: проверяет oil-filter headings,
+     reference options, cells и явную ошибку неизвестного stored enum name.
 
 ## 7. Vehicles refactor
 
-1. Убрать дублирование правила "мотоцикл без типа кузова".
+1. [x] Убрать дублирование правила "мотоцикл без типа кузова".
    - Сейчас логика есть в sheet/TecDoc upsert flow.
    - Перенести defaulting в одну factory/policy точку.
+   - [x] Defaulting перенесен в `VehicleDataFactory`; `UpsertVehicleFromSheetService` и
+     `UpsertVehicleFromTdRowService` больше не держат локальную проверку `MB -> MOTORCYCLE`.
 
-2. Проверить config fallbacks в export.
+2. [x] Проверить config fallbacks в export.
    - Убрать вторые аргументы `config(...)`, если дефолты уже есть в config-файле.
    - Не держать разные дефолты в разных местах.
+   - [x] Убраны fallback-аргументы `config(...)` в Vehicles Export для output disk/directory,
+     retention hours и export idempotency TTL; дефолты остаются только в `config/vehicles/export.php`.
 
-3. Уточнить нейминг `PartSpecificationRowExpander`.
+3. [x] Уточнить нейминг `PartSpecificationRowExpander`.
    - Если expander только для engine spark plug sheet, переименовать в более явное имя.
+   - [x] Переименован в `EngineSparkPlugSpecificationRowExpander` вместе с interface и DI binding.
 
-4. Зафиксировать Excel column indexes для engine row mappers.
+4. [x] Зафиксировать Excel column indexes для engine row mappers.
    - Добавить тесты с эталонными строками или константы колонок.
+   - [x] В `EngineSheetRowMapper` и `EngineMainSheetRowMapper` добавлены именованные константы
+     колонок; прямые `$row[0]`/`$row[1]`-индексы убраны.
 
-5. Удалить или явно задокументировать неиспользуемые relation-методы в Import-моделях.
+5. [x] Удалить или явно задокументировать неиспользуемые relation-методы в Import-моделях.
    - `Feature::values()`.
    - `FeatureValue::feature()`.
    - `PartSpecification::vehicle()`.
+   - [x] Эти три relation-метода удалены; используемая `PartSpecification::featureValue()`
+     оставлена без изменений.
 
 ## 8. Границы HTTP/read adapters и public clients
 
