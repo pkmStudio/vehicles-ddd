@@ -26,6 +26,14 @@ final readonly class UpsertManufacturerFromSheetService implements UpsertManufac
 
     private const string OPERATION_ID = 'vehicles-manufacturer-import';
 
+    /**
+     * Инициализирует порты сценария upsert производителя из внешнего sheet row.
+     *
+     * Шаги:
+     * 1) Сохранить command записи производителя.
+     * 2) Сохранить factory валидации и сборки `ManufacturerData`.
+     * 3) Сохранить repository для проверки существующей записи.
+     */
     public function __construct(
         private ManufacturerCommandInterface $command,
         private ManufacturerDataFactoryInterface $factory,
@@ -33,6 +41,16 @@ final readonly class UpsertManufacturerFromSheetService implements UpsertManufac
     ) {}
 
     /**
+     * Создает или обновляет производителя из внешнего import-листа.
+     *
+     * Шаги:
+     * 1) Собрать raw row array из typed sheet DTO, включая provider из файла.
+     * 2) Валидировать и преобразовать строку в `ManufacturerData`.
+     * 3) Найти существующего производителя по `mfa_id`.
+     * 4) Выполнить create или update через command.
+     * 5) Опубликовать catalog mutation event о создании или обновлении.
+     * 6) Вернуть сохраненный `ManufacturerData`.
+     *
      * @throws ImportRowValidationException
      */
     public function upsertFromRow(ManufacturerSheetRowDTO $row): ManufacturerData

@@ -18,15 +18,15 @@ final readonly class EngineMainSheetRowMapper
 
     private const int ENGINE_CAPACITY = 2;
 
-    private const int ENG_POWER_PS_START = 4;
+    private const int POWER_PS_START = 4;
 
-    private const int ENG_POWER_PS_UPTO = 5;
+    private const int POWER_PS_UPTO = 5;
 
     private const int CYLINDER_COUNT = 6;
 
     private const int CYLINDER_DIAMETER = 7;
 
-    private const int ENG_NUMBER_OF_VALVES = 8;
+    private const int NUMBER_OF_VALVES = 8;
 
     public function __construct(
         private ImportRowValueFormatter $formatter,
@@ -48,13 +48,13 @@ final readonly class EngineMainSheetRowMapper
             field: 'eng_id',
         );
         $codeEngine = $this->formatter->nullableString($row[self::CODE_ENGINE] ?? null);
-        $engPowerPsStart = $this->formatter->nullableInt(
-            value: $row[self::ENG_POWER_PS_START] ?? null,
-            field: 'eng_power_ps_start',
+        $powerPsStart = $this->formatter->nullableInt(
+            value: $row[self::POWER_PS_START] ?? null,
+            field: 'power_ps_start',
         );
-        $engPowerPsUpto = $this->formatter->nullableInt(
-            value: $row[self::ENG_POWER_PS_UPTO] ?? null,
-            field: 'eng_power_ps_upto',
+        $powerPsUpto = $this->formatter->nullableInt(
+            value: $row[self::POWER_PS_UPTO] ?? null,
+            field: 'power_ps_upto',
         );
         $engineCapacity = $this->formatter->nullableString($row[self::ENGINE_CAPACITY] ?? null);
         $cylinderDiameter = $this->formatter->nullableFloat(
@@ -65,23 +65,23 @@ final readonly class EngineMainSheetRowMapper
             value: $row[self::CYLINDER_COUNT] ?? null,
             field: 'cylinder_count',
         );
-        $engNumberOfValves = $this->formatter->nullableInt(
-            value: $row[self::ENG_NUMBER_OF_VALVES] ?? null,
-            field: 'eng_number_of_valves',
+        $numberOfValves = $this->formatter->nullableInt(
+            value: $row[self::NUMBER_OF_VALVES] ?? null,
+            field: 'number_of_valves',
         );
 
         return new EngineSheetRowDTO(
             engId: $engId,
             codeEngine: $codeEngine,
-            engPowerKwStart: null,
-            engPowerKwUpto: null,
-            engPowerPsStart: $engPowerPsStart,
-            engPowerPsUpto: $engPowerPsUpto,
+            powerKwStart: null,
+            powerKwUpto: null,
+            powerPsStart: $powerPsStart,
+            powerPsUpto: $powerPsUpto,
             engineCapacity: $engineCapacity,
             cylinderDiameter: $cylinderDiameter,
             cylinderCount: $cylinderCount,
-            engNumberOfValves: $engNumberOfValves,
-            engFuelType: null,
+            numberOfValves: $numberOfValves,
+            fuelType: null,
         );
     }
 }

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Application\Services\Vehicle;
 
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
@@ -16,7 +17,6 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
-use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -31,6 +31,15 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
 
     private const string OPERATION_ID = 'vehicles-part-specification-import';
 
+    /**
+     * Инициализирует порты сценария импорта спецификаций дворников.
+     *
+     * Шаги:
+     * 1) Сохранить repositories для feature value, part specification и vehicle lookup.
+     * 2) Сохранить command записи part specifications.
+     * 3) Сохранить Templates client для split/side helpers.
+     * 4) Сохранить logger для actionable import anomalies.
+     */
     public function __construct(
         private FeatureValueRepositoryInterface $featureValues,
         private PartSpecificationRepositoryInterface $specifications,
@@ -40,6 +49,18 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
         private LoggerInterface $logger,
     ) {}
 
+    /**
+     * Импортирует строку спецификаций дворников для автомобиля.
+     *
+     * Шаги:
+     * 1) Проверить наличие `ms_id` и существование автомобиля.
+     * 2) Если template slug пустой — пропустить строку.
+     * 3) Разрешить template enum и optional feature value.
+     * 4) Разбить details дворников на side-specific части через Templates.
+     * 5) Пропустить пустые стороны с warning-логом.
+     * 6) Найти существующую specification для стороны или создать новую.
+     * 7) Выполнить update/create через command и опубликовать catalog mutation event.
+     */
     public function upsertFromRow(VehicleWiperSheetRowDTO $row): void
     {
         if ($row->msId === null) {
@@ -141,9 +162,9 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
      * Находит существующую целевую спецификацию для записи.
      *
      * Шаги:
-     * 1. Сначала ищет точное совпадение по JSON details.
-     * 2. Если в текущем импорте у стороны один вариант, допускает update единственного side-кандидата.
-     * 3. Если вариантов несколько или кандидатов несколько, не выбирает неоднозначную запись.
+     * 1) Сначала ищет точное совпадение по JSON details.
+     * 2) Если в текущем импорте у стороны один вариант, допускает update единственного side-кандидата.
+     * 3) Если вариантов несколько или кандидатов несколько, не выбирает неоднозначную запись.
      */
     private function resolveExistingSpecification(
         int $vehicleId,
@@ -181,9 +202,9 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
      * Логирует конфликт feature value перед обновлением существующей записи.
      *
      * Шаги:
-     * 1. Сравнивает текущее значение с импортируемым.
-     * 2. Игнорирует полное совпадение и пару null/null.
-     * 3. Пишет warning с контекстом записи.
+     * 1) Сравнивает текущее значение с импортируемым.
+     * 2) Игнорирует полное совпадение и пару null/null.
+     * 3) Пишет warning с контекстом записи.
      */
     private function warnFeatureValueConflict(
         PartSpecificationData $specification,
@@ -212,9 +233,9 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
      * Проверяет наличие фактических значений в side-details.
      *
      * Шаги:
-     * 1. Рекурсивно проходит по значениям стороны.
-     * 2. Игнорирует null, пустые строки и пустые массивы.
-     * 3. Возвращает true при первом значимом значении.
+     * 1) Рекурсивно проходит по значениям стороны.
+     * 2) Игнорирует null, пустые строки и пустые массивы.
+     * 3) Возвращает true при первом значимом значении.
      */
     private function hasUsableSideDetails(array $sideDetails): bool
     {

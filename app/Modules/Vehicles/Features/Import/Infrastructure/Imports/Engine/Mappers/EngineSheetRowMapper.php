@@ -16,13 +16,13 @@ final readonly class EngineSheetRowMapper
 
     private const int CODE_ENGINE = 1;
 
-    private const int ENG_POWER_KW_START = 2;
+    private const int POWER_KW_START = 2;
 
-    private const int ENG_POWER_KW_UPTO = 3;
+    private const int POWER_KW_UPTO = 3;
 
-    private const int ENG_POWER_PS_START = 4;
+    private const int POWER_PS_START = 4;
 
-    private const int ENG_POWER_PS_UPTO = 5;
+    private const int POWER_PS_UPTO = 5;
 
     private const int ENGINE_CAPACITY = 6;
 
@@ -30,9 +30,9 @@ final readonly class EngineSheetRowMapper
 
     private const int CYLINDER_COUNT = 8;
 
-    private const int ENG_NUMBER_OF_VALVES = 9;
+    private const int NUMBER_OF_VALVES = 9;
 
-    private const int ENG_FUEL_TYPE = 10;
+    private const int FUEL_TYPE = 10;
 
     public function __construct(
         private ImportRowValueFormatter $formatter,
@@ -54,21 +54,21 @@ final readonly class EngineSheetRowMapper
             field: 'eng_id',
         );
         $codeEngine = $this->formatter->nullableString($row[self::CODE_ENGINE] ?? null);
-        $engPowerKwStart = $this->formatter->nullableInt(
-            value: $row[self::ENG_POWER_KW_START] ?? null,
-            field: 'eng_power_kw_start',
+        $powerKwStart = $this->formatter->nullableInt(
+            value: $row[self::POWER_KW_START] ?? null,
+            field: 'power_kw_start',
         );
-        $engPowerKwUpto = $this->formatter->nullableInt(
-            value: $row[self::ENG_POWER_KW_UPTO] ?? null,
-            field: 'eng_power_kw_upto',
+        $powerKwUpto = $this->formatter->nullableInt(
+            value: $row[self::POWER_KW_UPTO] ?? null,
+            field: 'power_kw_upto',
         );
-        $engPowerPsStart = $this->formatter->nullableInt(
-            value: $row[self::ENG_POWER_PS_START] ?? null,
-            field: 'eng_power_ps_start',
+        $powerPsStart = $this->formatter->nullableInt(
+            value: $row[self::POWER_PS_START] ?? null,
+            field: 'power_ps_start',
         );
-        $engPowerPsUpto = $this->formatter->nullableInt(
-            value: $row[self::ENG_POWER_PS_UPTO] ?? null,
-            field: 'eng_power_ps_upto',
+        $powerPsUpto = $this->formatter->nullableInt(
+            value: $row[self::POWER_PS_UPTO] ?? null,
+            field: 'power_ps_upto',
         );
         $engineCapacity = $this->formatter->nullableString($row[self::ENGINE_CAPACITY] ?? null);
         $cylinderDiameter = $this->formatter->nullableFloat(
@@ -79,24 +79,24 @@ final readonly class EngineSheetRowMapper
             value: $row[self::CYLINDER_COUNT] ?? null,
             field: 'cylinder_count',
         );
-        $engNumberOfValves = $this->formatter->nullableInt(
-            value: $row[self::ENG_NUMBER_OF_VALVES] ?? null,
-            field: 'eng_number_of_valves',
+        $numberOfValves = $this->formatter->nullableInt(
+            value: $row[self::NUMBER_OF_VALVES] ?? null,
+            field: 'number_of_valves',
         );
-        $engFuelType = $this->formatter->nullableString($row[self::ENG_FUEL_TYPE] ?? null);
+        $fuelType = $this->formatter->nullableString($row[self::FUEL_TYPE] ?? null);
 
         return new EngineSheetRowDTO(
             engId: $engId,
             codeEngine: $codeEngine,
-            engPowerKwStart: $engPowerKwStart,
-            engPowerKwUpto: $engPowerKwUpto,
-            engPowerPsStart: $engPowerPsStart,
-            engPowerPsUpto: $engPowerPsUpto,
+            powerKwStart: $powerKwStart,
+            powerKwUpto: $powerKwUpto,
+            powerPsStart: $powerPsStart,
+            powerPsUpto: $powerPsUpto,
             engineCapacity: $engineCapacity,
             cylinderDiameter: $cylinderDiameter,
             cylinderCount: $cylinderCount,
-            engNumberOfValves: $engNumberOfValves,
-            engFuelType: $engFuelType,
+            numberOfValves: $numberOfValves,
+            fuelType: $fuelType,
         );
     }
 }

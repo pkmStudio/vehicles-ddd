@@ -13,6 +13,11 @@ interface LocalImportRequestPublisherInterface
 {
     /**
      * Публикует запрос импорта.
+     *
+     * Шаги:
+     * 1) Преобразовать local request DTO в outbound payload.
+     * 2) Опубликовать payload во входящий import routing.
+     * 3) Вернуть результат публикации.
      */
     public function publish(LocalImportRequestDTO $request): bool;
 }

@@ -11,6 +11,11 @@ interface StartTecDocImportUseCaseInterface
 {
     /**
      * Запускает консольный импорт TecDoc с первого файла каскада.
+     *
+     * Шаги:
+     * 1) Сбросить readiness state каскада.
+     * 2) Запустить первый command import adapter.
+     * 3) Дальнейшие шаги каскада продолжить через events/listeners.
      */
     public function execute(): void;
 }

@@ -24,6 +24,14 @@ final readonly class UpsertEngineSparkPlugSpecService implements UpsertEngineSpa
 
     private const string OPERATION_ID = 'vehicles-part-specification-import';
 
+    /**
+     * Инициализирует порты сценария upsert спецификации свечей двигателя.
+     *
+     * Шаги:
+     * 1) Сохранить repository двигателя для резолва `eng_id`.
+     * 2) Сохранить command и repository part specifications.
+     * 3) Сохранить factory сборки `PartSpecificationData`.
+     */
     public function __construct(
         private EngineRepositoryInterface $engines,
         private PartSpecificationCommandInterface $partSpecs,
@@ -32,6 +40,17 @@ final readonly class UpsertEngineSparkPlugSpecService implements UpsertEngineSpa
     ) {}
 
     /**
+     * Создает или обновляет спецификацию свечей по engine `eng_id`.
+     *
+     * Шаги:
+     * 1) Найти двигатель по TecDoc `eng_id`.
+     * 2) Если двигатель не найден — вернуть null.
+     * 3) Собрать specification data для найденного engine id.
+     * 4) Найти существующую specification по owner/template/feature value.
+     * 5) Выполнить create или update через command.
+     * 6) Опубликовать catalog mutation event о создании или обновлении.
+     * 7) Вернуть сохраненную `PartSpecificationData`.
+     *
      * @param  array<string, mixed>  $details  собранные значения спецификации
      */
     public function upsertByEngine(int $engId, array $details): ?PartSpecificationData

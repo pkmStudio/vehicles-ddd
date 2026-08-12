@@ -85,6 +85,13 @@ final class ExportServiceProvider extends ServiceProvider
         ExportFileStorageInterface::class => LaravelExportFileStorage::class,
     ];
 
+    /**
+     * Зарегистрировать container bindings фичи Export.
+     *
+     * Шаги:
+     * - Зарегистрировать RabbitMQ notification service для события готового файла.
+     * - Последовательно привязать export, repository, service, factory, use case, client и file adapters.
+     */
     public function register(): void
     {
         // Уведомление о готовом файле экспорта уходит в RabbitMQ (VEHICLES_FILE_EXPORTED).

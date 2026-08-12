@@ -15,6 +15,14 @@ use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
  */
 final readonly class ExportFileFactory implements ExportFileFactoryInterface
 {
+    /**
+     * Создать Excel-export адаптер для указанного типа выгрузки.
+     *
+     * Шаги:
+     * - Сопоставить enum типа экспорта с concrete Laravel Excel export.
+     * - Передать флаг разрешенных записей в vehicle export через container parameters.
+     * - Вернуть реализацию общего файлового export-контракта.
+     */
     public function make(ExportTypeEnum $type, bool $isAllow = false): FileExportInterface
     {
         return match ($type) {

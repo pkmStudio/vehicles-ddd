@@ -17,16 +17,19 @@ return new class extends Migration
 
             $table->year('year_from')->nullable();
             $table->year('year_to')->nullable();
+
+            $table->string('localized_name')->nullable()->comment('Локализованное название');
             $table->string('description')->nullable();
             $table->string('type')->comment('VehicleTypeEnum');
 
-            $table->string('brake_system_type')->nullable()->comment('BrakeSystemTypeEnum');
             $table->smallInteger('power_ps')->nullable()->comment('Мощность (л.с.)');
             $table->smallInteger('power_kw')->nullable()->comment('Мощность (kw)');
+
+            $table->string('brake_system_type')->nullable()->comment('BrakeSystemTypeEnum');
             $table->string('engine_type')->nullable()->comment('EngineTypeEnum');
             $table->string('gear_type')->nullable()->comment('GearTypeEnum');
             $table->string('drive_type')->nullable()->comment('DriveTypeEnum');
-            $table->string('localized_name')->nullable()->comment('Локализованное название');
+
             $table->smallInteger('number_of_cylinders')->nullable()->comment('Количество цилиндров');
             $table->float('capacity_lt')->nullable()->comment('Объем двигателя (л.)');
         });

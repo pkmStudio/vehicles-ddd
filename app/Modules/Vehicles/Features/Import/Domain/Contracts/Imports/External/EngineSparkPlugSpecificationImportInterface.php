@@ -7,6 +7,4 @@ namespace App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External
 /**
  * Импортирует спецификации свечей по модификациям.
  */
-interface EngineSparkPlugSpecificationImportInterface extends FileImportInterface
-{
-}
+interface EngineSparkPlugSpecificationImportInterface extends FileImportInterface {}

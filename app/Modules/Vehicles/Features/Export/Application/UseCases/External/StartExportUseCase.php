@@ -23,6 +23,11 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
 {
     /**
      * Инициализирует зависимости сценария внешнего запуска экспорта.
+     *
+     * Шаги:
+     * 1. Получает cache-порт идемпотентности внешнего запуска.
+     * 2. Получает фабрику Excel-export adapters.
+     * 3. Получает порт публикации результата экспорта.
      */
     public function __construct(
         private ExportRunCacheServiceInterface $cache,

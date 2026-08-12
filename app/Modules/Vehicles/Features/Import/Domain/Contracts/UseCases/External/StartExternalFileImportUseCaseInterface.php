@@ -13,6 +13,11 @@ interface StartExternalFileImportUseCaseInterface
 {
     /**
      * Проверить идемпотентность, подготовить файл и запустить нужный импортный адаптер.
+     *
+     * Шаги:
+     * 1) Принять operationId через idempotency cache.
+     * 2) Выбрать import adapter по типу запроса.
+     * 3) Запустить импорт и подготовить cleanup state.
      */
     public function execute(ExternalImportFileRequestDTO $request): void;
 }

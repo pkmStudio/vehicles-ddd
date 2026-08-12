@@ -13,7 +13,7 @@ use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 class Engine extends AbstractModel
 {
     protected $casts = [
-        'eng_fuel_type' => EngineFuelTypeEnum::class,
+        'fuel_type' => EngineFuelTypeEnum::class,
         'details' => 'array',
     ];
 

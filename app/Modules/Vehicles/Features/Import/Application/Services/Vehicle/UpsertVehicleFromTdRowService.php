@@ -30,6 +30,14 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
 
     private const string OPERATION_ID = 'vehicles-vehicle-import';
 
+    /**
+     * Инициализирует порты сценария upsert автомобиля из TecDoc row.
+     *
+     * Шаги:
+     * 1) Сохранить vehicle command и factory.
+     * 2) Сохранить repositories производителя и автомобиля.
+     * 3) Сохранить write policy, которая применяет provider-aware правила обновления.
+     */
     public function __construct(
         private VehicleCommandInterface $command,
         private VehicleDataFactoryInterface $factory,
@@ -39,6 +47,17 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
     ) {}
 
     /**
+     * Создает или обновляет автомобиль из авторитетной TecDoc строки.
+     *
+     * Шаги:
+     * 1) Если в строке нет `mfa_id` — вернуть null.
+     * 2) Найти производителя по `mfa_id`; если он отсутствует — вернуть null.
+     * 3) Собрать raw row array и преобразовать его в `VehicleData`.
+     * 4) Найти существующий vehicle по `ms_id`.
+     * 5) Применить TecDoc write context через write policy.
+     * 6) Выполнить create или update через command.
+     * 7) Опубликовать catalog mutation event о создании или обновлении.
+     *
      * @return VehicleData|null null, если производитель с таким mfa_id не найден
      *
      * @throws ImportRowValidationException

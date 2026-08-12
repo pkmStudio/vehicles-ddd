@@ -47,7 +47,7 @@ final class EngineMainSheetImportTest extends TestCase
             'eng_id' => 500,
             'engine_capacity' => '2979',
             'cylinder_count' => 8,
-            'eng_number_of_valves' => 32,
+            'number_of_valves' => 32,
         ]);
     }
 }

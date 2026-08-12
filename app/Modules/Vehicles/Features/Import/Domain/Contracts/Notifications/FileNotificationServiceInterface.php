@@ -10,6 +10,10 @@ interface FileNotificationServiceInterface
 {
     /**
      * Отправляет статус завершения импорта внешним сервисам.
+     *
+     * Шаги:
+     * 1) Преобразовать notification DTO в outbound payload.
+     * 2) Опубликовать payload во внешний транспорт.
      */
     public function notifyImportCompleted(ImportCompletionNotificationDTO $payload): void;
 }

@@ -12,5 +12,13 @@ use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
  */
 interface ExportFileFactoryInterface
 {
+    /**
+     * Возвращает concrete export adapter для запрошенного типа файла.
+     *
+     * Шаги:
+     * 1) Сопоставить export type с поддерживаемым adapter contract.
+     * 2) Передать runtime-флаги adapter-у, если они нужны конкретному типу.
+     * 3) Вернуть общий file export contract.
+     */
     public function make(ExportTypeEnum $type, bool $isAllow = false): FileExportInterface;
 }

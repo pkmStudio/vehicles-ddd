@@ -14,6 +14,11 @@ interface VehicleImportWritePolicyInterface
 {
     /**
      * Применяет provider ownership правила к строке импорта.
+     *
+     * Шаги:
+     * 1) Сравнить incoming row с существующей записью и import context.
+     * 2) Решить, какие поля разрешено записать.
+     * 3) Вернуть VehicleData для command layer.
      */
     public function apply(
         VehicleData $incoming,

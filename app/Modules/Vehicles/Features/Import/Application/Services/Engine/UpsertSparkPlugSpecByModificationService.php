@@ -26,6 +26,14 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
 
     private const string OPERATION_ID = 'vehicles-part-specification-import';
 
+    /**
+     * Инициализирует порты сценария записи свечей по модификации.
+     *
+     * Шаги:
+     * 1) Сохранить repositories для vehicle/modification/specification lookup.
+     * 2) Сохранить command записи part specifications.
+     * 3) Сохранить factory сборки `PartSpecificationData`.
+     */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
         private ModificationRepositoryInterface $modifications,
@@ -35,6 +43,17 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
     ) {}
 
     /**
+     * Записывает спецификацию свечей всем подходящим двигателям модификации.
+     *
+     * Шаги:
+     * 1) Разрешить исходный `ms_id`, включая синтетические модели через parent.
+     * 2) Найти модификацию с привязанными двигателями.
+     * 3) Пройти по двигателям и пропустить те, где fuel type отсутствует или не требует свечей.
+     * 4) Для подходящего двигателя собрать specification data.
+     * 5) Найти существующую specification по owner/template/feature value.
+     * 6) Выполнить create или update через command и опубликовать event.
+     * 7) Вернуть result с количеством записей и списком пропущенных двигателей.
+     *
      * @param  array<string, mixed>  $details
      */
     public function upsertByModification(int $msId, int $modId, array $details): ModificationSparkPlugResultDTO
@@ -56,11 +75,11 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
         $skipped = [];
 
         foreach ($modification->engines ?? [] as $engine) {
-            $fuelTypeMissing = $engine->engFuelType === null;
-            $needsSparkPlugs = $engine->engFuelType?->needsSparkPlugs() ?? false;
+            $fuelTypeMissing = $engine->fuelType === null;
+            $needsSparkPlugs = $engine->fuelType?->needsSparkPlugs() ?? false;
 
             if ($fuelTypeMissing || ! $needsSparkPlugs) {
-                $skipped[] = ['code' => $engine->codeEngine, 'fuel' => $engine->engFuelType?->value];
+                $skipped[] = ['code' => $engine->codeEngine, 'fuel' => $engine->fuelType?->value];
 
                 continue;
             }
@@ -87,6 +106,15 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
     }
 
     /**
+     * Разрешает vehicle `ms_id` для поиска модификации.
+     *
+     * Шаги:
+     * 1) Если `ms_id` не синтетический — вернуть его без изменений.
+     * 2) Для отрицательного `ms_id` найти vehicle snapshot.
+     * 3) Если модель не найдена — вернуть null и причину.
+     * 4) Если у модели нет parent `ms_id` — вернуть null и причину.
+     * 5) Вернуть parent `ms_id` как id для поиска модификации.
+     *
      * @return array{0: ?int, 1: ?string} [резолвнутый ms_id | null, причина-если-null]
      */
     private function resolveMsId(int $msId): array

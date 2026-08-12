@@ -25,6 +25,14 @@ final readonly class UpsertEngineFromSheetService implements UpsertEngineFromShe
 
     private const string OPERATION_ID = 'vehicles-engine-import';
 
+    /**
+     * Инициализирует порты сценария upsert двигателя.
+     *
+     * Шаги:
+     * 1) Сохранить command записи двигателя.
+     * 2) Сохранить factory валидации и сборки `EngineData`.
+     * 3) Сохранить repository для проверки существующей записи.
+     */
     public function __construct(
         private EngineCommandInterface $command,
         private EngineDataFactoryInterface $factory,
@@ -32,6 +40,16 @@ final readonly class UpsertEngineFromSheetService implements UpsertEngineFromShe
     ) {}
 
     /**
+     * Создает или обновляет двигатель из строки import-листа.
+     *
+     * Шаги:
+     * 1) Собрать raw row array из typed sheet DTO.
+     * 2) Валидировать и преобразовать строку в `EngineData` через factory.
+     * 3) Найти существующий двигатель по `eng_id`.
+     * 4) Выполнить create или update через command.
+     * 5) Опубликовать catalog mutation event о создании или обновлении.
+     * 6) Вернуть сохраненный `EngineData`.
+     *
      * @throws ImportRowValidationException
      */
     public function upsertFromRow(EngineSheetRowDTO $row): EngineData
@@ -39,15 +57,15 @@ final readonly class UpsertEngineFromSheetService implements UpsertEngineFromShe
         $data = $this->factory->make([
             'eng_id' => $row->engId,
             'code_engine' => $row->codeEngine,
-            'eng_power_kw_start' => $row->engPowerKwStart,
-            'eng_power_kw_upto' => $row->engPowerKwUpto,
-            'eng_power_ps_start' => $row->engPowerPsStart,
-            'eng_power_ps_upto' => $row->engPowerPsUpto,
+            'power_kw_start' => $row->powerKwStart,
+            'power_kw_upto' => $row->powerKwUpto,
+            'power_ps_start' => $row->powerPsStart,
+            'power_ps_upto' => $row->powerPsUpto,
             'engine_capacity' => $row->engineCapacity,
             'cylinder_diameter' => $row->cylinderDiameter,
             'cylinder_count' => $row->cylinderCount,
-            'eng_number_of_valves' => $row->engNumberOfValves,
-            'eng_fuel_type' => $row->engFuelType,
+            'number_of_valves' => $row->numberOfValves,
+            'fuel_type' => $row->fuelType,
         ]);
 
         $existing = $this->engines->findByEngId($data->engId);

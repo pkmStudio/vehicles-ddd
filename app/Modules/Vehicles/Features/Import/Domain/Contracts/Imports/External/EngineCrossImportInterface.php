@@ -7,6 +7,4 @@ namespace App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External
 /**
  * Импортирует связи двигателей с группами.
  */
-interface EngineCrossImportInterface extends FileImportInterface
-{
-}
+interface EngineCrossImportInterface extends FileImportInterface {}

@@ -511,6 +511,24 @@ Presentation/Http/Controllers/*Controller
      engine/modification readiness subscriber.
    - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Import/Application/UseCases`:
      TecDoc command import start, external file import start и local import request publishing.
+   - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Import/Application/Services`:
+     engine/manufacturer/modification/vehicle upsert services, import write policy,
+     wiper specification import service, reporting, cleanup и readiness gate.
+   - [x] Выровнены PHPDoc в `Vehicles/Features/Export/Domain/Contracts`:
+     export services, row/expander ports, repository ports, file storage, notification, factory,
+     use case и Templates client contracts.
+  - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Export/Infrastructure/Exports`:
+     multi-sheet exports, concrete sheet adapters, reference sheet и worksheet styling concern.
+   - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Export/Infrastructure` вне `Exports`:
+     cache idempotency adapter, Templates client, export file factory/storage, RabbitMQ handler,
+     validator, notification service, service provider и export Eloquent models.
+   - [x] Добит оставшийся PHPDoc-хвост `Vehicles/Features/Export`: application use case/helper,
+     domain service/client/factory/use case/notification contracts, DTO/Data/Enum descriptions и
+     console cleanup command; audit по Export больше не находит methods без PHPDoc или обязательных
+     `Шаги:`.
+   - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Import/Domain/Contracts`:
+     command/repository/service/factory/client/file/import/use case/reporting/notification/publisher
+     ports; audit по папке больше не находит methods без PHPDoc или `Шаги:`.
 
    - `Vehicles`: проверено 1168 методов; 472 метода без PHPDoc, 580 методов имеют PHPDoc без
      `Шаги:`, 116 методов уже соответствуют правилу.

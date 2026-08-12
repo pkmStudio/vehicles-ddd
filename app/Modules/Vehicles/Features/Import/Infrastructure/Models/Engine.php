@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class Engine extends AbstractModel
 {
     protected $casts = [
-        'eng_fuel_type' => EngineFuelTypeEnum::class,
+        'fuel_type' => EngineFuelTypeEnum::class,
         'details' => 'array',
     ];
 

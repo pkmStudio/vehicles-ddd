@@ -31,7 +31,7 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
 {
     private function engine(int $id, string $code, ?EngineFuelTypeEnum $fuel): EngineData
     {
-        return new EngineData(engId: $id * 1000, codeEngine: $code, engFuelType: $fuel, id: $id);
+        return new EngineData(engId: $id * 1000, codeEngine: $code, fuelType: $fuel, id: $id);
     }
 
     /** @param  array<EngineData>  $engines */

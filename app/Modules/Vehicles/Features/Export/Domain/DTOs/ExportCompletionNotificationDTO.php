@@ -15,6 +15,14 @@ use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
  */
 final readonly class ExportCompletionNotificationDTO
 {
+    /**
+     * @param  int  $userId  внешний идентификатор инициатора export request
+     * @param  ExportCompletionStatusEnum  $status  итоговый статус export flow
+     * @param  ExportTypeEnum  $exportType  тип выгруженного каталога
+     * @param  string|null  $operationId  корреляционный id внешнего запроса
+     * @param  string|null  $disk  storage disk с export-файлом
+     * @param  string|null  $path  путь к файлу, заполнен только при успешном экспорте
+     */
     public function __construct(
         public int $userId,
         public ExportCompletionStatusEnum $status,

@@ -13,6 +13,10 @@ namespace App\Modules\Vehicles\Features\Export\Domain\DTOs;
  */
 final readonly class ExportRunContextDTO
 {
+    /**
+     * @param  int  $userId  внешний идентификатор инициатора export request
+     * @param  string  $operationId  корреляционный id запуска и часть имени export-файла
+     */
     public function __construct(
         public int $userId,
         public string $operationId,

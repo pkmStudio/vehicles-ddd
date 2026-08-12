@@ -15,6 +15,10 @@ final readonly class CleanupExternalImportFileService implements CleanupExternal
 {
     /**
      * Инициализирует cache-порт с инструкциями отложенной очистки.
+     *
+     * Шаги:
+     * 1) Сохранить cache service, из которого cleanup достает disk/path по operation id.
+     * 2) Сохранить storage port, который удаляет исходный import-файл.
      */
     public function __construct(
         private ExternalImportCacheServiceInterface $cache,
@@ -23,6 +27,12 @@ final readonly class CleanupExternalImportFileService implements CleanupExternal
 
     /**
      * Забрать инструкцию очистки по operationId и удалить исходный файл.
+     *
+     * Шаги:
+     * 1) Если operation id отсутствует — выйти без действий.
+     * 2) Забрать cleanup-инструкцию из cache.
+     * 3) Если инструкции нет — выйти без действий.
+     * 4) Удалить файл через storage port по сохраненным disk/path.
      */
     public function cleanup(?string $operationId): void
     {

@@ -7,6 +7,4 @@ namespace App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External
 /**
  * Импортирует оба листа: Main + Wipers.
  */
-interface VehicleMultiSheetImportInterface extends FileImportInterface
-{
-}
+interface VehicleMultiSheetImportInterface extends FileImportInterface {}

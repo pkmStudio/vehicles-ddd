@@ -13,6 +13,10 @@ use App\Modules\Vehicles\Features\Export\Domain\ModelData\PartSpecificationData;
  */
 final readonly class PartSpecificationExportRowDTO
 {
+    /**
+     * @param  EngineData  $entity  двигатель основной строки export sheet
+     * @param  PartSpecificationData|null  $specification  specification свечей или null для пустой строки двигателя
+     */
     public function __construct(
         public EngineData $entity,
         public ?PartSpecificationData $specification = null,

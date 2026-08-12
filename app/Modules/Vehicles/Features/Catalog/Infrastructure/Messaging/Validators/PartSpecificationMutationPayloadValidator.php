@@ -132,15 +132,15 @@ final readonly class PartSpecificationMutationPayloadValidator
         return [
             'part_specification.owner.engine' => ['nullable', 'array'],
             'part_specification.owner.engine.code_engine' => ['nullable', 'string', 'max:255'],
-            'part_specification.owner.engine.eng_power_kw_start' => ['nullable', 'integer'],
-            'part_specification.owner.engine.eng_power_kw_upto' => ['nullable', 'integer'],
-            'part_specification.owner.engine.eng_power_ps_start' => ['nullable', 'integer'],
-            'part_specification.owner.engine.eng_power_ps_upto' => ['nullable', 'integer'],
+            'part_specification.owner.engine.power_kw_start' => ['nullable', 'integer'],
+            'part_specification.owner.engine.power_kw_upto' => ['nullable', 'integer'],
+            'part_specification.owner.engine.power_ps_start' => ['nullable', 'integer'],
+            'part_specification.owner.engine.power_ps_upto' => ['nullable', 'integer'],
             'part_specification.owner.engine.engine_capacity' => ['nullable', 'string', 'max:255'],
             'part_specification.owner.engine.cylinder_diameter' => ['nullable', 'numeric'],
             'part_specification.owner.engine.cylinder_count' => ['nullable', 'integer'],
-            'part_specification.owner.engine.eng_number_of_valves' => ['nullable', 'integer'],
-            'part_specification.owner.engine.eng_fuel_type' => ['nullable', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
+            'part_specification.owner.engine.number_of_valves' => ['nullable', 'integer'],
+            'part_specification.owner.engine.fuel_type' => ['nullable', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
             'part_specification.owner.engine.group_id' => ['nullable', 'integer'],
         ];
     }

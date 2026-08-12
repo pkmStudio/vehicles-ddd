@@ -18,6 +18,9 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
 {
     /**
      * Инициализирует зависимости policy через контейнер.
+     *
+     * Шаги:
+     * 1) Сохранить PSR logger для provider ownership conflicts и corrections.
      */
     public function __construct(
         private LoggerInterface $logger,
@@ -25,6 +28,12 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
 
     /**
      * Возвращает данные автомобиля, которые можно безопасно записать из import source.
+     *
+     * Шаги:
+     * 1) Если существующей записи нет — применить правила create.
+     * 2) Если source является авторитетным TecDoc command import — применить полный TecDoc update.
+     * 3) При конфликте provider ownership залогировать warning с контекстом строки.
+     * 4) Для остальных updates применить правила writable/locked fields.
      */
     public function apply(
         VehicleData $incoming,
@@ -63,6 +72,11 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
 
     /**
      * TecDoc command import является источником истины и полностью исправляет существующую запись.
+     *
+     * Шаги:
+     * 1) Если текущий provider не TD — залогировать correction warning.
+     * 2) Собрать `VehicleData` из incoming business fields.
+     * 3) Принудительно сохранить provider TD и id существующей записи.
      */
     private function forAuthoritativeTecDocUpdate(
         VehicleData $incoming,
@@ -104,6 +118,11 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
 
     /**
      * Создает новую запись с provider владельца import source.
+     *
+     * Шаги:
+     * 1) Собрать `VehicleData` из incoming fields.
+     * 2) Установить provider из import context.
+     * 3) Сохранить incoming id для create-сценариев, где он уже известен.
      */
     private function forCreate(
         VehicleData $incoming,
@@ -133,6 +152,12 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
 
     /**
      * Обновляет только writable поля и сохраняет ownership существующей записи.
+     *
+     * Шаги:
+     * 1) Определить, нужно ли сохранять locked fields существующей записи.
+     * 2) Если locked fields можно менять — вернуть update data с incoming business fields.
+     * 3) Если locked fields нужно сохранить — оставить owner/provider/id-sensitive fields из existing.
+     * 4) Вернуть `VehicleData` с id существующей записи.
      */
     private function forUpdate(
         VehicleData $incoming,

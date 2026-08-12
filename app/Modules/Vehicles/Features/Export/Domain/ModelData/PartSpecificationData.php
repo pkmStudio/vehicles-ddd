@@ -12,6 +12,17 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class PartSpecificationData extends Data
 {
+    /**
+     * @param  string  $partableType  polymorphic owner type из общего Vehicles discriminator
+     * @param  int  $partableId  идентификатор владельца specification
+     * @param  DetailTemplateEnum  $template  typed details-шаблон specification
+     * @param  array<string, mixed>  $details  сохраненный payload details
+     * @param  int|null  $featureValueId  ссылка на feature value для specification
+     * @param  string|null  $name  пользовательское имя specification
+     * @param  string|null  $text  произвольный текст specification
+     * @param  int|null  $id  локальный database id
+     * @param  FeatureValueData|null  $featureValue  eager-loaded значение фичи для export rows
+     */
     public function __construct(
         public readonly string $partableType,
         public readonly int $partableId,

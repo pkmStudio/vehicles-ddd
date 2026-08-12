@@ -41,7 +41,7 @@ final class EngineImportTest extends TestCase
             'eng_id' => 500,
             'code_engine' => 'M54B30',
             'cylinder_count' => 6,
-            'eng_fuel_type' => 'бензин',
+            'fuel_type' => 'бензин',
         ]);
 
         Event::assertDispatched(EngineCommandImported::class);

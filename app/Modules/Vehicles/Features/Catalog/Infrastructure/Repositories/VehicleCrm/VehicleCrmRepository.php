@@ -377,12 +377,12 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
                 'engines.engine_capacity',
                 'engines.cylinder_count',
                 'engines.cylinder_diameter',
-                'engines.eng_power_kw_start',
-                'engines.eng_power_kw_upto',
-                'engines.eng_power_ps_start',
-                'engines.eng_power_ps_upto',
-                'engines.eng_number_of_valves',
-                'engines.eng_fuel_type',
+                'engines.power_kw_start',
+                'engines.power_kw_upto',
+                'engines.power_ps_start',
+                'engines.power_ps_upto',
+                'engines.number_of_valves',
+                'engines.fuel_type',
                 'engines.group_id',
             ])
             ->groupBy('modification_id');

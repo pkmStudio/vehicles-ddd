@@ -179,6 +179,10 @@ final readonly class EngineExportService implements EngineExportServiceInterface
     /**
      * Возвращает Excel-значения backed enum-справочника.
      *
+     * Шаги:
+     * 1) Взять все enum cases переданного backed enum.
+     * 2) Преобразовать каждое value в строку для справочного листа.
+     *
      * @param  class-string<\BackedEnum>  $enumClass
      * @return list<string>
      */

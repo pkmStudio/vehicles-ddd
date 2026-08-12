@@ -14,12 +14,24 @@ use Illuminate\Validation\Rule;
  */
 final readonly class ExportFileRequestedPayloadValidator
 {
+    /**
+     * Получить Laravel validator factory.
+     *
+     * Шаги:
+     * - Принять factory из container.
+     * - Сохранить ее для создания validator instance на каждый payload.
+     */
     public function __construct(
         private ValidatorFactory $validator,
     ) {}
 
     /**
      * Создать Laravel validator для полезной нагрузки события.
+     *
+     * Шаги:
+     * - Описать обязательные поля внешнего export-запроса.
+     * - Ограничить export_type поддерживаемыми enum-значениями.
+     * - Вернуть validator без немедленного выполнения проверки.
      *
      * @param  array<string, mixed>  $data
      */
@@ -35,6 +47,10 @@ final readonly class ExportFileRequestedPayloadValidator
 
     /**
      * Вернуть допустимые значения типов экспорта.
+     *
+     * Шаги:
+     * - Взять все значения ExportTypeEnum.
+     * - Преобразовать каждый enum case в строковое значение payload.
      *
      * @return list<string>
      */

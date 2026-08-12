@@ -41,12 +41,12 @@ final readonly class EngineMutationPayloadValidator
                 'engine.engine_capacity' => ['nullable', 'string', 'max:255'],
                 'engine.cylinder_count' => ['nullable', 'integer'],
                 'engine.cylinder_diameter' => ['nullable', 'numeric'],
-                'engine.eng_power_kw_start' => ['nullable', 'integer'],
-                'engine.eng_power_kw_upto' => ['nullable', 'integer'],
-                'engine.eng_power_ps_start' => ['nullable', 'integer'],
-                'engine.eng_power_ps_upto' => ['nullable', 'integer'],
-                'engine.eng_number_of_valves' => ['nullable', 'integer'],
-                'engine.eng_fuel_type' => ['nullable', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
+                'engine.power_kw_start' => ['nullable', 'integer'],
+                'engine.power_kw_upto' => ['nullable', 'integer'],
+                'engine.power_ps_start' => ['nullable', 'integer'],
+                'engine.power_ps_upto' => ['nullable', 'integer'],
+                'engine.number_of_valves' => ['nullable', 'integer'],
+                'engine.fuel_type' => ['nullable', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
                 'engine.group_id' => ['nullable', 'integer'],
             ];
         }

@@ -19,6 +19,15 @@ use Throwable;
  */
 final readonly class ReportImportResultService implements ReportImportResultServiceInterface
 {
+    /**
+     * Инициализирует порты формирования и отправки результата импорта.
+     *
+     * Шаги:
+     * 1) Сохранить reporter для записи файла ошибок.
+     * 2) Сохранить failure store для чтения и очистки cached row failures.
+     * 3) Сохранить notifier для публикации import completion.
+     * 4) Сохранить logger для actionable reporting failures.
+     */
     public function __construct(
         private ImportFailureReporterInterface $reporter,
         private ImportFailureStoreInterface $failureStore,
@@ -26,6 +35,17 @@ final readonly class ReportImportResultService implements ReportImportResultServ
         private LoggerInterface $logger,
     ) {}
 
+    /**
+     * Формирует отчет об ошибках и отправляет notification о завершении импорта.
+     *
+     * Шаги:
+     * 1) Получить failures по cache key и посчитать количество ошибок.
+     * 2) Попробовать сохранить report artifact через reporter.
+     * 3) Если ошибки есть — отправить `CompletedWithErrors` с disk/path отчета.
+     * 4) Если ошибок нет — отправить `Completed`.
+     * 5) При сбое reporting workflow залогировать error и отправить `Failed`.
+     * 6) В любом случае очистить cached failures.
+     */
     public function report(int $userId, string $cacheKey, ?string $operationId = null): void
     {
         $failures = $this->failureStore->get($cacheKey);

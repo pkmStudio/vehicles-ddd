@@ -15,6 +15,11 @@ interface FileExportInterface
     /**
      * Собрать файл и сохранить его на $disk. Транспорт (Excel) — в реализации.
      * Возвращает путь к сохранённому файлу на этом диске.
+     *
+     * Шаги:
+     * 1) Использовать context запуска для имени/метаданных export artifact.
+     * 2) Сохранить файл через concrete export adapter.
+     * 3) Вернуть storage path сохраненного файла.
      */
     public function export(ExportRunContextDTO $context, ?string $disk = null): string;
 }

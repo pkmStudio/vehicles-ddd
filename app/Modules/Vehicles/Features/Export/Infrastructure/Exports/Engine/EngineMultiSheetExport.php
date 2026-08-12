@@ -12,13 +12,33 @@ use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\Sheets\En
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\Sheets\EngineSparkPlugsSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\ReferenceSheetExport;
 
+/**
+ * Laravel Excel adapter multi-sheet export-а двигателей.
+ */
 final readonly class EngineMultiSheetExport extends AbstractMultiSheetExport implements EngineMultiSheetExportInterface
 {
+    /**
+     * Возвращает тип export-а двигателей.
+     *
+     * Шаги:
+     * 1) Вернуть `ExportTypeEnum::Engine` для имени output artifact.
+     */
     protected function exportType(): ExportTypeEnum
     {
         return ExportTypeEnum::Engine;
     }
 
+    /**
+     * Собирает sheet adapters workbook-а двигателей.
+     *
+     * Шаги:
+     * 1) Получить export service из контейнера для справочного листа.
+     * 2) Добавить основной лист двигателей.
+     * 3) Добавить лист спецификаций свечей.
+     * 4) Добавить reference sheet с headings/rows из export service.
+     *
+     * @return array<int, object>
+     */
     public function sheets(): array
     {
         $exportService = app(EngineExportServiceInterface::class);

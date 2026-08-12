@@ -9,5 +9,13 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 
 interface UpsertEngineFromSheetServiceInterface
 {
+    /**
+     * Создать или обновить двигатель из строки Excel-листа.
+     *
+     * Шаги:
+     * 1) Преобразовать row DTO в EngineData.
+     * 2) Найти существующий двигатель по натуральному ключу.
+     * 3) Выполнить create/update и вернуть актуальный snapshot.
+     */
     public function upsertFromRow(EngineSheetRowDTO $row): EngineData;
 }

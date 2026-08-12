@@ -46,12 +46,12 @@ final readonly class EngineExportRow implements EngineExportRowInterface
             $engine->engId,
             $engine->codeEngine,
             $engine->engineCapacity,
-            $engine->engFuelType?->value,
-            $engine->engPowerPsStart,
-            $engine->engPowerPsUpto,
+            $engine->fuelType?->value,
+            $engine->powerPsStart,
+            $engine->powerPsUpto,
             $engine->cylinderCount,
             $engine->cylinderDiameter,
-            $engine->engNumberOfValves,
+            $engine->numberOfValves,
         ];
     }
 }

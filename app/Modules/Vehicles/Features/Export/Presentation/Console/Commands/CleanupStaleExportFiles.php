@@ -19,6 +19,14 @@ final class CleanupStaleExportFiles extends Command
 
     protected $description = 'Удаляет сгенерированные файлы экспорта каталога старше retention-порога';
 
+    /**
+     * Запустить safety-net очистку старых export-файлов.
+     *
+     * Шаги:
+     * 1) Вызвать application service очистки stale export artifacts.
+     * 2) Вывести количество удаленных файлов в console output.
+     * 3) Вернуть успешный exit code команды.
+     */
     public function handle(CleanupStaleExportFilesServiceInterface $service): int
     {
         $deleted = $service->cleanup();

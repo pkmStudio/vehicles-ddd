@@ -7,6 +7,4 @@ namespace App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External
 /**
  * Импортирует оба листа: Main + SparkPlugs.
  */
-interface EngineMultiSheetImportInterface extends FileImportInterface
-{
-}
+interface EngineMultiSheetImportInterface extends FileImportInterface {}
