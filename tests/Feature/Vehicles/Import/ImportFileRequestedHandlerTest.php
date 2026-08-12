@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Import\DTO\ImportFileRequested as WireImportFileRequested;
 use Tests\TestCase;
 
 final class ImportFileRequestedHandlerTest extends TestCase
@@ -68,6 +69,37 @@ final class ImportFileRequestedHandlerTest extends TestCase
         ]);
 
         $this->assertTrue(Cache::has($this->cleanupCacheKey('run-123')));
+    }
+
+    /**
+     * Проверяет, что handler принимает payload, собранный опубликованным wire DTO импорта.
+     */
+    public function test_accepts_published_wire_import_request_payload(): void
+    {
+        Storage::fake('s3');
+        Storage::disk('s3')->put('VehicleMultiSheet/vehicles.xlsx', 'xlsx');
+
+        $import = $this->mock(VehicleMultiSheetImportInterface::class);
+        $import->shouldReceive('import')
+            ->once()
+            ->with(
+                'VehicleMultiSheet/vehicles.xlsx',
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42
+                    && $context->operationId === 'wire-import-vehicles'),
+                's3',
+            );
+
+        $message = new WireImportFileRequested(
+            userId: 42,
+            operationId: 'wire-import-vehicles',
+            importType: 'vehicle_multi_sheet',
+            disk: 's3',
+            path: 'VehicleMultiSheet/vehicles.xlsx',
+        );
+
+        app(ImportFileRequestedHandler::class)->handle($message->toArray());
+
+        $this->assertTrue(Cache::has($this->cleanupCacheKey('wire-import-vehicles')));
     }
 
     public function test_payload_disk_overrides_default_files_disk(): void

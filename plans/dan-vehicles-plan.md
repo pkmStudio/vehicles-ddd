@@ -40,7 +40,7 @@
 
 ## 1. Transport и wire contracts
 
-1. Довести использование `pkmstudio/dan-wire-contracts` как published contract reference.
+1. [x] Довести использование `pkmstudio/dan-wire-contracts` как published contract reference.
    - Runtime внутри `dan-vehicles`: входящие REST/Rabbit payload валидируются на boundary и сразу
      переводятся в локальные DTO/Data, без обязательного создания package DTO.
    - [x] Catalog mutation Rabbit handlers (`Vehicles` и `Warehouse`) переведены с runtime
@@ -57,14 +57,22 @@
    - Package DTO не протаскивать в Domain/Application use cases.
    - Для несовместимого payload ввести явную boundary-ошибку/failed result с message вроде:
      `Payload is incompatible with current dan-vehicles contract. Update dan-wire-contracts version.`
+   - [x] Production-код использует `dan-wire-contracts` только на внешней boundary: outbound
+     catalog mutation notifications в `Infrastructure/Notifications`; Domain/Application не
+     импортируют package DTO.
 
-2. Проверить полноту пакета `dan-wire-contracts`.
+2. [ ] Проверить полноту пакета `dan-wire-contracts`.
    - Vehicles: import/export, catalog mutations, CRM read DTO.
    - Warehouse: import/export, catalog mutations, CRM read DTO для nomenclatures и следующих сущностей.
    - Applicability: import/export/calculation request/result DTO.
    - Shared result DTO: import completed, file exported, catalog mutation completed.
+   - [ ] Пакет пока неполный для текущего REST read surface: в установленном
+     `dan-wire-contracts` нет Warehouse CRM read DTO для `/api/v1/crm/warehouse/nomenclatures`,
+     `/api/v1/crm/warehouse/kits` и `/api/v1/crm/warehouse/pack-dimensions`. Источник пакета
+     находится в `/home/user/projects/packages/dan-wire-contracts` и уже содержит незакоммиченные
+     изменения, поэтому обновлять его нужно отдельным package-срезом, а не правкой `vendor`.
 
-3. Добавить producer/provider контрактные тесты.
+3. [ ] Добавить producer/provider контрактные тесты.
    - Тестировать `toArray()/fromArray()` package DTO.
    - Тестировать реальные sample payload из `dan-center` против handlers `dan-vehicles`.
    - Тестировать реальные result payload из `dan-vehicles`.
@@ -80,10 +88,29 @@
      DTO из `dan-wire-contracts`.
    - [x] Добавлен first-pass contract gate для catalog mutation result events: локальные Vehicles и
      Warehouse result DTO round-trip проходят через опубликованный `CatalogMutationCompleted` wire DTO.
+   - [x] Добавлены provider gates для request-side import/export/calculation payload:
+     опубликованные `dan-wire-contracts` DTO принимаются текущими handlers `Vehicles Import`,
+     `Vehicles Export`, `Warehouse Import`, `Warehouse Export`, `Applicability Import`,
+     `Applicability Export` и `Applicability Calculation`.
+   - [x] Проверено: `docker compose run --rm --no-deps app php artisan test
+     tests/Feature/Vehicles/Import/ImportFileRequestedHandlerTest.php
+     tests/Feature/Vehicles/Export/ExportFileRequestedHandlerTest.php
+     tests/Feature/Warehouse/Import/ImportFileRequestedHandlerTest.php
+     tests/Feature/Warehouse/ExportFileRequestedHandlerTest.php
+     tests/Feature/Applicability/Import/ImportFileRequestedHandlerTest.php
+     tests/Feature/Applicability/Export/ExportFileRequestedHandlerTest.php
+     tests/Feature/Applicability/Calculation/CalculationRequestedHandlerTest.php` — 37 passed,
+     100 assertions.
 
-4. Закрыть REST-auth на стороне API через middleware из раздела 8.
+4. [x] Закрыть REST-auth на стороне API через middleware из раздела 8.
    - Не держать auth guard внутри controllers.
    - API key проверять на `/api/v1/crm/*` и catalog endpoints.
+   - [x] `routes/api.php` вешает `service.key` на `/api/v1/crm/*` и `/api/v1/catalog/*`;
+     `EnsureServiceKey` зарегистрирован как route middleware alias в `bootstrap/app.php`.
+   - [x] Проверено: `docker compose run --rm --no-deps app php artisan test
+     tests/Feature/Vehicles/Catalog/VehicleCrmReadApiTest.php
+     tests/Feature/Warehouse/Catalog/NomenclatureCrmReadApiTest.php
+     tests/Feature/Vehicles/Catalog/VehicleCatalogRestApiTest.php` — 22 passed, 123 assertions.
 
 5. HMAC для Rabbit включать только после полной готовности обоих сервисов к одинаковому envelope.
 
@@ -94,19 +121,24 @@
 
 ## 2. REST read API
 
-1. Vehicles CRM API довести до parity со старым Filament.
+1. [x] Vehicles CRM API довести до parity со старым Filament.
    - List/search/filter/sort/pagination.
    - Detail snapshot.
    - Options endpoints для features, feature values, detail templates, manufacturers.
    - Данные для старой формы: vehicle fields, part specifications, modifications, engines.
+   - [x] Покрыто `VehicleCrmReadApiTest`: list/search/filter/sort/pagination, detail snapshot,
+     options endpoints, nested modifications/engines/part specifications и contract round-trip для
+     опубликованных Vehicles CRM read DTO.
 
-2. Warehouse Nomenclature CRM API довести до parity.
+2. [x] Warehouse Nomenclature CRM API довести до parity.
    - List/search/filter/sort/pagination.
    - Detail snapshot.
    - Options endpoints для brands, types/templates.
    - Проверить, что форма получает все данные с REST, а не из локальных таблиц `dan-center`.
+   - [x] Покрыто `NomenclatureCrmReadApiTest`: list/search/filter/sort/pagination, detail snapshot,
+     options endpoints, preload limits и repository DTO boundary.
 
-3. Добавить REST read API для оставшихся вынесенных сущностей.
+3. [ ] Добавить REST read API для оставшихся вынесенных сущностей.
    - Engines.
    - Manufacturers.
    - Modifications.
@@ -115,6 +147,13 @@
    - Warehouse Kits.
    - Warehouse PackDimensions.
    - Applicability read endpoints.
+   - [x] Warehouse Kits и Warehouse PackDimensions endpoints уже подключены под
+     `/api/v1/crm/warehouse/kits` и `/api/v1/crm/warehouse/pack-dimensions`; добавлены feature
+     tests на list/filter/sort/pagination, detail, 404 и options.
+   - [x] Проверено: `docker compose run --rm --no-deps app php artisan test
+     tests/Feature/Warehouse/Catalog/NomenclatureCrmReadApiTest.php
+     tests/Feature/Warehouse/Catalog/KitCrmReadApiTest.php
+     tests/Feature/Warehouse/Catalog/PackDimensionCrmReadApiTest.php` — 16 passed, 81 assertions.
 
 4. Добавить OpenAPI или контрактные feature-тесты на response shape.
    - Минимум для endpoints, которые использует Filament.

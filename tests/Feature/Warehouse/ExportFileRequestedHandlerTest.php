@@ -18,6 +18,7 @@ use App\Modules\Warehouse\Features\Export\Infrastructure\Messaging\Handlers\Expo
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Export\DTO\ExportFileRequested as WireExportFileRequested;
 use Tests\TestCase;
 
 /**
@@ -83,6 +84,42 @@ final class ExportFileRequestedHandlerTest extends TestCase
             'export_type' => 'nomenclature_by_type',
             'type_id' => 2,
         ]);
+    }
+
+    public function test_accepts_published_wire_export_request_payload(): void
+    {
+        $adapter = Mockery::mock(FileExportInterface::class);
+        $adapter->shouldReceive('export')
+            ->once()
+            ->with(
+                Mockery::on(fn (ExportRunContextDTO $context): bool => $context->userId === 42
+                    && $context->operationId === 'wire-export-warehouse'),
+                'exports',
+            )
+            ->andReturn('exports/warehouse-nomenclature-wire-export-warehouse.xlsx');
+
+        $factory = $this->mock(ExportFileFactoryInterface::class);
+        $factory->shouldReceive('make')
+            ->once()
+            ->with(ExportTypeEnum::NomenclatureByType, 2, null, null)
+            ->andReturn($adapter);
+
+        $notifier = $this->mock(ExportNotificationServiceInterface::class);
+        $notifier->shouldReceive('notifyExportCompleted')
+            ->once()
+            ->with(Mockery::on(fn (ExportCompletionNotificationDTO $payload): bool => $payload->operationId === 'wire-export-warehouse'
+                && $payload->exportType === ExportTypeEnum::NomenclatureByType
+                && $payload->typeId === 2
+                && $payload->status === ExportCompletionStatusEnum::Completed));
+
+        $message = new WireExportFileRequested(
+            userId: 42,
+            operationId: 'wire-export-warehouse',
+            exportType: 'nomenclature_by_type',
+            typeId: 2,
+        );
+
+        app(ExportFileRequestedHandler::class)->handle($message->toArray());
     }
 
     /**

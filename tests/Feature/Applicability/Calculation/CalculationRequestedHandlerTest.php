@@ -12,6 +12,7 @@ use App\Modules\Applicability\Features\Calculation\Infrastructure\Messaging\Hand
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Applicability\Features\Calculation\DTO\CalculationRequested as WireCalculationRequested;
 use ReflectionClass;
 use Tests\TestCase;
 
@@ -31,6 +32,27 @@ final class CalculationRequestedHandlerTest extends TestCase
         Queue::assertPushed(CalculateKitApplicabilityJob::class, function (CalculateKitApplicabilityJob $job): bool {
             return $this->jobProperty($job, 'userId') === 42
                 && $this->jobProperty($job, 'operationId') === 'operation-123'
+                && $this->jobProperty($job, 'kitId') === 7
+                && $this->jobProperty($job, 'chunk') === 50;
+        });
+    }
+
+    public function test_accepts_published_wire_calculation_request_payload(): void
+    {
+        Queue::fake();
+
+        $message = new WireCalculationRequested(
+            userId: 42,
+            operationId: 'wire-calculate-applicability',
+            kitId: 7,
+            chunk: 50,
+        );
+
+        app(CalculationRequestedHandler::class)->handle($message->toArray());
+
+        Queue::assertPushed(CalculateKitApplicabilityJob::class, function (CalculateKitApplicabilityJob $job): bool {
+            return $this->jobProperty($job, 'userId') === 42
+                && $this->jobProperty($job, 'operationId') === 'wire-calculate-applicability'
                 && $this->jobProperty($job, 'kitId') === 7
                 && $this->jobProperty($job, 'chunk') === 50;
         });
