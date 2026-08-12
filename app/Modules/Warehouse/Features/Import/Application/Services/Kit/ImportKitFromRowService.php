@@ -48,7 +48,6 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
      * 7) Преобразовать состав в список ids для pivot.
      * 8) Найти существующий kit по id или importHash.
      * 9) Создать новый kit или обновить найденный с тем же составом.
-     *
      */
     public function importFromRow(KitImportRowDTO $row): KitData
     {

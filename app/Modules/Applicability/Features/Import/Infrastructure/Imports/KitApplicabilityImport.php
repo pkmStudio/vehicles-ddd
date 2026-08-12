@@ -9,6 +9,7 @@ use App\Modules\Applicability\Features\Import\Domain\Contracts\Services\ImportKi
 use App\Modules\Applicability\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Applicability\Features\Import\Domain\Events\KitApplicabilityImportCompleted;
 use App\Modules\Applicability\Features\Import\Domain\Exceptions\ImportRowValidationException;
+use App\Modules\Applicability\Features\Import\Infrastructure\Imports\Mappers\KitApplicabilityImportRowMapper;
 use App\Modules\Applicability\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -138,6 +139,7 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
     public function collection(Collection $collection): void
     {
         $service = $this->service();
+        $rowMapper = new KitApplicabilityImportRowMapper;
 
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
@@ -147,7 +149,7 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
             }
 
             try {
-                $service->importFromRow($rowValues);
+                $service->importFromRow($rowMapper->map($rowValues));
             } catch (ImportRowValidationException $exception) {
                 $this->onFailure(new Failure(
                     row: $indexRow + $this->startRow(),

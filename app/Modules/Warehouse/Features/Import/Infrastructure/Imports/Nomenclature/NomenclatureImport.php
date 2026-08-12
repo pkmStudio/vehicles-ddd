@@ -12,6 +12,7 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\NomenclatureImportCompleted;
 use App\Modules\Warehouse\Features\Import\Domain\Exceptions\WarehouseImportException;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Nomenclature\Mappers\NomenclatureImportRowMapper;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
@@ -151,6 +152,7 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     {
         $types = $this->types()->all();
         $brands = $this->brands()->all();
+        $rowMapper = new NomenclatureImportRowMapper;
 
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
@@ -158,7 +160,7 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
 
             try {
                 $this->service()->importFromRow(
-                    row: $rowValues,
+                    row: $rowMapper->map($rowValues),
                     types: $types,
                     brands: $brands,
                     userId: $this->userId,

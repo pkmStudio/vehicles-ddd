@@ -9,6 +9,7 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimensio
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\PackDimensionImportCompleted;
 use App\Modules\Warehouse\Features\Import\Domain\Exceptions\WarehouseImportException;
+use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\PackDimension\Mappers\PackDimensionImportRowMapper;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
@@ -138,12 +139,13 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
     public function collection(Collection $collection): void
     {
         $service = $this->service();
+        $rowMapper = new PackDimensionImportRowMapper;
 
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
 
             try {
-                $service->importFromRow($rowValues);
+                $service->importFromRow($rowMapper->map($rowValues));
             } catch (WarehouseImportException $e) {
                 $failure = new Failure(
                     row: $indexRow + $this->startRow(),

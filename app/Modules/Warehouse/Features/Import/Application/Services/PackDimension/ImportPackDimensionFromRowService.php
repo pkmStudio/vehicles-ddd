@@ -41,7 +41,6 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
      * 5) Запретить отрицательную цену.
      * 6) Собрать PackDimensionData.
      * 7) Если id найден в базе, обновить запись; иначе создать новую.
-     *
      */
     public function importFromRow(PackDimensionImportRowDTO $row): PackDimensionData
     {
