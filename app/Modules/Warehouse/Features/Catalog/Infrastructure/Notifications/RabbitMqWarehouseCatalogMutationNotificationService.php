@@ -17,7 +17,11 @@ use PkmStudio\RabbitTransport\RabbitMQPublisher;
 final readonly class RabbitMqWarehouseCatalogMutationNotificationService implements WarehouseCatalogMutationNotificationServiceInterface
 {
     /**
-     * Инициализирует RabbitMQ publisher.
+     * Получает RabbitMQ publisher для outbound result events.
+     *
+     * Шаги:
+     * 1) Принять RabbitMQPublisher из transport package.
+     * 2) Использовать publisher при отправке WarehouseCatalogMutationCompleted.
      */
     public function __construct(
         private RabbitMQPublisher $publisher,
@@ -25,6 +29,11 @@ final readonly class RabbitMqWarehouseCatalogMutationNotificationService impleme
 
     /**
      * Публикует результат мутации Warehouse-каталога наружу.
+     *
+     * Шаги:
+     * 1) Преобразовать DTO результата в данные сообщения уведомления.
+     * 2) Опубликовать сообщение через RabbitMQ producer.
+     * 3) Завершить без дополнительного результата.
      */
     public function notify(WarehouseCatalogMutationResultDTO $result): void
     {

@@ -17,6 +17,10 @@ final readonly class WiperAdapterAuditClient implements WiperAdapterAuditClientI
 {
     /**
      * Получает сервис расчёта строк отчёта WiperAdapterAudit.
+     *
+     * Шаги:
+     * 1) Принять сервис фичи WiperAdapterAudit через локальный adapter boundary.
+     * 2) Сохранить сервис для чтения строк отчёта при экспорте.
      */
     public function __construct(
         private WiperAdapterAuditServiceInterface $audit,
@@ -24,6 +28,11 @@ final readonly class WiperAdapterAuditClient implements WiperAdapterAuditClientI
 
     /**
      * Возвращает строки отчёта аудита адаптеров.
+     *
+     * Шаги:
+     * 1) Получить строки аудита из owner-фичи.
+     * 2) Преобразовать каждую строку во внутренний DTO Export-фичи.
+     * 3) Вернуть коллекцию, пригодную для Excel-адаптера.
      *
      * @return Collection<int, WiperAdapterAuditExportRowDTO>
      */

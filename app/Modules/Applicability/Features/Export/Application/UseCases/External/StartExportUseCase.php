@@ -16,12 +16,30 @@ use Throwable;
 
 final readonly class StartExportUseCase implements StartExportUseCaseInterface
 {
+    /**
+     * Принимает порты, нужные для запуска внешнего export workflow.
+     *
+     * Шаги:
+     * 1. Сохраняет cache guard для защиты от повторного запуска по operation id.
+     * 2. Сохраняет фабрику, выбирающую конкретный Excel export adapter по типу экспорта.
+     * 3. Сохраняет notifier, который публикует итоговый результат во внешний контур.
+     */
     public function __construct(
         private ExportRunCacheServiceInterface $cache,
         private ExportFileFactoryInterface $exportFactory,
         private ExportNotificationServiceInterface $notifier,
     ) {}
 
+    /**
+     * Запускает внешний экспорт применяемости и публикует финальный статус.
+     *
+     * Шаги:
+     * 1. Проверяет operation id в cache guard и молча завершает дубликат.
+     * 2. Собирает run context из user id и operation id входящего запроса.
+     * 3. Выбирает export adapter через фабрику и сохраняет XLSX на целевой disk.
+     * 4. При ошибке освобождает guard, публикует failed notification и пробрасывает исключение.
+     * 5. При успехе публикует completed notification с путем к созданному файлу.
+     */
     public function execute(ExportFileRequestDTO $request): void
     {
         if (! $this->cache->accept($request->operationId)) {

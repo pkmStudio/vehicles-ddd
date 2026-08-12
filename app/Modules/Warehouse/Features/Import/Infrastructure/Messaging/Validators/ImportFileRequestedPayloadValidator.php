@@ -16,6 +16,10 @@ final readonly class ImportFileRequestedPayloadValidator
 {
     /**
      * Получает Laravel validator factory.
+     *
+     * Шаги:
+     * 1) Принять factory Laravel validator.
+     * 2) Сохранить factory для построения validators на каждое сообщение.
      */
     public function __construct(
         private ValidatorFactory $validator,
@@ -23,6 +27,11 @@ final readonly class ImportFileRequestedPayloadValidator
 
     /**
      * Создаёт validator с правилами wire-контракта Warehouse-импорта.
+     *
+     * Шаги:
+     * 1) Принять raw payload RabbitMQ-сообщения.
+     * 2) Собрать правила обязательных полей, import_type, disk и безопасного path.
+     * 3) Вернуть Laravel Validator без немедленного выполнения validation.
      *
      * @param  array<string, mixed>  $data
      */

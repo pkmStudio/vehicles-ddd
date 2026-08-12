@@ -14,6 +14,11 @@ interface UpdatePartSpecificationUseCaseInterface
 {
     /**
      * Выполняет сценарий обновления спеки.
+     *
+     * Шаги:
+     * 1) Принять update request с id, owner, template и details.
+     * 2) Проверить idempotency, наличие записи, details policy и owner resolution.
+     * 3) Обновить specification, опубликовать domain event и mutation result.
      */
     public function execute(UpdatePartSpecificationRequestDTO $request): ?CatalogMutationResultDTO;
 }

@@ -18,6 +18,9 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
 {
     /**
      * Возвращает номенклатуру по внутреннему идентификатору или null.
+     * Шаги:
+     * 1) Делегировать общий поиск в findByColumn() по колонке id.
+     * 2) Предзагрузить type и brand, потому что detail-сценарии каталога их используют.
      */
     public function findById(int $id): ?NomenclatureData
     {
@@ -26,6 +29,9 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
 
     /**
      * Возвращает номенклатуру по артикулу или null.
+     * Шаги:
+     * 1) Делегировать общий поиск в findByColumn() по колонке part_number.
+     * 2) Вернуть feature-local NomenclatureData или null без Eloquent leakage.
      */
     public function findByPartNumber(string $partNumber): ?NomenclatureData
     {
@@ -34,6 +40,11 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
 
     /**
      * Возвращает найденные номенклатуры по id с загруженным типом, индексированные по id.
+     * Шаги:
+     * 1) Запросить Nomenclature models по списку id.
+     * 2) Предзагрузить relation type для downstream правил комплектов.
+     * 3) Преобразовать Eloquent collection в Collection<int, NomenclatureData>.
+     * 4) Переиндексировать результат по id.
      *
      * @param  array<int, int>  $ids
      * @return Collection<int, NomenclatureData>
@@ -50,6 +61,11 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
 
     /**
      * Возвращает ids номенклатур бренда.
+     * Шаги:
+     * 1) Отфильтровать Nomenclature по brand_id.
+     * 2) Получить только id через pluck, не загружая модели.
+     * 3) Привести значения DB driver к int.
+     * 4) Вернуть плотную values collection.
      *
      * @return Collection<int, int>
      */
@@ -64,6 +80,11 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
 
     /**
      * Возвращает integration contexts перед физическим удалением номенклатуры.
+     * Шаги:
+     * 1) Прочитать строки nomenclature_integrations по nomenclature_id.
+     * 2) Выбрать только поля, нужные delete events/listeners.
+     * 3) Привести nullable external identifiers к string|null.
+     * 4) Собрать NomenclatureIntegrationDeletionContextDTO для каждого provider context.
      *
      * @return Collection<int, NomenclatureIntegrationDeletionContextDTO>
      */
@@ -82,12 +103,24 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
             ->map($toDeletionContext);
     }
 
+    /**
+     * Приводит id из Eloquent/DB driver к int.
+     * Шаги:
+     * 1) Выполнить явный integer cast для значений, полученных через pluck().
+     */
     private function toInteger(mixed $id): int
     {
         return (int) $id;
     }
 
     /**
+     * Выполняет общий поиск номенклатуры по одной колонке.
+     * Шаги:
+     * 1) Построить Eloquent query с запрошенными relations.
+     * 2) Добавить where по колонке и значению.
+     * 3) Получить первую найденную модель.
+     * 4) Преобразовать модель в NomenclatureData или вернуть null.
+     *
      * @param  array<int, string>  $relations
      */
     private function findByColumn(string $column, int|string $value, array $relations = []): ?NomenclatureData

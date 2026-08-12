@@ -21,7 +21,7 @@ interface NomenclatureCrmRepositoryInterface
      *
      * Шаги:
      * 1. Принять read-query DTO.
-     * 2. Вернуть page DTO с элементами и pagination meta.
+     * 2. Вернуть DTO страницы с элементами и пагинацию meta.
      */
     public function paginate(NomenclatureCrmReadQueryDTO $query): NomenclatureCrmPageDTO;
 
@@ -38,7 +38,7 @@ interface NomenclatureCrmRepositoryInterface
      * Читает compact search options номенклатур.
      *
      * Шаги:
-     * 1. Принять строку поиска и limit.
+     * 1. Принять строку поиска и лимит.
      * 2. Вернуть collection search DTO.
      *
      * @return Collection<int, NomenclatureCrmSearchItemDTO>
@@ -49,7 +49,7 @@ interface NomenclatureCrmRepositoryInterface
      * Читает type options для CRM-формы номенклатуры.
      *
      * Шаги:
-     * 1. Принять optional search query, selected id и limit.
+     * 1. Принять необязательную строку поиска, выбранный id и лимит.
      * 2. Вернуть collection option DTO.
      *
      * @return Collection<int, NomenclatureCrmOptionDTO>
@@ -60,7 +60,7 @@ interface NomenclatureCrmRepositoryInterface
      * Читает brand options для CRM-формы номенклатуры.
      *
      * Шаги:
-     * 1. Принять optional search query, selected id и limit.
+     * 1. Принять необязательную строку поиска, выбранный id и лимит.
      * 2. Вернуть collection option DTO.
      *
      * @return Collection<int, NomenclatureCrmOptionDTO>

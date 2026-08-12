@@ -6,8 +6,8 @@ namespace App\Modules\Warehouse\Features\KitProperties\Application\Services;
 
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Clients\PackagingClientInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitComplectationServiceInterface;
-use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCompositionValidatorInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCompositionStrategyInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitCompositionValidatorInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
 use App\Modules\Warehouse\Features\KitProperties\Domain\DTOs\KitPropertiesDTO;
 use App\Modules\Warehouse\Features\KitProperties\Domain\DTOs\Packaging\PackDimensionDTO;
@@ -26,6 +26,12 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
 {
     /**
      * @param  KitCompositionStrategyInterface[]  $strategies  упорядоченный список — первый подходящий побеждает
+     *
+     * Шаги:
+     * 1) Сохранить client Packaging для расчёта упаковки через boundary соседней фичи.
+     * 2) Сохранить сервис комплектации и валидатор состава набора.
+     * 3) Сохранить logger для actionable warning при невозможности рассчитать упаковку/комплектацию.
+     * 4) Сохранить упорядоченные стратегии состава: первая подходящая стратегия используется в build().
      */
     public function __construct(
         private PackagingClientInterface $packaging,
@@ -190,5 +196,4 @@ final readonly class KitPropertiesService implements KitPropertiesServiceInterfa
 
         return md5(implode('|', $partNumbers));
     }
-
 }

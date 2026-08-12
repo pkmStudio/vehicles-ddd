@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Создает таблицу применяемости комплектов.
+     */
     public function up(): void
     {
         Schema::create('kit_applicabilities', function (Blueprint $table): void {
@@ -26,6 +29,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Удаляет таблицу применяемости комплектов.
+     */
     public function down(): void
     {
         Schema::dropIfExists('kit_applicabilities');

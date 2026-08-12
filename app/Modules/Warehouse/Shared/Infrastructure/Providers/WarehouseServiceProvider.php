@@ -14,6 +14,11 @@ use Illuminate\Support\ServiceProvider;
  */
 final class WarehouseServiceProvider extends ServiceProvider
 {
+    /**
+     * Регистрирует публичные client contracts Warehouse module-level Shared.
+     * Шаги:
+     * 1) Связать WarehouseApplicabilityClientInterface с Catalog adapter-ом владельца данных.
+     */
     public function register(): void
     {
         $this->app->bind(WarehouseApplicabilityClientInterface::class, WarehouseApplicabilityClient::class);

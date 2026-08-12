@@ -19,7 +19,7 @@ interface ListKitsForCrmUseCaseInterface
      *
      * Шаги:
      * 1. Принять read-query DTO.
-     * 2. Вернуть page DTO для CRM boundary.
+     * 2. Вернуть DTO страницы для CRM границу.
      */
     public function execute(KitCrmReadQueryDTO $query): KitCrmPageDTO;
 
@@ -27,7 +27,7 @@ interface ListKitsForCrmUseCaseInterface
      * Возвращает nomenclature options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Принять optional search query, selected id и limit.
+     * 1. Принять необязательную строку поиска, выбранный id и лимит.
      * 2. Вернуть collection option DTO.
      *
      * @return Collection<int, KitCrmOptionDTO>
@@ -38,7 +38,7 @@ interface ListKitsForCrmUseCaseInterface
      * Возвращает pack dimension options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Принять optional search query, selected id и limit.
+     * 1. Принять необязательную строку поиска, выбранный id и лимит.
      * 2. Вернуть collection option DTO.
      *
      * @return Collection<int, KitCrmOptionDTO>
@@ -49,7 +49,7 @@ interface ListKitsForCrmUseCaseInterface
      * Возвращает type options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Принять optional search query, selected id и limit.
+     * 1. Принять необязательную строку поиска, выбранный id и лимит.
      * 2. Вернуть collection option DTO.
      *
      * @return Collection<int, KitCrmOptionDTO>

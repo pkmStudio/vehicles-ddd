@@ -20,6 +20,15 @@ use InvalidArgumentException;
  */
 final readonly class ExportFileFactory implements ExportFileFactoryInterface
 {
+    /**
+     * Создаёт concrete export-адаптер для запрошенного типа файла.
+     *
+     * Шаги:
+     * 1) Сопоставить ExportTypeEnum с нужным domain export interface.
+     * 2) Для экспорта номенклатуры проверить наличие typeId и передать его в контейнер.
+     * 3) Для экспорта наборов передать фильтры и сортировку в отдельный factory-method.
+     * 4) Вернуть готовый FileExportInterface вызывающему use case.
+     */
     public function make(
         ExportTypeEnum $type,
         ?int $typeId = null,

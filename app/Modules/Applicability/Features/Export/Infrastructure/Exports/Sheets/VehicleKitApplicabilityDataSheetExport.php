@@ -17,26 +17,60 @@ final readonly class VehicleKitApplicabilityDataSheetExport implements FromColle
 {
     use StylesExportWorksheet;
 
+    /**
+     * Получает service основного листа применяемости.
+     *
+     * Шаги:
+     * 1. Сохраняет service, который читает строки и описывает Excel mapping.
+     * 2. Оставляет sheet adapter без бизнес-правил применяемости.
+     */
     public function __construct(
         private VehicleKitApplicabilityExportServiceInterface $service,
     ) {}
 
+    /**
+     * Возвращает название основного листа workbook.
+     *
+     * Шаги:
+     * 1. Фиксирует пользовательское имя листа для данных применяемости.
+     * 2. Возвращает его в Laravel Excel hook `WithTitle`.
+     */
     public function title(): string
     {
         return 'Применяемость';
     }
 
+    /**
+     * Возвращает строки, которые Laravel Excel будет проходить при записи листа.
+     *
+     * Шаги:
+     * 1. Запрашивает коллекцию DTO у application service.
+     * 2. Передает коллекцию в Laravel Excel без дополнительной трансформации.
+     */
     public function collection(): Collection
     {
         return $this->service->getRows();
     }
 
+    /**
+     * Преобразует одну DTO-строку в массив ячеек Excel.
+     *
+     * Шаги:
+     * 1. Получает текущую строку из Laravel Excel iteration.
+     * 2. Делегирует порядок и состав ячеек application service.
+     */
     public function map($row): array
     {
         return $this->service->mapRow($row);
     }
 
     /**
+     * Возвращает заголовки основного листа применяемости.
+     *
+     * Шаги:
+     * 1. Берет headings из application service, где задан contract порядка колонок.
+     * 2. Возвращает их в Laravel Excel hook `WithHeadings`.
+     *
      * @return array<int, string>
      */
     public function headings(): array

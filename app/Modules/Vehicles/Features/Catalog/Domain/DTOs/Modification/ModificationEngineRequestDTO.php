@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine;
+namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 
 /**
- * Передает параметры сценария или результат мутации двигателей.
+ * Входящий снимок двигателя, связанного с модификацией.
  */
-final readonly class CreateEngineRequestDTO
+final readonly class ModificationEngineRequestDTO
 {
     /**
-     * Инициализирует immutable-снимок данных двигателей.
+     * Хранит поля двигателя из сообщения мутации модификации.
+     *
+     * @param  array<int, string>  $allowChangeFields
      */
     public function __construct(
-        public int $userId,
-        public string $operationId,
-        public ?int $engId,
+        public ?int $engId = null,
         public ?string $codeEngine = null,
         public ?int $powerKwStart = null,
         public ?int $powerKwUpto = null,

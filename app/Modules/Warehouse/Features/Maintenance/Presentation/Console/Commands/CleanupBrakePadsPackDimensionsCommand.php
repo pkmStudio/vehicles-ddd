@@ -19,6 +19,11 @@ final class CleanupBrakePadsPackDimensionsCommand extends Command
 
     /**
      * Запускает сервис очистки и печатает итог.
+     * Шаги:
+     * 1) Прочитать опцию dry-run из console input.
+     * 2) Запустить CleanupBrakePadsPackDimensionsService.
+     * 3) В dry-run вывести кандидатов на удаление.
+     * 4) Напечатать итоговые counters и вернуть SUCCESS.
      */
     public function handle(CleanupBrakePadsPackDimensionsService $service): int
     {

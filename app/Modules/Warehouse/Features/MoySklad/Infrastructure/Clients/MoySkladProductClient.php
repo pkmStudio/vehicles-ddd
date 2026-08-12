@@ -19,6 +19,9 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
 {
     /**
      * Получает endpoint товаров и endpoint папок товаров из пакета.
+     * Шаги:
+     * 1) Сохранить ProductEndpoint для CRUD операций с товарами.
+     * 2) Сохранить ProductFolderEndpoint для папок товаров и проверки принадлежности.
      */
     public function __construct(
         private ProductEndpoint $products,
@@ -27,6 +30,9 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
 
     /**
      * Делегирует поиск товара по артикулу в пакетный ProductEndpoint.
+     * Шаги:
+     * 1) Передать article во внешний ProductEndpoint.
+     * 2) Преобразовать null или package array в локальный MoySkladProductDTO.
      */
     public function findByArticle(string $article): ?MoySkladProductDTO
     {
@@ -35,6 +41,9 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
 
     /**
      * Делегирует поиск товара по externalCode в пакетный ProductEndpoint.
+     * Шаги:
+     * 1) Передать externalCode во внешний ProductEndpoint.
+     * 2) Преобразовать null или package array в локальный MoySkladProductDTO.
      */
     public function findByExternalCode(string $externalCode): ?MoySkladProductDTO
     {
@@ -43,6 +52,10 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
 
     /**
      * Делегирует создание товара в пакетный ProductEndpoint.
+     * Шаги:
+     * 1) Преобразовать локальный payload DTO в shape MoySklad package API.
+     * 2) Выполнить create во внешнем endpoint.
+     * 3) Преобразовать ответ package array обратно в локальный DTO.
      */
     public function create(MoySkladProductPayloadDTO $payload): MoySkladProductDTO
     {
@@ -51,6 +64,10 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
 
     /**
      * Делегирует обновление товара по id в пакетный ProductEndpoint.
+     * Шаги:
+     * 1) Преобразовать локальный payload DTO в package array.
+     * 2) Обновить товар во внешнем endpoint по MoySklad id.
+     * 3) Преобразовать ответ в локальный MoySkladProductDTO.
      */
     public function updateById(string $id, MoySkladProductPayloadDTO $payload): MoySkladProductDTO
     {
@@ -59,6 +76,9 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
 
     /**
      * Делегирует удаление товара по id в пакетный ProductEndpoint.
+     * Шаги:
+     * 1) Передать MoySklad id во внешний ProductEndpoint.
+     * 2) Не возвращать результат, потому что delete endpoint используется как command boundary.
      */
     public function deleteById(string $id): void
     {
@@ -67,6 +87,12 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
 
     /**
      * Создаёт/находит папку товара по имени и возвращает её meta-блок.
+     * Шаги:
+     * 1) Собрать cache key из имени папки.
+     * 2) Взять TTL из warehouse.moysklad config с fallback 3600 секунд.
+     * 3) Через Cache::remember выполнить uncached resolve только при cache miss.
+     * 4) Преобразовать сохраненный meta array в MoySkladProductFolderMetaDTO.
+     * 5) Для неожиданного cache value вернуть empty DTO.
      */
     public function ensureProductFolderMetaByName(string $name): MoySkladProductFolderMetaDTO
     {
@@ -83,6 +109,10 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
 
     /**
      * Создаёт/находит папку товара по имени и возвращает её meta-блок без cache.
+     * Шаги:
+     * 1) Через ProductFolderEndpoint найти или создать папку по имени.
+     * 2) Если внешний ответ не содержит id папки, вернуть пустой meta array.
+     * 3) По id папки запросить meta-блок, пригодный для payload товара.
      */
     private function resolveProductFolderMetaByName(string $name): array
     {
@@ -96,6 +126,10 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
 
     /**
      * Проверяет принадлежность товара ожидаемой папке через пакетный ProductFolderEndpoint.
+     * Шаги:
+     * 1) Преобразовать локальный product DTO в package array.
+     * 2) Передать product array и folder id во внешний endpoint.
+     * 3) Вернуть boolean результат проверки вложенности.
      */
     public function productMatchesFolder(MoySkladProductDTO $product, string $folderId): bool
     {
@@ -103,6 +137,11 @@ final readonly class MoySkladProductClient implements MoySkladProductClientInter
     }
 
     /**
+     * Преобразует nullable package product array в локальный DTO.
+     * Шаги:
+     * 1) Вернуть null для отсутствующего товара.
+     * 2) Для найденного товара выполнить локальную fromArray() нормализацию.
+     *
      * @param  array<string, mixed>|null  $product
      */
     private function productFromArray(?array $product): ?MoySkladProductDTO

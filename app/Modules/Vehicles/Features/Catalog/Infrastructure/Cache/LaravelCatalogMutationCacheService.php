@@ -14,6 +14,11 @@ final readonly class LaravelCatalogMutationCacheService implements CatalogMutati
 {
     /**
      * Атомарно принимает operationId для идемпотентной обработки.
+     *
+     * Шаги:
+     * - Собрать ключ идемпотентности для операции.
+     * - Попытаться атомарно записать ключ в Laravel Cache с настроенным сроком жизни.
+     * - Вернуть false, если такой operationId уже был принят ранее.
      */
     public function accept(string $operationId): bool
     {
@@ -22,6 +27,10 @@ final readonly class LaravelCatalogMutationCacheService implements CatalogMutati
 
     /**
      * Снимает отметку принятого operationId после сбоя обработки.
+     *
+     * Шаги:
+     * - Собрать ключ идемпотентности для операции.
+     * - Удалить ключ из Laravel Cache, чтобы повторная обработка была возможна.
      */
     public function forgetAccepted(string $operationId): void
     {
@@ -29,7 +38,11 @@ final readonly class LaravelCatalogMutationCacheService implements CatalogMutati
     }
 
     /**
-     * Собирает cache-ключ идемпотентности по operationId.
+     * Собирает ключ кэша идемпотентности по operationId.
+     *
+     * Шаги:
+     * - Прочитать шаблон ключа из конфигурации каталога.
+     * - Подставить operationId в шаблон.
      */
     private function key(string $operationId): string
     {
@@ -40,7 +53,11 @@ final readonly class LaravelCatalogMutationCacheService implements CatalogMutati
     }
 
     /**
-     * Возвращает TTL cache-ключа идемпотентности в секундах.
+     * Возвращает срок жизни ключа идемпотентности в секундах.
+     *
+     * Шаги:
+     * - Прочитать настройку ttl_seconds из конфигурации каталога.
+     * - Защититься от нулевого или отрицательного значения.
      */
     private function ttlSeconds(): int
     {

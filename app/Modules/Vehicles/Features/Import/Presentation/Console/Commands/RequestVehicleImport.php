@@ -17,16 +17,37 @@ final class RequestVehicleImport extends RequestLocalImportCommand
 
     protected $description = 'Опубликовать RabbitMQ-запрос импорта vehicles + part specifications из локального Storage';
 
+    /**
+     * Возвращает имя inbound-события для импорта vehicles workbook.
+     *
+     * Шаги:
+     * 1. Выбрать event name, который слушает vehicles import Rabbit handler.
+     * 2. Вернуть строку для базовой команды публикации.
+     */
     protected function eventName(): string
     {
         return 'VEHICLES_IMPORT_FILE_REQUESTED';
     }
 
+    /**
+     * Возвращает routing key для запроса импорта vehicles workbook.
+     *
+     * Шаги:
+     * 1. Выбрать binding key из rabbit-transport setup для vehicles import.
+     * 2. Вернуть значение для publication envelope.
+     */
     protected function routingKey(): string
     {
         return 'crm.vehicles.import';
     }
 
+    /**
+     * Возвращает тип import adapter для multi-sheet vehicles workbook.
+     *
+     * Шаги:
+     * 1. Выбрать enum external import type для vehicle multi-sheet файла.
+     * 2. Вернуть scalar value для data.import_type.
+     */
     protected function importType(): string
     {
         return ExternalImportTypeEnum::VehicleMultiSheet->value;

@@ -8,6 +8,9 @@ use App\Modules\Applicability\Features\Import\Domain\Enums\ImportTypeEnum;
 
 final readonly class ExternalImportFileRequestDTO
 {
+    /**
+     * Хранит валидированный внешний запрос на импорт файла применяемости.
+     */
     public function __construct(
         public int $userId,
         public string $operationId,

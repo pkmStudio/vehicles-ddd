@@ -17,6 +17,11 @@ interface KitRepositoryInterface
     /**
      * Возвращает все наборы с загруженным составом.
      *
+     * Шаги:
+     * 1) Принять фильтры и сортировку экспортного запроса.
+     * 2) Применить их к источнику Warehouse-наборов.
+     * 3) Вернуть KitData со связями, нужными для Excel-строк.
+     *
      * @return Collection<int, KitData>
      */
     public function all(KitExportFiltersDTO $filters, KitExportSortDTO $sort): Collection;

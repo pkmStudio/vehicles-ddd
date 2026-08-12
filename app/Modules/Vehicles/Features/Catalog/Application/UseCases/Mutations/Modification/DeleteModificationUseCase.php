@@ -24,7 +24,12 @@ use Throwable;
 final readonly class DeleteModificationUseCase implements DeleteModificationUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты delete modification workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для поиска модификации по mod_id/type.
+     * 2) Принять cascade service для удаления engine_modification dependencies.
+     * 3) Принять command/cache/result сервисы для записи, идемпотентности и result event.
      */
     public function __construct(
         private ModificationRepositoryInterface $modifications,

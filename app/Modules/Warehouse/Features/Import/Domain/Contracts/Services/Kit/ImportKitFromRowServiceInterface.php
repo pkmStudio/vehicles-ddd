@@ -14,6 +14,12 @@ interface ImportKitFromRowServiceInterface
     /**
      * Валидирует строку и пишет набор через явные create/update команды.
      *
+     * Шаги:
+     * 1) Распарсить id набора и список артикулов номенклатур.
+     * 2) Найти номенклатуры и проверить, что все артикулы существуют.
+     * 3) Собрать свойства набора и импортный hash.
+     * 4) Обновить существующий набор или создать новый.
+     *
      * @param  array<int, mixed>  $row
      */
     public function importFromRow(array $row): KitData;

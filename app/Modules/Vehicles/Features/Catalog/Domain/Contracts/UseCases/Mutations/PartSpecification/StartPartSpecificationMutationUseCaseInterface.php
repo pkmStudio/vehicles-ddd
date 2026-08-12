@@ -14,6 +14,11 @@ interface StartPartSpecificationMutationUseCaseInterface
 {
     /**
      * Запускает сценарий мутации спеки.
+     *
+     * Шаги:
+     * 1) Прочитать operation из общего mutation request.
+     * 2) Выбрать create/update/delete branch.
+     * 3) Делегировать typed request профильному use case.
      */
     public function execute(PartSpecificationMutationRequestDTO $request): ?CatalogMutationResultDTO;
 }

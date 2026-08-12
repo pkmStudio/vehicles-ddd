@@ -15,6 +15,9 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
  */
 final class AirFilterDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры engine air filter details template.
+     */
     public function __construct(
         public readonly string $form,
         /** @var array<int, float> */

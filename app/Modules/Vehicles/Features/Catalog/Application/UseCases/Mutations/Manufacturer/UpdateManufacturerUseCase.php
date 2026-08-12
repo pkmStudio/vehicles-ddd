@@ -24,7 +24,12 @@ use Throwable;
 final readonly class UpdateManufacturerUseCase implements UpdateManufacturerUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты update manufacturer workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для проверки существования производителя по mfa_id.
+     * 2) Принять command для сохранения обновленного ManufacturerData.
+     * 3) Принять cache/result сервисы для идемпотентности и публикации результата.
      */
     public function __construct(
         private ManufacturerRepositoryInterface $manufacturers,

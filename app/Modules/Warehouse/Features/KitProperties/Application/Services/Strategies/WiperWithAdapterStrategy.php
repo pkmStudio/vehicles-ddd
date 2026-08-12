@@ -22,6 +22,8 @@ final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyI
 {
     /**
      * Получает resolver detail-шаблона типа номенклатуры.
+     * Шаги:
+     * 1) Сохранить TypeTemplateResolverInterface для определения WIPER/WIPER_ADAPTER по warehouse type.
      */
     public function __construct(
         private TypeTemplateResolverInterface $templateResolver,
@@ -29,6 +31,10 @@ final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyI
 
     /**
      * Проверяет, что набор состоит из щёток и адаптеров.
+     * Шаги:
+     * 1) Собрать уникальные detail templates состава.
+     * 2) Проверить, что templates ровно два.
+     * 3) Подтвердить наличие WIPER и WIPER_ADAPTER.
      */
     public function supports(Collection $nomenclatures): bool
     {
@@ -41,6 +47,11 @@ final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyI
 
     /**
      * Возвращает тип щётки как итоговый тип набора щётка+адаптер.
+     * Шаги:
+     * 1) Найти первую номенклатуру, чей template равен WIPER.
+     * 2) Проверить, что у найденной щётки загружен type.
+     * 3) Вернуть type щётки как итоговый type набора.
+     * 4) Если щётка или type не найдены, выбросить KitCompositionException.
      */
     public function resolveType(Collection $nomenclatures): TypeData
     {
@@ -60,6 +71,10 @@ final readonly class WiperWithAdapterStrategy implements KitCompositionStrategyI
 
     /**
      * Возвращает основные номенклатуры, исключая адаптеры из расчёта упаковки/количества.
+     * Шаги:
+     * 1) Для каждой номенклатуры определить detail template.
+     * 2) Исключить позиции с template WIPER_ADAPTER.
+     * 3) Вернуть переиндексированную коллекцию primary-номенклатур.
      */
     public function primaryNomenclatures(Collection $nomenclatures): Collection
     {

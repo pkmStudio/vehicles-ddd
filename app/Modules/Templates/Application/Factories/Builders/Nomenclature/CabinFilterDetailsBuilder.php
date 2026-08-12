@@ -22,6 +22,14 @@ final readonly class CabinFilterDetailsBuilder
     use BuildsNomenclatureMetrics;
     use ParsesBooleanCells;
 
+    /**
+     * Этот метод собирает nomenclature cabin-filter details из Excel-строки.
+     * Шаги:
+     * 1) Читает исполнение и форму фильтра через enum-справочники.
+     * 2) Читает признак корпуса как обязательный boolean label.
+     * 3) Читает вид фильтра и общий блок габаритов.
+     * 4) Возвращает `CabinFilterDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): CabinFilterDetailsData
     {
         return new CabinFilterDetailsData(

@@ -2,10 +2,14 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Создает таблицу engines с TecDoc identifiers, характеристиками и import metadata.
+     */
     public function up(): void
     {
         Schema::create('engines', function (Blueprint $table) {
@@ -26,11 +30,17 @@ return new class extends Migration
             $table->integer('number_of_valves')->nullable()->comment('Количество клапанов');
             $table->string('fuel_type')->nullable()->comment('Тип топлива двигателя');
 
+            $table->string('provider')->default('TD')->comment('ProviderEnum');
+            $table->jsonb('allow_change_fields')->default(DB::raw("'[]'::jsonb"));
+
             $table->jsonb('details')->comment('Детальная информация')->nullable();
             $table->unsignedBigInteger('group_id')->nullable()->index()->comment('Номер группы двигателя');
         });
     }
 
+    /**
+     * Удаляет таблицу engines при откате схемы.
+     */
     public function down(): void
     {
         Schema::dropIfExists('engines');

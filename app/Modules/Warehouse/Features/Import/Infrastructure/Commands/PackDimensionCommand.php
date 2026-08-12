@@ -17,6 +17,12 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
 {
     /**
      * Обновляет упаковочный размер по id.
+     *
+     * Шаги:
+     * 1) Подготовить значения DTO без id.
+     * 2) Найти упаковочный размер по id.
+     * 3) Выбросить import exception, если запись отсутствует.
+     * 4) Обновить запись и вернуть refreshed PackDimensionData.
      */
     public function updateById(PackDimensionData $data): PackDimensionData
     {
@@ -34,6 +40,11 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
 
     /**
      * Создаёт новый упаковочный размер.
+     *
+     * Шаги:
+     * 1) Подготовить значения DTO без id.
+     * 2) Создать запись упаковочного размера.
+     * 3) Вернуть PackDimensionData созданной записи.
      */
     public function create(PackDimensionData $data): PackDimensionData
     {

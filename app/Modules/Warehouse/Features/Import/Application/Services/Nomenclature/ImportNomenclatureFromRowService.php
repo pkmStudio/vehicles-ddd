@@ -49,6 +49,11 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
 
     /**
      * Получает чтение номенклатуры, команду записи, resolver шаблона и фабрику details.
+     * Шаги:
+     * 1) Сохранить repository для поиска существующей номенклатуры по id/part number.
+     * 2) Сохранить command port для create/update записи.
+     * 3) Сохранить resolver detail template по Warehouse type.
+     * 4) Сохранить Templates client для построения typed details из Excel-строки.
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
@@ -59,6 +64,17 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
 
     /**
      * Валидирует строку и пишет номенклатуру через явные create/update команды.
+     * Шаги:
+     * 1) Переиндексировать предзагруженные types и brands по upper-case имени.
+     * 2) Прочитать optional id, type name и brand name из Excel-строки.
+     * 3) Найти type/brand в предзагруженных справочниках и дать адресную ошибку по колонке.
+     * 4) Определить detail template для type и построить details через Templates boundary.
+     * 5) Проверить domain-critical details для template WIPER.
+     * 6) Распарсить положительный вес и map label-списки material/vehicle_type во внутренние keys.
+     * 7) Собрать NomenclatureData.
+     * 8) Если id передан, обновить найденную запись или создать запись с заданным id.
+     * 9) Если id не передан, искать существующую запись по part number.
+     * 10) Создать или обновить запись и опубликовать created/updated event с import context.
      *
      * @param  array<int, mixed>  $row
      * @param  Collection<int, TypeData>  $types
@@ -157,6 +173,14 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
         return $created;
     }
 
+    /**
+     * Публикует shared catalog mutation event после import-created/import-updated записи.
+     * Шаги:
+     * 1) Подставить fallback userId/operationId для локальных импортов без внешнего контекста.
+     * 2) Для существующей записи опубликовать NomenclatureUpdated.
+     * 3) Для новой записи опубликовать NomenclatureCreated.
+     * 4) Передать snapshot номенклатуры как array payload публичного события.
+     */
     private function dispatchMutationEvent(
         NomenclatureData $nomenclature,
         bool $wasExisting,
@@ -185,6 +209,11 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
 
     /**
      * Проверяет обязательные поля details, которые критичны для последующей сборки комплектов.
+     * Шаги:
+     * 1) Для всех templates кроме WIPER не применять дополнительное правило.
+     * 2) Для WIPER прочитать category из details.
+     * 3) Разрешить непустую category.
+     * 4) Если category пустая, выбросить ImportRowValidationException с артикулом и колонкой.
      *
      * @param  array<string, mixed>  $details
      */
@@ -209,6 +238,10 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
 
     /**
      * Возвращает копию data с id найденной записи.
+     * Шаги:
+     * 1) Перенести все поля NomenclatureData без повторного parsing.
+     * 2) Заменить только id найденной записи.
+     * 3) Сохранить type snapshot, если он уже был в исходном Data.
      */
     private function withId(NomenclatureData $data, ?int $id): NomenclatureData
     {
@@ -232,6 +265,11 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
 
     /**
      * Возвращает положительное целое значение из Excel-ячейки.
+     * Шаги:
+     * 1) Нормализовать string value через trim, остальные scalar оставить как есть.
+     * 2) Принять int, целый float или строку только из цифр.
+     * 3) Отклонить null, дробные, нечисловые и неположительные значения.
+     * 4) Вернуть int в граммах или выбросить ImportRowValidationException с именем колонки.
      */
     private function parsePositiveInteger(mixed $value, string $columnName, string $columnLetter): int
     {
@@ -257,6 +295,11 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
 
     /**
      * Переводит `;`-джойн русских лейблов в массив внутренних ключей.
+     * Шаги:
+     * 1) Для пустой ячейки вернуть пустой список.
+     * 2) Разбить ячейку по ';'.
+     * 3) Нормализовать каждый label в upper-case trimmed string.
+     * 4) Добавить только labels, присутствующие в переданном словаре.
      *
      * @param  array<string, string>  $keysByLabel
      * @return array<int, string>

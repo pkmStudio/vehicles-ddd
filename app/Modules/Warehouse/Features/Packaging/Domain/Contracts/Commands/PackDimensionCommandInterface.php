@@ -14,6 +14,10 @@ interface PackDimensionCommandInterface
 {
     /**
      * Создаёт новый упаковочный размер и возвращает сохранённую запись.
+     * Шаги:
+     * 1) Принять Data-снимок сгенерированной упаковки без обязательного id.
+     * 2) Сохранить новый pack dimension в хранилище Warehouse.
+     * 3) Вернуть Data-снимок сохранённой записи с id.
      */
     public function create(PackDimensionData $data): PackDimensionData;
 }

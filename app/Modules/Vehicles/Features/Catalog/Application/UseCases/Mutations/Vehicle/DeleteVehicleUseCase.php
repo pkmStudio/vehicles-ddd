@@ -23,7 +23,12 @@ use Throwable;
 final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты delete vehicle workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для поиска автомобиля по ms_id.
+     * 2) Принять cascade service для удаления vehicle subtree dependencies.
+     * 3) Принять cache/result сервисы для идемпотентности и публикации результата.
      */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,

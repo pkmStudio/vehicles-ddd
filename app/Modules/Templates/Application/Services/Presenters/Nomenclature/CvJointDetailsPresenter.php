@@ -14,6 +14,12 @@ final readonly class CvJointDetailsPresenter extends AbstractDetailsPresenter
 {
     use RendersNomenclatureMetrics;
 
+    /**
+     * Этот метод возвращает колонки ШРУС.
+     * Шаги:
+     * 1) Перечисляет резьбу, две длины, ABS, диаметр под сальник и шлицы.
+     * 2) Добавляет общий metrics-блок.
+     */
     public function headings(): array
     {
         return [
@@ -23,12 +29,25 @@ final readonly class CvJointDetailsPresenter extends AbstractDetailsPresenter
         ];
     }
 
-    /** @return class-string<CvJointDetailsData> */
+    /**
+     * Этот метод указывает Data-класс presenter-а ШРУС.
+     * Шаги:
+     * 1) Возвращает class-string `CvJointDetailsData`.
+     *
+     * @return class-string<CvJointDetailsData>
+     */
     protected function dataClass(): string
     {
         return CvJointDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит details ШРУС в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет тип `CvJointDetailsData`.
+     * 2) Выводит scalar-поля без справочных преобразований.
+     * 3) Разворачивает metrics-блок.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, CvJointDetailsData::class);

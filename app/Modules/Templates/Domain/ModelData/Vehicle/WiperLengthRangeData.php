@@ -14,6 +14,9 @@ use Spatie\LaravelData\Data;
  */
 final class WiperLengthRangeData extends Data
 {
+    /**
+     * Фиксирует минимальную и максимальную длину щетки в миллиметрах.
+     */
     public function __construct(
         public readonly int $min,
         public readonly int $max,

@@ -27,8 +27,8 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
      *
      * Шаги:
      * 1. Собирает базовый query builder комплектов.
-     * 2. Применяет filters, search и sort из read-query DTO.
-     * 3. Выполняет pagination.
+     * 2. Применяет фильтры, search и сортировку из read-query DTO.
+     * 3. Выполняет пагинацию.
      * 4. Маппит строки БД в DTO страницы.
      */
     public function paginate(KitCrmReadQueryDTO $query): KitCrmPageDTO
@@ -81,7 +81,7 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
      *
      * Шаги:
      * 1. Собирает query builder номенклатур с брендом.
-     * 2. Применяет selected id или search-фильтр.
+     * 2. Применяет выбранный id или search-фильтр.
      * 3. Ограничивает результат безопасным лимитом options endpoint-а.
      * 4. Маппит строки БД в option DTO.
      *
@@ -135,7 +135,7 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
      *
      * Шаги:
      * 1. Собирает query builder упаковочных размеров с типом.
-     * 2. Применяет selected id или search-фильтр.
+     * 2. Применяет выбранный id или search-фильтр.
      * 3. Ограничивает результат безопасным лимитом options endpoint-а.
      * 4. Маппит строки БД в option DTO.
      *
@@ -191,7 +191,7 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
      *
      * Шаги:
      * 1. Собирает query builder типов.
-     * 2. Применяет selected id или search-фильтр.
+     * 2. Применяет выбранный id или search-фильтр.
      * 3. Ограничивает результат безопасным лимитом options endpoint-а.
      * 4. Маппит строки БД в option DTO.
      *
@@ -273,7 +273,7 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
      * 2. Пропускает пустые значения фильтров.
      * 3. Применяет текстовый фильтр `complectation`.
      *
-     * @param  array<string, mixed>  $filters
+     * @param  array<string, mixed>  $фильтры
      */
     private function applyFilters(Builder $query, array $filters): void
     {
@@ -367,7 +367,7 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
      *
      * Шаги:
      * 1. Читает связи `kit_nomenclature` для комплекта.
-     * 2. Подключает номенклатуры и сохраняет порядок sort.
+     * 2. Подключает номенклатуры и сохраняет порядок сортировку.
      * 3. Возвращает плоский список массивов для DTO detail.
      *
      * @return list<array{id: int, label: string, part_number: string}>
@@ -425,11 +425,11 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
     }
 
     /**
-     * Маппит Laravel paginator в CRM pagination meta DTO.
+     * Маппит Laravel paginator в CRM DTO метаданных пагинации.
      *
      * Шаги:
      * 1. Читает текущую страницу, per-page, total и last page.
-     * 2. Возвращает typed meta DTO для response presenter.
+     * 2. Возвращает типизированный DTO метаданных для презентера ответа.
      */
     private function meta(LengthAwarePaginator $paginator): KitCrmPaginationMetaDTO
     {
@@ -442,10 +442,10 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
     }
 
     /**
-     * Нормализует limit options endpoint-а.
+     * Нормализует лимит options endpoint-а.
      *
      * Шаги:
-     * 1. Принимает requested limit.
+     * 1. Принимает requested лимит.
      * 2. Ограничивает значение диапазоном `1..OPTION_LIMIT`.
      */
     private function optionLimit(int $limit): int

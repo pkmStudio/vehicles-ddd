@@ -11,7 +11,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\PackDimensi
 use Illuminate\Support\Collection;
 
 /**
- * Описывает read-only client CRM сценариев упаковочных размеров Warehouse.
+ * Описывает read-only клиент CRM сценариев упаковочных размеров Warehouse.
  */
 interface PackDimensionCrmClientInterface
 {
@@ -20,7 +20,7 @@ interface PackDimensionCrmClientInterface
      *
      * Шаги:
      * 1. Принять read-query DTO.
-     * 2. Вернуть page DTO, совместимый с CRM boundary.
+     * 2. Вернуть DTO страницы, совместимый с CRM границу.
      */
     public function paginate(PackDimensionCrmReadQueryDTO $query): PackDimensionCrmPageDTO;
 
@@ -37,7 +37,7 @@ interface PackDimensionCrmClientInterface
      * Возвращает type options для CRM-формы упаковочного размера.
      *
      * Шаги:
-     * 1. Принять optional search query, selected id и limit.
+     * 1. Принять необязательную строку поиска, выбранный id и лимит.
      * 2. Вернуть collection option DTO.
      *
      * @return Collection<int, NomenclatureCrmOptionDTO>

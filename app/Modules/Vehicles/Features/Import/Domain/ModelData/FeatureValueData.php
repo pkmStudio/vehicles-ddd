@@ -11,6 +11,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class FeatureValueData extends Data
 {
+    /**
+     * Фиксирует данные значения feature для импорта part specifications.
+     */
     public function __construct(
         public readonly int $featureId,
         public readonly string $name,

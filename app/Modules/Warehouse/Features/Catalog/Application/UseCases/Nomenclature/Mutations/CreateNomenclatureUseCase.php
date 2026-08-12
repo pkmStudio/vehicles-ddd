@@ -27,6 +27,10 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repositories type/brand/nomenclature для проверок входных ссылок.
+     * 2) Принять command записи, idempotency cache и result service.
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,

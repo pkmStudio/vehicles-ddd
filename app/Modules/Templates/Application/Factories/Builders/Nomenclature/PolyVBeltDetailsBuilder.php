@@ -16,6 +16,12 @@ final readonly class PolyVBeltDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает details поликлинового ремня из Excel-строки.
+     * Шаги:
+     * 1) Читает только общий блок габаритов номенклатуры.
+     * 2) Возвращает `PolyVBeltDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): PolyVBeltDetailsData
     {
         return new PolyVBeltDetailsData(

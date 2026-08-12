@@ -28,7 +28,12 @@ use Throwable;
 final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты, нужные для create vehicle mutation.
+     *
+     * Шаги:
+     * 1) Принять repositories для проверки ms_id, производителя и parent vehicle.
+     * 2) Принять command записи автомобиля.
+     * 3) Принять cache/result/write-policy порты для идемпотентности, result event и provider rules.
      */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
@@ -94,6 +99,10 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
 
     /**
      * Возвращает внешний идентификатор для create-сценария, генерируя новый при отсутствии.
+     *
+     * Шаги:
+     * 1) Если payload содержит ms_id, использовать его как external id.
+     * 2) Если ms_id отсутствует, запросить следующий свободный id у vehicle repository.
      */
     private function resolveMsId(CreateVehicleRequestDTO $request): int
     {
@@ -102,6 +111,11 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
 
     /**
      * Отклоняет create, если автомобиль с таким external id уже существует.
+     *
+     * Шаги:
+     * 1) Проверить наличие автомобиля по уже разрешенному ms_id.
+     * 2) Если запись отсутствует, разрешить продолжение create workflow.
+     * 3) Если запись найдена, вернуть rejected AlreadyExists result.
      */
     private function rejectIfAlreadyExists(
         CreateVehicleRequestDTO $request,
@@ -120,6 +134,11 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
 
     /**
      * Находит производителя или возвращает rejected result.
+     *
+     * Шаги:
+     * 1) Найти производителя по mfa_id из create request.
+     * 2) Вернуть ManufacturerData для записи автомобиля.
+     * 3) Если производитель не найден, вернуть rejected ManufacturerNotFound с resolved ms_id.
      */
     private function resolveManufacturer(
         CreateVehicleRequestDTO $request,
@@ -139,6 +158,11 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
 
     /**
      * Разрешает parent vehicle или возвращает rejected result.
+     *
+     * Шаги:
+     * 1) Если parent_ms_id не передан, оставить parentId пустым.
+     * 2) Найти parent vehicle по внешнему ms_id.
+     * 3) Вернуть внутренний id parent vehicle или rejected ParentVehicleNotFound.
      */
     private function resolveParentId(
         CreateVehicleRequestDTO $request,
@@ -162,6 +186,11 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
 
     /**
      * Собирает incoming VehicleData и применяет catalog create policy перед записью.
+     *
+     * Шаги:
+     * 1) Собрать VehicleData из request, resolved ms_id, manufacturer id и parent id.
+     * 2) Передать snapshot в write policy create branch.
+     * 3) Вернуть VehicleData с provider rules, готовый для command create.
      */
     private function prepareVehicleData(
         CreateVehicleRequestDTO $request,
@@ -198,6 +227,10 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
 
     /**
      * Публикует факт создания автомобиля.
+     *
+     * Шаги:
+     * 1) Сериализовать созданный VehicleData в payload события.
+     * 2) Опубликовать module-level факт VehicleCreated с user/operation correlation.
      */
     private function publishCreatedEvent(
         CreateVehicleRequestDTO $request,
@@ -212,6 +245,11 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
 
     /**
      * Собирает completed result для create-сценария.
+     *
+     * Шаги:
+     * 1) Использовать ms_id созданного автомобиля как externalId результата.
+     * 2) Передать внутренний id записи как recordId.
+     * 3) Делегировать публикацию completed result service.
      */
     private function completed(
         CreateVehicleRequestDTO $request,
@@ -229,6 +267,11 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
 
     /**
      * Собирает rejected result для create-сценария.
+     *
+     * Шаги:
+     * 1) Использовать resolved external id, даже если он был сгенерирован перед отказом.
+     * 2) Передать причину отказа в result service.
+     * 3) Вернуть опубликованный rejected result для Vehicle Create.
      */
     private function rejected(
         CreateVehicleRequestDTO $request,
@@ -247,6 +290,11 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
 
     /**
      * Откатывает idempotency guard и публикует failed result перед пробросом исключения.
+     *
+     * Шаги:
+     * 1) Освободить operation id в cache, чтобы broker-сообщение можно было повторить.
+     * 2) Опубликовать failed result с resolved ms_id или 0, если id еще не был определен.
+     * 3) Оставить проброс исходного исключения вызывающему execute.
      */
     private function failed(CreateVehicleRequestDTO $request, ?int $msId): void
     {

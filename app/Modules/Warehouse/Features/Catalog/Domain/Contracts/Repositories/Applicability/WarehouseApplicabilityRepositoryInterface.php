@@ -15,10 +15,10 @@ interface WarehouseApplicabilityRepositoryInterface
      * Читает активные комплекты для расчета применяемости.
      *
      * Шаги:
-     * 1. Принять optional id комплекта и размер chunk.
-     * 2. Вернуть iterable DTO активных комплектов.
+     * 1. Принять необязательный id комплекта и размер chunk.
+     * 2. Вернуть итерируемый набор DTO активных комплектов.
      *
-     * @return iterable<int, WarehouseKitForApplicabilityDTO>
+     * @return итерируемый набор<int, WarehouseKitForApplicabilityDTO>
      */
     public function activeKits(?int $kitId = null, int $chunk = 1000): iterable;
 
@@ -27,7 +27,7 @@ interface WarehouseApplicabilityRepositoryInterface
      *
      * Шаги:
      * 1. Принять внутренний id комплекта.
-     * 2. Вернуть boolean-флаг существования записи.
+     * 2. Вернуть логический флаг существования записи.
      */
     public function kitExists(int $kitId): bool;
 }

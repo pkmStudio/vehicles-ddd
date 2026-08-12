@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validators;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\BrakeSystemTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\DriveTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\GearTypeEnum;
@@ -15,16 +17,26 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
 /**
- * Собирает Laravel-валидатор payload мутации модификаций.
+ * Собирает Laravel-валидатор сообщения мутации модификаций.
  */
 final readonly class ModificationMutationPayloadValidator
 {
     /**
      * Инициализирует зависимости класса через контейнер.
+     *
+     * Шаги:
+     * - Сохранить фабрику Laravel-валидаторов для сборки правил сообщения.
      */
     public function __construct(private ValidatorFactory $validator) {}
 
     /**
+     * Создаёт валидатор сообщения мутации модификации.
+     *
+     * Шаги:
+     * - Определить операцию из входящих данных.
+     * - Собрать базовые правила пользователя, operation id, операции и модификации.
+     * - Добавить поля модификации и вложенных двигателей только для создания и обновления.
+     *
      * @param  array<string, mixed>  $data
      */
     public function make(array $data): Validator
@@ -36,7 +48,7 @@ final readonly class ModificationMutationPayloadValidator
             'operation_id' => ['required', 'string', 'max:128'],
             'operation' => ['required', 'string', Rule::in($this->operations())],
             'modification' => ['required', 'array'],
-            'modification.mod_id' => ['required', 'integer'],
+            'modification.mod_id' => [$operation === CatalogMutationOperationEnum::Create->value ? 'nullable' : 'required', 'integer'],
             'modification.type' => ['required', 'string', Rule::in($this->enumValues(VehicleTypeEnum::cases()))],
         ];
 
@@ -54,6 +66,26 @@ final readonly class ModificationMutationPayloadValidator
                 'modification.brake_system_type' => ['nullable', 'string', Rule::in($this->enumValues(BrakeSystemTypeEnum::cases()))],
                 'modification.number_of_cylinders' => ['nullable', 'integer'],
                 'modification.capacity_lt' => ['nullable', 'numeric'],
+                'modification.localized_name' => ['nullable', 'string', 'max:255'],
+                'modification.provider' => ['nullable', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
+                'modification.allow_change_fields' => ['nullable', 'array'],
+                'modification.allow_change_fields.*' => ['string', 'max:64'],
+                'modification.engines' => ['nullable', 'array'],
+                'modification.engines.*.eng_id' => ['nullable', 'integer'],
+                'modification.engines.*.code_engine' => ['nullable', 'string', 'max:255'],
+                'modification.engines.*.engine_capacity' => ['nullable', 'string', 'max:255'],
+                'modification.engines.*.cylinder_count' => ['nullable', 'integer'],
+                'modification.engines.*.cylinder_diameter' => ['nullable', 'numeric'],
+                'modification.engines.*.power_kw_start' => ['nullable', 'integer'],
+                'modification.engines.*.power_kw_upto' => ['nullable', 'integer'],
+                'modification.engines.*.power_ps_start' => ['nullable', 'integer'],
+                'modification.engines.*.power_ps_upto' => ['nullable', 'integer'],
+                'modification.engines.*.number_of_valves' => ['nullable', 'integer'],
+                'modification.engines.*.fuel_type' => ['nullable', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
+                'modification.engines.*.group_id' => ['nullable', 'integer'],
+                'modification.engines.*.provider' => ['nullable', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
+                'modification.engines.*.allow_change_fields' => ['nullable', 'array'],
+                'modification.engines.*.allow_change_fields.*' => ['string', 'max:64'],
             ];
         }
 
@@ -65,6 +97,10 @@ final readonly class ModificationMutationPayloadValidator
 
     /**
      * Возвращает список строковых значений поддерживаемых операций.
+     *
+     * Шаги:
+     * - Пройти по cases enum операций мутации.
+     * - Вернуть их строковые значения для Rule::in().
      */
     private function operations(): array
     {
@@ -75,6 +111,10 @@ final readonly class ModificationMutationPayloadValidator
 
     /**
      * Возвращает строковые значения enum cases для правил валидации.
+     *
+     * Шаги:
+     * - Пройти по cases переданного enum.
+     * - Вернуть значения cases для Rule::in().
      */
     private function enumValues(array $cases): array
     {

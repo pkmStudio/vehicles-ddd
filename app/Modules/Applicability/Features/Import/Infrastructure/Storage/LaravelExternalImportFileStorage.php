@@ -12,12 +12,23 @@ use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
  */
 final readonly class LaravelExternalImportFileStorage implements ExternalImportFileStorageInterface
 {
+    /**
+     * Получает Laravel filesystem factory для удаления import-файлов.
+     *
+     * Шаги:
+     * 1. Сохраняет factory, выбирающую disk в runtime.
+     * 2. Оставляет delete operation в методе domain port-а.
+     */
     public function __construct(
         private FilesystemFactory $filesystems,
     ) {}
 
     /**
      * Удаляет файл с указанного disk.
+     *
+     * Шаги:
+     * 1. Выбирает Laravel filesystem disk из cleanup metadata.
+     * 2. Удаляет файл по исходному path.
      */
     public function delete(string $disk, string $path): void
     {

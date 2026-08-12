@@ -14,12 +14,12 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Nomenclature
 use Illuminate\Support\Collection;
 
 /**
- * Read-only client CRM сценариев складской номенклатуры.
+ * Read-only клиент CRM сценариев складской номенклатуры.
  */
 final readonly class NomenclatureCrmClient implements NomenclatureCrmClientInterface
 {
     /**
-     * Инициализирует CRM client номенклатуры.
+     * Инициализирует CRM клиент номенклатуры.
      *
      * Шаги:
      * 1. Получает use case списка, detail и поиска номенклатур.
@@ -37,7 +37,7 @@ final readonly class NomenclatureCrmClient implements NomenclatureCrmClientInter
      * Шаги:
      * 1. Принимает готовый read-query DTO.
      * 2. Делегирует запрос list use case.
-     * 3. Возвращает page DTO без доступа к БД из client.
+     * 3. Возвращает DTO страницы без доступа к БД из клиент.
      */
     public function paginate(NomenclatureCrmReadQueryDTO $query): NomenclatureCrmPageDTO
     {
@@ -49,7 +49,7 @@ final readonly class NomenclatureCrmClient implements NomenclatureCrmClientInter
      *
      * Шаги:
      * 1. Принимает внутренний id номенклатуры.
-     * 2. Делегирует lookup detail use case.
+     * 2. Делегирует поиск detail use case.
      * 3. Возвращает DTO или `null`, если запись не найдена.
      */
     public function show(int $id): ?NomenclatureCrmListItemDTO
@@ -63,7 +63,7 @@ final readonly class NomenclatureCrmClient implements NomenclatureCrmClientInter
      * Шаги:
      * 1. Принимает строку поиска и лимит результата.
      * 2. Делегирует поиск search use case.
-     * 3. Возвращает collection DTO/options для presenter boundary.
+     * 3. Возвращает collection DTO/options для presenter границу.
      */
     public function search(string $query, int $limit): Collection
     {
@@ -77,7 +77,7 @@ final readonly class NomenclatureCrmClient implements NomenclatureCrmClientInter
      * Возвращает type options для CRM-формы номенклатуры.
      *
      * Шаги:
-     * 1. Принимает optional search query, selected id и limit.
+     * 1. Принимает необязательную строку поиска, выбранный id и лимит.
      * 2. Делегирует запрос options list use case.
      * 3. Возвращает collection DTO без дополнительного mapping.
      */
@@ -94,7 +94,7 @@ final readonly class NomenclatureCrmClient implements NomenclatureCrmClientInter
      * Возвращает brand options для CRM-формы номенклатуры.
      *
      * Шаги:
-     * 1. Принимает optional search query, selected id и limit.
+     * 1. Принимает необязательную строку поиска, выбранный id и лимит.
      * 2. Делегирует запрос options list use case.
      * 3. Возвращает collection DTO без дополнительного mapping.
      */

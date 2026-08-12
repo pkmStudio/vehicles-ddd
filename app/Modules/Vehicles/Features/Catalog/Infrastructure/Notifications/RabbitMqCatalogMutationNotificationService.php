@@ -18,6 +18,9 @@ final readonly class RabbitMqCatalogMutationNotificationService implements Catal
 {
     /**
      * Инициализирует зависимости класса через контейнер.
+     *
+     * Шаги:
+     * - Сохранить publisher RabbitMQ для отправки результата мутации.
      */
     public function __construct(
         private RabbitMQPublisher $publisher,

@@ -24,6 +24,12 @@ final readonly class WiperDetailsPresenter extends AbstractDetailsPresenter
 {
     use FormatsExportCells;
 
+    /**
+     * Этот метод возвращает колонки nomenclature wiper шаблона.
+     * Шаги:
+     * 1) Перечисляет справочные характеристики щётки, длины и типы креплений.
+     * 2) Добавляет покрытие, boolean-признаки и совместимость рулевого управления.
+     */
     public function headings(): array
     {
         return [
@@ -35,12 +41,25 @@ final readonly class WiperDetailsPresenter extends AbstractDetailsPresenter
         ];
     }
 
-    /** @return class-string<WiperDetailsData> */
+    /**
+     * Этот метод указывает Data-класс nomenclature wiper presenter-а.
+     * Шаги:
+     * 1) Возвращает class-string `WiperDetailsData`.
+     *
+     * @return class-string<WiperDetailsData>
+     */
     protected function dataClass(): string
     {
         return WiperDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит nomenclature wiper details в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет тип `WiperDetailsData`.
+     * 2) Переводит enum-name и multi-select поля в Excel-labels.
+     * 3) Выводит длины, покрытие и boolean-признаки в порядке заголовков.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, WiperDetailsData::class);

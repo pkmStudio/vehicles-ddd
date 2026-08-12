@@ -13,10 +13,25 @@ use App\Modules\Warehouse\Features\Maintenance\Infrastructure\Models\Nomenclatur
 
 final readonly class KitPropertiesClient implements KitPropertiesClientInterface
 {
+    /**
+     * Получает service port KitProperties для пересчёта наборов из Maintenance.
+     * Шаги:
+     * 1) Сохранить KitPropertiesServiceInterface как boundary к фиче владельца расчёта.
+     * 2) Оставить перевод Maintenance Eloquent-моделей в DTO внутри adapter-а.
+     */
     public function __construct(
         private KitPropertiesServiceInterface $kitProperties,
     ) {}
 
+    /**
+     * Рассчитывает свойства набора, переводя Maintenance-модели в DTO KitProperties.
+     * Шаги:
+     * 1) Преобразовать каждую Maintenance Nomenclature model в KitProperties NomenclatureData.
+     * 2) Передать DTO-состав в KitPropertiesServiceInterface::build().
+     * 3) Переложить результат в локальный Maintenance KitPropertiesDTO.
+     *
+     * @param  array<int, Nomenclature>  $nomenclatures
+     */
     public function build(array $nomenclatures): KitPropertiesDTO
     {
         $properties = $this->kitProperties->build(array_map(

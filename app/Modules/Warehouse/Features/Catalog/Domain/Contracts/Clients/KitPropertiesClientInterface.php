@@ -8,7 +8,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\KitProperties\KitProperti
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
 
 /**
- * Описывает client boundary сборки свойств комплекта.
+ * Описывает клиент границу сборки свойств комплекта.
  */
 interface KitPropertiesClientInterface
 {
@@ -17,7 +17,7 @@ interface KitPropertiesClientInterface
      *
      * Шаги:
      * 1. Принять набор `NomenclatureData`, выбранных для комплекта.
-     * 2. Вернуть DTO свойств комплекта или ошибку client boundary.
+     * 2. Вернуть DTO свойств комплекта или ошибку клиент границу.
      *
      * @param  array<int, NomenclatureData>  $nomenclatures
      */

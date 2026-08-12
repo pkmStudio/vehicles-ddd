@@ -24,7 +24,12 @@ use Throwable;
 final readonly class DeleteManufacturerUseCase implements DeleteManufacturerUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты delete manufacturer workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для поиска производителя по mfa_id.
+     * 2) Принять cascade service для удаления автомобилей производителя перед delete.
+     * 3) Принять command/cache/result сервисы для записи, идемпотентности и result event.
      */
     public function __construct(
         private ManufacturerRepositoryInterface $manufacturers,

@@ -7,13 +7,30 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Ma
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 
+/**
+ * Переводит строку командного импорта ТС в DTO TecDoc-формата.
+ */
 final readonly class VehicleTdRowMapper
 {
+    /**
+     * Получить нормализатор значений ячеек Excel.
+     *
+     * Шаги:
+     * 1) Принять общий нормализатор строк импорта через DI.
+     * 2) Использовать его при чтении идентификаторов, названия, поколения и типа кузова.
+     */
     public function __construct(
         private ImportRowValueFormatter $formatter,
     ) {}
 
     /**
+     * Собрать DTO ТС из строки командного импорта.
+     *
+     * Шаги:
+     * 1) Прочитать mfa_id, ms_id, название, поколение, кузов, годы выпуска и тип.
+     * 2) Нормализовать идентификаторы и годы как целые числа, остальные поля как строки.
+     * 3) Вернуть DTO для построчного сервиса сохранения ТС.
+     *
      * @param  array<int, string|int|float|null>  $row
      */
     public function map(array $row): VehicleTdRowDTO

@@ -8,10 +8,18 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\Nomencla
 use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
- * Builds CRM pagination meta DTO from Laravel paginator.
+ * Собирает CRM DTO метаданных пагинации из Laravel paginator.
  */
 final readonly class NomenclatureCrmPaginationMetaDTOFactory
 {
+    /**
+     * Собирает meta DTO для paginated CRM response.
+     *
+     * Шаги:
+     * 1) Принять Laravel paginator результата.
+     * 2) Считать текущую страницу, размер, total и last page.
+     * 3) Вернуть DTO метаданных для CRM-страницы.
+     */
     public function make(LengthAwarePaginator $paginator): NomenclatureCrmPaginationMetaDTO
     {
         return new NomenclatureCrmPaginationMetaDTO(

@@ -28,16 +28,24 @@ final readonly class EngineMainSheetRowMapper
 
     private const int NUMBER_OF_VALVES = 8;
 
+    /**
+     * Получить нормализатор значений основного листа двигателей.
+     *
+     * Шаги:
+     * 1) Принять общий нормализатор строк импорта через DI.
+     * 2) Использовать его при чтении идентификатора, мощности, объёма и геометрии двигателя.
+     */
     public function __construct(
         private ImportRowValueFormatter $formatter,
     ) {}
 
     /**
      * Этот метод переводит одну строку основного листа двигателей в `EngineSheetRowDTO`.
+     *
      * Шаги:
      * 1) Прочитать значения по именованным индексам колонок основного листа.
-     * 2) Нормализовать scalar values через `ImportRowValueFormatter`.
-     * 3) Вернуть DTO, совместимый с общим engine upsert service.
+     * 2) Нормализовать строки, целые и вещественные числа через `ImportRowValueFormatter`.
+     * 3) Вернуть DTO, совместимый с общим сервисом сохранения двигателя.
      *
      * @param  array<int, string|int|float|null>  $row
      */

@@ -25,6 +25,12 @@ final readonly class OilFilterDetailsPresenter extends AbstractDetailsPresenter
 {
     use FormatsExportCells;
 
+    /**
+     * Этот метод возвращает колонки engine oil-filter шаблона.
+     * Шаги:
+     * 1) Перечисляет select-поля исполнения/формы/father и числовые диаметры.
+     * 2) Добавляет заголовки вложенного metrics-блока длина/ширина/высота.
+     */
     public function headings(): array
     {
         return [
@@ -37,25 +43,36 @@ final readonly class OilFilterDetailsPresenter extends AbstractDetailsPresenter
         ];
     }
 
+    /**
+     * Этот метод возвращает заголовки вложенных габаритов масляного фильтра.
+     * Шаги:
+     * 1) Перечисляет длину, ширину и высоту в порядке `metricsCells()`.
+     */
     private function metricsHeadings(): array
     {
         return ['Длина (мм)', 'Ширина (мм)', 'Высота (мм)'];
     }
 
     /**
+     * Этот метод указывает Data-класс engine oil-filter presenter-а.
      * Шаги:
-     * 1) Переводит исполнение и форму фильтра обратно в лейблы.
-     * 2) Переводит `father` обратно в лейбл через `fatherToLabel()` — пробуя два словаря по
-     *    очереди, симметрично `OilFilterDetailsBuilder::pullFather()`.
-     * 3) Добавляет диаметр и диаметр уплотнителя как есть.
-     * 4) Добавляет ячейки вложенных размеров.
+     * 1) Возвращает class-string `OilFilterDetailsData` для восстановления details массива.
+     *
+     * @return class-string<OilFilterDetailsData>
      */
-    /** @return class-string<OilFilterDetailsData> */
     protected function dataClass(): string
     {
         return OilFilterDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит engine oil-filter details в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет, что получен `OilFilterDetailsData`.
+     * 2) Переводит исполнение и форму фильтра обратно в labels.
+     * 3) Переводит `father` через два словаря и добавляет числовые диаметры.
+     * 4) Разворачивает вложенный metrics-блок.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, OilFilterDetailsData::class);
@@ -70,6 +87,12 @@ final readonly class OilFilterDetailsPresenter extends AbstractDetailsPresenter
         ];
     }
 
+    /**
+     * Этот метод рендерит вложенные габариты масляного фильтра.
+     * Шаги:
+     * 1) Склеивает списки длины, ширины и высоты через `;`.
+     * 2) Возвращает три ячейки в порядке заголовков.
+     */
     private function metricsCells(OilFilterMetricsData $metrics): array
     {
         return [

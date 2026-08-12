@@ -15,6 +15,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class ManufacturerData extends Data
 {
+    /**
+     * Фиксирует данные производителя после validation/factory normalization.
+     */
     public function __construct(
         public readonly int $mfaId,
         public readonly string $name,

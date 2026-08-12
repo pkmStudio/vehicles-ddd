@@ -42,7 +42,36 @@ final readonly class VehicleCrmModificationDTOFactory
             localizedName: isset($modification->localized_name) ? (string) $modification->localized_name : null,
             numberOfCylinders: isset($modification->number_of_cylinders) ? (int) $modification->number_of_cylinders : null,
             capacityLt: isset($modification->capacity_lt) ? (float) $modification->capacity_lt : null,
+            provider: isset($modification->provider) ? (string) $modification->provider : 'TD',
+            allowChangeFields: $this->stringList($modification->allow_change_fields ?? []),
             engines: $engines,
         );
+    }
+
+    /**
+     * Нормализует список разрешённых к изменению полей.
+     *
+     * Шаги:
+     * - Декодировать JSON-строку, если список пришёл из SQL как строка.
+     * - Вернуть пустой список для значения неподдерживаемого типа.
+     * - Оставить только scalar-значения и привести их к строкам.
+     *
+     * @return list<string>
+     */
+    private function stringList(mixed $value): array
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            $value = is_array($decoded) ? $decoded : [];
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            static fn (mixed $item): ?string => is_scalar($item) ? (string) $item : null,
+            $value,
+        )));
     }
 }

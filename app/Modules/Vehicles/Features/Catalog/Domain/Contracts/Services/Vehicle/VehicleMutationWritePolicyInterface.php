@@ -14,6 +14,11 @@ interface VehicleMutationWritePolicyInterface
 {
     /**
      * Применяет правила создания автомобиля из catalog mutation источника.
+     *
+     * Шаги:
+     * 1) Принять входящий VehicleData и context create operation.
+     * 2) Нормализовать поля, которыми владеет catalog mutation workflow.
+     * 3) Вернуть snapshot для command create.
      */
     public function applyForCreate(
         VehicleData $incoming,
@@ -22,6 +27,11 @@ interface VehicleMutationWritePolicyInterface
 
     /**
      * Применяет правила обновления автомобиля из catalog mutation источника.
+     *
+     * Шаги:
+     * 1) Принять incoming и existing snapshots.
+     * 2) Сохранить locked поля для provider-owned записей.
+     * 3) Вернуть merged snapshot для command update.
      */
     public function applyForUpdate(
         VehicleData $incoming,
@@ -31,6 +41,10 @@ interface VehicleMutationWritePolicyInterface
 
     /**
      * Возвращает true, если mutation может писать OD-managed поля существующего автомобиля.
+     *
+     * Шаги:
+     * 1) Проверить provider существующего автомобиля.
+     * 2) Разрешить catalog-managed поля только для OD-owned записей.
      */
     public function allowsCatalogManagedFields(VehicleData $existing): bool;
 }

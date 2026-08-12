@@ -13,6 +13,11 @@ interface ExportNotificationServiceInterface
 {
     /**
      * Публикует итоговый статус экспорта наружу.
+     *
+     * Шаги:
+     * 1) Принять DTO итогового статуса Warehouse-экспорта.
+     * 2) Преобразовать DTO в outbound wire payload на стороне реализации.
+     * 3) Отправить уведомление внешнему потребителю.
      */
     public function notifyExportCompleted(ExportCompletionNotificationDTO $payload): void;
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Templates\Domain\Enums\SparkPlug;
 
-use App\Modules\Templates\Domain\Traits\EnumHelperTrait;
 use App\Modules\Templates\Domain\Contracts\EnumHelperInterface;
+use App\Modules\Templates\Domain\Traits\EnumHelperTrait;
 
 /** Размер резьбы свечи зажигания. */
 enum ThreadSizeEnum: string implements EnumHelperInterface

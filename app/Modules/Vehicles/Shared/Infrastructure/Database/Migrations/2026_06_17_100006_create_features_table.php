@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Создает таблицы features и feature_values для параметров part specifications.
+     */
     public function up(): void
     {
         Schema::create('features', function (Blueprint $table) {
@@ -24,6 +27,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Удаляет feature_values и features в порядке зависимостей.
+     */
     public function down(): void
     {
         Schema::dropIfExists('feature_values');

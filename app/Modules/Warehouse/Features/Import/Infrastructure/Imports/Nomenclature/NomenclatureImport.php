@@ -51,6 +51,10 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
 
     /**
      * Получает построчный сервис импорта и справочники типов/брендов.
+     * Шаги:
+     * 1) Сохранить сервис построчной валидации и записи номенклатуры.
+     * 2) Сохранить read repositories типов и брендов для preload на chunk.
+     * 3) Оставить runtime context пустым до вызова import().
      */
     public function __construct(
         ImportNomenclatureFromRowServiceInterface $service,
@@ -63,6 +67,12 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     }
 
     /**
+     * Сериализует только scalar context queued import adapter-а.
+     * Шаги:
+     * 1) Не сериализовать service/repository dependency graph.
+     * 2) Сохранить userId и operationId, нужные для события завершения.
+     * 3) Сохранить cache/lock keys, через которые CachesImportFailures накопил ошибки.
+     *
      * @return array<string, mixed>
      */
     public function __serialize(): array
@@ -76,6 +86,12 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     }
 
     /**
+     * Восстанавливает scalar context после десериализации queued import adapter-а.
+     * Шаги:
+     * 1) Принять только значения ожидаемых scalar типов.
+     * 2) Вернуть userId/operationId для worker-time обработки строк и события завершения.
+     * 3) Вернуть cache/lock keys, если они были сохранены при serialize().
+     *
      * @param  array<string, mixed>  $data
      */
     public function __unserialize(array $data): void
@@ -126,7 +142,10 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
      * Этот метод обрабатывает один чанк строк.
      * Шаги:
      * 1) Предзагрузить справочники типов и брендов один раз на чанк.
-     * 2) На каждой строке вызвать Application-сервис, ошибки — в cache через onFailure.
+     * 2) Для каждой строки привести Laravel Excel row к plain array.
+     * 3) Передать строку, справочники и import context в Application-сервис.
+     * 4) Превратить ожидаемые ошибки парсинга/details в Failure с номером Excel-строки.
+     * 5) Сохранить failure в cache через onFailure(), не останавливая весь import chunk.
      */
     public function collection(Collection $collection): void
     {
@@ -160,6 +179,8 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
 
     /**
      * Возвращает номер первой строки с данными, пропуская заголовок.
+     * Шаги:
+     * 1) Вернуть фиксированное значение 2, потому что первая строка файла занята headings.
      */
     public function startRow(): int
     {
@@ -168,6 +189,8 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
 
     /**
      * Возвращает размер чанка чтения номенклатуры.
+     * Шаги:
+     * 1) Вернуть chunk size 1000 как баланс между количеством jobs и памятью worker-а.
      */
     public function chunkSize(): int
     {
@@ -177,6 +200,9 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     /**
      * Ограничивает импорт первым листом файла — второй лист "Справочники" (выпадающие списки
      * Excel) не относится к данным и не должен парситься как номенклатура.
+     * Шаги:
+     * 1) Связать sheet index 0 с текущим import adapter-ом.
+     * 2) Не возвращать adapters для остальных листов, чтобы справочники не попали в collection().
      *
      * @return array<int, ToCollection>
      */
@@ -188,6 +214,11 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     }
 
     /**
+     * Регистрирует serializable Laravel Excel events для queued import.
+     * Шаги:
+     * 1) Привязать AfterImport к static callable без closure.
+     * 2) Оставить dispatch завершения до окончания всех queued chunks.
+     *
      * @return array<class-string, callable>
      */
     public function registerEvents(): array
@@ -199,6 +230,10 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
 
     /**
      * Диспатчит событие завершения импорта после обработки queued chunks.
+     * Шаги:
+     * 1) Получить текущий import adapter из Laravel Excel event.
+     * 2) Прочитать восстановленный userId/cacheKey/operationId.
+     * 3) Опубликовать NomenclatureImportCompleted для reporting/notification listeners.
      */
     public static function afterImport(AfterImport $event): void
     {
@@ -212,16 +247,35 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
         ));
     }
 
+    /**
+     * Возвращает построчный Application-сервис, резолвя его в worker-е при необходимости.
+     * Шаги:
+     * 1) Использовать уже внедренный сервис при синхронном выполнении.
+     * 2) После queue unserialize лениво получить сервис из container.
+     * 3) Закешировать resolved instance в свойстве adapter-а.
+     */
     private function service(): ImportNomenclatureFromRowServiceInterface
     {
         return $this->service ??= app(ImportNomenclatureFromRowServiceInterface::class);
     }
 
+    /**
+     * Возвращает repository типов, безопасно восстанавливая dependency после queue unserialize.
+     * Шаги:
+     * 1) Использовать сохраненный repository, если adapter еще не сериализовался.
+     * 2) Иначе лениво получить TypeRepositoryInterface из Laravel container.
+     */
     private function types(): TypeRepositoryInterface
     {
         return $this->types ??= app(TypeRepositoryInterface::class);
     }
 
+    /**
+     * Возвращает repository брендов, безопасно восстанавливая dependency после queue unserialize.
+     * Шаги:
+     * 1) Использовать сохраненный repository, если adapter еще не сериализовался.
+     * 2) Иначе лениво получить BrandRepositoryInterface из Laravel container.
+     */
     private function brands(): BrandRepositoryInterface
     {
         return $this->brands ??= app(BrandRepositoryInterface::class);

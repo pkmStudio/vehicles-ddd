@@ -10,6 +10,9 @@ namespace App\Modules\Applicability\Features\Calculation\Domain\DTOs\Wiper;
  */
 final readonly class WiperAdaptersDTO
 {
+    /**
+     * Создает снимок adapter codes для расчета дворников.
+     */
     public function __construct(
         public array $allAdapters,
         public array $putAdapters,

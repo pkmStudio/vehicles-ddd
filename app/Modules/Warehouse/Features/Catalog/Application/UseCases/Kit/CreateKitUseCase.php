@@ -30,6 +30,10 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
 {
     /**
      * Инициализирует чтение номенклатуры, расчёт свойств, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repositories номенклатуры/комплектов и KitProperties client.
+     * 2) Принять command записи, idempotency cache и result service.
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
@@ -141,7 +145,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
     }
 
     /**
-     * Резолвит номенклатуры по id, сохраняя порядок входящего payload.
+     * Резолвит номенклатуры по id, сохраняя порядок входящего данные сообщения.
      *
      * @param  array<int, int>  $ids
      * @return array{items: array<int, NomenclatureData>, missing_ids: array<int, int>}

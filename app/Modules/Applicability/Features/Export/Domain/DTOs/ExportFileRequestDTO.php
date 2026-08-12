@@ -8,6 +8,9 @@ use App\Modules\Applicability\Features\Export\Domain\Enums\ExportTypeEnum;
 
 final readonly class ExportFileRequestDTO
 {
+    /**
+     * Хранит валидированный внешний запрос на создание export-файла.
+     */
     public function __construct(
         public int $userId,
         public string $operationId,

@@ -13,6 +13,9 @@ use Spatie\LaravelData\Data;
  */
 final class SparkPlugThreadDetailsData extends Data
 {
+    /**
+     * Фиксирует параметры резьбы свечи зажигания.
+     */
     public function __construct(
         public readonly string $size,
         public readonly string $pitch,

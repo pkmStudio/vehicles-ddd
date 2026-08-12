@@ -16,6 +16,13 @@ use Illuminate\Support\Facades\Log;
  */
 final readonly class VehicleWiperPartSpecificationSplitService
 {
+    /**
+     * Получает client Templates для разрезания details дворников по сторонам.
+     *
+     * Шаги:
+     * 1. Принять feature-local Templates client port.
+     * 2. Сохранить dependency для последующего split legacy wiper details.
+     */
     public function __construct(
         private TemplatesClientInterface $templates,
     ) {}
@@ -79,6 +86,7 @@ final readonly class VehicleWiperPartSpecificationSplitService
             $details = (array) $entry['details'];
             if ($this->isDetailsEmpty($details)) {
                 $summary['skipped']++;
+
                 continue;
             }
 
@@ -136,6 +144,7 @@ final readonly class VehicleWiperPartSpecificationSplitService
 
         if ($dryRun) {
             $summary['created']++;
+
             return null;
         }
 

@@ -17,6 +17,11 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
 {
     /**
      * Создаёт упаковочный размер внутри транзакции.
+     *
+     * Шаги:
+     * 1) Исключить технический id из входного Data.
+     * 2) Создать Eloquent-модель каталога внутри транзакции.
+     * 3) Вернуть обновлённый Data-снимок созданной записи.
      */
     public function create(PackDimensionData $data): PackDimensionData
     {
@@ -29,6 +34,11 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
 
     /**
      * Обновляет упаковочный размер внутри транзакции.
+     *
+     * Шаги:
+     * 1) Найти Eloquent-модель по id из Data.
+     * 2) Заполнить изменяемые поля и сохранить запись в транзакции.
+     * 3) Вернуть Data-снимок обновлённой модели.
      */
     public function update(PackDimensionData $data): PackDimensionData
     {
@@ -43,6 +53,11 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
 
     /**
      * Удаляет упаковочный размер и связанные наборы внутри транзакции.
+     *
+     * Шаги:
+     * 1) Принять идентификатор или список идентификаторов каталога.
+     * 2) Выполнить удаление Eloquent-записей внутри транзакции.
+     * 3) Завершить без возврата бизнес-данных.
      */
     public function deleteById(int $id): void
     {

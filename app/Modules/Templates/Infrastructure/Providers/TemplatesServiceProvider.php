@@ -23,6 +23,13 @@ use Illuminate\Support\ServiceProvider;
  */
 final class TemplatesServiceProvider extends ServiceProvider
 {
+    /**
+     * Этот метод регистрирует контейнерные биндинги shared-kernel Templates.
+     * Шаги:
+     * 1) Связывает сервис split/merge правил дворников с его application-реализацией.
+     * 2) Связывает vehicle/nomenclature factories и presenters с их selector-реализациями.
+     * 3) Публикует `TemplatesClientInterface` как фасадный client для соседних модулей.
+     */
     public function register(): void
     {
         $this->app->bind(WiperSpecificationServiceInterface::class, WiperSpecificationService::class);

@@ -13,11 +13,19 @@ interface NomenclatureIntegrationRepositoryInterface
 {
     /**
      * Возвращает integration-state МойСклад по id номенклатуры или null.
+     * Шаги:
+     * 1) Ограничить поиск provider=moysklad.
+     * 2) Найти integration-state по nomenclature_id.
+     * 3) Вернуть Data-снимок или null.
      */
     public function findByNomenclatureId(int $nomenclatureId): ?NomenclatureIntegrationData;
 
     /**
      * Возвращает integration-state для удаления по сохранённой связке или fallback external_code.
+     * Шаги:
+     * 1) Если передан integrationId, искать provider=moysklad запись по первичному ключу.
+     * 2) Иначе искать provider=moysklad запись по nomenclature_id или external_code.
+     * 3) Вернуть Data-снимок найденной связи или null.
      */
     public function findForDeletion(
         int $nomenclatureId,

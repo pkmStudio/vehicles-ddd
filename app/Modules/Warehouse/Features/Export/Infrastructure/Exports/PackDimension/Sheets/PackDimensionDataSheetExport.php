@@ -20,21 +20,49 @@ final readonly class PackDimensionDataSheetExport implements FromCollection, Wit
 {
     use StylesExportWorksheet;
 
+    /**
+     * Получает сервис подготовки строк упаковочных размеров.
+     *
+     * Шаги:
+     * 1) Принять application-сервис экспорта упаковок.
+     * 2) Сохранить сервис для collection(), map() и headings().
+     */
     public function __construct(
         private PackDimensionExportServiceInterface $exportService,
     ) {}
 
+    /**
+     * Возвращает имя листа упаковок.
+     *
+     * Шаги:
+     * 1) Использовать короткое русское имя листа.
+     * 2) Вернуть строку для Laravel Excel WithTitle.
+     */
     public function title(): string
     {
         return 'Упаковки';
     }
 
+    /**
+     * Загружает строки упаковочных размеров.
+     *
+     * Шаги:
+     * 1) Запросить данные через application-сервис.
+     * 2) Вернуть коллекцию PackDimensionData для Laravel Excel.
+     */
     public function collection(): Collection
     {
         return $this->exportService->getRows();
     }
 
     /**
+     * Преобразует упаковочный размер в Excel-строку.
+     *
+     * Шаги:
+     * 1) Получить row от Laravel Excel.
+     * 2) Передать row в application-сервис.
+     * 3) Вернуть плоский массив значений.
+     *
      * @param  mixed  $row
      * @return array<int, mixed>
      */
@@ -44,6 +72,12 @@ final readonly class PackDimensionDataSheetExport implements FromCollection, Wit
     }
 
     /**
+     * Возвращает заголовки листа упаковок.
+     *
+     * Шаги:
+     * 1) Запросить заголовки у application-сервиса.
+     * 2) Вернуть порядок колонок для Laravel Excel.
+     *
      * @return array<int, string>
      */
     public function headings(): array

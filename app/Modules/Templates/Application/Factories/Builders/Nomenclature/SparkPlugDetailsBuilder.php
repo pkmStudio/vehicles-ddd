@@ -26,6 +26,14 @@ final readonly class SparkPlugDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает nomenclature spark-plug details из Excel-строки.
+     * Шаги:
+     * 1) Собирает вложенные блоки резьбы и электрода.
+     * 2) Читает ширину зева ключа и момент затяжки.
+     * 3) Читает общий блок габаритов номенклатуры.
+     * 4) Возвращает `SparkPlugDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): SparkPlugDetailsData
     {
         return new SparkPlugDetailsData(
@@ -37,6 +45,12 @@ final readonly class SparkPlugDetailsBuilder
         );
     }
 
+    /**
+     * Этот метод собирает блок резьбы номенклатурной свечи.
+     * Шаги:
+     * 1) Читает размер, шаг и длину резьбы через enum-справочники.
+     * 2) Возвращает `SparkPlugThreadDetailsData` с enum-name значениями.
+     */
     private function buildThread(DetailsRowCursor $cursor): SparkPlugThreadDetailsData
     {
         return new SparkPlugThreadDetailsData(
@@ -46,6 +60,13 @@ final readonly class SparkPlugDetailsBuilder
         );
     }
 
+    /**
+     * Этот метод собирает блок электрода номенклатурной свечи.
+     * Шаги:
+     * 1) Читает межконтактный зазор через `ElectrodeGapEnum`.
+     * 2) Читает число боковых электродов через `ElectrodeSideCountEnum`.
+     * 3) Возвращает `SparkPlugElectrodeDetailsData`.
+     */
     private function buildElectrode(DetailsRowCursor $cursor): SparkPlugElectrodeDetailsData
     {
         return new SparkPlugElectrodeDetailsData(
@@ -54,6 +75,13 @@ final readonly class SparkPlugDetailsBuilder
         );
     }
 
+    /**
+     * Этот метод собирает диапазон момента затяжки свечи.
+     * Шаги:
+     * 1) Читает минимальный момент затяжки.
+     * 2) Читает максимальный момент затяжки.
+     * 3) Возвращает `TighteningTorqueData`.
+     */
     private function buildTighteningTorque(DetailsRowCursor $cursor): TighteningTorqueData
     {
         return new TighteningTorqueData(

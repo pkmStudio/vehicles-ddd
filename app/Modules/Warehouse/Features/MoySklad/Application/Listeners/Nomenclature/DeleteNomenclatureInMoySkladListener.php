@@ -16,6 +16,8 @@ final readonly class DeleteNomenclatureInMoySkladListener
 {
     /**
      * Получает порт постановки MoySklad-задач.
+     * Шаги:
+     * 1) Сохранить dispatcher, который скрывает конкретные delete jobs от listener-а.
      */
     public function __construct(
         private NomenclatureSyncDispatcherInterface $dispatcher,
@@ -23,6 +25,10 @@ final readonly class DeleteNomenclatureInMoySkladListener
 
     /**
      * Ставит delete job с сохранёнными внешними идентификаторами удалённой номенклатуры.
+     * Шаги:
+     * 1) Проверить feature flag синхронизации MoySklad.
+     * 2) Извлечь MoySklad integration context из payload события удаления.
+     * 3) Передать id номенклатуры, артикул и найденные external identifiers в dispatcher delete job.
      */
     public function handle(NomenclatureDeleted $event): void
     {

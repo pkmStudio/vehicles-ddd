@@ -19,6 +19,14 @@ final readonly class WiperAdapterDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает details адаптера дворника из Excel-строки.
+     * Шаги:
+     * 1) Читает расположение через `PositionEnum`.
+     * 2) Читает multi-select типов переднего крепления и переводит cases в enum names.
+     * 3) Читает общий блок габаритов.
+     * 4) Возвращает `WiperAdapterDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): WiperAdapterDetailsData
     {
         $toName = static fn ($case) => $case->name;

@@ -18,11 +18,11 @@ use Throwable;
 final readonly class KitMutationRequestedHandler
 {
     /**
-     * Инициализирует use case, factory и validator.
+     * Инициализирует use case, фабрику и validator.
      *
      * Шаги:
      * 1. Получает use case мутации набора.
-     * 2. Получает validator входящего RabbitMQ payload.
+     * 2. Получает validator входящего RabbitMQ данные сообщения.
      * 3. Получает reporter для contract mismatch результата.
      */
     public function __construct(
@@ -32,11 +32,11 @@ final readonly class KitMutationRequestedHandler
     ) {}
 
     /**
-     * Валидирует payload, собирает DTO и запускает сценарий мутации набора.
+     * Валидирует данные сообщения, собирает DTO и запускает сценарий мутации набора.
      *
      * Шаги:
-     * 1. Валидирует raw payload сообщения.
-     * 2. Публикует failed-result при ошибке validation или несовместимом wire payload.
+     * 1. Валидирует raw данные сообщения сообщения.
+     * 2. Публикует failed-result при ошибке validation или несовместимом wire данные сообщения.
      * 3. Собирает локальный DTO запроса из валидированных данных.
      * 4. Передает DTO во входной use case сценария.
      *

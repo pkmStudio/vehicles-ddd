@@ -6,6 +6,9 @@ namespace App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle;
 
 final readonly class VehicleTdRowDTO
 {
+    /**
+     * Фиксирует строку TecDoc vehicle cascade без внутренних warehouse fields.
+     */
     public function __construct(
         public ?int $mfaId,
         public ?int $msId,

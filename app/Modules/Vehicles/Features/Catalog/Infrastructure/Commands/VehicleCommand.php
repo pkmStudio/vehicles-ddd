@@ -67,6 +67,12 @@ final readonly class VehicleCommand implements VehicleCommandInterface
     }
 
     /**
+     * Удаляет ТС по внутренним id.
+     *
+     * Шаги:
+     * - Пропустить пустой список id.
+     * - В транзакции удалить найденные ТС.
+     *
      * @param  array<int, int>  $ids
      */
     public function deleteByIds(array $ids): void

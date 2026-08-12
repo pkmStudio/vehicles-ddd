@@ -10,16 +10,33 @@ use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\PackDimension
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData;
 use App\Modules\Warehouse\Features\Packaging\Domain\Contracts\Services\PackagingServiceInterface;
+use App\Modules\Warehouse\Features\Packaging\Domain\Exceptions\PackDimensionNotResolvableException as PackagingPackDimensionNotResolvableException;
 use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\NomenclatureData as PackagingNomenclatureData;
 use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\TypeData as PackagingTypeData;
-use App\Modules\Warehouse\Features\Packaging\Domain\Exceptions\PackDimensionNotResolvableException as PackagingPackDimensionNotResolvableException;
 
 final readonly class PackagingClient implements PackagingClientInterface
 {
+    /**
+     * Получает service port Packaging-фичи для подбора или создания упаковки.
+     * Шаги:
+     * 1) Сохранить PackagingServiceInterface как единственную точку синхронного вызова соседней фичи.
+     * 2) Оставить преобразование DTO на стороне infrastructure adapter-а KitProperties.
+     */
     public function __construct(
         private PackagingServiceInterface $packaging,
     ) {}
 
+    /**
+     * Подбирает или создаёт упаковку через Packaging и возвращает локальный DTO KitProperties.
+     * Шаги:
+     * 1) Перевести TypeData KitProperties в TypeData Packaging.
+     * 2) Перевести каждую локальную NomenclatureData в DTO Packaging-фичи.
+     * 3) Вызвать PackagingServiceInterface::selectOrCreate().
+     * 4) Ошибку Packaging PackDimensionNotResolvableException завернуть в локальное исключение.
+     * 5) Перевести результат Packaging обратно в PackDimensionDTO KitProperties.
+     *
+     * @param  array<int, NomenclatureData>  $nomenclatures
+     */
     public function selectOrCreate(TypeData $type, array $nomenclatures): PackDimensionDTO
     {
         try {

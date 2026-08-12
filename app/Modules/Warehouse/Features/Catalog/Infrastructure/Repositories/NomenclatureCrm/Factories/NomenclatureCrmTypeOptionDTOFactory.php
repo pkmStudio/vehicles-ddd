@@ -8,14 +8,29 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\Nomencla
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\NomenclatureCrmTypeTemplateResolver;
 
 /**
- * Builds CRM type option DTO from SQL type projection.
+ * Собирает CRM type option DTO из SQL-проекции типа номенклатуры.
  */
 final readonly class NomenclatureCrmTypeOptionDTOFactory
 {
+    /**
+     * Получает resolver details template для type option.
+     *
+     * Шаги:
+     * 1) Принять NomenclatureCrmTypeTemplateResolver из DI container.
+     * 2) Использовать resolver при заполнении meta.template.
+     */
     public function __construct(
         private NomenclatureCrmTypeTemplateResolver $templateResolver,
     ) {}
 
+    /**
+     * Собирает option DTO типа номенклатуры для CRM фильтров.
+     *
+     * Шаги:
+     * 1) Считать id, name и char из type projection.
+     * 2) Разрешить details template по id/char типа.
+     * 3) Вернуть NomenclatureCrmOptionDTO с meta.char и meta.template.
+     */
     public function make(object $type): NomenclatureCrmOptionDTO
     {
         return new NomenclatureCrmOptionDTO(

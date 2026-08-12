@@ -39,6 +39,13 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
 
     private ?AssignEngineGroupServiceInterface $service = null;
 
+    /**
+     * Получить сервис назначения группы двигателям.
+     *
+     * Шаги:
+     * 1) Принять сервис, который ищет двигатель по коду и назначает group_id.
+     * 2) Сохранить сервис до сериализации задания очереди.
+     */
     public function __construct(
         AssignEngineGroupServiceInterface $service,
     ) {
@@ -46,6 +53,13 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
     }
 
     /**
+     * Подготовить импорт к сериализации в очередь.
+     *
+     * Шаги:
+     * 1) Сохранить контекст запуска импорта.
+     * 2) Сохранить ключ списка ошибок и ключ блокировки.
+     * 3) Не сериализовать сервис назначения группы.
+     *
      * @return array<string, mixed>
      */
     public function __serialize(): array
@@ -58,6 +72,13 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
     }
 
     /**
+     * Восстановить импорт после очереди.
+     *
+     * Шаги:
+     * 1) Вернуть контекст запуска, если он был сериализован.
+     * 2) Сбросить сервис для последующего резолва из контейнера.
+     * 3) Восстановить ключи отчёта ошибок.
+     *
      * @param  array<string, mixed>  $data
      */
     public function __unserialize(array $data): void
@@ -75,6 +96,14 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         }
     }
 
+    /**
+     * Запустить импорт кросс-групп двигателей.
+     *
+     * Шаги:
+     * 1) Сохранить контекст запуска и рассчитать ключи отчёта ошибок.
+     * 2) Передать текущий адаптер в Laravel Excel.
+     * 3) Прочитать файл с указанного диска или с диска по умолчанию.
+     */
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
         $this->context = $context;
@@ -89,6 +118,13 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         Excel::import($this, $path, $disk);
     }
 
+    /**
+     * Обработать пачку строк кросс-групп двигателей.
+     *
+     * Шаги:
+     * 1) Пройти по строкам текущего чанка.
+     * 2) Передать индекс строки и значения в обработчик одной строки.
+     */
     public function collection(Collection $collection): void
     {
         foreach ($collection as $indexRow => $row) {
@@ -96,6 +132,14 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         }
     }
 
+    /**
+     * Обработать одну строку кросс-групп двигателей.
+     *
+     * Шаги:
+     * 1) Прочитать group_id и ячейку с кодами двигателей; пустые строки пропустить.
+     * 2) Разбить ячейку кодов и назначить группу каждому коду.
+     * 3) Записать ошибку, если двигатель не найден или группа была переназначена.
+     */
     private function processRow(int $indexRow, array $row): void
     {
         $groupId = isset($row[0]) && $row[0] !== '' ? (int) $row[0] : null;
@@ -130,16 +174,38 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         }
     }
 
+    /**
+     * Разобрать ячейку с несколькими кодами двигателей.
+     *
+     * Шаги:
+     * 1) Разделить строку по точке с запятой.
+     * 2) Обрезать пробелы вокруг каждого кода.
+     * 3) Убрать пустые элементы.
+     */
     private function parseCodes(string $rawCell): array
     {
         return array_filter(array_map('trim', explode(';', $rawCell)));
     }
 
+    /**
+     * Вернуть размер чанка импорта кросс-групп.
+     *
+     * Шаги:
+     * 1) Зафиксировать размер пачки для построчного назначения групп.
+     * 2) Вернуть значение, которое использует Laravel Excel.
+     */
     public function chunkSize(): int
     {
         return 100;
     }
 
+    /**
+     * Зарегистрировать событие завершения импорта кросс-групп.
+     *
+     * Шаги:
+     * 1) Вернуть обработчик AfterImport как сериализуемую пару «класс/метод».
+     * 2) Не использовать замыкание внутри импорта в очереди.
+     */
     public function registerEvents(): array
     {
         return [
@@ -147,6 +213,14 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         ];
     }
 
+    /**
+     * Опубликовать доменное событие завершения импорта кросс-групп.
+     *
+     * Шаги:
+     * 1) Получить импорт из события Laravel Excel и проверить его контекст.
+     * 2) Взять пользователя, operation_id и ключ кеша ошибок.
+     * 3) Отправить EngineCrossImportCompleted.
+     */
     public static function afterImport(AfterImport $event): void
     {
         /** @var EngineCrossImport $import */
@@ -160,11 +234,25 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         ));
     }
 
+    /**
+     * Вернуть номер первой строки данных импорта кросс-групп.
+     *
+     * Шаги:
+     * 1) Не пропускать строки, потому что файл ожидается без заголовка.
+     * 2) Начать чтение с первой строки.
+     */
     public function startRow(): int
     {
         return 1;
     }
 
+    /**
+     * Ограничить импорт первым листом файла кросс-групп.
+     *
+     * Шаги:
+     * 1) Вернуть текущий объект как обработчик нулевого листа.
+     * 2) Игнорировать остальные листы книги.
+     */
     public function sheets(): array
     {
         return [
@@ -172,11 +260,25 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
         ];
     }
 
+    /**
+     * Получить сервис назначения группы.
+     *
+     * Шаги:
+     * 1) Вернуть уже переданный сервис, если импорт не проходил через очередь.
+     * 2) Иначе резолвить сервис из контейнера во время обработки.
+     */
     private function service(): AssignEngineGroupServiceInterface
     {
         return $this->service ??= app(AssignEngineGroupServiceInterface::class);
     }
 
+    /**
+     * Получить обязательный контекст импорта кросс-групп.
+     *
+     * Шаги:
+     * 1) Вернуть сохранённый контекст запуска.
+     * 2) Выбросить LogicException, если import пытаются завершить без инициализации.
+     */
     private function context(): ImportRunContextDTO
     {
         return $this->context ?? throw new LogicException('Engine cross import context is not initialized.');

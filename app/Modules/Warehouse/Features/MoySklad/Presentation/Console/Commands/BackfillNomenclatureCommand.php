@@ -19,6 +19,11 @@ final class BackfillNomenclatureCommand extends Command
 
     /**
      * Запускает backfill синхронно или ставит его в очередь по опции `--queue`.
+     * Шаги:
+     * 1) Прочитать и нормализовать chunk из console option.
+     * 2) Если указан --queue, поставить backfill job через dispatcher и завершить команду.
+     * 3) Иначе синхронно вызвать NomenclatureBackfillService::execute().
+     * 4) Напечатать console output и вернуть SUCCESS.
      */
     public function handle(NomenclatureBackfillService $service, NomenclatureSyncDispatcherInterface $dispatcher): int
     {

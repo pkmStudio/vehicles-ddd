@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Models;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\BrakeSystemTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\DriveTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\GearTypeEnum;
@@ -21,6 +22,8 @@ class Modification extends AbstractModel
         'engine_type' => EngineTypeEnum::class,
         'gear_type' => GearTypeEnum::class,
         'drive_type' => DriveTypeEnum::class,
+        'provider' => ProviderEnum::class,
+        'allow_change_fields' => 'array',
     ];
 
     public $timestamps = false;

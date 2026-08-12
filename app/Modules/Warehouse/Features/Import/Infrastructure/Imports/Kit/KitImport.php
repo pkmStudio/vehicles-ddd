@@ -43,6 +43,9 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
 
     /**
      * Получает построчный сервис импорта наборов.
+     * Шаги:
+     * 1) Сохранить Application-сервис, который валидирует строку набора и пишет Kit.
+     * 2) Оставить user/operation context пустым до вызова import().
      */
     public function __construct(
         ImportKitFromRowServiceInterface $service,
@@ -51,6 +54,12 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
     }
 
     /**
+     * Сериализует queued import adapter без service dependency graph.
+     * Шаги:
+     * 1) Сохранить userId и operationId текущего import run.
+     * 2) Сохранить cache/lock keys failure store-а.
+     * 3) Не сериализовать ImportKitFromRowServiceInterface.
+     *
      * @return array<string, mixed>
      */
     public function __serialize(): array
@@ -64,6 +73,12 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
     }
 
     /**
+     * Восстанавливает queued import adapter после Laravel queue unserialize.
+     * Шаги:
+     * 1) Восстановить scalar context только если значения имеют ожидаемый тип.
+     * 2) Сбросить service, чтобы он был заново получен из container внутри worker-а.
+     * 3) Вернуть cache/lock keys для накопленных row failures.
+     *
      * @param  array<string, mixed>  $data
      */
     public function __unserialize(array $data): void
@@ -113,6 +128,12 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
 
     /**
      * Этот метод обрабатывает один чанк строк, ошибки — в cache через onFailure.
+     * Шаги:
+     * 1) Получить Application-сервис через lazy service().
+     * 2) Для каждой Excel-строки привести row к plain array.
+     * 3) Передать строку в импорт набора; сервис сам резолвит состав по артикулам.
+     * 4) Превратить WarehouseImportException в Failure с Excel row number.
+     * 5) Сохранить failure в cache и продолжить обработку chunk.
      */
     public function collection(Collection $collection): void
     {
@@ -138,6 +159,8 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
 
     /**
      * Возвращает номер первой строки с данными, пропуская заголовок.
+     * Шаги:
+     * 1) Вернуть 2, потому что первая строка Excel-листа содержит headings.
      */
     public function startRow(): int
     {
@@ -146,6 +169,8 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
 
     /**
      * Возвращает размер чанка чтения наборов.
+     * Шаги:
+     * 1) Вернуть 100, потому что строка набора резолвит состав и тяжелее простой справочной строки.
      */
     public function chunkSize(): int
     {
@@ -154,6 +179,9 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
 
     /**
      * Ограничивает импорт первым листом файла — второй лист "Справочники" не относится к данным.
+     * Шаги:
+     * 1) Связать sheet index 0 с текущим KitImport adapter-ом.
+     * 2) Не возвращать adapters для служебного листа справочников.
      *
      * @return array<int, ToCollection>
      */
@@ -165,6 +193,11 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
     }
 
     /**
+     * Регистрирует serializable Laravel Excel event handlers.
+     * Шаги:
+     * 1) Привязать AfterImport к static callable.
+     * 2) Избежать closure, чтобы queued import оставался сериализуемым.
+     *
      * @return array<class-string, callable>
      */
     public function registerEvents(): array
@@ -176,6 +209,10 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
 
     /**
      * Диспатчит событие завершения импорта после обработки queued chunks.
+     * Шаги:
+     * 1) Получить KitImport instance из AfterImport concernable.
+     * 2) Взять userId/cacheKey/operationId из restored import context.
+     * 3) Опубликовать KitImportCompleted для отчетности и notification flow.
      */
     public static function afterImport(AfterImport $event): void
     {
@@ -189,6 +226,13 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
         ));
     }
 
+    /**
+     * Возвращает Application-сервис импорта наборов в текущем worker-е.
+     * Шаги:
+     * 1) Использовать injected service до сериализации.
+     * 2) После unserialize лениво получить ImportKitFromRowServiceInterface из container.
+     * 3) Закешировать resolved service на время обработки chunk.
+     */
     private function service(): ImportKitFromRowServiceInterface
     {
         return $this->service ??= app(ImportKitFromRowServiceInterface::class);

@@ -15,10 +15,25 @@ use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData as Ki
 
 final readonly class KitPropertiesClient implements KitPropertiesClientInterface
 {
+    /**
+     * Получает owner-service KitProperties для расчета свойств комплекта.
+     *
+     * Шаги:
+     * 1) Принять KitPropertiesServiceInterface из owner feature.
+     * 2) Использовать service после перевода Catalog DTO в KitProperties DTO.
+     */
     public function __construct(
         private KitPropertiesServiceInterface $kitProperties,
     ) {}
 
+    /**
+     * Собирает свойства комплекта из набора номенклатур.
+     *
+     * Шаги:
+     * 1) Принять номенклатуры, входящие в комплект.
+     * 2) Передать состав в сервис свойств комплектов.
+     * 3) Вернуть рассчитанный DTO свойств Warehouse-комплекта.
+     */
     public function build(array $nomenclatures): KitPropertiesDTO
     {
         $toKitPropertiesNomenclature = fn (NomenclatureData $nomenclature): KitPropertiesNomenclatureData => $this->toKitPropertiesNomenclature($nomenclature);

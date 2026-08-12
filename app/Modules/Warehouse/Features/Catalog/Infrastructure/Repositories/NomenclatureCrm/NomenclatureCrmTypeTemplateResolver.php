@@ -7,7 +7,7 @@ namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\Nom
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
 
 /**
- * Resolves CRM nomenclature details template from SQL type projection.
+ * Разрешает CRM details template номенклатуры из SQL-проекции типа.
  */
 final readonly class NomenclatureCrmTypeTemplateResolver
 {
@@ -51,11 +51,17 @@ final readonly class NomenclatureCrmTypeTemplateResolver
         17 => NomenclatureDetailTemplateEnum::POLY_V_BELT,
     ];
 
+    /**
+     * Возвращает строковое значение шаблона типа номенклатуры.
+     */
     public function value(object $type): ?string
     {
         return $this->resolve($type)?->value;
     }
 
+    /**
+     * Разрешает enum шаблона деталей для типа номенклатуры.
+     */
     public function resolve(object $type): ?NomenclatureDetailTemplateEnum
     {
         $char = isset($type->type_char)

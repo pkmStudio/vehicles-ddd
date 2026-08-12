@@ -14,11 +14,11 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm\KitCrmListItemDTO
 final readonly class ShowKitForCrmUseCase implements ShowKitForCrmUseCaseInterface
 {
     /**
-     * Инициализирует repository port комплектов для CRM detail-сценария.
+     * Инициализирует порт репозитория комплектов для CRM detail-сценария.
      *
      * Шаги:
-     * 1. Получает repository port owner-слоя Catalog.
-     * 2. Сохраняет port для lookup по внутреннему id.
+     * 1. Получает порт репозитория owner-слоя Catalog.
+     * 2. Сохраняет port для поиск по внутреннему id.
      */
     public function __construct(
         private KitCrmRepositoryInterface $kits,
@@ -29,7 +29,7 @@ final readonly class ShowKitForCrmUseCase implements ShowKitForCrmUseCaseInterfa
      *
      * Шаги:
      * 1. Принимает внутренний id комплекта.
-     * 2. Делегирует lookup repository port.
+     * 2. Делегирует поиск порт репозитория.
      * 3. Возвращает DTO или `null`, если запись не найдена.
      */
     public function execute(int $id): ?KitCrmListItemDTO

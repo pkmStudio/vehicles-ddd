@@ -25,6 +25,10 @@ final readonly class CreateBrandUseCase implements CreateBrandUseCaseInterface
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repository проверки уникальности бренда.
+     * 2) Принять command записи, idempotency cache и result service.
      */
     public function __construct(
         private BrandRepositoryInterface $brands,

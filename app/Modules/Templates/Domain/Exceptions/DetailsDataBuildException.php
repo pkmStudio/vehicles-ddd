@@ -11,11 +11,17 @@ use DomainException;
  */
 class DetailsDataBuildException extends DomainException
 {
+    /**
+     * Создает ошибку обязательного поля details-шаблона.
+     */
     public static function requiredField(string $field): self
     {
         return new self("Поле «{$field}» обязательно для заполнения.");
     }
 
+    /**
+     * Создает ошибку неизвестного значения справочника details-шаблона.
+     */
     public static function unknownDictionaryValue(string $dictionary, mixed $value): self
     {
         return UnknownEnumValueException::label($dictionary, $value);

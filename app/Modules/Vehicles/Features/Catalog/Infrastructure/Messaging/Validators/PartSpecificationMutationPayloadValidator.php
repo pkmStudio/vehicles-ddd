@@ -17,24 +17,28 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
 /**
- * Собирает Laravel-валидатор payload мутации спецификаций деталей.
+ * Собирает Laravel-валидатор сообщения мутации спецификаций деталей.
  */
 final readonly class PartSpecificationMutationPayloadValidator
 {
     /**
      * Инициализирует зависимости класса через контейнер.
+     *
+     * Шаги:
+     * - Сохранить фабрику Laravel-валидаторов для сборки правил сообщения.
      */
     public function __construct(
         private ValidatorFactory $validator,
     ) {}
 
     /**
-     * Создает валидатор payload мутации спецификаций деталей.
+     * Создаёт валидатор сообщения мутации спецификаций деталей.
      *
      * Шаги:
-     * 1) Определить запрошенную операцию.
-     * 2) Собрать базовые и операционные правила.
-     * 3) Вернуть Laravel Validator для Handler.
+     * 1) Определить запрошенную операцию и тип владельца спецификации.
+     * 2) Собрать базовые правила и обязательность id по типу операции.
+     * 3) Добавить правила спецификации и владельца только для создания и обновления.
+     * 4) Вернуть Laravel Validator для обработчика сообщения.
      *
      * @param  array<string, mixed>  $data
      */
@@ -80,6 +84,10 @@ final readonly class PartSpecificationMutationPayloadValidator
     /**
      * Возвращает правила общих полей спеки.
      *
+     * Шаги:
+     * - Описать обязательные поля owner, template и details.
+     * - Добавить nullable-поля связанного значения характеристики и текстов.
+     *
      * @return array<string, array<int, mixed>>
      */
     private function specificationRules(): array
@@ -97,7 +105,12 @@ final readonly class PartSpecificationMutationPayloadValidator
     }
 
     /**
-     * Возвращает правила payload автомобиля-владельца.
+     * Возвращает правила вложенного автомобиля-владельца.
+     *
+     * Шаги:
+     * - Разрешить отсутствие вложенного автомобиля при наличии только external_id.
+     * - Описать обязательные поля автомобиля, когда вложенный снимок передан.
+     * - Ограничить enum-поля автомобиля допустимыми значениями.
      *
      * @return array<string, array<int, mixed>>
      */
@@ -123,7 +136,12 @@ final readonly class PartSpecificationMutationPayloadValidator
     }
 
     /**
-     * Возвращает правила payload двигателя-владельца.
+     * Возвращает правила вложенного двигателя-владельца.
+     *
+     * Шаги:
+     * - Разрешить отсутствие вложенного двигателя при наличии только external_id.
+     * - Описать числовые, строковые и enum-поля двигателя.
+     * - Ограничить тип топлива допустимыми значениями.
      *
      * @return array<string, array<int, mixed>>
      */
@@ -148,6 +166,10 @@ final readonly class PartSpecificationMutationPayloadValidator
     /**
      * Возвращает список строковых значений поддерживаемых операций.
      *
+     * Шаги:
+     * - Пройти по cases enum операций мутации.
+     * - Вернуть их строковые значения для Rule::in().
+     *
      * @return list<string>
      */
     private function operations(): array
@@ -162,6 +184,10 @@ final readonly class PartSpecificationMutationPayloadValidator
 
     /**
      * Возвращает строковые значения enum cases для правил валидации.
+     *
+     * Шаги:
+     * - Пройти по cases переданного enum.
+     * - Вернуть значения cases для Rule::in().
      *
      * @param  array<int, object>  $cases
      * @return list<string>

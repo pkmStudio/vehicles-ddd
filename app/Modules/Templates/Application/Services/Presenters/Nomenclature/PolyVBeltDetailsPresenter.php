@@ -14,17 +14,34 @@ final readonly class PolyVBeltDetailsPresenter extends AbstractDetailsPresenter
 {
     use RendersNomenclatureMetrics;
 
+    /**
+     * Этот метод возвращает колонки поликлинового ремня.
+     * Шаги:
+     * 1) Возвращает только общий metrics-блок, потому что других details-полей нет.
+     */
     public function headings(): array
     {
         return $this->metricsHeadings();
     }
 
-    /** @return class-string<PolyVBeltDetailsData> */
+    /**
+     * Этот метод указывает Data-класс presenter-а поликлинового ремня.
+     * Шаги:
+     * 1) Возвращает class-string `PolyVBeltDetailsData`.
+     *
+     * @return class-string<PolyVBeltDetailsData>
+     */
     protected function dataClass(): string
     {
         return PolyVBeltDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит details поликлинового ремня в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет тип `PolyVBeltDetailsData`.
+     * 2) Возвращает ячейки общего metrics-блока.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, PolyVBeltDetailsData::class);

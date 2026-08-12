@@ -11,6 +11,9 @@ use App\Modules\Vehicles\Features\Import\Domain\Enums\ImportCompletionStatusEnum
  */
 final readonly class ImportCompletionNotificationDTO
 {
+    /**
+     * Фиксирует payload уведомления о завершении import run.
+     */
     public function __construct(
         public int $userId,
         public ImportCompletionStatusEnum $status,

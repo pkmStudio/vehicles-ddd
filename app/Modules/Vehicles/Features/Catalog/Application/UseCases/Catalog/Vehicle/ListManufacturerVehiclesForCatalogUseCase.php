@@ -16,12 +16,27 @@ use Illuminate\Support\Collection;
  */
 final readonly class ListManufacturerVehiclesForCatalogUseCase implements ListManufacturerVehiclesForCatalogUseCaseInterface
 {
+    /**
+     * Подключает репозитории производителя и его ТС.
+     *
+     * Шаги:
+     * - Сохранить зависимости для проверки производителя и чтения разрешённых ТС.
+     */
     public function __construct(
         private ManufacturerRepositoryInterface $manufacturers,
         private VehicleRepositoryInterface $vehicles,
     ) {}
 
-    /** @return Collection<int, CatalogVehicleDTO>|null */
+    /**
+     * Возвращает разрешённые ТС производителя или null для неизвестного производителя.
+     *
+     * Шаги:
+     * - Проверить существование производителя по catalog id.
+     * - Вернуть null, если производитель не найден.
+     * - Прочитать разрешённые ТС производителя и преобразовать их в DTO публичного каталога.
+     *
+     * @return Collection<int, CatalogVehicleDTO>|null
+     */
     public function execute(int $manufacturerId): ?Collection
     {
         if ($this->manufacturers->findById($manufacturerId) === null) {

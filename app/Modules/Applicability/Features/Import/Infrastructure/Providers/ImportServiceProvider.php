@@ -71,6 +71,13 @@ final class ImportServiceProvider extends ServiceProvider
         FailuresExportInterface::class => FailuresExport::class,
     ];
 
+    /**
+     * Регистрирует bindings фичи Applicability Import.
+     *
+     * Шаги:
+     * 1. Получает сгруппированные массивы bindings по типам ports.
+     * 2. Регистрирует каждый interface-to-implementation mapping в Laravel container.
+     */
     public function register(): void
     {
         foreach ($this->bindings() as $bindings) {
@@ -82,6 +89,10 @@ final class ImportServiceProvider extends ServiceProvider
 
     /**
      * Возвращает сгруппированные DI bindings фичи Import.
+     *
+     * Шаги:
+     * 1. Собирает bindings clients, commands, imports, services, factories, use cases, notifications и reporting.
+     * 2. Возвращает группы единым списком для `register()`.
      */
     private function bindings(): array
     {

@@ -16,6 +16,13 @@ final readonly class CvJointDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает details ШРУС из Excel-строки.
+     * Шаги:
+     * 1) Читает резьбу, две длины, ABS, диаметр уплотнения и количество шлицов.
+     * 2) Читает общий блок габаритов номенклатуры.
+     * 3) Возвращает `CvJointDetailsData` с сохранением исходных типов полей.
+     */
     public function build(DetailsRowCursor $cursor): CvJointDetailsData
     {
         return new CvJointDetailsData(

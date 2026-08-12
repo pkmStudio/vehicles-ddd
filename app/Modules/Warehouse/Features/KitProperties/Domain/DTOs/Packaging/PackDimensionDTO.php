@@ -6,6 +6,9 @@ namespace App\Modules\Warehouse\Features\KitProperties\Domain\DTOs\Packaging;
 
 final readonly class PackDimensionDTO
 {
+    /**
+     * Описывает упаковочный размер, подобранный соседней Packaging-фичей для расчёта свойств набора.
+     */
     public function __construct(
         public string $name,
         public int $weight,

@@ -7,10 +7,18 @@ namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\Nom
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmSearchItemDTO;
 
 /**
- * Builds CRM search item DTO from SQL nomenclature projection.
+ * Собирает CRM search item DTO из SQL-проекции номенклатуры.
  */
 final readonly class NomenclatureCrmSearchItemDTOFactory
 {
+    /**
+     * Собирает search item DTO для autocomplete номенклатур.
+     *
+     * Шаги:
+     * 1) Считать id, part_number, brand_name и name из search projection.
+     * 2) Собрать человекочитаемый label для autocomplete.
+     * 3) Вернуть NomenclatureCrmSearchItemDTO.
+     */
     public function make(object $nomenclature): NomenclatureCrmSearchItemDTO
     {
         return new NomenclatureCrmSearchItemDTO(

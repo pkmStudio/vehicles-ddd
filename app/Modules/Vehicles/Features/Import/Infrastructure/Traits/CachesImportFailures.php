@@ -18,6 +18,13 @@ trait CachesImportFailures
     private string $lockKey;
 
     /**
+     * Сохранить validation failures queued Excel import-а в cache.
+     *
+     * Шаги:
+     * 1) Преобразовать Maatwebsite failures в serializable arrays.
+     * 2) Взять lock import run, чтобы параллельные chunks не затирали друг друга.
+     * 3) Добавить новые failures к существующему cache payload с коротким TTL.
+     *
      * @throws LockTimeoutException
      */
     public function onFailure(Failure ...$failures): void

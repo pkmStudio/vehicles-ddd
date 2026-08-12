@@ -6,6 +6,9 @@ namespace App\Modules\Applicability\Features\Export\Domain\DTOs;
 
 final readonly class VehicleKitApplicabilityRowDTO
 {
+    /**
+     * Описывает одну строку export-а применяемости комплекта к автомобилю.
+     */
     public function __construct(
         public int $kitId,
         public string $partNumbers,

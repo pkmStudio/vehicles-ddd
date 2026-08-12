@@ -16,6 +16,11 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
 {
     /**
      * Принимает operationId только один раз в пределах cache TTL.
+     * Шаги:
+     * 1) Собрать cache key идемпотентности по operationId.
+     * 2) Попытаться атомарно добавить флаг через Cache::add().
+     * 3) Использовать TTL внешнего import workflow.
+     * 4) Вернуть true только для первого принятого operationId.
      */
     public function accept(string $operationId): bool
     {
@@ -28,6 +33,9 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
 
     /**
      * Снимает флаг принятого operationId после неуспешного запуска.
+     * Шаги:
+     * 1) Собрать accepted cache key по operationId.
+     * 2) Удалить флаг, чтобы broker retry мог повторить запуск.
      */
     public function forgetAccepted(string $operationId): void
     {
@@ -36,6 +44,10 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
 
     /**
      * Запоминает disk+path исходного файла, чтобы удалить его после завершения импорта.
+     * Шаги:
+     * 1) Собрать cleanup cache key по operationId request-а.
+     * 2) Сохранить только disk и path исходного файла.
+     * 3) Использовать тот же TTL, что и для accepted guard.
      */
     public function rememberCleanup(ExternalImportFileRequestDTO $request): void
     {
@@ -48,6 +60,12 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
 
     /**
      * Забирает и удаляет из cache запомненное задание на очистку файла для operationId, если оно есть.
+     * Шаги:
+     * 1) Собрать cleanup cache key по operationId.
+     * 2) Прочитать значение из cache.
+     * 3) Сразу удалить cache entry, чтобы очистка была одноразовой.
+     * 4) Вернуть null для отсутствующего или неполного payload.
+     * 5) Собрать ExternalImportFileCleanupDTO из disk/path.
      */
     public function pullCleanup(string $operationId): ?ExternalImportFileCleanupDTO
     {
@@ -67,6 +85,9 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
 
     /**
      * Собирает cache-ключ идемпотентности внешнего импорта.
+     * Шаги:
+     * 1) Взять key pattern из warehouse.import.external config.
+     * 2) Подставить operationId в configured pattern.
      */
     private function acceptedKey(string $operationId): string
     {
@@ -80,6 +101,9 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
 
     /**
      * Собирает cache-ключ отложенной очистки исходного файла.
+     * Шаги:
+     * 1) Взять cleanup key pattern из warehouse.import.external config.
+     * 2) Подставить operationId в configured pattern.
      */
     private function cleanupKey(string $operationId): string
     {
@@ -93,6 +117,9 @@ final readonly class ExternalImportCacheService implements ExternalImportCacheSe
 
     /**
      * Возвращает TTL технических cache-записей внешнего импорта.
+     * Шаги:
+     * 1) Прочитать warehouse.import.external.cache.ttl_seconds из config.
+     * 2) Привести значение к int для Laravel cache API.
      */
     private function ttlSeconds(): int
     {

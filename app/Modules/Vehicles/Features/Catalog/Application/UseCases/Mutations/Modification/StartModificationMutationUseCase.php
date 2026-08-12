@@ -21,7 +21,12 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationE
 final readonly class StartModificationMutationUseCase implements StartModificationMutationUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает use cases для трех поддерживаемых операций modification mutation.
+     *
+     * Шаги:
+     * 1) Принять create-сценарий модификации.
+     * 2) Принять update-сценарий модификации.
+     * 3) Принять delete-сценарий модификации.
      */
     public function __construct(
         private CreateModificationUseCaseInterface $createModification,
@@ -90,7 +95,11 @@ final readonly class StartModificationMutationUseCase implements StartModificati
     }
 
     /**
-     * Собирает DTO конкретной операции модификаций из общего DTO или payload.
+     * Извлекает create request из общего DTO modification mutation.
+     *
+     * Шаги:
+     * 1) Прочитать typed request, уже собранный boundary factory.
+     * 2) Вернуть его как CreateModificationRequestDTO для create use case.
      */
     private function createRequest(ModificationMutationRequestDTO $request): CreateModificationRequestDTO
     {
@@ -98,7 +107,11 @@ final readonly class StartModificationMutationUseCase implements StartModificati
     }
 
     /**
-     * Собирает DTO конкретной операции модификаций из общего DTO или payload.
+     * Извлекает update request из общего DTO modification mutation.
+     *
+     * Шаги:
+     * 1) Прочитать typed request, уже собранный boundary factory.
+     * 2) Вернуть его как UpdateModificationRequestDTO для update use case.
      */
     private function updateRequest(ModificationMutationRequestDTO $request): UpdateModificationRequestDTO
     {

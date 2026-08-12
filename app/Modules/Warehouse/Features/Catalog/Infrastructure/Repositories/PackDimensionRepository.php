@@ -15,6 +15,11 @@ final readonly class PackDimensionRepository implements PackDimensionRepositoryI
 {
     /**
      * Возвращает упаковочный размер по id или null.
+     *
+     * Шаги:
+     * 1) Собрать Eloquent query по входному признаку.
+     * 2) Получить первую подходящую запись каталога.
+     * 3) Преобразовать найденную модель в Data или вернуть null.
      */
     public function findById(int $id): ?PackDimensionData
     {
@@ -24,5 +29,4 @@ final readonly class PackDimensionRepository implements PackDimensionRepositoryI
 
         return PackDimensionData::optional($packDimension);
     }
-
 }

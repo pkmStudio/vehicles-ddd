@@ -9,7 +9,11 @@ use Laravel\Horizon\HorizonApplicationServiceProvider;
 class HorizonServiceProvider extends HorizonApplicationServiceProvider
 {
     /**
-     * Bootstrap any application services.
+     * Загружает Horizon application services и хуки notification routing.
+     *
+     * Шаги:
+     * - Выполнить bootstrap базового Horizon service provider.
+     * - Оставить notification routing disabled до явной настройки каналов.
      */
     public function boot(): void
     {
@@ -21,9 +25,14 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
     }
 
     /**
-     * Register the Horizon gate.
+     * Регистрирует Horizon gate для non-local окружений.
      *
      * This gate determines who can access Horizon in non-local environments.
+     *
+     * Шаги:
+     * - Зарегистрировать Gate ability viewHorizon.
+     * - Проверить email authenticated user against allow-list.
+     * - Вернуть false для anonymous user и пустого allow-list.
      */
     protected function gate(): void
     {

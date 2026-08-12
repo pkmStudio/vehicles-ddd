@@ -50,6 +50,13 @@ final class ExportServiceProvider extends ServiceProvider
         ExportNotificationServiceInterface::class => RabbitMqExportNotificationService::class,
     ];
 
+    /**
+     * Регистрирует bindings фичи Applicability Export.
+     *
+     * Шаги:
+     * 1. Получает сгруппированные массивы bindings по типам ports.
+     * 2. Регистрирует каждый interface-to-implementation mapping в Laravel container.
+     */
     public function register(): void
     {
         foreach ($this->bindings() as $bindings) {
@@ -61,6 +68,10 @@ final class ExportServiceProvider extends ServiceProvider
 
     /**
      * Возвращает сгруппированные DI bindings фичи Export.
+     *
+     * Шаги:
+     * 1. Собирает bindings exports, repositories, services, factories, use cases и notifications.
+     * 2. Возвращает группы единым списком для `register()`.
      */
     private function bindings(): array
     {

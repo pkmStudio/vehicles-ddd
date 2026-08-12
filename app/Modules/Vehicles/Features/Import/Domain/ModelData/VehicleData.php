@@ -15,6 +15,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class VehicleData extends Data
 {
+    /**
+     * Фиксирует данные vehicle после нормализации import row.
+     */
     public function __construct(
         public readonly int $msId,
         public readonly int $mfaId,

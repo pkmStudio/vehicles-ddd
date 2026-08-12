@@ -31,6 +31,15 @@ interface ModificationRepositoryInterface
     public function findByModIdAndType(int $modId, string $type): ?ModificationData;
 
     /**
+     * Возвращает следующий локальный отрицательный mod_id для модификации каталога.
+     *
+     * Шаги:
+     * 1) Найти минимальный текущий mod_id в catalog storage.
+     * 2) Вернуть следующий отрицательный id для catalog-owned модификации.
+     */
+    public function nextOwnModId(): int;
+
+    /**
      * Возвращает модификации ТС.
      *
      * Шаги:

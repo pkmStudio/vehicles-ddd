@@ -14,12 +14,24 @@ use Illuminate\Validation\Rule;
  */
 final readonly class ImportFileRequestedPayloadValidator
 {
+    /**
+     * Получить Laravel validator factory.
+     *
+     * Шаги:
+     * 1) Принять validator factory из container.
+     * 2) Сохранить ее для создания validator instance на каждый payload.
+     */
     public function __construct(
         private ValidatorFactory $validator,
     ) {}
 
     /**
      * Создать Laravel validator для полезной нагрузки события.
+     *
+     * Шаги:
+     * 1) Описать обязательные поля внешнего import request.
+     * 2) Ограничить import_type поддерживаемыми enum-значениями.
+     * 3) Проверить disk/path ограничения boundary payload.
      *
      * @param  array<string, mixed>  $data
      */
@@ -37,6 +49,10 @@ final readonly class ImportFileRequestedPayloadValidator
 
     /**
      * Вернуть допустимые значения типов внешнего импорта.
+     *
+     * Шаги:
+     * 1) Взять все cases ExternalImportTypeEnum.
+     * 2) Преобразовать каждый case в строковое wire value.
      *
      * @return list<string>
      */

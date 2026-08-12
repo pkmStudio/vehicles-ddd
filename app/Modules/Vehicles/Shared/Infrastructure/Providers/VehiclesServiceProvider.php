@@ -14,11 +14,25 @@ use Illuminate\Support\ServiceProvider;
  */
 final class VehiclesServiceProvider extends ServiceProvider
 {
+    /**
+     * Регистрирует shared clients Vehicles для потребителей из других модулей.
+     *
+     * Шаги:
+     * 1. Связать applicability-facing port с Catalog application client.
+     * 2. Скрыть read-модель Catalog за shared contract.
+     */
     public function register(): void
     {
         $this->app->bind(VehiclesApplicabilityClientInterface::class, VehiclesApplicabilityClient::class);
     }
 
+    /**
+     * Подключает миграции схемы Vehicles из module-local директории.
+     *
+     * Шаги:
+     * 1. Передать Laravel путь к shared migration files модуля Vehicles.
+     * 2. Дать framework загрузить эти миграции вместе с остальной схемой приложения.
+     */
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');

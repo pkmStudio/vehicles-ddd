@@ -12,7 +12,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Nomenclature
 use Illuminate\Support\Collection;
 
 /**
- * Описывает read-only client CRM сценариев складской номенклатуры.
+ * Описывает read-only клиент CRM сценариев складской номенклатуры.
  */
 interface NomenclatureCrmClientInterface
 {
@@ -21,7 +21,7 @@ interface NomenclatureCrmClientInterface
      *
      * Шаги:
      * 1. Принять read-query DTO.
-     * 2. Вернуть page DTO, совместимый с CRM boundary.
+     * 2. Вернуть DTO страницы, совместимый с CRM границу.
      */
     public function paginate(NomenclatureCrmReadQueryDTO $query): NomenclatureCrmPageDTO;
 
@@ -38,7 +38,7 @@ interface NomenclatureCrmClientInterface
      * Возвращает compact search options номенклатур.
      *
      * Шаги:
-     * 1. Принять строку поиска и limit.
+     * 1. Принять строку поиска и лимит.
      * 2. Вернуть collection search DTO.
      *
      * @return Collection<int, NomenclatureCrmSearchItemDTO>
@@ -49,7 +49,7 @@ interface NomenclatureCrmClientInterface
      * Возвращает type options для CRM-формы номенклатуры.
      *
      * Шаги:
-     * 1. Принять optional search query, selected id и limit.
+     * 1. Принять необязательную строку поиска, выбранный id и лимит.
      * 2. Вернуть collection option DTO.
      *
      * @return Collection<int, NomenclatureCrmOptionDTO>
@@ -60,7 +60,7 @@ interface NomenclatureCrmClientInterface
      * Возвращает brand options для CRM-формы номенклатуры.
      *
      * Шаги:
-     * 1. Принять optional search query, selected id и limit.
+     * 1. Принять необязательную строку поиска, выбранный id и лимит.
      * 2. Вернуть collection option DTO.
      *
      * @return Collection<int, NomenclatureCrmOptionDTO>

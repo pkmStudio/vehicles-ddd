@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Создает таблицу vehicles с иерархией моделей и ссылкой на производителя.
+     */
     public function up(): void
     {
         Schema::create('vehicles', function (Blueprint $table) {
@@ -34,6 +37,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Удаляет таблицу vehicles при откате схемы.
+     */
     public function down(): void
     {
         Schema::dropIfExists('vehicles');

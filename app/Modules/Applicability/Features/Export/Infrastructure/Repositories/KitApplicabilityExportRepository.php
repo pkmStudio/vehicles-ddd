@@ -12,6 +12,16 @@ use Illuminate\Support\Collection;
 
 final readonly class KitApplicabilityExportRepository implements KitApplicabilityExportRepositoryInterface
 {
+    /**
+     * Читает применяемость комплектов к vehicle part specifications для Excel export.
+     *
+     * Шаги:
+     * 1. Отбирает записи `kit_applicabilities` с target type `PART_SPECIFICATION`.
+     * 2. Загружает комплект с номенклатурами и связанную vehicle specification.
+     * 3. Обходит данные chunk-ами, чтобы не держать весь query result в памяти Eloquent.
+     * 4. Пропускает неполные связи, которые нельзя корректно вывести в export.
+     * 5. Собирает `VehicleKitApplicabilityRowDTO` с kit, vehicle и generation fields.
+     */
     public function vehicleRows(): Collection
     {
         $rows = collect();

@@ -10,16 +10,28 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
- * Builds CRM page DTO from list item collection and paginator.
+ * Собирает CRM DTO страницы из коллекции list items и paginator.
  */
 final readonly class NomenclatureCrmPageDTOFactory
 {
+    /**
+     * Получает factory метаданных пагинации.
+     *
+     * Шаги:
+     * 1) Принять NomenclatureCrmPaginationMetaDTOFactory из DI container.
+     * 2) Использовать factory для meta блока CRM response.
+     */
     public function __construct(
         private NomenclatureCrmPaginationMetaDTOFactory $metaFactory,
     ) {}
 
     /**
      * @param  Collection<int, NomenclatureCrmListItemDTO>  $items
+     *
+     * Шаги:
+     * 1) Принять элементы текущей страницы и paginator.
+     * 2) Собрать DTO метаданных из paginator.
+     * 3) Вернуть DTO страницы с data и meta для CRM-ответа.
      */
     public function make(Collection $items, LengthAwarePaginator $paginator): NomenclatureCrmPageDTO
     {

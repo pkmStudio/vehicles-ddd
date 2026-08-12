@@ -31,6 +31,13 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
 
     private ?TemplatesClientInterface $templates = null;
 
+    /**
+     * Получить ключи отчёта ошибок для листа свечей зажигания.
+     *
+     * Шаги:
+     * 1) Принять ключ списка ошибок и ключ блокировки от многостраничного адаптера.
+     * 2) Сохранить их в trait, чтобы ошибки всех листов попадали в один отчёт запуска.
+     */
     public function __construct(
         string $cacheKey,
         string $lockKey,
@@ -40,6 +47,13 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
     }
 
     /**
+     * Подготовить сериализуемое состояние листа свечей для очереди.
+     *
+     * Шаги:
+     * 1) Сохранить только ключ списка ошибок.
+     * 2) Сохранить только ключ блокировки списка ошибок.
+     * 3) Не сериализовать сервисы и клиент Templates.
+     *
      * @return array<string, mixed>
      */
     public function __serialize(): array
@@ -51,6 +65,13 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
     }
 
     /**
+     * Восстановить состояние листа свечей после очереди.
+     *
+     * Шаги:
+     * 1) Вернуть ключ списка ошибок из сериализованных данных.
+     * 2) Вернуть ключ блокировки списка ошибок.
+     * 3) Сбросить runtime-зависимости для последующего резолва из контейнера.
+     *
      * @param  array<string, mixed>  $data
      */
     public function __unserialize(array $data): void
@@ -62,6 +83,13 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
     }
 
     /**
+     * Обработать пачку строк листа свечей зажигания.
+     *
+     * Шаги:
+     * 1) Пропустить строки без eng_id или без заполненных колонок спецификации.
+     * 2) Собрать details свечей через Templates и сохранить спецификацию двигателя в транзакции.
+     * 3) Записать ошибки в cache-отчёт, если двигатель не найден или details не собираются.
+     *
      * @throws LockTimeoutException
      */
     public function collection(Collection $collection): void
@@ -117,16 +145,37 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
         }
     }
 
+    /**
+     * Вернуть номер первой строки с данными на листе свечей.
+     *
+     * Шаги:
+     * 1) Пропустить строку заголовков Excel.
+     * 2) Начать обработку со второй строки.
+     */
     public function startRow(): int
     {
         return 2;
     }
 
+    /**
+     * Получить сервис сохранения свечей двигателя.
+     *
+     * Шаги:
+     * 1) Резолвить сервис из контейнера во время обработки queued job.
+     * 2) Не хранить dependency graph в сериализованном Excel-адаптере.
+     */
     private function service(): UpsertEngineSparkPlugSpecServiceInterface
     {
         return $this->service ??= app(UpsertEngineSparkPlugSpecServiceInterface::class);
     }
 
+    /**
+     * Получить клиент Templates для сборки details.
+     *
+     * Шаги:
+     * 1) Резолвить клиент из контейнера во время обработки queued job.
+     * 2) Использовать его для сборки typed details свечей из колонок листа.
+     */
     private function templates(): TemplatesClientInterface
     {
         return $this->templates ??= app(TemplatesClientInterface::class);

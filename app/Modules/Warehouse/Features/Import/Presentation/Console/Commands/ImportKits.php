@@ -22,16 +22,37 @@ final class ImportKits extends RequestLocalImportCommand
 
     protected $description = 'Опубликовать RabbitMQ-запрос импорта Warehouse-наборов из локального Storage (файл не удаляется после импорта)';
 
+    /**
+     * Возвращает имя события запроса импорта наборов.
+     *
+     * Шаги:
+     * 1) Выбрать wire event для Warehouse Kit import.
+     * 2) Передать имя события базовой команде публикации.
+     */
     protected function eventName(): string
     {
         return 'WAREHOUSE_KIT_IMPORT_FILE_REQUESTED';
     }
 
+    /**
+     * Возвращает routing key запроса импорта наборов.
+     *
+     * Шаги:
+     * 1) Выбрать routing key bindings для kit import.
+     * 2) Передать routing key publisher'у через базовую команду.
+     */
     protected function routingKey(): string
     {
         return 'crm.warehouse.kits.import';
     }
 
+    /**
+     * Возвращает тип импорта наборов.
+     *
+     * Шаги:
+     * 1) Взять wire-значение ImportTypeEnum::Kit.
+     * 2) Передать его handler'у для выбора KitImport adapter.
+     */
     protected function importType(): string
     {
         return ImportTypeEnum::Kit->value;

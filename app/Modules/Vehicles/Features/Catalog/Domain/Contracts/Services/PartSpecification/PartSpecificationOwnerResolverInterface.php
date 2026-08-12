@@ -14,6 +14,11 @@ interface PartSpecificationOwnerResolverInterface
 {
     /**
      * Разрешает владельца спеки во внутренний id записи.
+     *
+     * Шаги:
+     * 1) Найти owner record по внешнему id и partable type.
+     * 2) Создать или обновить owner из payload, если конкретная реализация это поддерживает.
+     * 3) Вернуть resolved owner или reject reason.
      */
     public function execute(PartSpecificationOwnerDTO $owner): PartSpecificationOwnerResolutionDTO;
 }

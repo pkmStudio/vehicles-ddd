@@ -6,6 +6,9 @@ namespace App\Modules\Warehouse\Features\MoySklad\Domain\DTOs;
 
 final readonly class MoySkladProductPayloadDTO
 {
+    /**
+     * Описывает payload товара МойСклад, собранный из Warehouse-номенклатуры.
+     */
     public function __construct(
         public string $name,
         public string $code,

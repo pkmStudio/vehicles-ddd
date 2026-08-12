@@ -9,6 +9,9 @@ use Spatie\LaravelData\Data;
 
 final class TypeData extends Data
 {
+    /**
+     * Создает снимок типа Warehouse-номенклатуры для расчета.
+     */
     public function __construct(
         public readonly string $name,
         public readonly ?string $char = null,

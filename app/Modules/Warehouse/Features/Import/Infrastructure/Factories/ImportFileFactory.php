@@ -16,6 +16,14 @@ use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportTypeEnum;
  */
 final readonly class ImportFileFactory implements ImportFileFactoryInterface
 {
+    /**
+     * Выбирает конкретный Excel adapter по типу Warehouse-импорта.
+     *
+     * Шаги:
+     * 1) Сопоставить ImportTypeEnum с контрактом конкретного adapter'а.
+     * 2) Получить adapter из Laravel container.
+     * 3) Вернуть его через общий FileImportInterface.
+     */
     public function make(ImportTypeEnum $type): FileImportInterface
     {
         return match ($type) {

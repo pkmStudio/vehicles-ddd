@@ -19,6 +19,12 @@ final readonly class OilFilterDetailsPresenter extends AbstractDetailsPresenter
 {
     use RendersNomenclatureMetrics;
 
+    /**
+     * Этот метод возвращает колонки nomenclature oil-filter шаблона.
+     * Шаги:
+     * 1) Перечисляет исполнение, форму, корпус, father и числовые диаметры.
+     * 2) Добавляет общий metrics-блок.
+     */
     public function headings(): array
     {
         return [
@@ -32,12 +38,25 @@ final readonly class OilFilterDetailsPresenter extends AbstractDetailsPresenter
         ];
     }
 
-    /** @return class-string<OilFilterDetailsData> */
+    /**
+     * Этот метод указывает Data-класс nomenclature oil-filter presenter-а.
+     * Шаги:
+     * 1) Возвращает class-string `OilFilterDetailsData`.
+     *
+     * @return class-string<OilFilterDetailsData>
+     */
     protected function dataClass(): string
     {
         return OilFilterDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит nomenclature oil-filter details в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет тип `OilFilterDetailsData`.
+     * 2) Переводит enum-name поля, boolean корпус и `father` в labels.
+     * 3) Добавляет числовые диаметры и metrics-блок.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, OilFilterDetailsData::class);
@@ -53,7 +72,14 @@ final readonly class OilFilterDetailsPresenter extends AbstractDetailsPresenter
         ];
     }
 
-    /** Симметрично `OilFilterDetailsBuilder::pullFather()` — пробует оба словаря по очереди. */
+    /**
+     * Этот метод переводит `father` масляного фильтра в Excel-label.
+     * Шаги:
+     * 1) Null превращает в пустую Excel-ячейку.
+     * 2) Пробует найти enum-name сначала в словаре резьбы, затем в словаре папы.
+     * 3) Если имя неизвестно обоим словарям — бросает доменную ошибку.
+     * 4) Возвращает value найденного case.
+     */
     private function fatherCell(?string $name): string
     {
         if ($name === null) {

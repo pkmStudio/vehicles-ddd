@@ -24,6 +24,10 @@ final readonly class DeleteKitUseCase implements DeleteKitUseCaseInterface
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repository поиска комплекта и command удаления.
+     * 2) Принять idempotency cache и result service для outbound ответа.
      */
     public function __construct(
         private KitRepositoryInterface $kits,

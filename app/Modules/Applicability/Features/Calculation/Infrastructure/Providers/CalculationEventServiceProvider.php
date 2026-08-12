@@ -11,6 +11,13 @@ use Illuminate\Support\ServiceProvider;
 
 final class CalculationEventServiceProvider extends ServiceProvider
 {
+    /**
+     * Регистрирует in-process listeners calculation-фичи.
+     *
+     * Шаги:
+     * 1. Подписывает факт `KitApplicabilityRecalculated`.
+     * 2. Передает обработку listener-у отчета и notification результата.
+     */
     public function boot(): void
     {
         Event::listen(

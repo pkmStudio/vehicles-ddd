@@ -9,6 +9,9 @@ namespace App\Modules\Templates\Domain\Exceptions;
  */
 final class UnknownEnumValueException extends DetailsDataBuildException
 {
+    /**
+     * Создает ошибку неизвестной подписи enum в human-readable словаре.
+     */
     public static function label(string $dictionary, mixed $value): self
     {
         return new self(sprintf(
@@ -18,6 +21,9 @@ final class UnknownEnumValueException extends DetailsDataBuildException
         ));
     }
 
+    /**
+     * Создает ошибку неизвестного stored enum name при export/render.
+     */
     public static function name(string $dictionary, string $name): self
     {
         return new self(sprintf(

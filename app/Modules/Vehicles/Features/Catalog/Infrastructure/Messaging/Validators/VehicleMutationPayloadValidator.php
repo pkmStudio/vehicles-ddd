@@ -14,18 +14,28 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
 /**
- * Собирает Laravel-валидатор payload мутации автомобилей.
+ * Собирает Laravel-валидатор сообщения мутации автомобилей.
  */
 final readonly class VehicleMutationPayloadValidator
 {
     /**
      * Инициализирует зависимости класса через контейнер.
+     *
+     * Шаги:
+     * - Сохранить фабрику Laravel-валидаторов для сборки правил сообщения.
      */
     public function __construct(
         private ValidatorFactory $validator,
     ) {}
 
     /**
+     * Создаёт валидатор сообщения мутации ТС.
+     *
+     * Шаги:
+     * - Определить операцию из входящих данных.
+     * - Собрать базовые правила пользователя, operation id, операции и ТС.
+     * - Добавить поля ТС только для создания и обновления.
+     *
      * @param  array<string, mixed>  $data
      */
     public function make(array $data): Validator
@@ -70,6 +80,12 @@ final readonly class VehicleMutationPayloadValidator
     }
 
     /**
+     * Возвращает список строковых значений поддерживаемых операций.
+     *
+     * Шаги:
+     * - Пройти по cases enum операций мутации.
+     * - Вернуть их строковые значения для Rule::in().
+     *
      * @return list<string>
      */
     private function operations(): array
@@ -83,6 +99,12 @@ final readonly class VehicleMutationPayloadValidator
     }
 
     /**
+     * Возвращает строковые значения enum cases для правил валидации.
+     *
+     * Шаги:
+     * - Пройти по cases переданного enum.
+     * - Вернуть значения cases для Rule::in().
+     *
      * @param  array<int, object>  $cases
      * @return list<string>
      */

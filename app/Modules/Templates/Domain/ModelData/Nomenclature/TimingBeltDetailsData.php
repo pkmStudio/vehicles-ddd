@@ -17,6 +17,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class TimingBeltDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры ремня ГРМ в nomenclature details template.
+     */
     public function __construct(
         public readonly float $clutchDiscDiameter,
         public readonly NomenclatureMetricsData $metrics,

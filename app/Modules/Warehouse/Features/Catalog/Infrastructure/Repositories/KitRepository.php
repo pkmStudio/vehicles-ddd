@@ -16,6 +16,11 @@ final readonly class KitRepository implements KitRepositoryInterface
 {
     /**
      * Возвращает набор по внутреннему идентификатору или null.
+     *
+     * Шаги:
+     * 1) Собрать Eloquent query по входному признаку.
+     * 2) Получить первую подходящую запись каталога.
+     * 3) Преобразовать найденную модель в Data или вернуть null.
      */
     public function findById(int $id): ?KitData
     {
@@ -24,6 +29,11 @@ final readonly class KitRepository implements KitRepositoryInterface
 
     /**
      * Возвращает набор по import_hash или null.
+     *
+     * Шаги:
+     * 1) Собрать Eloquent query по входному признаку.
+     * 2) Получить первую подходящую запись каталога.
+     * 3) Преобразовать найденную модель в Data или вернуть null.
      */
     public function findByImportHash(string $importHash): ?KitData
     {
@@ -34,6 +44,11 @@ final readonly class KitRepository implements KitRepositoryInterface
      * Возвращает ids наборов упаковочного размера.
      *
      * @return Collection<int, int>
+     *
+     * Шаги:
+     * 1) Собрать Eloquent query по внешнему ключу связи.
+     * 2) Выбрать только идентификаторы подходящих записей.
+     * 3) Вернуть Support Collection с id для каскадной операции.
      */
     public function findIdsByPackDimensionId(int $packDimensionId): Collection
     {

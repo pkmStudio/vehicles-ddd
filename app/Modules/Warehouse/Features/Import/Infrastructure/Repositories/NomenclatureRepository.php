@@ -16,6 +16,11 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
 {
     /**
      * Возвращает номенклатуру по id или null.
+     *
+     * Шаги:
+     * 1) Передать поиск в общий helper по колонке id.
+     * 2) Получить NomenclatureData или null.
+     * 3) Вернуть результат вызывающему сервису импорта.
      */
     public function findById(int $id): ?NomenclatureData
     {
@@ -24,6 +29,11 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
 
     /**
      * Возвращает номенклатуру по артикулу или null.
+     *
+     * Шаги:
+     * 1) Передать поиск в общий helper по колонке part_number.
+     * 2) Получить NomenclatureData или null.
+     * 3) Вернуть результат вызывающему сервису импорта.
      */
     public function findByPartNumber(string $partNumber): ?NomenclatureData
     {
@@ -32,6 +42,11 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
 
     /**
      * Возвращает найденные номенклатуры (с загруженным типом), индексированные по part_number.
+     *
+     * Шаги:
+     * 1) Прочитать номенклатуры по списку part_number с relation type.
+     * 2) Преобразовать Eloquent collection в Collection<NomenclatureData>.
+     * 3) Переиндексировать результат по partNumber.
      *
      * @param  array<int, string>  $partNumbers
      * @return Collection<string, NomenclatureData>

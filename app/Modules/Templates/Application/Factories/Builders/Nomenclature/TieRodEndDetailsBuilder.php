@@ -16,6 +16,13 @@ final readonly class TieRodEndDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает details наконечника рулевой тяги из Excel-строки.
+     * Шаги:
+     * 1) Читает две резьбы, числовую длину, размер конуса и конусность.
+     * 2) Читает общий блок габаритов.
+     * 3) Возвращает `TieRodEndDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): TieRodEndDetailsData
     {
         return new TieRodEndDetailsData(

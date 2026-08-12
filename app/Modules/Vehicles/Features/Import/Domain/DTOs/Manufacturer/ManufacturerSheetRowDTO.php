@@ -12,6 +12,9 @@ namespace App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer;
  */
 final readonly class ManufacturerSheetRowDTO
 {
+    /**
+     * Фиксирует валидированную строку external manufacturer workbook.
+     */
     public function __construct(
         public int $mfaId,
         public string $name,

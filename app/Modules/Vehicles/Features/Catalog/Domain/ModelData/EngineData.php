@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Domain\ModelData;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;
@@ -31,6 +32,8 @@ final class EngineData extends Data
         public readonly ?int $numberOfValves = null,
         public readonly ?EngineFuelTypeEnum $fuelType = null,
         public readonly ?int $groupId = null,
+        public readonly ProviderEnum $provider = ProviderEnum::TD,
+        public readonly array $allowChangeFields = [],
         public readonly ?int $id = null,
     ) {}
 }

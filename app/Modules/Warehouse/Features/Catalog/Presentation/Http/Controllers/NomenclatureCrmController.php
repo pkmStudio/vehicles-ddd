@@ -19,6 +19,14 @@ final readonly class NomenclatureCrmController
 {
     private const int OPTION_LIMIT = 1000;
 
+    /**
+     * Получает CRM read клиент, query фабрику и presenters форму HTTP-ответа.
+     * Шаги:
+     * 1) Сохранить read клиент Warehouse-номенклатуры.
+     * 2) Сохранить фабрику, которая переводит HTTP query в read DTO.
+     * 3) Сохранить presenter detail/page shape.
+     * 4) Сохранить generic array presenter для option collections.
+     */
     public function __construct(
         private NomenclatureCrmClientInterface $nomenclatures,
         private NomenclatureCrmReadQueryFactory $queryFactory,
@@ -28,6 +36,11 @@ final readonly class NomenclatureCrmController
 
     /**
      * Возвращает постраничный список номенклатуры для CRM.
+     * Шаги:
+     * 1) Собрать NomenclatureCrmReadQueryDTO из HTTP request.
+     * 2) Получить страницу номенклатуры через read клиент.
+     * 3) Преобразовать DTO страницы в wire array через presenter.
+     * 4) Вернуть JSON ответ.
      */
     public function index(Request $request): JsonResponse
     {
@@ -39,6 +52,11 @@ final readonly class NomenclatureCrmController
 
     /**
      * Возвращает detail-снимок номенклатуры для CRM.
+     * Шаги:
+     * 1) Запросить номенклатуру по route id через read клиент.
+     * 2) Для отсутствующей записи вернуть 404 JSON.
+     * 3) Для найденной записи отрендерить detail DTO в wire array.
+     * 4) Вернуть JSON ответ с data.
      */
     public function show(int $id): JsonResponse
     {
@@ -53,6 +71,11 @@ final readonly class NomenclatureCrmController
 
     /**
      * Возвращает compact options для поиска номенклатуры.
+     * Шаги:
+     * 1) Нормализовать лимит в диапазон 1..50.
+     * 2) Прочитать q строку поиска из request.
+     * 3) Получить search items через read клиент.
+     * 4) Преобразовать collection DTO в plain arrays и вернуть JSON.
      */
     public function search(Request $request): JsonResponse
     {
@@ -69,6 +92,11 @@ final readonly class NomenclatureCrmController
 
     /**
      * Возвращает type options для CRM-формы номенклатуры.
+     * Шаги:
+     * 1) Нормализовать лимит в диапазон 1..OPTION_LIMIT.
+     * 2) Прочитать необязательный id поиск и q строку поиска.
+     * 3) Передать null вместо пустого search.
+     * 4) Получить type options через read клиент и вернуть JSON data.
      */
     public function types(Request $request): JsonResponse
     {
@@ -87,6 +115,11 @@ final readonly class NomenclatureCrmController
 
     /**
      * Возвращает brand options для CRM-формы номенклатуры.
+     * Шаги:
+     * 1) Нормализовать лимит в диапазон 1..OPTION_LIMIT.
+     * 2) Прочитать необязательный id поиск и q строку поиска.
+     * 3) Передать null вместо пустого search.
+     * 4) Получить brand options через read клиент и вернуть JSON data.
      */
     public function brands(Request $request): JsonResponse
     {

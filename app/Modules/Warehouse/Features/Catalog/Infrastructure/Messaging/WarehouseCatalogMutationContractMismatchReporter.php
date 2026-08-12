@@ -13,7 +13,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutation
 use ValueError;
 
 /**
- * Публикует failed-result для payload, несовместимого с текущим wire-контрактом Warehouse Catalog.
+ * Публикует failed-result для данные сообщения, несовместимого с текущим wire-контрактом Warehouse Catalog.
  */
 final readonly class WarehouseCatalogMutationContractMismatchReporter
 {
@@ -31,15 +31,15 @@ final readonly class WarehouseCatalogMutationContractMismatchReporter
     ) {}
 
     /**
-     * Публикует failed-result, если payload содержит минимальные поля корреляции.
+     * Публикует failed-result, если данные сообщения содержит минимальные поля корреляции.
      *
      * Шаги:
-     * 1. Извлекает `user_id`, `operation_id` и `operation` из payload.
-     * 2. Пропускает публикацию, если по payload нельзя собрать валидный result event.
+     * 1. Извлекает `user_id`, `operation_id` и `operation` из данные сообщения.
+     * 2. Пропускает публикацию, если по данные сообщения нельзя собрать валидный result event.
      * 3. Определяет record id сущности по типу Warehouse catalog entity.
      * 4. Публикует `WarehouseCatalogMutationResultDTO` со статусом `failed` и reason `contract_mismatch`.
      *
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      * @param  array<int, string>  $invalidKeys
      */
     public function report(WarehouseCatalogEntityEnum $entity, array $payload, array $invalidKeys): void
@@ -68,14 +68,14 @@ final readonly class WarehouseCatalogMutationContractMismatchReporter
     }
 
     /**
-     * Достает record id из вложенного payload конкретной сущности.
+     * Достает record id из вложенного данные сообщения конкретной сущности.
      *
      * Шаги:
      * 1. Выбирает ключ вложенной сущности по Warehouse catalog entity.
-     * 2. Возвращает `null`, если payload сущности отсутствует или имеет неверный тип.
+     * 2. Возвращает `null`, если данные сообщения сущности отсутствует или имеет неверный тип.
      * 3. Нормализует найденное значение `id` в `int|null`.
      *
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private function recordId(WarehouseCatalogEntityEnum $entity, array $payload): ?int
     {
@@ -96,7 +96,7 @@ final readonly class WarehouseCatalogMutationContractMismatchReporter
     }
 
     /**
-     * Нормализует operation из payload в enum мутации Warehouse Catalog.
+     * Нормализует operation из данные сообщения в enum мутации Warehouse Catalog.
      *
      * Шаги:
      * 1. Приводит входное значение к строке.

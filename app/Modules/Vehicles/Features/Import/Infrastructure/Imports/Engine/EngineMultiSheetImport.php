@@ -17,16 +17,35 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Facades\Excel;
 
+/**
+ * Запускает внешний многостраничный импорт двигателей с основным листом и листом свечей.
+ */
 final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, ShouldQueue, WithChunkReading, WithEvents, WithMultipleSheets
 {
     public ImportRunContextDTO $context;
 
+    /**
+     * Запустить чтение книги двигателей через Laravel Excel.
+     *
+     * Шаги:
+     * 1) Сохранить контекст запуска, чтобы листы и событие завершения видели operation_id.
+     * 2) Передать текущий объект Laravel Excel как многостраничный обработчик импорта.
+     * 3) Прочитать файл с указанного диска или с диска по умолчанию.
+     */
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
         $this->context = $context;
         Excel::import($this, $path, $disk);
     }
 
+    /**
+     * Собрать адаптеры листов книги двигателей.
+     *
+     * Шаги:
+     * 1) Рассчитать ключи кеша и блокировки отчёта ошибок по текущему operation_id.
+     * 2) Создать адаптер основного листа двигателей с теми же ключами.
+     * 3) Создать адаптер листа свечей с теми же ключами.
+     */
     public function sheets(): array
     {
         $cacheKey = $this->cacheKey();
@@ -44,6 +63,13 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
         ];
     }
 
+    /**
+     * Зарегистрировать сериализуемый обработчик завершения импорта.
+     *
+     * Шаги:
+     * 1) Вернуть обработчик AfterImport как пару «класс/метод».
+     * 2) Избежать замыкания, чтобы импорт в очереди оставался сериализуемым.
+     */
     public function registerEvents(): array
     {
         return [
@@ -51,6 +77,14 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
         ];
     }
 
+    /**
+     * Опубликовать доменное событие завершения импорта двигателей.
+     *
+     * Шаги:
+     * 1) Получить завершённый импорт из события Laravel Excel.
+     * 2) Взять пользователя и operation_id из сохранённого контекста.
+     * 3) Передать ключ кеша ошибок в событие завершения.
+     */
     public static function afterImport(AfterImport $event): void
     {
         /** @var EngineMultiSheetImport $import */
@@ -63,11 +97,25 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
         ));
     }
 
+    /**
+     * Вернуть размер чанка для чтения листов двигателей.
+     *
+     * Шаги:
+     * 1) Зафиксировать небольшой размер чанка для построчной обработки.
+     * 2) Вернуть значение, которое Laravel Excel использует при чтении.
+     */
     public function chunkSize(): int
     {
         return 100;
     }
 
+    /**
+     * Рассчитать ключ кеш-хранилища ошибок импорта двигателей.
+     *
+     * Шаги:
+     * 1) Взять шаблон ключа из конфигурации импорта Vehicles.
+     * 2) Подставить operation_id текущего запуска импорта.
+     */
     private function cacheKey(): string
     {
         return sprintf(
@@ -76,6 +124,13 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
         );
     }
 
+    /**
+     * Рассчитать ключ блокировки кеш-хранилища ошибок импорта двигателей.
+     *
+     * Шаги:
+     * 1) Взять шаблон ключа блокировки из конфигурации импорта Vehicles.
+     * 2) Подставить operation_id текущего запуска импорта.
+     */
     private function lockKey(): string
     {
         return sprintf(

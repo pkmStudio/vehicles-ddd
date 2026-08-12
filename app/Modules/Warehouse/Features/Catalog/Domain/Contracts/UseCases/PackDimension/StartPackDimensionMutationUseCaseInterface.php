@@ -14,6 +14,11 @@ interface StartPackDimensionMutationUseCaseInterface
 {
     /**
      * Запускает сценарий мутации упаковочного размера Warehouse.
+     *
+     * Шаги:
+     * 1) Принять общий PackDimensionMutationRequestDTO.
+     * 2) Выбрать create/update/delete сценарий по operation.
+     * 3) Вернуть result DTO выбранного сценария или null для повтора.
      */
     public function execute(PackDimensionMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

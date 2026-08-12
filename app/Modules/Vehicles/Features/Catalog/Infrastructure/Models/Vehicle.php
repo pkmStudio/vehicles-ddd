@@ -26,6 +26,10 @@ class Vehicle extends AbstractModel
 
     /**
      * Возвращает стабильный morph type вместо FQCN модели.
+     *
+     * Шаги:
+     * - Не использовать имя Eloquent-класса как morph type.
+     * - Вернуть значение enum для ТС как владельца спецификации.
      */
     public function getMorphClass(): string
     {

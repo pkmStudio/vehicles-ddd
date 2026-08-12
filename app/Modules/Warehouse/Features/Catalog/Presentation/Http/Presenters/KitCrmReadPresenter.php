@@ -9,7 +9,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm\KitCrmPageDTO;
 use App\Support\Http\Presenters\HttpArrayPresenter;
 
 /**
- * Преобразует CRM DTO комплектов в HTTP response arrays.
+ * Преобразует CRM DTO комплектов в HTTP ответ arrays.
  */
 final readonly class KitCrmReadPresenter
 {
@@ -25,10 +25,10 @@ final readonly class KitCrmReadPresenter
     ) {}
 
     /**
-     * Преобразует page DTO комплектов в HTTP response shape.
+     * Преобразует DTO страницы комплектов в форму HTTP-ответа.
      *
      * Шаги:
-     * 1. Берет элементы и meta из page DTO.
+     * 1. Берет элементы и meta из DTO страницы.
      * 2. Делегирует сборку стандартному HTTP array presenter.
      *
      * @return array{data: list<array<string, mixed>>, meta: array<string, int>}
@@ -39,7 +39,7 @@ final readonly class KitCrmReadPresenter
     }
 
     /**
-     * Преобразует detail DTO комплекта в HTTP response item.
+     * Преобразует detail DTO комплекта в HTTP ответ item.
      *
      * Шаги:
      * 1. Принимает detail DTO.

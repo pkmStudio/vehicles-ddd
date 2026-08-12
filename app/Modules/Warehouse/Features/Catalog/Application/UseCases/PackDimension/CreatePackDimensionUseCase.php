@@ -14,8 +14,8 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationR
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Modules\Warehouse\Shared\Domain\Events\PackDimension\PackDimensionCreated;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\PackDimensionData;
+use App\Modules\Warehouse\Shared\Domain\Events\PackDimension\PackDimensionCreated;
 use Throwable;
 
 /**
@@ -25,6 +25,10 @@ final readonly class CreatePackDimensionUseCase implements CreatePackDimensionUs
 {
     /**
      * Инициализирует чтение типов, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repository типов для проверки type_id.
+     * 2) Принять command записи, idempotency cache и result service.
      */
     public function __construct(
         private TypeRepositoryInterface $types,

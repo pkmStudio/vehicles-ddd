@@ -26,6 +26,8 @@ final readonly class VehicleCrmEngineDTO
         public ?int $numberOfValves = null,
         public ?string $fuelType = null,
         public ?int $groupId = null,
+        public string $provider = 'TD',
+        public array $allowChangeFields = [],
     ) {}
 
     /**
@@ -47,6 +49,8 @@ final readonly class VehicleCrmEngineDTO
             numberOfValves: isset($data['number_of_valves']) ? (int) $data['number_of_valves'] : null,
             fuelType: isset($data['fuel_type']) ? (string) $data['fuel_type'] : null,
             groupId: isset($data['group_id']) ? (int) $data['group_id'] : null,
+            provider: isset($data['provider']) ? (string) $data['provider'] : 'TD',
+            allowChangeFields: self::stringList($data['allow_change_fields'] ?? []),
         );
     }
 
@@ -71,6 +75,28 @@ final readonly class VehicleCrmEngineDTO
             'number_of_valves' => $this->numberOfValves,
             'fuel_type' => $this->fuelType,
             'group_id' => $this->groupId,
+            'provider' => $this->provider,
+            'allow_change_fields' => $this->allowChangeFields,
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function stringList(mixed $value): array
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            $value = is_array($decoded) ? $decoded : [];
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            static fn (mixed $item): ?string => is_scalar($item) ? (string) $item : null,
+            $value,
+        )));
     }
 }

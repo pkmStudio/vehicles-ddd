@@ -45,6 +45,12 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
 
     /**
      * Получает порты чтения, построения базовой строки и рендера detail-полей.
+     * Шаги:
+     * 1) Сохранить repository номенклатуры выбранного Warehouse-типа.
+     * 2) Сохранить repository типов для проверки typeId и справочного листа.
+     * 3) Сохранить builder базовых колонок номенклатуры.
+     * 4) Сохранить resolver detail template по типу.
+     * 5) Сохранить Templates client для заголовков, reference options и render details.
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
@@ -56,6 +62,10 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
 
     /**
      * Проверяет существование типа и возвращает строки номенклатуры этого типа.
+     * Шаги:
+     * 1) Найти typeId через type(), чтобы неконсистентный запрос упал явно.
+     * 2) Прочитать номенклатуры этого типа через repository port.
+     * 3) Вернуть коллекцию typed NomenclatureData для Excel adapter-а.
      *
      * @return Collection<int, NomenclatureData>
      */
@@ -68,6 +78,11 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
 
     /**
      * Возвращает базовые и template-specific заголовки листа номенклатуры.
+     * Шаги:
+     * 1) Найти Warehouse type и определить его detail template.
+     * 2) Для типа без template оставить только базовые заголовки.
+     * 3) Для типа с template получить detail headings из Templates boundary.
+     * 4) Объединить базовые и detail-specific колонки в порядке Excel-листа.
      *
      * @return array<int, string>
      */
@@ -81,6 +96,11 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
 
     /**
      * Преобразует одну номенклатуру в строку Excel с учётом её detail-шаблона.
+     * Шаги:
+     * 1) Определить detail template из type snapshot строки.
+     * 2) Для строки без template оставить details-ячейки пустыми.
+     * 3) Для строки с template отрендерить сохраненный details массив через Templates client.
+     * 4) Объединить базовые Excel-ячейки с detail-specific ячейками.
      *
      * @return array<int, mixed>
      */
@@ -96,6 +116,9 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
 
     /**
      * Возвращает имя типа для названия Excel-листа.
+     * Шаги:
+     * 1) Найти TypeData по id через type().
+     * 2) Вернуть name типа как title листа.
      */
     public function title(int $typeId): string
     {
@@ -142,6 +165,10 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
 
     /**
      * Возвращает заголовки справочного листа для выбранного типа номенклатуры.
+     * Шаги:
+     * 1) Найти Warehouse type и определить detail template.
+     * 2) Начать с базовых reference columns: тип, материал, вид техники.
+     * 3) Добавить имена template-specific справочников из Templates client.
      *
      * @return array<int, string>
      */
@@ -157,6 +184,10 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
 
     /**
      * Возвращает тип номенклатуры или падает на неконсистентном запросе экспорта.
+     * Шаги:
+     * 1) Запросить TypeData через TypeRepositoryInterface.
+     * 2) Вернуть найденный type snapshot.
+     * 3) Если typeId неизвестен, выбросить InvalidArgumentException с id запроса.
      */
     private function type(int $typeId): TypeData
     {
@@ -166,6 +197,9 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
 
     /**
      * Резолвит detail-шаблон для Warehouse-типа.
+     * Шаги:
+     * 1) Передать TypeData в TypeTemplateResolverInterface.
+     * 2) Вернуть найденный NomenclatureDetailTemplateEnum или null.
      */
     private function template(TypeData $type): ?NomenclatureDetailTemplateEnum
     {
@@ -174,6 +208,10 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
 
     /**
      * Возвращает справочники template-specific полей в порядке колонок Excel.
+     * Шаги:
+     * 1) Для null template вернуть пустой список справочников.
+     * 2) Для конкретного template запросить reference options через Templates client.
+     * 3) Вернуть map заголовок колонки => список допустимых значений.
      *
      * @return array<string, list<string>>
      */

@@ -20,7 +20,7 @@ final readonly class NomenclatureMutationRequestDTO
     ) {}
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     public static function fromArray(array $payload): self
     {
@@ -37,7 +37,7 @@ final readonly class NomenclatureMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function createRequest(array $payload): CreateNomenclatureRequestDTO
     {
@@ -62,7 +62,7 @@ final readonly class NomenclatureMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function updateRequest(array $payload): UpdateNomenclatureRequestDTO
     {
@@ -88,7 +88,7 @@ final readonly class NomenclatureMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function deleteRequest(array $payload): DeleteNomenclatureRequestDTO
     {

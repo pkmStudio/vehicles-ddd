@@ -14,6 +14,10 @@ final readonly class LaravelImportFileStorage implements ImportFileStorageInterf
 {
     /**
      * Удаляет файл импорта с указанного storage-диска.
+     *
+     * Шаги:
+     * 1) Выбрать Laravel storage disk по имени.
+     * 2) Удалить import file по переданному path.
      */
     public function delete(string $disk, string $path): void
     {

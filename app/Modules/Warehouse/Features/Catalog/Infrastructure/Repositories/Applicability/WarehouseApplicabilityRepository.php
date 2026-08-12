@@ -14,10 +14,26 @@ use stdClass;
 
 final readonly class WarehouseApplicabilityRepository implements WarehouseApplicabilityRepositoryInterface
 {
+    /**
+     * Получает resolver Warehouse type template для DTO применяемости.
+     * Шаги:
+     * 1) Сохранить resolver, который переводит row таблицы types в template enum.
+     * 2) Использовать его при сборке WarehouseTypeForApplicabilityDTO.
+     */
     public function __construct(
         private NomenclatureCrmTypeTemplateResolver $templateResolver,
     ) {}
 
+    /**
+     * Читает активные комплекты Warehouse для расчета применяемости.
+     * Шаги:
+     * 1) Построить query по active kits.
+     * 2) Если передан kitId, ограничить выборку одним комплектом.
+     * 3) Читать строки lazyById chunk-ами, чтобы не держать весь каталог в памяти.
+     * 4) Для каждой строки собрать WarehouseKitForApplicabilityDTO через mapKit().
+     *
+     * @return итерируемый набор<int, WarehouseKitForApplicabilityDTO>
+     */
     public function activeKits(?int $kitId = null, int $chunk = 1000): iterable
     {
         $query = DB::table('kits')->where('is_active', true);
@@ -31,11 +47,25 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
         }
     }
 
+    /**
+     * Проверяет существование комплекта Warehouse по id.
+     * Шаги:
+     * 1) Выполнить exists query по таблице kits.
+     * 2) Вернуть логический флаг без загрузки полной строки комплекта.
+     */
     public function kitExists(int $kitId): bool
     {
         return DB::table('kits')->where('id', $kitId)->exists();
     }
 
+    /**
+     * Преобразует SQL-строку kit в публичный DTO применяемости.
+     * Шаги:
+     * 1) Привести scalar поля комплекта к типам DTO.
+     * 2) Загрузить номенклатуры состава комплекта в порядке сортировку.
+     * 3) Загрузить type DTO комплекта по type_id.
+     * 4) Собрать WarehouseKitForApplicabilityDTO без передачи Eloquent наружу.
+     */
     private function mapKit(stdClass $kit): WarehouseKitForApplicabilityDTO
     {
         return new WarehouseKitForApplicabilityDTO(
@@ -49,6 +79,13 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
     }
 
     /**
+     * Загружает состав комплекта для расчета применяемости.
+     * Шаги:
+     * 1) Соединить nomenclatures с pivot kit_nomenclature по kit id.
+     * 2) Отсортировать позиции по pivot сортировку.
+     * 3) Выбрать только поля, нужные расчету применяемости.
+     * 4) Для каждой позиции decoded details и type DTO добавить в WarehouseNomenclatureForApplicabilityDTO.
+     *
      * @return array<int, WarehouseNomenclatureForApplicabilityDTO>
      */
     private function nomenclatures(int $kitId): array
@@ -76,6 +113,14 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
             ->all();
     }
 
+    /**
+     * Читает Warehouse type и добавляет template для применяемости.
+     * Шаги:
+     * 1) Найти type row по id в таблице types.
+     * 2) Вернуть null, если type отсутствует.
+     * 3) Привести id/name/char к scalar DTO fields.
+     * 4) Определить detail template через локальный resolver.
+     */
     private function type(int $typeId): ?WarehouseTypeForApplicabilityDTO
     {
         $type = DB::table('types')->where('id', $typeId)->first(['id', 'name', 'char']);
@@ -93,6 +138,13 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
     }
 
     /**
+     * Нормализует jsonb details из DB row в array.
+     * Шаги:
+     * 1) Вернуть value как есть, если DB driver уже дал array.
+     * 2) Для null/пустой/non-string вернуть пустой массив.
+     * 3) Декодировать JSON строку в associative array.
+     * 4) Вернуть пустой массив, если JSON не дал array.
+     *
      * @return array<string, mixed>
      */
     private function jsonArray(mixed $value): array

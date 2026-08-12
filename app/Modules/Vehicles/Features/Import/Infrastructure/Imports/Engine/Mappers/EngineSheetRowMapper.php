@@ -34,16 +34,24 @@ final readonly class EngineSheetRowMapper
 
     private const int FUEL_TYPE = 10;
 
+    /**
+     * Получить нормализатор значений командного листа двигателей.
+     *
+     * Шаги:
+     * 1) Принять общий нормализатор строк импорта через DI.
+     * 2) Использовать его при чтении мощности, объёма, цилиндров, клапанов и типа топлива.
+     */
     public function __construct(
         private ImportRowValueFormatter $formatter,
     ) {}
 
     /**
      * Этот метод переводит одну строку командного engine-листа в `EngineSheetRowDTO`.
+     *
      * Шаги:
      * 1) Прочитать значения по именованным индексам колонок командного листа.
-     * 2) Нормализовать scalar values через `ImportRowValueFormatter`.
-     * 3) Вернуть DTO, совместимый с общим engine upsert service.
+     * 2) Нормализовать строки, целые и вещественные числа через `ImportRowValueFormatter`.
+     * 3) Вернуть DTO, совместимый с общим сервисом сохранения двигателя.
      *
      * @param  array<int, string|int|float|null>  $row
      */

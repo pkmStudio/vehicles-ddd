@@ -9,8 +9,21 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailur
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
+/**
+ * Laravel Excel adapter сохранения отчета об ошибках import flow.
+ */
 final readonly class ImportFailureReporter implements ImportFailureReporterInterface
 {
+    /**
+     * Сохранить XLSX report с validation failures.
+     *
+     * Шаги:
+     * 1) Вернуть null, если failures отсутствуют.
+     * 2) Собрать имя файла, disk и directory из config.
+     * 3) Сохранить FailuresExport через Laravel Excel facade и вернуть path.
+     *
+     * @param  array<int, mixed>  $failures
+     */
     public function store(array $failures): ?string
     {
         if (empty($failures)) {

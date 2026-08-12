@@ -18,11 +18,11 @@ use Throwable;
 final readonly class BrandMutationRequestedHandler
 {
     /**
-     * Инициализирует use case, factory и validator.
+     * Инициализирует use case, фабрику и validator.
      *
      * Шаги:
      * 1. Получает use case мутации бренда.
-     * 2. Получает validator входящего RabbitMQ payload.
+     * 2. Получает validator входящего RabbitMQ данные сообщения.
      * 3. Получает reporter для contract mismatch результата.
      */
     public function __construct(
@@ -32,11 +32,11 @@ final readonly class BrandMutationRequestedHandler
     ) {}
 
     /**
-     * Валидирует payload, собирает DTO и запускает сценарий мутации бренда.
+     * Валидирует данные сообщения, собирает DTO и запускает сценарий мутации бренда.
      *
      * Шаги:
-     * 1. Валидирует raw payload сообщения.
-     * 2. Публикует failed-result при ошибке validation или несовместимом wire payload.
+     * 1. Валидирует raw данные сообщения сообщения.
+     * 2. Публикует failed-result при ошибке validation или несовместимом wire данные сообщения.
      * 3. Собирает локальный DTO запроса из валидированных данных.
      * 4. Передает DTO во входной use case сценария.
      *

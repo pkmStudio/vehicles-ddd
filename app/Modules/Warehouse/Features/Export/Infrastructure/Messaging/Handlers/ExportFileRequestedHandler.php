@@ -19,6 +19,9 @@ final readonly class ExportFileRequestedHandler
 {
     /**
      * Получает сценарий запуска экспорта и validator входящего сообщения.
+     * Шаги:
+     * 1) Сохранить external export use case port.
+     * 2) Сохранить payload validator для входящего RabbitMQ сообщения.
      */
     public function __construct(
         private StartExportUseCaseInterface $useCase,
@@ -77,6 +80,12 @@ final readonly class ExportFileRequestedHandler
 
     /**
      * Собирает нормализованные фильтры Kit Export из валидированного payload.
+     * Шаги:
+     * 1) Безопасно получить вложенный filters array.
+     * 2) Нормализовать search в trimmed string|null.
+     * 3) Привести ids/type_ids к list<int>.
+     * 4) Привести nullable boolean filters к bool|null.
+     * 5) Привести part numbers к непустому list<string>.
      *
      * @param  array<string, mixed>  $data
      */
@@ -97,6 +106,10 @@ final readonly class ExportFileRequestedHandler
 
     /**
      * Собирает сортировку Kit Export из валидированного payload.
+     * Шаги:
+     * 1) Безопасно получить вложенный sort array.
+     * 2) Взять field из payload или fallback-нуться на id.
+     * 3) Взять direction из payload или fallback-нуться на asc.
      *
      * @param  array<string, mixed>  $data
      */
@@ -112,6 +125,9 @@ final readonly class ExportFileRequestedHandler
 
     /**
      * Гарантирует array-тип после валидации вложенных payload-полей.
+     * Шаги:
+     * 1) Вернуть value, если это array.
+     * 2) Для отсутствующего или некорректного значения вернуть пустой array.
      *
      * @return array<string, mixed>
      */
@@ -122,6 +138,10 @@ final readonly class ExportFileRequestedHandler
 
     /**
      * Приводит список числовых значений payload к list<int>.
+     * Шаги:
+     * 1) Использовать пустой список для non-array input.
+     * 2) Привести каждый элемент к int.
+     * 3) Переиндексировать результат как list<int>.
      *
      * @return list<int>
      */
@@ -138,6 +158,11 @@ final readonly class ExportFileRequestedHandler
 
     /**
      * Приводит список строковых значений payload к непустому list<string>.
+     * Шаги:
+     * 1) Использовать пустой список для non-array input.
+     * 2) Привести каждое значение к trimmed string.
+     * 3) Отфильтровать пустые строки.
+     * 4) Переиндексировать результат как list<string>.
      *
      * @return list<string>
      */
@@ -160,6 +185,9 @@ final readonly class ExportFileRequestedHandler
 
     /**
      * Возвращает nullable bool для необязательных boolean-фильтров.
+     * Шаги:
+     * 1) Если ключ отсутствует, вернуть null как "фильтр не задан".
+     * 2) Иначе применить FILTER_VALIDATE_BOOL к значению фильтра.
      *
      * @param  array<string, mixed>  $filters
      */

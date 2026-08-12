@@ -15,6 +15,14 @@ use App\Modules\Templates\Domain\ModelData\Engine\AirFilterDetailsData;
  */
 final readonly class AirFilterDetailsBuilder
 {
+    /**
+     * Этот метод собирает engine air-filter details из последовательных ячеек импорта.
+     * Шаги:
+     * 1) Читает форму фильтра как обязательный label `FormEnum`.
+     * 2) Читает списки длины, ширины и высоты как обязательные числовые списки.
+     * 3) Читает диаметр как обязательное число.
+     * 4) Возвращает `AirFilterDetailsData` с enum-name формы и числовыми габаритами.
+     */
     public function build(DetailsRowCursor $cursor): AirFilterDetailsData
     {
         return new AirFilterDetailsData(

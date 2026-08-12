@@ -17,6 +17,10 @@ final readonly class CleanupExternalImportFileListener
 {
     /**
      * Получает cache-сервис с отложенным заданием очистки.
+     *
+     * Шаги:
+     * 1) Принять порт cache, где хранится cleanup-задание внешнего импорта.
+     * 2) Принять порт storage, который умеет удалить исходный файл.
      */
     public function __construct(
         private ExternalImportCacheServiceInterface $cache,
@@ -25,6 +29,12 @@ final readonly class CleanupExternalImportFileListener
 
     /**
      * Этот метод удаляет файл, если для этого operationId было запомнено задание на очистку.
+     *
+     * Шаги:
+     * 1) Пропустить консольные импорты без operationId.
+     * 2) Забрать и удалить cleanup-задание из cache по operationId.
+     * 3) Завершить обработку, если задания нет.
+     * 4) Удалить исходный файл через storage-порт.
      */
     public function handle(AbstractImportCompleted $event): void
     {

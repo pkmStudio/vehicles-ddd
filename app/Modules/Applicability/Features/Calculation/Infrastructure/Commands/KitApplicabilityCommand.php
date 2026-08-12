@@ -23,9 +23,13 @@ final readonly class KitApplicabilityCommand implements KitApplicabilityCommandI
      * Обновляет calculated-связи набора и публикует факты создания/изменения/удаления.
      *
      * Шаги:
-     * 1) Нормализовать target ids.
-     * 2) Удалить stale calculated-записи текущего алгоритма.
-     * 3) Создать недостающие calculated-записи, не перетирая imported/manual.
+     * 1. Нормализует target ids к уникальному списку integer.
+     * 2. В transaction находит stale calculated-записи текущего kit/type/algorithm.
+     * 3. Удаляет stale calculated-записи и публикует `KitApplicabilityDeleted`.
+     * 4. Для каждого target id проверяет существующую связь.
+     * 5. Не перетирает imported/manual связь, если она уже есть для target.
+     * 6. Создает или обновляет calculated-связь.
+     * 7. Публикует `KitApplicabilityCreated` или `KitApplicabilityUpdated`, когда состояние изменилось.
      */
     public function syncCalculatedTargets(
         int $kitId,

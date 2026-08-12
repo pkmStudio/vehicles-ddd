@@ -6,6 +6,9 @@ namespace App\Modules\Warehouse\Shared\Domain\DTOs\Events;
 
 final readonly class NomenclatureIntegrationDeletionContextDTO
 {
+    /**
+     * Хранит внешний integration context удаляемой номенклатуры для shared event payload.
+     */
     public function __construct(
         public int $id,
         public string $provider,

@@ -26,6 +26,13 @@ final class DetailsRowCursor
 {
     private int $index;
 
+    /**
+     * Этот конструктор фиксирует Excel-строку и стартовую позицию чтения.
+     * Шаги:
+     * 1) Сохраняет строку как неизменяемый источник ячеек.
+     * 2) Инициализирует внутренний индекс переданной позицией, чтобы вложенные builders могли
+     *    читать row последовательно.
+     */
     public function __construct(
         private readonly array $row,
         int $startIndex = 0,
@@ -77,6 +84,13 @@ final class DetailsRowCursor
         return $this->parseInt($value, 'целое число');
     }
 
+    /**
+     * Этот метод читает обязательную integer-ячейку.
+     * Шаги:
+     * 1) Делегирует чтение и numeric-валидацию в `pullIntCell()`.
+     * 2) Если ячейка пустая — бросает ошибку обязательного поля с человекочитаемым названием.
+     * 3) Возвращает проверенное целое значение.
+     */
     public function pullRequiredIntCell(string $field): int
     {
         $value = $this->pullIntCell();
@@ -102,6 +116,13 @@ final class DetailsRowCursor
         return $value === null ? null : (string) $value;
     }
 
+    /**
+     * Этот метод читает обязательную строковую ячейку.
+     * Шаги:
+     * 1) Читает значение через `pullStringCell()`.
+     * 2) Считает null и строку из одних пробелов отсутствующим обязательным значением.
+     * 3) Возвращает исходную строку без дополнительной нормализации, если поле заполнено.
+     */
     public function pullRequiredStringCell(string $field): string
     {
         $value = $this->pullStringCell();
@@ -127,6 +148,13 @@ final class DetailsRowCursor
         return $this->parseFloat($value, 'число');
     }
 
+    /**
+     * Этот метод читает обязательную float-ячейку.
+     * Шаги:
+     * 1) Делегирует чтение и numeric-валидацию в `pullFloatCell()`.
+     * 2) Если ячейка пустая — бросает ошибку обязательного поля.
+     * 3) Возвращает проверенное число с плавающей точкой.
+     */
     public function pullRequiredFloatCell(string $field): float
     {
         $value = $this->pullFloatCell();
@@ -151,6 +179,12 @@ final class DetailsRowCursor
     }
 
     /**
+     * Этот метод читает обязательный одиночный select и возвращает найденный enum-case.
+     * Шаги:
+     * 1) Читает и резолвит label через `pullLabel()`.
+     * 2) Если label пустой — бросает ошибку обязательного поля.
+     * 3) Возвращает case, чтобы вызывающий мог взять его `->name` для details JSON.
+     *
      * @param  class-string<EnumHelperInterface>  $enumClass
      */
     public function pullRequiredLabel(string $enumClass, string $field): EnumHelperInterface
@@ -194,6 +228,12 @@ final class DetailsRowCursor
     }
 
     /**
+     * Этот метод читает обязательную multi-select ячейку.
+     * Шаги:
+     * 1) Делегирует разбор `;`-списка и резолв label'ов в `pullMultiLabel()`.
+     * 2) Если список пустой — бросает ошибку обязательного поля.
+     * 3) Возвращает массив enum-case'ов в порядке из Excel-ячейки.
+     *
      * @param  class-string<EnumHelperInterface>  $enumClass
      * @return array<int, EnumHelperInterface>
      */
@@ -238,6 +278,12 @@ final class DetailsRowCursor
     }
 
     /**
+     * Этот метод читает обязательный список чисел с плавающей точкой.
+     * Шаги:
+     * 1) Делегирует разбор `;`-списка и numeric-валидацию в `pullFloatArray()`.
+     * 2) Если список пустой — бросает ошибку обязательного поля.
+     * 3) Возвращает массив float-значений.
+     *
      * @return array<int, float>
      */
     public function pullRequiredFloatArray(string $field): array
@@ -283,6 +329,12 @@ final class DetailsRowCursor
     }
 
     /**
+     * Этот метод читает обязательный список целых чисел.
+     * Шаги:
+     * 1) Делегирует разбор `;`-списка и integer-валидацию в `pullIntArray()`.
+     * 2) Если список пустой — бросает ошибку обязательного поля.
+     * 3) Возвращает массив int-значений.
+     *
      * @return array<int, int>
      */
     public function pullRequiredIntArray(string $field): array
@@ -320,6 +372,14 @@ final class DetailsRowCursor
         return $case;
     }
 
+    /**
+     * Этот метод валидирует и нормализует одну scalar-ячейку как integer.
+     * Шаги:
+     * 1) Null оставляет null, чтобы optional-read методы могли отличать пустую ячейку.
+     * 2) Приводит значение к строке, обрезает пробелы и проверяет через `FILTER_VALIDATE_INT`.
+     * 3) Для пустой или нецелой строки бросает ошибку некорректной numeric-ячейки.
+     * 4) Возвращает приведённый `int`.
+     */
     private function parseInt(mixed $value, string $field): ?int
     {
         if ($value === null) {
@@ -334,6 +394,15 @@ final class DetailsRowCursor
         return (int) $normalized;
     }
 
+    /**
+     * Этот метод валидирует и нормализует одну scalar-ячейку как float.
+     * Шаги:
+     * 1) Null оставляет null для optional-read сценариев.
+     * 2) Заменяет десятичную запятую на точку и обрезает пробелы.
+     * 3) Проверяет результат как numeric-строку; для пустого или нечислового значения бросает
+     *    ошибку некорректной numeric-ячейки.
+     * 4) Возвращает приведённый `float`.
+     */
     private function parseFloat(mixed $value, string $field): ?float
     {
         if ($value === null) {

@@ -6,6 +6,9 @@ namespace App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle;
 
 final readonly class VehicleSheetRowDTO
 {
+    /**
+     * Фиксирует нормализованную строку основного листа vehicles workbook.
+     */
     public function __construct(
         public ?string $excelTableId,
         public ?int $mfaId,

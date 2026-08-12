@@ -25,6 +25,9 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
  */
 final class WiperDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует front/back части vehicle wiper details template.
+     */
     public function __construct(
         public readonly ?WiperFrontDetailsData $front = null,
         public readonly ?WiperBackDetailsData $back = null,

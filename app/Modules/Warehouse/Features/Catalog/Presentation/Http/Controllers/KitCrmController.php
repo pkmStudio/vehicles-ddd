@@ -23,7 +23,7 @@ final readonly class KitCrmController
      * Инициализирует зависимости HTTP adapter-а комплектов.
      *
      * Шаги:
-     * 1. Получает CRM client, query factory и presenters из контейнера.
+     * 1. Получает CRM клиент, query фабрику и presenters из контейнера.
      * 2. Сохраняет зависимости для обработки HTTP read endpoints.
      */
     public function __construct(
@@ -38,8 +38,8 @@ final readonly class KitCrmController
      *
      * Шаги:
      * 1. Собирает read-query DTO из HTTP request.
-     * 2. Запрашивает страницу данных через CRM client.
-     * 3. Преобразует page DTO в HTTP response shape.
+     * 2. Запрашивает страницу данных через CRM клиент.
+     * 3. Преобразует DTO страницы в форму HTTP-ответа.
      */
     public function index(Request $request): JsonResponse
     {
@@ -53,9 +53,9 @@ final readonly class KitCrmController
      * Возвращает detail-снимок комплекта для CRM.
      *
      * Шаги:
-     * 1. Запрашивает detail DTO по id через CRM client.
+     * 1. Запрашивает detail DTO по id через CRM клиент.
      * 2. Возвращает `404`, если комплект не найден.
-     * 3. Преобразует найденный DTO в HTTP response shape.
+     * 3. Преобразует найденный DTO в форму HTTP-ответа.
      */
     public function show(int $id): JsonResponse
     {
@@ -72,8 +72,8 @@ final readonly class KitCrmController
      * Возвращает nomenclature options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Нормализует query, id и limit из HTTP request.
-     * 2. Запрашивает options через CRM client.
+     * 1. Нормализует query, id и лимит из HTTP request.
+     * 2. Запрашивает options через CRM клиент.
      * 3. Возвращает collection в стандартном `data` wrapper.
      */
     public function nomenclatures(Request $request): JsonResponse
@@ -91,8 +91,8 @@ final readonly class KitCrmController
      * Возвращает pack dimension options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Нормализует query, id и limit из HTTP request.
-     * 2. Запрашивает options через CRM client.
+     * 1. Нормализует query, id и лимит из HTTP request.
+     * 2. Запрашивает options через CRM клиент.
      * 3. Возвращает collection в стандартном `data` wrapper.
      */
     public function packDimensions(Request $request): JsonResponse
@@ -110,8 +110,8 @@ final readonly class KitCrmController
      * Возвращает type options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Нормализует query, id и limit из HTTP request.
-     * 2. Запрашивает options через CRM client.
+     * 1. Нормализует query, id и лимит из HTTP request.
+     * 2. Запрашивает options через CRM клиент.
      * 3. Возвращает collection в стандартном `data` wrapper.
      */
     public function types(Request $request): JsonResponse
@@ -126,10 +126,10 @@ final readonly class KitCrmController
     }
 
     /**
-     * Нормализует limit options endpoint-а.
+     * Нормализует лимит options endpoint-а.
      *
      * Шаги:
-     * 1. Читает `limit` из HTTP request с дефолтом 50.
+     * 1. Читает `лимит` из HTTP request с дефолтом 50.
      * 2. Ограничивает значение диапазоном `1..OPTION_LIMIT`.
      */
     private function limit(Request $request): int
@@ -138,7 +138,7 @@ final readonly class KitCrmController
     }
 
     /**
-     * Нормализует selected id options endpoint-а.
+     * Нормализует выбранный id options endpoint-а.
      *
      * Шаги:
      * 1. Проверяет наличие query-параметра `id`.

@@ -18,12 +18,24 @@ use App\Modules\Warehouse\Shared\Domain\DTOs\Applicability\WarehouseTypeForAppli
  */
 final readonly class WarehouseKitClient implements WarehouseKitClientInterface
 {
+    /**
+     * Получает публичный Warehouse applicability client.
+     *
+     * Шаги:
+     * 1. Сохраняет read-only Warehouse boundary.
+     * 2. Оставляет ленивое чтение и mapping active kits методу `activeKits()`.
+     */
     public function __construct(
         private PublicWarehouseApplicabilityClientInterface $warehouse,
     ) {}
 
     /**
      * Возвращает активные наборы ленивым потоком, чтобы расчет не грузил все строки в память.
+     *
+     * Шаги:
+     * 1. Запрашивает active applicability kits во внешнем Warehouse boundary.
+     * 2. Итерирует результат как stream с optional kit filter и chunk size.
+     * 3. Для каждого kit возвращает локальный `KitData`.
      */
     public function activeKits(?int $kitId = null, int $chunk = 1000): iterable
     {

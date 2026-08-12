@@ -14,6 +14,13 @@ use App\Modules\Templates\Domain\Enums\BooleanOptionEnum;
  */
 trait ParsesBooleanCells
 {
+    /**
+     * Этот метод читает optional boolean-select ячейку.
+     * Шаги:
+     * 1) Читает label через `DetailsRowCursor::pullLabel(BooleanOptionEnum::class)`.
+     * 2) Для пустой ячейки возвращает null.
+     * 3) Для заполненной ячейки возвращает true только для case `TRUE`.
+     */
     private function pullBoolLabel(DetailsRowCursor $cursor): ?bool
     {
         $case = $cursor->pullLabel(BooleanOptionEnum::class);
@@ -21,6 +28,12 @@ trait ParsesBooleanCells
         return $case === null ? null : $case->name === BooleanOptionEnum::TRUE->name;
     }
 
+    /**
+     * Этот метод читает обязательную boolean-select ячейку.
+     * Шаги:
+     * 1) Читает обязательный label через `pullRequiredLabel()`.
+     * 2) Возвращает true для case `TRUE`, false для остальных валидных boolean cases.
+     */
     private function pullRequiredBoolLabel(DetailsRowCursor $cursor, string $field): bool
     {
         $case = $cursor->pullRequiredLabel(BooleanOptionEnum::class, $field);

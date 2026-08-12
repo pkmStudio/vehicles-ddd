@@ -19,17 +19,36 @@ final readonly class AirFilterDetailsPresenter extends AbstractDetailsPresenter
 {
     use FormatsExportCells;
 
+    /**
+     * Этот метод возвращает колонки engine air-filter шаблона.
+     * Шаги:
+     * 1) Перечисляет форму фильтра, три списка габаритов и диаметр.
+     * 2) Сохраняет порядок, в котором `cells()` выводит значения.
+     */
     public function headings(): array
     {
         return ['Форма фильтра', 'Длина (мм)', 'Ширина (мм)', 'Высота (мм)', 'Диаметр (мм)'];
     }
 
-    /** @return class-string<AirFilterDetailsData> */
+    /**
+     * Этот метод указывает Data-класс engine air-filter presenter-а.
+     * Шаги:
+     * 1) Возвращает class-string `AirFilterDetailsData` для восстановления details массива.
+     *
+     * @return class-string<AirFilterDetailsData>
+     */
     protected function dataClass(): string
     {
         return AirFilterDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит engine air-filter details в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет, что получен `AirFilterDetailsData`.
+     * 2) Переводит форму фильтра из enum-name в Excel-label.
+     * 3) Склеивает списки длины, ширины и высоты через `;`, диаметр отдаёт как число.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, AirFilterDetailsData::class);

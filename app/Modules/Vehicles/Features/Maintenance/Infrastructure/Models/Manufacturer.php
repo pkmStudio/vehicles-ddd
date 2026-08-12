@@ -16,6 +16,10 @@ class Manufacturer extends AbstractModel
     public $timestamps = false;
 
     // RELATIONS
+
+    /**
+     * Возвращает модели автомобилей, принадлежащие производителю.
+     */
     public function vehicles(): HasMany
     {
         return $this->hasMany(Vehicle::class);

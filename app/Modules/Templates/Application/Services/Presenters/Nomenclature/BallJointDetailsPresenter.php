@@ -14,6 +14,12 @@ final readonly class BallJointDetailsPresenter extends AbstractDetailsPresenter
 {
     use RendersNomenclatureMetrics;
 
+    /**
+     * Этот метод возвращает колонки шаровой опоры.
+     * Шаги:
+     * 1) Перечисляет резьбы, длину, внешний диаметр, размер конуса и конусность.
+     * 2) Добавляет общий metrics-блок.
+     */
     public function headings(): array
     {
         return [
@@ -27,12 +33,25 @@ final readonly class BallJointDetailsPresenter extends AbstractDetailsPresenter
         ];
     }
 
-    /** @return class-string<BallJointDetailsData> */
+    /**
+     * Этот метод указывает Data-класс presenter-а шаровой опоры.
+     * Шаги:
+     * 1) Возвращает class-string `BallJointDetailsData`.
+     *
+     * @return class-string<BallJointDetailsData>
+     */
     protected function dataClass(): string
     {
         return BallJointDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит details шаровой опоры в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет тип `BallJointDetailsData`.
+     * 2) Выводит scalar-поля без enum-преобразований.
+     * 3) Разворачивает metrics-блок.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, BallJointDetailsData::class);

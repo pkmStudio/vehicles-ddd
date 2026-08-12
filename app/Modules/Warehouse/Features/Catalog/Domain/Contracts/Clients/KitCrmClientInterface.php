@@ -11,7 +11,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitCrmReadQueryDTO;
 use Illuminate\Support\Collection;
 
 /**
- * Описывает read-only client CRM сценариев комплектов Warehouse.
+ * Описывает read-only клиент CRM сценариев комплектов Warehouse.
  */
 interface KitCrmClientInterface
 {
@@ -20,7 +20,7 @@ interface KitCrmClientInterface
      *
      * Шаги:
      * 1. Принять read-query DTO.
-     * 2. Вернуть page DTO, совместимый с CRM boundary.
+     * 2. Вернуть DTO страницы, совместимый с CRM границу.
      */
     public function paginate(KitCrmReadQueryDTO $query): KitCrmPageDTO;
 
@@ -37,7 +37,7 @@ interface KitCrmClientInterface
      * Возвращает nomenclature options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Принять optional search query, selected id и limit.
+     * 1. Принять необязательную строку поиска, выбранный id и лимит.
      * 2. Вернуть collection option DTO.
      *
      * @return Collection<int, KitCrmOptionDTO>
@@ -48,7 +48,7 @@ interface KitCrmClientInterface
      * Возвращает pack dimension options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Принять optional search query, selected id и limit.
+     * 1. Принять необязательную строку поиска, выбранный id и лимит.
      * 2. Вернуть collection option DTO.
      *
      * @return Collection<int, KitCrmOptionDTO>
@@ -59,7 +59,7 @@ interface KitCrmClientInterface
      * Возвращает type options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Принять optional search query, selected id и limit.
+     * 1. Принять необязательную строку поиска, выбранный id и лимит.
      * 2. Вернуть collection option DTO.
      *
      * @return Collection<int, KitCrmOptionDTO>

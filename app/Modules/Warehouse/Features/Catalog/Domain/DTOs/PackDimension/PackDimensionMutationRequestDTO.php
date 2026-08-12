@@ -20,7 +20,7 @@ final readonly class PackDimensionMutationRequestDTO
     ) {}
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     public static function fromArray(array $payload): self
     {
@@ -37,7 +37,7 @@ final readonly class PackDimensionMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function createRequest(array $payload): CreatePackDimensionRequestDTO
     {
@@ -58,7 +58,7 @@ final readonly class PackDimensionMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function updateRequest(array $payload): UpdatePackDimensionRequestDTO
     {
@@ -80,7 +80,7 @@ final readonly class PackDimensionMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function deleteRequest(array $payload): DeletePackDimensionRequestDTO
     {

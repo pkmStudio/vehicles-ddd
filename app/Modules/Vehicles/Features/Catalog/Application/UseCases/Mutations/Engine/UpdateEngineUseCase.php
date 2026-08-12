@@ -24,7 +24,12 @@ use Throwable;
 final readonly class UpdateEngineUseCase implements UpdateEngineUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты update engine workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для проверки существования двигателя по eng_id.
+     * 2) Принять command для сохранения обновленного EngineData.
+     * 3) Принять cache/result сервисы для идемпотентности и публикации результата.
      */
     public function __construct(
         private EngineRepositoryInterface $engines,
@@ -76,6 +81,8 @@ final readonly class UpdateEngineUseCase implements UpdateEngineUseCaseInterface
                 numberOfValves: $request->numberOfValves,
                 fuelType: $request->fuelType,
                 groupId: $request->groupId,
+                provider: $request->provider,
+                allowChangeFields: $request->allowChangeFields,
                 id: $existing->id,
             );
 

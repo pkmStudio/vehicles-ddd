@@ -10,6 +10,9 @@ enum WiperKitPositionEnum: string
     case BACK = 'back';
     case UNIVERSAL = 'universal';
 
+    /**
+     * Нормализует сохраненное значение позиции дворников.
+     */
     public static function fromStoredValue(?string $value): ?self
     {
         return match ($value) {

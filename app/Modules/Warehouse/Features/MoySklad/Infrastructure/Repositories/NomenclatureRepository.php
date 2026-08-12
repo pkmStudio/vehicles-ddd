@@ -16,6 +16,10 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
 {
     /**
      * Возвращает номенклатуру с типом и брендом по id или null.
+     * Шаги:
+     * 1) Построить Eloquent query номенклатуры.
+     * 2) Eager-load type и brand для payload МойСклад.
+     * 3) Найти модель по id и вернуть optional Data-снимок.
      */
     public function findById(int $id): ?NomenclatureData
     {
@@ -28,6 +32,10 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
 
     /**
      * Возвращает номенклатуру как поток Data-снимков, читая БД чанками по id.
+     * Шаги:
+     * 1) Построить Eloquent query с eager-load type и brand.
+     * 2) Читать модели через lazyById с chunk не меньше 1.
+     * 3) Для каждой модели yield-ить NomenclatureData.
      *
      * @return Generator<int, NomenclatureData>
      */

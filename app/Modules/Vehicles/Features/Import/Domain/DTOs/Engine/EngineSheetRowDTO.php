@@ -6,6 +6,9 @@ namespace App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine;
 
 final readonly class EngineSheetRowDTO
 {
+    /**
+     * Фиксирует нормализованную строку Excel-листа двигателей.
+     */
     public function __construct(
         public ?int $engId,
         public ?string $codeEngine,

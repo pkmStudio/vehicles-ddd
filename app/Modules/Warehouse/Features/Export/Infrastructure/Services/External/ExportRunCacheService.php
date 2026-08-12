@@ -14,6 +14,12 @@ final readonly class ExportRunCacheService implements ExportRunCacheServiceInter
 {
     /**
      * Атомарно принимает новый operationId и отклоняет повтор того же запуска.
+     *
+     * Шаги:
+     * 1) Собрать cache-ключ accepted-флага для operationId.
+     * 2) Получить TTL технической записи из конфига.
+     * 3) Выполнить Cache::add, чтобы запись появилась только один раз.
+     * 4) Вернуть результат атомарного добавления.
      */
     public function accept(string $operationId): bool
     {
@@ -26,6 +32,11 @@ final readonly class ExportRunCacheService implements ExportRunCacheServiceInter
 
     /**
      * Снимает флаг принятого operationId, чтобы брокер мог повторить неуспешный запуск.
+     *
+     * Шаги:
+     * 1) Собрать cache-ключ accepted-флага для operationId.
+     * 2) Удалить запись из cache.
+     * 3) Оставить повторную доставку брокера способной заново принять запуск.
      */
     public function forgetAccepted(string $operationId): void
     {

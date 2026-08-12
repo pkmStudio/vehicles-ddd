@@ -17,6 +17,10 @@ final readonly class PackDimensionRepository implements PackDimensionRepositoryI
 {
     /**
      * Возвращает все упаковочные размеры выбранного типа.
+     * Шаги:
+     * 1) Построить Eloquent query по type_id переданного TypeData.
+     * 2) Получить все matching PackDimension models.
+     * 3) Преобразовать коллекцию моделей в Collection<int, PackDimensionData>.
      *
      * @return Collection<int, PackDimensionData>
      */

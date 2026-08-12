@@ -14,6 +14,12 @@ final readonly class WheelHubBearingDetailsPresenter extends AbstractDetailsPres
 {
     use RendersNomenclatureMetrics;
 
+    /**
+     * Этот метод возвращает колонки ступичного подшипника.
+     * Шаги:
+     * 1) Перечисляет высоту, ABS, два крепления и диаметры.
+     * 2) Добавляет общий metrics-блок.
+     */
     public function headings(): array
     {
         return [
@@ -27,12 +33,25 @@ final readonly class WheelHubBearingDetailsPresenter extends AbstractDetailsPres
         ];
     }
 
-    /** @return class-string<WheelHubBearingDetailsData> */
+    /**
+     * Этот метод указывает Data-класс presenter-а ступичного подшипника.
+     * Шаги:
+     * 1) Возвращает class-string `WheelHubBearingDetailsData`.
+     *
+     * @return class-string<WheelHubBearingDetailsData>
+     */
     protected function dataClass(): string
     {
         return WheelHubBearingDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит details ступичного подшипника в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет тип `WheelHubBearingDetailsData`.
+     * 2) Выводит scalar-поля без enum-преобразований.
+     * 3) Разворачивает metrics-блок.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, WheelHubBearingDetailsData::class);

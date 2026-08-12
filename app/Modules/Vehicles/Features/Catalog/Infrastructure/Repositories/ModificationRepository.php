@@ -47,6 +47,20 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
     }
 
     /**
+     * Возвращает следующий локальный отрицательный mod_id.
+     *
+     * Шаги:
+     * - Найти минимальный mod_id среди модификаций.
+     * - Сдвинуть значение ниже нуля, чтобы не пересечься с внешними id.
+     */
+    public function nextOwnModId(): int
+    {
+        $minModId = (int) (Modification::query()->min('mod_id') ?? 0);
+
+        return min($minModId, 0) - 1;
+    }
+
+    /**
      * Возвращает модификации ТС.
      *
      * Шаги:

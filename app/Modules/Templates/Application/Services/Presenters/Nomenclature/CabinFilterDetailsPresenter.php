@@ -17,17 +17,36 @@ final readonly class CabinFilterDetailsPresenter extends AbstractDetailsPresente
 {
     use RendersNomenclatureMetrics;
 
+    /**
+     * Этот метод возвращает колонки nomenclature cabin-filter шаблона.
+     * Шаги:
+     * 1) Перечисляет те же select/boolean колонки, что у воздушного фильтра.
+     * 2) Добавляет общий metrics-блок.
+     */
     public function headings(): array
     {
         return ['Исполнение фильтра', 'Форма фильтра', 'Корпус', 'Вид фильтра', ...$this->metricsHeadings()];
     }
 
-    /** @return class-string<CabinFilterDetailsData> */
+    /**
+     * Этот метод указывает Data-класс nomenclature cabin-filter presenter-а.
+     * Шаги:
+     * 1) Возвращает class-string `CabinFilterDetailsData`.
+     *
+     * @return class-string<CabinFilterDetailsData>
+     */
     protected function dataClass(): string
     {
         return CabinFilterDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит nomenclature cabin-filter details в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет тип `CabinFilterDetailsData`.
+     * 2) Переводит enum-name поля и boolean `frame` в labels.
+     * 3) Разворачивает metrics-блок.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, CabinFilterDetailsData::class);

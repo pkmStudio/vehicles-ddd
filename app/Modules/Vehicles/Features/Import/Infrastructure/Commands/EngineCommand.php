@@ -18,6 +18,14 @@ final readonly class EngineCommand implements EngineCommandInterface
      */
     private const array NON_WRITABLE_FIELDS = ['id', 'group_id'];
 
+    /**
+     * Создать engine row через Eloquent.
+     *
+     * Шаги:
+     * 1) Преобразовать EngineData в массив writable fields.
+     * 2) Исключить служебные поля, которые не пишутся обычным create.
+     * 3) Создать запись и вернуть EngineData snapshot.
+     */
     public function create(EngineData $data): EngineData
     {
         return EngineData::from(
@@ -25,6 +33,14 @@ final readonly class EngineCommand implements EngineCommandInterface
         );
     }
 
+    /**
+     * Обновить engine row по eng_id через Eloquent.
+     *
+     * Шаги:
+     * 1) Найти engine по внешнему eng_id.
+     * 2) Обновить writable fields из EngineData.
+     * 3) Refresh model и вернуть EngineData snapshot.
+     */
     public function updateByEngId(EngineData $data): EngineData
     {
         $engine = Engine::query()->where('eng_id', $data->engId)->firstOrFail();
@@ -33,6 +49,14 @@ final readonly class EngineCommand implements EngineCommandInterface
         return EngineData::from($engine->refresh());
     }
 
+    /**
+     * Проставить group_id существующему engine.
+     *
+     * Шаги:
+     * 1) Найти engine по локальному id из EngineData.
+     * 2) Обновить только group_id.
+     * 3) Перечитать model и вернуть EngineData snapshot.
+     */
     public function setGroupId(EngineData $data): EngineData
     {
         Engine::query()->whereKey($data->id)->update(['group_id' => $data->groupId]);

@@ -9,11 +9,25 @@ use Illuminate\Contracts\Validation\Validator;
 
 final readonly class CalculationRequestedPayloadValidator
 {
+    /**
+     * Получает Laravel validator factory.
+     *
+     * Шаги:
+     * 1. Сохраняет factory фреймворковой валидации.
+     * 2. Оставляет сборку правил методу `make()`.
+     */
     public function __construct(
         private ValidatorFactory $validator,
     ) {}
 
     /**
+     * Создает validator для request payload расчета применяемости.
+     *
+     * Шаги:
+     * 1. Требует user id и operation id внешнего request-а.
+     * 2. Разрешает optional kit id для точечного расчета.
+     * 3. Разрешает optional positive chunk size для чтения Warehouse kits.
+     *
      * @param  array<string, mixed>  $data
      */
     public function make(array $data): Validator

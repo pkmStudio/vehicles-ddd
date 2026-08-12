@@ -9,7 +9,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\Crm\PackDim
 use App\Support\Http\Presenters\HttpArrayPresenter;
 
 /**
- * Преобразует CRM DTO упаковочных размеров в HTTP response arrays.
+ * Преобразует CRM DTO упаковочных размеров в HTTP ответ arrays.
  */
 final readonly class PackDimensionCrmReadPresenter
 {
@@ -25,10 +25,10 @@ final readonly class PackDimensionCrmReadPresenter
     ) {}
 
     /**
-     * Преобразует page DTO упаковочных размеров в HTTP response shape.
+     * Преобразует DTO страницы упаковочных размеров в форму HTTP-ответа.
      *
      * Шаги:
-     * 1. Берет элементы и meta из page DTO.
+     * 1. Берет элементы и meta из DTO страницы.
      * 2. Делегирует сборку стандартному HTTP array presenter.
      *
      * @return array{data: list<array<string, mixed>>, meta: array<string, int>}
@@ -39,7 +39,7 @@ final readonly class PackDimensionCrmReadPresenter
     }
 
     /**
-     * Преобразует detail DTO упаковочного размера в HTTP response item.
+     * Преобразует detail DTO упаковочного размера в HTTP ответ item.
      *
      * Шаги:
      * 1. Принимает detail DTO.

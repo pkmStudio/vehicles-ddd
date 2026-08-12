@@ -11,6 +11,11 @@ interface ExternalImportFileStorageInterface
 {
     /**
      * Удаляет файл на указанном disk.
+     *
+     * Шаги:
+     * 1) Получить Laravel Storage disk.
+     * 2) Выполнить удаление файла по path.
+     * 3) Завершить без ошибки, если adapter считает удаление успешным.
      */
     public function delete(string $disk, string $path): void;
 }

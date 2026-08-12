@@ -23,6 +23,12 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
 
     /**
      * Удаляет сгенерированные файлы старше retention-порога.
+     *
+     * Шаги:
+     * 1) Прочитать disk, директорию и retention из warehouse export config.
+     * 2) Обойти файлы директории и оставить только известные имена экспортов.
+     * 3) Сравнить lastModified с порогом устаревания.
+     * 4) Удалить устаревшие файлы и вернуть счётчик удалений.
      */
     public function cleanup(): int
     {

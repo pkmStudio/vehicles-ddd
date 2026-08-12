@@ -16,6 +16,11 @@ interface PartSpecificationDetailsWritePolicyInterface
     /**
      * Проверяет и нормализует details перед записью спецификации.
      *
+     * Шаги:
+     * 1) Принять raw details, template, owner type и operation context.
+     * 2) Проверить feature-specific write rules для сохраняемого details contract.
+     * 3) Вернуть normalized details или invalid result с field errors.
+     *
      * @param  array<string, mixed>  $details
      */
     public function apply(

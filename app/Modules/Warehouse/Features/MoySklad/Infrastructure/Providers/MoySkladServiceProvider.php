@@ -34,6 +34,9 @@ final class MoySkladServiceProvider extends ServiceProvider
 {
     /**
      * Регистрирует локальные порты фичи.
+     * Шаги:
+     * 1) Связать MoySklad client, repositories, command, dispatcher и sync service с concrete adapters.
+     * 2) Для NomenclatureSyncService подставить LaravelLoggerProxy как PSR logger.
      */
     public function register(): void
     {

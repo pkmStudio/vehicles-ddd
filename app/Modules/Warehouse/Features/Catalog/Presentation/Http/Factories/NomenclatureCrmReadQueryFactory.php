@@ -9,6 +9,14 @@ use Illuminate\Http\Request;
 
 final readonly class NomenclatureCrmReadQueryFactory
 {
+    /**
+     * Собирает DTO параметров CRM-чтения номенклатуры из HTTP request.
+     *
+     * Шаги:
+     * 1) Считать page/per_page/search/sort из query string.
+     * 2) Нормализовать filter в массив.
+     * 3) Вернуть NomenclatureCrmReadQueryDTO с ограниченным page size.
+     */
     public function make(Request $request): NomenclatureCrmReadQueryDTO
     {
         $search = trim($request->string('search')->toString());

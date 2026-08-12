@@ -21,6 +21,11 @@ final readonly class StartExportUseCase implements StartExportUseCaseInterface
 {
     /**
      * Получает сервис идемпотентности, фабрику экспортов и notifier.
+     *
+     * Шаги:
+     * 1) Принять cache-порт для защиты operationId от повторного запуска.
+     * 2) Принять фабрику, которая выбирает concrete Excel-export.
+     * 3) Принять notifier для публикации успешного или неуспешного результата.
      */
     public function __construct(
         private ExportRunCacheServiceInterface $cache,

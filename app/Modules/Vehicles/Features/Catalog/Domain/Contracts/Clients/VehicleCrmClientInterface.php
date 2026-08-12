@@ -16,31 +16,77 @@ use Illuminate\Support\Collection;
 
 interface VehicleCrmClientInterface
 {
+    /**
+     * Возвращает постраничный CRM-список ТС.
+     *
+     * Шаги:
+     * 1) Принять нормализованный query DTO от boundary.
+     * 2) Прочитать page из owner read-сценария Vehicles CRM.
+     * 3) Вернуть DTO страницы без Eloquent/paginator объектов.
+     */
     public function paginate(VehicleCrmReadQueryDTO $query): VehicleCrmPageDTO;
 
+    /**
+     * Возвращает детальный CRM-снимок ТС или null.
+     *
+     * Шаги:
+     * 1) Найти автомобиль по catalog id.
+     * 2) Собрать detail DTO со связанными модификациями, двигателями и specifications.
+     * 3) Вернуть null, если автомобиль отсутствует.
+     */
     public function show(int $id): ?VehicleCrmDetailDTO;
 
     /**
+     * Возвращает compact options для CRM поиска автомобилей.
+     *
+     * Шаги:
+     * 1) Применить поисковую строку и limit к CRM read-модели.
+     * 2) Вернуть collection search item DTO для autocomplete/select UI.
+     *
      * @return Collection<int, VehicleCrmSearchItemDTO>
      */
     public function search(string $query, int $limit): Collection;
 
     /**
+     * Возвращает feature options для CRM фильтров/форм.
+     *
+     * Шаги:
+     * 1) Прочитать справочник features, используемый спецификациями автомобилей.
+     * 2) Вернуть collection option DTO.
+     *
      * @return Collection<int, VehicleCrmFeatureOptionDTO>
      */
     public function features(): Collection;
 
     /**
+     * Возвращает feature value options для выбранной feature.
+     *
+     * Шаги:
+     * 1) Ограничить значения переданным feature id.
+     * 2) Вернуть collection option DTO.
+     *
      * @return Collection<int, VehicleCrmFeatureValueOptionDTO>
      */
     public function featureValues(int $featureId): Collection;
 
     /**
+     * Возвращает templates, доступные для vehicle part specifications в CRM.
+     *
+     * Шаги:
+     * 1) Прочитать поддерживаемые detail templates для CRM формы.
+     * 2) Вернуть collection template option DTO.
+     *
      * @return Collection<int, VehicleCrmDetailTemplateOptionDTO>
      */
     public function detailTemplates(): Collection;
 
     /**
+     * Возвращает manufacturer options для CRM формы автомобиля.
+     *
+     * Шаги:
+     * 1) Применить query/id/limit к справочнику производителей.
+     * 2) Вернуть collection option DTO для select UI.
+     *
      * @return Collection<int, VehicleCrmManufacturerOptionDTO>
      */
     public function manufacturers(?string $query = null, ?int $id = null, int $limit = 50): Collection;

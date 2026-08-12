@@ -22,6 +22,10 @@ final readonly class StartKitMutationUseCase implements StartKitMutationUseCaseI
 {
     /**
      * Инициализирует use case конкретных операций.
+     * Шаги:
+     * 1) Сохранить сценарий создания Warehouse-набора.
+     * 2) Сохранить сценарий обновления Warehouse-набора.
+     * 3) Сохранить сценарий удаления Warehouse-набора.
      */
     public function __construct(
         private CreateKitUseCaseInterface $createKit,
@@ -31,6 +35,11 @@ final readonly class StartKitMutationUseCase implements StartKitMutationUseCaseI
 
     /**
      * Запускает сценарий мутации Warehouse-набора по типу операции.
+     * Шаги:
+     * 1) Прочитать operation из общего KitMutationRequestDTO.
+     * 2) Для create извлечь CreateKitRequestDTO и вызвать create use case.
+     * 3) Для update извлечь UpdateKitRequestDTO и вызвать update use case.
+     * 4) Для delete извлечь DeleteKitRequestDTO и вызвать delete use case.
      */
     public function execute(KitMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -43,6 +52,10 @@ final readonly class StartKitMutationUseCase implements StartKitMutationUseCaseI
 
     /**
      * Делегирует создание набора профильному use case.
+     * Шаги:
+     * 1) Получить CreateKitRequestDTO из общего request.
+     * 2) Передать DTO в CreateKitUseCaseInterface.
+     * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function create(KitMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -53,6 +66,10 @@ final readonly class StartKitMutationUseCase implements StartKitMutationUseCaseI
 
     /**
      * Делегирует обновление набора профильному use case.
+     * Шаги:
+     * 1) Получить UpdateKitRequestDTO из общего request.
+     * 2) Передать DTO в UpdateKitUseCaseInterface.
+     * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function update(KitMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -63,6 +80,10 @@ final readonly class StartKitMutationUseCase implements StartKitMutationUseCaseI
 
     /**
      * Делегирует удаление набора профильному use case.
+     * Шаги:
+     * 1) Получить DeleteKitRequestDTO из общего request.
+     * 2) Передать DTO в DeleteKitUseCaseInterface.
+     * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function delete(KitMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -73,6 +94,8 @@ final readonly class StartKitMutationUseCase implements StartKitMutationUseCaseI
 
     /**
      * Возвращает DTO создания набора из общего DTO мутации.
+     * Шаги:
+     * 1) Вернуть типизированный request, уже подготовленный границу validator/фабрику.
      */
     private function createRequest(KitMutationRequestDTO $request): CreateKitRequestDTO
     {
@@ -81,6 +104,8 @@ final readonly class StartKitMutationUseCase implements StartKitMutationUseCaseI
 
     /**
      * Возвращает DTO обновления набора из общего DTO мутации.
+     * Шаги:
+     * 1) Вернуть типизированный request, уже подготовленный границу validator/фабрику.
      */
     private function updateRequest(KitMutationRequestDTO $request): UpdateKitRequestDTO
     {
@@ -89,6 +114,8 @@ final readonly class StartKitMutationUseCase implements StartKitMutationUseCaseI
 
     /**
      * Возвращает DTO удаления набора из общего DTO мутации.
+     * Шаги:
+     * 1) Вернуть типизированный request, уже подготовленный границу validator/фабрику.
      */
     private function deleteRequest(KitMutationRequestDTO $request): DeleteKitRequestDTO
     {

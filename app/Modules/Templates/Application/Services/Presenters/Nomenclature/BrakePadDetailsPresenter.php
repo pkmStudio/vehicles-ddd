@@ -17,17 +17,36 @@ final readonly class BrakePadDetailsPresenter extends AbstractDetailsPresenter
 {
     use RendersNomenclatureMetrics;
 
+    /**
+     * Этот метод возвращает колонки тормозных колодок.
+     * Шаги:
+     * 1) Перечисляет расположение, вид колодки и материал накладок.
+     * 2) Добавляет общий metrics-блок.
+     */
     public function headings(): array
     {
         return ['Расположение', 'Вид колодки', 'Материал накладок', ...$this->metricsHeadings()];
     }
 
-    /** @return class-string<BrakePadDetailsData> */
+    /**
+     * Этот метод указывает Data-класс presenter-а тормозных колодок.
+     * Шаги:
+     * 1) Возвращает class-string `BrakePadDetailsData`.
+     *
+     * @return class-string<BrakePadDetailsData>
+     */
     protected function dataClass(): string
     {
         return BrakePadDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит details тормозных колодок в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет тип `BrakePadDetailsData`.
+     * 2) Переводит enum-name поля расположения, вида и материала в labels.
+     * 3) Разворачивает metrics-блок.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, BrakePadDetailsData::class);

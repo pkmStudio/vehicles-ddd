@@ -14,6 +14,11 @@ interface StartNomenclatureMutationUseCaseInterface
 {
     /**
      * Запускает сценарий мутации Warehouse-номенклатуры.
+     *
+     * Шаги:
+     * 1) Принять общий NomenclatureMutationRequestDTO.
+     * 2) Выбрать create/update/delete сценарий по operation.
+     * 3) Вернуть result DTO выбранного сценария или null для повтора.
      */
     public function execute(NomenclatureMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

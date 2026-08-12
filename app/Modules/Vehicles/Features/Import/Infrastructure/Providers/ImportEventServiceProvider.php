@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Providers;
 
-use App\Modules\Vehicles\Features\Import\Application\Listeners\EngineModificationReadinessSubscriber;
 use App\Modules\Vehicles\Features\Import\Application\Listeners\CleanupExternalImportFileListener;
-use App\Modules\Vehicles\Features\Import\Application\Listeners\ReportImportResultListener;
 use App\Modules\Vehicles\Features\Import\Application\Listeners\Command\StartEngineCommandImportListener;
 use App\Modules\Vehicles\Features\Import\Application\Listeners\Command\StartEngineModificationCommandImportListener;
 use App\Modules\Vehicles\Features\Import\Application\Listeners\Command\StartModificationCommandImportListener;
 use App\Modules\Vehicles\Features\Import\Application\Listeners\Command\StartVehicleCommandImportListener;
+use App\Modules\Vehicles\Features\Import\Application\Listeners\EngineModificationReadinessSubscriber;
+use App\Modules\Vehicles\Features\Import\Application\Listeners\ReportImportResultListener;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineImportCompleted;
 use App\Modules\Vehicles\Features\Import\Domain\Events\EnginesAndModificationsReady;
@@ -25,6 +25,11 @@ class ImportEventServiceProvider extends ServiceProvider
 {
     /**
      * Связи событий и слушателей домена Vehicles.
+     *
+     * Шаги:
+     * 1) Зарегистрировать цепочку command imports.
+     * 2) Зарегистрировать readiness subscriber для engine/modification зависимостей.
+     * 3) Зарегистрировать report/cleanup listeners для завершенных external imports.
      */
     public function boot(): void
     {

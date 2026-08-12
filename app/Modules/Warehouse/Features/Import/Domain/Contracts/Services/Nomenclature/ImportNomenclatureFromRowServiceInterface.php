@@ -17,6 +17,12 @@ interface ImportNomenclatureFromRowServiceInterface
     /**
      * Валидирует строку и пишет номенклатуру через явные create/update команды.
      *
+     * Шаги:
+     * 1) Нормализовать обязательные поля строки и найти type/brand.
+     * 2) Собрать details через шаблон типа, если он задан.
+     * 3) Сформировать NomenclatureData из строки импорта.
+     * 4) Создать или обновить запись и отправить mutation event.
+     *
      * @param  array<int, mixed>  $row
      * @param  Collection<int, TypeData>  $types
      * @param  Collection<int, BrandData>  $brands

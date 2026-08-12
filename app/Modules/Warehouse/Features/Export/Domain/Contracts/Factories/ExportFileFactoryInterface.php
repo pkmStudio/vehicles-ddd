@@ -16,6 +16,12 @@ interface ExportFileFactoryInterface
 {
     /**
      * Возвращает адаптер экспорта для типа запроса и опционального id Warehouse-типа.
+     *
+     * Шаги:
+     * 1) Принять enum типа экспорта и параметры конкретного запроса.
+     * 2) Выбрать concrete FileExportInterface на Infrastructure boundary.
+     * 3) Передать typeId, фильтры или сортировку только тем адаптерам, которым они нужны.
+     * 4) Вернуть готовый adapter без раскрытия Application-слою деталей Excel.
      */
     public function make(
         ExportTypeEnum $type,

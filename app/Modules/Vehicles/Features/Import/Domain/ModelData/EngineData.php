@@ -12,6 +12,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class EngineData extends Data
 {
+    /**
+     * Фиксирует данные двигателя для create/update import command.
+     */
     public function __construct(
         public readonly int $engId,
         public readonly ?string $codeEngine = null,

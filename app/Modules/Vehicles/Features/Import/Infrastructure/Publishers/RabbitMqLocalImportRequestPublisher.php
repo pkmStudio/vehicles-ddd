@@ -18,6 +18,10 @@ final readonly class RabbitMqLocalImportRequestPublisher implements LocalImportR
 {
     /**
      * Получает RabbitMQ publisher и PSR logger.
+     *
+     * Шаги:
+     * 1) Принять concrete RabbitMQ publisher transport-пакета.
+     * 2) Принять PSR logger для actionable ошибок публикации.
      */
     public function __construct(
         private RabbitMQPublisher $publisher,
@@ -26,6 +30,11 @@ final readonly class RabbitMqLocalImportRequestPublisher implements LocalImportR
 
     /**
      * Публикует request в RabbitMQ и логирует только ошибки публикации.
+     *
+     * Шаги:
+     * 1) Собрать RabbitMQ message из local import request DTO.
+     * 2) Опубликовать message с указанным routing key.
+     * 3) Залогировать exception/false result и вернуть boolean outcome.
      */
     public function publish(LocalImportRequestDTO $request): bool
     {

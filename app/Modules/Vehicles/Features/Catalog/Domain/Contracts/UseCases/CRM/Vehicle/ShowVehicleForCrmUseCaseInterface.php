@@ -13,6 +13,10 @@ interface ShowVehicleForCrmUseCaseInterface
 {
     /**
      * Возвращает detail projection автомобиля или null.
+     *
+     * Шаги:
+     * 1) Найти автомобиль по catalog id.
+     * 2) Собрать CRM detail projection или вернуть null.
      */
     public function execute(int $id): ?VehicleCrmDetailDTO;
 }

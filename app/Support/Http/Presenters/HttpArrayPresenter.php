@@ -12,6 +12,11 @@ final readonly class HttpArrayPresenter
     /**
      * @param  Collection<int, object>  $items
      * @return list<array<string, mixed>>
+     *
+     * Шаги:
+     * - Преобразовать каждый DTO-like object через item().
+     * - Сбросить ключи collection для стабильного JSON list.
+     * - Вернуть plain array для HTTP response.
      */
     public function collection(Collection $items): array
     {
@@ -23,6 +28,11 @@ final readonly class HttpArrayPresenter
 
     /**
      * @return array<string, mixed>
+     *
+     * Шаги:
+     * - Проверить, что объект умеет сериализоваться через toArray().
+     * - Вызвать toArray() и убедиться, что результат действительно array.
+     * - Вернуть массив или выбросить domain-agnostic presentation exception.
      */
     public function item(object $item): array
     {
@@ -48,6 +58,11 @@ final readonly class HttpArrayPresenter
     /**
      * @param  Collection<int, object>  $data
      * @return array{data: list<array<string, mixed>>, meta: array<string, mixed>}
+     *
+     * Шаги:
+     * - Сериализовать коллекцию элементов в поле data.
+     * - Сериализовать metadata object тем же item() contract.
+     * - Собрать стандартную envelope-структуру paginated response.
      */
     public function page(Collection $data, object $meta): array
     {

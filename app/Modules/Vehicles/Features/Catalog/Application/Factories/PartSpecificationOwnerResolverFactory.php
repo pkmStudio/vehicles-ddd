@@ -16,7 +16,12 @@ use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 final readonly class PartSpecificationOwnerResolverFactory implements PartSpecificationOwnerResolverFactoryInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает resolver-ы для поддерживаемых partable owner типов.
+     *
+     * Шаги:
+     * 1) Принять resolver владельца-автомобиля.
+     * 2) Принять resolver владельца-двигателя.
+     * 3) Сохранить оба resolver-а для выбора по PartableTypeEnum.
      */
     public function __construct(
         private VehiclePartSpecificationOwnerResolverInterface $vehicleResolver,
@@ -25,6 +30,10 @@ final readonly class PartSpecificationOwnerResolverFactory implements PartSpecif
 
     /**
      * Выбирает resolver владельца спеки по partable type.
+     *
+     * Шаги:
+     * 1) Сопоставить тип владельца с конкретным application resolver-ом.
+     * 2) Вернуть resolver, который знает, как найти или создать соответствующего владельца.
      */
     public function make(PartableTypeEnum $type): PartSpecificationOwnerResolverInterface
     {

@@ -23,6 +23,9 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
  */
 final class OilFilterDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры engine oil filter details template.
+     */
     public function __construct(
         public readonly string $performance,
         public readonly string $form,

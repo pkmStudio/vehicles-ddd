@@ -9,6 +9,9 @@ namespace App\Modules\Templates\Domain\Exceptions;
  */
 final class InvalidDetailsCellException extends DetailsDataBuildException
 {
+    /**
+     * Создает ошибку для ячейки, которая должна содержать число.
+     */
     public static function numeric(string $field, mixed $value): self
     {
         return new self(sprintf(

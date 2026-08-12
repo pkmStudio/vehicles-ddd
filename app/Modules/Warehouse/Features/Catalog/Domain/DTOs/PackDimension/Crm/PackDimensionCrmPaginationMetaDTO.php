@@ -6,6 +6,9 @@ namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\Crm;
 
 final readonly class PackDimensionCrmPaginationMetaDTO
 {
+    /**
+     * Фиксирует значения DTO без дополнительного поведения.
+     */
     public function __construct(
         public int $currentPage,
         public int $perPage,

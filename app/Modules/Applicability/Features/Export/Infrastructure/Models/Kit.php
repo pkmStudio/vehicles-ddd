@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Kit extends AbstractModel
 {
+    /**
+     * Связывает комплект с номенклатурами в порядке состава комплекта.
+     */
     public function nomenclatures(): BelongsToMany
     {
         return $this

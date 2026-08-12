@@ -10,6 +10,8 @@ use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
 final readonly class WiperNomenclatureDetailsDTO
 {
     /**
+     * Создает accessor над raw details номенклатуры дворников.
+     *
      * @param  array<string, mixed>  $data
      */
     public function __construct(
@@ -24,21 +26,33 @@ final readonly class WiperNomenclatureDetailsDTO
         return new self($data);
     }
 
+    /**
+     * Возвращает позицию дворника из details.
+     */
     public function position(): ?WiperKitPositionEnum
     {
         return WiperKitPositionEnum::fromStoredValue($this->data['position'] ?? null);
     }
 
+    /**
+     * Возвращает основную длину дворника из details.
+     */
     public function lengthMain(): ?int
     {
         return $this->intValue('length_main');
     }
 
+    /**
+     * Возвращает вторую длину переднего комплекта из details.
+     */
     public function lengthSecond(): ?int
     {
         return $this->intValue('length_second');
     }
 
+    /**
+     * Возвращает заднюю длину дворника из details.
+     */
     public function lengthRear(): ?int
     {
         return $this->intValue('length_rear');

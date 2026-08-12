@@ -17,6 +17,11 @@ final readonly class BrandRepository implements BrandRepositoryInterface
     /**
      * Возвращает все бренды в стабильном порядке id.
      *
+     * Шаги:
+     * 1) Прочитать Brand-модели с сортировкой по id.
+     * 2) Преобразовать Eloquent collection в Collection<BrandData>.
+     * 3) Вернуть коллекцию для резолва строк номенклатуры.
+     *
      * @return Collection<int, BrandData>
      */
     public function all(): Collection

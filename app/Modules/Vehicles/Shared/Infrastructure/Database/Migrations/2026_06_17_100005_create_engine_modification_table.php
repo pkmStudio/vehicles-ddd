@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Создает pivot-таблицу engine_modification между engines и modifications.
+     */
     public function up(): void
     {
         Schema::create('engine_modification', function (Blueprint $table) {
@@ -23,6 +26,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Удаляет pivot-таблицу engine_modification при откате схемы.
+     */
     public function down(): void
     {
         Schema::dropIfExists('engine_modification');

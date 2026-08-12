@@ -34,11 +34,17 @@ final readonly class MoySkladProductFolderMetaDTO
         return $this->data;
     }
 
+    /**
+     * Проверяет, что meta папки товара не содержит данных.
+     */
     public function isEmpty(): bool
     {
         return $this->data === [];
     }
 
+    /**
+     * Извлекает id папки товара из meta.href, если он доступен.
+     */
     public function folderId(): ?string
     {
         $href = $this->data['meta']['href'] ?? null;

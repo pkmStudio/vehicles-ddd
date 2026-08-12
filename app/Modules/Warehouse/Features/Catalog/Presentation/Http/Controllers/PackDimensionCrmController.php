@@ -23,7 +23,7 @@ final readonly class PackDimensionCrmController
      * Инициализирует зависимости HTTP adapter-а упаковочных размеров.
      *
      * Шаги:
-     * 1. Получает CRM client, query factory и presenters из контейнера.
+     * 1. Получает CRM клиент, query фабрику и presenters из контейнера.
      * 2. Сохраняет зависимости для обработки HTTP read endpoints.
      */
     public function __construct(
@@ -38,8 +38,8 @@ final readonly class PackDimensionCrmController
      *
      * Шаги:
      * 1. Собирает read-query DTO из HTTP request.
-     * 2. Запрашивает страницу данных через CRM client.
-     * 3. Преобразует page DTO в HTTP response shape.
+     * 2. Запрашивает страницу данных через CRM клиент.
+     * 3. Преобразует DTO страницы в форму HTTP-ответа.
      */
     public function index(Request $request): JsonResponse
     {
@@ -53,9 +53,9 @@ final readonly class PackDimensionCrmController
      * Возвращает detail-снимок упаковочного размера для CRM.
      *
      * Шаги:
-     * 1. Запрашивает detail DTO по id через CRM client.
+     * 1. Запрашивает detail DTO по id через CRM клиент.
      * 2. Возвращает `404`, если упаковочный размер не найден.
-     * 3. Преобразует найденный DTO в HTTP response shape.
+     * 3. Преобразует найденный DTO в форму HTTP-ответа.
      */
     public function show(int $id): JsonResponse
     {
@@ -72,8 +72,8 @@ final readonly class PackDimensionCrmController
      * Возвращает type options для CRM-формы упаковочного размера.
      *
      * Шаги:
-     * 1. Нормализует query, id и limit из HTTP request.
-     * 2. Запрашивает options через CRM client.
+     * 1. Нормализует query, id и лимит из HTTP request.
+     * 2. Запрашивает options через CRM клиент.
      * 3. Возвращает collection в стандартном `data` wrapper.
      */
     public function types(Request $request): JsonResponse

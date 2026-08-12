@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Modification;
 
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineCommandInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ModificationCommandInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
@@ -12,9 +15,11 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutat
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\CreateModificationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\CreateModificationRequestDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\ModificationEngineRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
+use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
 use App\Modules\Vehicles\Shared\Domain\Events\Modification\ModificationCreated;
 use Throwable;
@@ -25,12 +30,20 @@ use Throwable;
 final readonly class CreateModificationUseCase implements CreateModificationUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты create modification workflow.
+     *
+     * Шаги:
+     * 1) Принять repositories для проверки mod_id/type, генерации own mod_id, поиска vehicle и engine.
+     * 2) Принять commands для записи modification, engine и engine_modification связей.
+     * 3) Принять cache/result сервисы для идемпотентности и публикации результата.
      */
     public function __construct(
         private ModificationRepositoryInterface $modifications,
+        private EngineRepositoryInterface $engines,
         private VehicleRepositoryInterface $vehicles,
         private ModificationCommandInterface $command,
+        private EngineCommandInterface $engineCommand,
+        private EngineModificationCommandInterface $engineModifications,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
     ) {}
@@ -52,8 +65,11 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
             return null;
         }
 
+        $modId = $request->modId ?? 0;
+
         try {
-            $existingModification = $this->modifications->findByModIdAndType($request->modId, $request->type->value);
+            $modId = $request->modId ?? $this->modifications->nextOwnModId();
+            $existingModification = $this->modifications->findByModIdAndType($modId, $request->type->value);
 
             if ($existingModification !== null) {
                 return $this->results->rejected(
@@ -61,7 +77,7 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
                     operationId: $request->operationId,
                     entity: CatalogEntityEnum::Modification,
                     operation: CatalogMutationOperationEnum::Create,
-                    externalId: $request->modId,
+                    externalId: $modId,
                     reason: CatalogMutationRejectReasonEnum::AlreadyExists,
                 );
             }
@@ -73,19 +89,20 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
                     operationId: $request->operationId,
                     entity: CatalogEntityEnum::Modification,
                     operation: CatalogMutationOperationEnum::Create,
-                    externalId: $request->modId,
+                    externalId: $modId,
                     reason: CatalogMutationRejectReasonEnum::VehicleNotFound,
                 );
             }
 
             $modificationData = new ModificationData(
-                modId: $request->modId,
+                modId: $modId,
                 type: $request->type,
                 vehicleId: (int) $vehicle->id,
                 msId: $request->msId,
                 yearFrom: $request->yearFrom,
                 yearTo: $request->yearTo,
                 description: $request->description,
+                localizedName: $request->localizedName,
                 powerPs: $request->powerPs,
                 powerKw: $request->powerKw,
                 engineType: $request->engineType,
@@ -94,9 +111,18 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
                 brakeSystemType: $request->brakeSystemType,
                 numberOfCylinders: $request->numberOfCylinders,
                 capacityLt: $request->capacityLt,
+                provider: $request->provider,
+                allowChangeFields: $request->allowChangeFields,
             );
 
             $modification = $this->command->create($modificationData);
+
+            if ($request->syncEngines) {
+                $this->engineModifications->syncForModification(
+                    modification: $modification,
+                    engines: $this->upsertEngines($request->engines),
+                );
+            }
 
             event(new ModificationCreated(
                 userId: $request->userId,
@@ -119,10 +145,56 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
                 operationId: $request->operationId,
                 entity: CatalogEntityEnum::Modification,
                 operation: CatalogMutationOperationEnum::Create,
-                externalId: $request->modId,
+                externalId: $modId,
             );
 
             throw $e;
         }
+    }
+
+    /**
+     * Создает или обновляет двигатели, перечисленные во входящей modification mutation.
+     *
+     * Шаги:
+     * 1) Для каждого engine request определить eng_id: взять входящий или сгенерировать новый.
+     * 2) Найти существующий двигатель по eng_id.
+     * 3) Собрать EngineData с id существующей записи для update или без id для create.
+     * 4) Выполнить create/update через engine command и накопить актуальные EngineData.
+     * 5) Вернуть список двигателей для последующей синхронизации pivot-связей модификации.
+     *
+     * @param  list<ModificationEngineRequestDTO>  $requests
+     * @return list<EngineData>
+     */
+    private function upsertEngines(array $requests): array
+    {
+        $engines = [];
+
+        foreach ($requests as $request) {
+            $engId = $request->engId ?? $this->engines->nextOwnEngId();
+            $existing = $this->engines->findByEngId($engId);
+            $data = new EngineData(
+                engId: $engId,
+                codeEngine: $request->codeEngine,
+                powerKwStart: $request->powerKwStart,
+                powerKwUpto: $request->powerKwUpto,
+                powerPsStart: $request->powerPsStart,
+                powerPsUpto: $request->powerPsUpto,
+                engineCapacity: $request->engineCapacity,
+                cylinderDiameter: $request->cylinderDiameter,
+                cylinderCount: $request->cylinderCount,
+                numberOfValves: $request->numberOfValves,
+                fuelType: $request->fuelType,
+                groupId: $request->groupId,
+                provider: $request->provider,
+                allowChangeFields: $request->allowChangeFields,
+                id: $existing?->id,
+            );
+
+            $engines[] = $existing === null
+                ? $this->engineCommand->create($data)
+                : $this->engineCommand->update($data);
+        }
+
+        return $engines;
     }
 }

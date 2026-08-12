@@ -15,6 +15,11 @@ interface NomenclatureRepositoryInterface
     /**
      * Возвращает номенклатуру выбранного типа с нужными связями.
      *
+     * Шаги:
+     * 1) Принять id Warehouse-типа из экспортного запроса.
+     * 2) Отобрать номенклатуру только этого типа.
+     * 3) Вернуть NomenclatureData со связями для маппинга Excel.
+     *
      * @return Collection<int, NomenclatureData>
      */
     public function forType(int $typeId): Collection;

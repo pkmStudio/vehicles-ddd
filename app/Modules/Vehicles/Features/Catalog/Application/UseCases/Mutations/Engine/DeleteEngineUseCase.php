@@ -24,7 +24,12 @@ use Throwable;
 final readonly class DeleteEngineUseCase implements DeleteEngineUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты delete engine workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для поиска двигателя по eng_id.
+     * 2) Принять cascade service для удаления engine dependencies перед engine delete.
+     * 3) Принять command/cache/result сервисы для записи, идемпотентности и result event.
      */
     public function __construct(
         private EngineRepositoryInterface $engines,

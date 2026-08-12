@@ -17,11 +17,29 @@ use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
 
 final readonly class WiperDataExtractor implements WiperDataExtractorInterface
 {
+    /**
+     * Получает специализированные extractors длины и адаптеров дворников.
+     *
+     * Шаги:
+     * 1. Сохраняет extractor длины, который учитывает количество щеток в комплекте.
+     * 2. Сохраняет extractor адаптеров, который учитывает front/back/universal позицию.
+     */
     public function __construct(
         private WiperLengthExtractorInterface $lengthExtractor,
         private WiperAdapterExtractorInterface $adapterExtractor,
     ) {}
 
+    /**
+     * Определяет позицию комплекта дворников: front, back или universal.
+     *
+     * Шаги:
+     * 1. Обходит номенклатуры комплекта и берет position только у WIPER template.
+     * 2. Если ни одна позиция не найдена, выбрасывает domain exception с kit id.
+     * 3. Если среди позиций есть back, возвращает `BACK`.
+     * 4. Для front-кандидата извлекает длины и адаптеры.
+     * 5. Считает комплект universal, если длины равны и есть hook `H/H83`, либо это одиночный hook.
+     * 6. В остальных случаях возвращает `FRONT`.
+     */
     public function extractPosition(KitData $kit): WiperKitPositionEnum
     {
         $positions = [];
@@ -56,6 +74,13 @@ final readonly class WiperDataExtractor implements WiperDataExtractorInterface
         return ($isUniversal || $isSingleHook) ? WiperKitPositionEnum::UNIVERSAL : WiperKitPositionEnum::FRONT;
     }
 
+    /**
+     * Извлекает расчетные длины дворников для заданной или вычисленной позиции.
+     *
+     * Шаги:
+     * 1. Если position не передана, определяет ее через `extractPosition()`.
+     * 2. Делегирует разбор длины специализированному length extractor-у.
+     */
     public function extractLength(KitData $kit, ?WiperKitPositionEnum $position = null): WiperLengthDTO
     {
         return $this->lengthExtractor->extract(
@@ -64,6 +89,13 @@ final readonly class WiperDataExtractor implements WiperDataExtractorInterface
         );
     }
 
+    /**
+     * Извлекает расчетные адаптеры дворников для заданной или вычисленной позиции.
+     *
+     * Шаги:
+     * 1. Если position не передана, определяет ее через `extractPosition()`.
+     * 2. Делегирует разбор adapter fields специализированному adapter extractor-у.
+     */
     public function extractAdapters(KitData $kit, ?WiperKitPositionEnum $position = null): WiperAdaptersDTO
     {
         return $this->adapterExtractor->extract(

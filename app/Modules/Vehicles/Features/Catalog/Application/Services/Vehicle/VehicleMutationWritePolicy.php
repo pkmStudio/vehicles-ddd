@@ -16,6 +16,11 @@ final readonly class VehicleMutationWritePolicy implements VehicleMutationWriteP
 {
     /**
      * Принудительно создает catalog-owned автомобиль как OD запись.
+     *
+     * Шаги:
+     * 1) Взять все нормализованные поля из входящего VehicleData.
+     * 2) Принудительно установить provider=OD для записи, созданной catalog mutation.
+     * 3) Вернуть новый immutable snapshot без изменения исходного объекта.
      */
     public function applyForCreate(
         VehicleData $incoming,
@@ -44,6 +49,12 @@ final readonly class VehicleMutationWritePolicy implements VehicleMutationWriteP
 
     /**
      * Сохраняет locked поля у non-OD автомобилей и не дает менять provider/ms_id.
+     *
+     * Шаги:
+     * 1) Всегда сохранить текущие provider, ms_id и внутренний id существующей записи.
+     * 2) Для OD-записи принять catalog-managed поля из входящего payload.
+     * 3) Для non-OD-записи принять только безопасные редактируемые поля формы.
+     * 4) Вернуть merged VehicleData для command update.
      */
     public function applyForUpdate(
         VehicleData $incoming,
@@ -97,6 +108,10 @@ final readonly class VehicleMutationWritePolicy implements VehicleMutationWriteP
 
     /**
      * OD-owned записи доступны для catalog-managed полей, остальные provider'ы защищены.
+     *
+     * Шаги:
+     * 1) Сравнить provider существующего автомобиля с OD.
+     * 2) Вернуть true только для записей, которыми владеет catalog mutation workflow.
      */
     public function allowsCatalogManagedFields(VehicleData $existing): bool
     {

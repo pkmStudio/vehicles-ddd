@@ -7,13 +7,30 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Ma
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 
+/**
+ * Переводит строку основного листа транспорта в DTO каталожного автомобиля.
+ */
 final readonly class VehicleSheetRowMapper
 {
+    /**
+     * Получить нормализатор значений ячеек Excel.
+     *
+     * Шаги:
+     * 1) Принять общий нормализатор строк импорта через DI.
+     * 2) Использовать его при чтении идентификаторов, названий, годов и признаков ТС.
+     */
     public function __construct(
         private ImportRowValueFormatter $formatter,
     ) {}
 
     /**
+     * Собрать DTO ТС из строки основного листа импорта.
+     *
+     * Шаги:
+     * 1) Прочитать идентификаторы, названия, поколение, кузов, тип и родительский ms_id.
+     * 2) Нормализовать годы и идентификаторы как целые числа, а флаг допуска как «Да/Нет».
+     * 3) Вернуть DTO для сервиса сохранения ТС из внешнего листа.
+     *
      * @param  array<int, string|int|float|null>  $row
      */
     public function map(array $row): VehicleSheetRowDTO

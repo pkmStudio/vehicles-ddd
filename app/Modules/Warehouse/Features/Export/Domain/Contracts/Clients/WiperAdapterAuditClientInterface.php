@@ -15,6 +15,11 @@ interface WiperAdapterAuditClientInterface
     /**
      * Возвращает строки отчёта аудита адаптеров.
      *
+     * Шаги:
+     * 1) Запросить рассчитанные строки у owner-фичи аудита.
+     * 2) Перевести строки в DTO Export-фичи.
+     * 3) Вернуть коллекцию для Excel-адаптера.
+     *
      * @return Collection<int, WiperAdapterAuditExportRowDTO>
      */
     public function rows(): Collection;

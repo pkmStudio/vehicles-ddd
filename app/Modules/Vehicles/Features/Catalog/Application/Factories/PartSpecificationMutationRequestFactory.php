@@ -49,7 +49,13 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Собирает request DTO для создания part specification из валидированного catalog payload.
+     *
+     * Шаги:
+     * 1) Извлечь вложенный payload спецификации из сообщения.
+     * 2) Собрать owner DTO с vehicle/engine контекстом.
+     * 3) Привести template и необязательные поля спецификации к локальным типам.
+     * 4) Вернуть request DTO create-сценария с user/operation correlation.
      *
      * @param  array<string, mixed>  $payload
      */
@@ -71,7 +77,13 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Собирает request DTO для обновления существующей part specification.
+     *
+     * Шаги:
+     * 1) Извлечь вложенный payload спецификации и обязательный id записи.
+     * 2) Собрать owner DTO, потому что update может переназначать владельца.
+     * 3) Привести template/details и необязательные descriptive-поля к локальным типам.
+     * 4) Вернуть request DTO update-сценария с user/operation correlation.
      *
      * @param  array<string, mixed>  $payload
      */
@@ -93,7 +105,12 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Собирает request DTO для удаления part specification.
+     *
+     * Шаги:
+     * 1) Взять user/operation correlation из верхнего уровня payload.
+     * 2) Взять id удаляемой спецификации из вложенного part_specification payload.
+     * 3) Вернуть DTO delete-сценария без данных владельца и details.
      *
      * @param  array<string, mixed>  $payload
      */
@@ -108,6 +125,12 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
 
     /**
      * Собирает владельца спеки из payload.
+     *
+     * Шаги:
+     * 1) Извлечь owner payload и определить partable type.
+     * 2) Записать внешний id владельца в общий owner DTO.
+     * 3) Для vehicle owner собрать vehicle snapshot, если он передан и тип совпадает.
+     * 4) Для engine owner собрать engine snapshot, если он передан и тип совпадает.
      *
      * @param  array<string, mixed>  $specification
      */
@@ -129,7 +152,12 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
     }
 
     /**
-     * Собирает payload автомобиля-владельца спеки.
+     * Собирает typed snapshot автомобиля-владельца part specification.
+     *
+     * Шаги:
+     * 1) Привести обязательные поля mfa_id, name, type и type_carcase к локальным типам.
+     * 2) Подставить значения provider/steering по умолчанию, если payload их не содержит.
+     * 3) Нормализовать optional generation/excel/year/is_allow поля для возможного создания владельца.
      *
      * @param  array<string, mixed>  $vehicle
      */
@@ -156,7 +184,13 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
     }
 
     /**
-     * Собирает payload двигателя-владельца спеки.
+     * Собирает typed snapshot двигателя-владельца part specification.
+     *
+     * Шаги:
+     * 1) Прочитать optional engine attributes из owner payload.
+     * 2) Привести числовые мощность, объем, цилиндры и group id к нужным scalar-типам.
+     * 3) Преобразовать fuel_type в enum, если он передан.
+     * 4) Вернуть DTO, пригодный для поиска или создания engine owner.
      *
      * @param  array<string, mixed>  $engine
      */

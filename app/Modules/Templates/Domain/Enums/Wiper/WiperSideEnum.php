@@ -14,6 +14,7 @@ enum WiperSideEnum: string
 
     /**
      * Возвращает поле адаптера внутри details конкретной стороны.
+     * Front использует `adapter_type_front`, back — `adapter_type_rear`.
      */
     public function adapterField(): string
     {

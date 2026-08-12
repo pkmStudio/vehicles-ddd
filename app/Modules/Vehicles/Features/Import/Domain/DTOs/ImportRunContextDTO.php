@@ -17,6 +17,9 @@ namespace App\Modules\Vehicles\Features\Import\Domain\DTOs;
  */
 final readonly class ImportRunContextDTO
 {
+    /**
+     * Фиксирует инициатора и correlation id одного import run.
+     */
     public function __construct(
         public int $userId,
         public string $operationId,

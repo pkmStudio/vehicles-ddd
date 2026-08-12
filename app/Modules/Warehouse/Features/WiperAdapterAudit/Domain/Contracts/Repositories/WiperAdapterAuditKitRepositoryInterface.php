@@ -14,6 +14,10 @@ interface WiperAdapterAuditKitRepositoryInterface
 {
     /**
      * Возвращает наборы с составом, где есть минимум три позиции номенклатуры.
+     * Шаги:
+     * 1) Найти Warehouse kits, у которых в составе минимум три номенклатуры.
+     * 2) Загрузить состав и типы номенклатур для расчёта adapters mismatch.
+     * 3) Вернуть коллекцию KitData для application service аудита.
      *
      * @return Collection<int, KitData>
      */

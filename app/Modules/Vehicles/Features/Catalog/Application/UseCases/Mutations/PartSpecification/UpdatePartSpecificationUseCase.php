@@ -29,7 +29,12 @@ use Throwable;
 final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecificationUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты, нужные для безопасного update part specification workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для проверки существования specification.
+     * 2) Принять command записи и factory resolver-ов владельца.
+     * 3) Принять cache/result/detail-policy порты для идемпотентности, result event и проверки details.
      */
     public function __construct(
         private PartSpecificationRepositoryInterface $specifications,
@@ -98,6 +103,11 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
 
     /**
      * Находит существующую спецификацию или возвращает rejected result.
+     *
+     * Шаги:
+     * 1) Найти specification по id из update request.
+     * 2) Вернуть существующий Data snapshot, если запись найдена.
+     * 3) Иначе вернуть rejected NotFound result без выполнения owner/details side effects.
      */
     private function rejectIfMissing(UpdatePartSpecificationRequestDTO $request): PartSpecificationData|CatalogMutationResultDTO
     {
@@ -114,6 +124,11 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
 
     /**
      * Применяет details policy до owner resolution, чтобы invalid details не давали side effects.
+     *
+     * Шаги:
+     * 1) Передать raw details, template и owner type в details write policy.
+     * 2) Передать id/operation id для корректного rejection context.
+     * 3) Вернуть normalized details или invalid result без изменения owner-записей.
      */
     private function applyDetailsPolicy(
         UpdatePartSpecificationRequestDTO $request,
@@ -129,6 +144,11 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
 
     /**
      * Разрешает владельца спецификации во внутренний id записи.
+     *
+     * Шаги:
+     * 1) Выбрать owner resolver по partable type из request.
+     * 2) Передать owner DTO в resolver, который может найти, создать или обновить владельца.
+     * 3) Вернуть resolved owner или reject reason.
      */
     private function resolveOwner(UpdatePartSpecificationRequestDTO $request): PartSpecificationOwnerResolutionDTO
     {
@@ -137,6 +157,11 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
 
     /**
      * Собирает Data-снимок спецификации для записи через command.
+     *
+     * Шаги:
+     * 1) Использовать id обновляемой specification из request.
+     * 2) Использовать resolved owner type/id вместо внешнего owner id.
+     * 3) Записать template, normalized details и optional descriptive fields.
      *
      * @param  array<string, mixed>  $details
      */
@@ -159,6 +184,10 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
 
     /**
      * Публикует факт обновления спецификации.
+     *
+     * Шаги:
+     * 1) Сериализовать обновленный PartSpecificationData в payload события.
+     * 2) Опубликовать module-level факт PartSpecificationUpdated с user/operation correlation.
      */
     private function publishUpdatedEvent(
         UpdatePartSpecificationRequestDTO $request,
@@ -173,6 +202,11 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
 
     /**
      * Собирает completed result для update-сценария.
+     *
+     * Шаги:
+     * 1) Использовать id обновленной specification как externalId и recordId результата.
+     * 2) Собрать completed result для entity PartSpecification и операции Update.
+     * 3) Делегировать публикацию result service.
      */
     private function completed(
         UpdatePartSpecificationRequestDTO $request,
@@ -190,6 +224,11 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
 
     /**
      * Собирает rejected result для update-сценария.
+     *
+     * Шаги:
+     * 1) Использовать id specification из request как externalId результата.
+     * 2) Передать reason, field errors и optional recordId в result service.
+     * 3) Вернуть опубликованный rejected result для update operation.
      *
      * @param  array<int, array{field: string, rule: string, message: string}>  $errors
      */
@@ -213,6 +252,11 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
 
     /**
      * Откатывает idempotency guard и публикует failed result перед пробросом исключения.
+     *
+     * Шаги:
+     * 1) Освободить operation id в cache, чтобы сообщение можно было повторить.
+     * 2) Опубликовать failed result с id обновляемой specification.
+     * 3) Оставить проброс исходного исключения вызывающему execute.
      */
     private function failed(UpdatePartSpecificationRequestDTO $request): void
     {

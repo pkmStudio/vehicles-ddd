@@ -21,6 +21,13 @@ class PartSpecification extends AbstractModel
     ];
 
     // RELATIONS
+    /**
+     * Связь specification со значением справочника фичи.
+     *
+     * Шаги:
+     * 1) Описать belongsTo relation через feature_value_id.
+     * 2) Вернуть relation на import-копию FeatureValue.
+     */
     public function featureValue(): BelongsTo
     {
         return $this->belongsTo(FeatureValue::class, 'feature_value_id', 'id');

@@ -16,21 +16,37 @@ abstract class RequestLocalImportCommand extends Command
 {
     /**
      * Логическое имя inbound-события из config/rabbit-transport.php.
+     *
+     * Шаги:
+     * 1. Выбрать событие, соответствующее конкретному типу локального импорта.
+     * 2. Вернуть имя события для Rabbit envelope.
      */
     abstract protected function eventName(): string;
 
     /**
      * Routing key, привязанный к inbound-событию в config/rabbit-transport.php:setup.bindings.
+     *
+     * Шаги:
+     * 1. Выбрать routing key для конкретного import request.
+     * 2. Вернуть key для публикации в exchange.
      */
     abstract protected function routingKey(): string;
 
     /**
      * Значение data.import_type, по которому handler выберет Excel-адаптер.
+     *
+     * Шаги:
+     * 1. Выбрать external import type, который поддерживает ImportFileFactory.
+     * 2. Вернуть value enum для payload.
      */
     abstract protected function importType(): string;
 
     /**
      * Удалять ли исходный файл после успешного импорта (data.cleanup_after_import).
+     *
+     * Шаги:
+     * 1. Зафиксировать policy конкретной local command.
+     * 2. Вернуть false по умолчанию, чтобы локальный файл оставался доступен после запуска.
      */
     protected function cleanupAfterImport(): bool
     {
@@ -39,6 +55,12 @@ abstract class RequestLocalImportCommand extends Command
 
     /**
      * Собирает request DTO и делегирует публикацию Application use case.
+     *
+     * Шаги:
+     * 1. Прочитать CLI arguments/options и заполнить operation_id по умолчанию.
+     * 2. Собрать LocalImportRequestDTO с event/routing/import metadata.
+     * 3. Передать DTO в Application use case публикации Rabbit-сообщения.
+     * 4. Вывести результат и вернуть console exit code.
      */
     public function handle(PublishLocalImportRequestUseCaseInterface $useCase): int
     {

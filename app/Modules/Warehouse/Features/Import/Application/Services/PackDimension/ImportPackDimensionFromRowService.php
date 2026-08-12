@@ -19,6 +19,10 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
 {
     /**
      * Получает чтение и команду записи упаковочного размера.
+     * Шаги:
+     * 1) Сохранить repository упаковочных размеров для id lookup.
+     * 2) Сохранить repository типов для резолва type из Excel-ячейки.
+     * 3) Сохранить command port для create/update записи упаковки.
      */
     public function __construct(
         private PackDimensionRepositoryInterface $packDimensions,
@@ -28,6 +32,14 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
 
     /**
      * Валидирует строку и пишет упаковочный размер.
+     * Шаги:
+     * 1) Прочитать optional id и scalar поля упаковки из Excel-строки.
+     * 2) Зарезолвить type по id, названию или коду справочника.
+     * 3) Запретить пустое название коробки.
+     * 4) Запретить нулевые/отрицательные габариты и вес.
+     * 5) Запретить отрицательную цену.
+     * 6) Собрать PackDimensionData.
+     * 7) Если id найден в базе, обновить запись; иначе создать новую.
      *
      * @param  array<int, mixed>  $row
      */
@@ -77,6 +89,13 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
     /**
      * Резолвит пользовательское значение типа товара по названию или коду; numeric id оставлен
      * для совместимости со старыми файлами.
+     * Шаги:
+     * 1) Нормализовать raw value из Excel-ячейки.
+     * 2) Отклонить пустую ячейку как обязательное поле.
+     * 3) Сравнить raw value с id типа для legacy-файлов.
+     * 4) Сравнить normalized value с name типа.
+     * 5) Сравнить normalized value с char-кодом типа, если он есть.
+     * 6) Если совпадений нет, выбросить validation error со ссылкой на лист справочников.
      */
     private function resolveType(mixed $value): TypeData
     {
@@ -108,6 +127,12 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
         );
     }
 
+    /**
+     * Нормализует значение типа для case-insensitive сравнения.
+     * Шаги:
+     * 1) Обрезать внешние пробелы.
+     * 2) Привести строку к upper-case с учетом multibyte символов.
+     */
     private function normalizeTypeValue(string $value): string
     {
         return mb_strtoupper(trim($value));

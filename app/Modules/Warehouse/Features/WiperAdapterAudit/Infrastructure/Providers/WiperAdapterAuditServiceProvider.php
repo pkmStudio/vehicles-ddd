@@ -17,6 +17,9 @@ final class WiperAdapterAuditServiceProvider extends ServiceProvider
 {
     /**
      * Биндит repository и application-сервис аудита адаптеров.
+     * Шаги:
+     * 1) Зарегистрировать repository interface на Eloquent adapter.
+     * 2) Зарегистрировать service interface на application service.
      */
     public function register(): void
     {

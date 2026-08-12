@@ -19,6 +19,13 @@ final readonly class KitCommand implements KitCommandInterface
     /**
      * Этот метод обновляет набор и полностью переattach'ивает его состав.
      *
+     * Шаги:
+     * 1) Открыть транзакцию записи набора и pivot-состава.
+     * 2) Найти Kit по id из DTO и выбросить import exception, если он отсутствует.
+     * 3) Обновить поля набора без id.
+     * 4) Полностью заменить связи с номенклатурами в заданном порядке.
+     * 5) Вернуть обновлённый KitData после refresh.
+     *
      * @param  array<int, int>  $nomenclatureIds
      */
     public function updateById(KitData $data, array $nomenclatureIds): KitData
@@ -40,6 +47,12 @@ final readonly class KitCommand implements KitCommandInterface
 
     /**
      * Этот метод создаёт набор и полностью attach'ит его состав.
+     *
+     * Шаги:
+     * 1) Открыть транзакцию создания набора и pivot-состава.
+     * 2) Создать Kit из DTO без id.
+     * 3) Привязать номенклатуры с sort по порядку строки.
+     * 4) Вернуть созданный KitData после refresh.
      *
      * @param  array<int, int>  $nomenclatureIds
      */

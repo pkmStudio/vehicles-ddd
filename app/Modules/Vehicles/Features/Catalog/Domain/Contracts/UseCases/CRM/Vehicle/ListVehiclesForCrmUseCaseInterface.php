@@ -14,6 +14,10 @@ interface ListVehiclesForCrmUseCaseInterface
 {
     /**
      * Возвращает постраничный список ТС для CRM.
+     *
+     * Шаги:
+     * 1) Принять нормализованный DTO фильтрации, сортировки и пагинации.
+     * 2) Вернуть page DTO с list items и pagination meta.
      */
     public function execute(VehicleCrmReadQueryDTO $query): VehicleCrmPageDTO;
 }

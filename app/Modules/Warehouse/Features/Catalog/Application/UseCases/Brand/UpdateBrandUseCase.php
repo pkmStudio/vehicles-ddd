@@ -25,6 +25,10 @@ final readonly class UpdateBrandUseCase implements UpdateBrandUseCaseInterface
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repository поиска бренда и проверки нового имени.
+     * 2) Принять command записи, idempotency cache и result service.
      */
     public function __construct(
         private BrandRepositoryInterface $brands,

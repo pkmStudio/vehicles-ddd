@@ -18,6 +18,11 @@ final class TecDocImportCars extends Command
 
     /**
      * Запускает Application-сценарий импорта TecDoc.
+     *
+     * Шаги:
+     * 1. Передать выполнение каскадного TecDoc import в Application use case.
+     * 2. Сообщить оператору, что сценарий поставил дальнейшую работу в очередь.
+     * 3. Вернуть successful console exit code.
      */
     public function handle(StartTecDocImportUseCaseInterface $useCase): int
     {

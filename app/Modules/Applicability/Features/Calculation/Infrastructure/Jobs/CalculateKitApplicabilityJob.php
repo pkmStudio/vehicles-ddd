@@ -13,6 +13,14 @@ final class CalculateKitApplicabilityJob implements ShouldQueue
 {
     use FoundationQueueable;
 
+    /**
+     * Создает queued job пересчета применяемости.
+     *
+     * Шаги:
+     * 1. Сохраняет optional kit id для точечного расчета.
+     * 2. Сохраняет chunk size для чтения Warehouse kits.
+     * 3. Сохраняет внешний operation id и user id для callback-контекста.
+     */
     public function __construct(
         private readonly ?int $kitId = null,
         private readonly int $chunk = 1000,
@@ -20,6 +28,14 @@ final class CalculateKitApplicabilityJob implements ShouldQueue
         private readonly ?int $userId = null,
     ) {}
 
+    /**
+     * Выполняет отложенный расчет применяемости.
+     *
+     * Шаги:
+     * 1. Если передан внешний контекст, сохраняет user id по operation id.
+     * 2. Вызывает use case пересчета с kit filter, chunk size и operation id.
+     * 3. Оставляет публикацию итогового факта самому use case.
+     */
     public function handle(
         CalculateKitApplicabilityUseCaseInterface $useCase,
         ExternalCalculationContextServiceInterface $context,

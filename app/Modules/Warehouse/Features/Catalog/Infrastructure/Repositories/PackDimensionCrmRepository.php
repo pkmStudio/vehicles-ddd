@@ -27,8 +27,8 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
      *
      * Шаги:
      * 1. Собирает базовый query builder упаковочных размеров.
-     * 2. Применяет filters, search и sort из read-query DTO.
-     * 3. Выполняет pagination.
+     * 2. Применяет фильтры, search и сортировку из read-query DTO.
+     * 3. Выполняет пагинацию.
      * 4. Маппит строки БД в DTO страницы.
      */
     public function paginate(PackDimensionCrmReadQueryDTO $query): PackDimensionCrmPageDTO
@@ -76,7 +76,7 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
      *
      * Шаги:
      * 1. Собирает query builder типов.
-     * 2. Применяет selected id или search-фильтр.
+     * 2. Применяет выбранный id или search-фильтр.
      * 3. Ограничивает результат безопасным лимитом options endpoint-а.
      * 4. Маппит строки БД в option DTO.
      *
@@ -152,7 +152,7 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
      * 2. Пропускает пустые значения фильтров.
      * 3. Применяет текстовый фильтр `name`.
      *
-     * @param  array<string, mixed>  $filters
+     * @param  array<string, mixed>  $фильтры
      */
     private function applyFilters(Builder $query, array $filters): void
     {
@@ -251,11 +251,11 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
     }
 
     /**
-     * Маппит Laravel paginator в CRM pagination meta DTO.
+     * Маппит Laravel paginator в CRM DTO метаданных пагинации.
      *
      * Шаги:
      * 1. Читает текущую страницу, per-page, total и last page.
-     * 2. Возвращает typed meta DTO для response presenter.
+     * 2. Возвращает типизированный DTO метаданных для презентера ответа.
      */
     private function meta(LengthAwarePaginator $paginator): PackDimensionCrmPaginationMetaDTO
     {

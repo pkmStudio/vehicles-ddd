@@ -16,9 +16,9 @@ final readonly class KitCrmReadQueryFactory
      * Создает read-query DTO для CRM списка комплектов.
      *
      * Шаги:
-     * 1. Читает pagination, search, sort и filter параметры HTTP request.
+     * 1. Читает пагинацию, search, сортировку и filter параметры HTTP request.
      * 2. Нормализует page/per_page в допустимые границы.
-     * 3. Возвращает DTO без передачи HTTP request глубже presentation boundary.
+     * 3. Возвращает DTO без передачи HTTP request глубже presentation границу.
      */
     public function make(Request $request): KitCrmReadQueryDTO
     {

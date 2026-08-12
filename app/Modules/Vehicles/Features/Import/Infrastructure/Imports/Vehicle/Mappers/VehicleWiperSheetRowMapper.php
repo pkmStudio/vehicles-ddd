@@ -4,16 +4,26 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers;
 
-use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
-use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 
+/**
+ * Переводит строку листа дворников в DTO спецификации ТС.
+ */
 final readonly class VehicleWiperSheetRowMapper
 {
     private const int SPEC_START_COLUMN = 20;
 
+    /**
+     * Получить нормализатор ячеек и клиент сборки details.
+     *
+     * Шаги:
+     * 1) Принять общий нормализатор строк импорта через DI.
+     * 2) Принять клиент Templates для сборки типизированных details по слагу шаблона.
+     */
     public function __construct(
         private ImportRowValueFormatter $formatter,
         private TemplatesClientInterface $templates,

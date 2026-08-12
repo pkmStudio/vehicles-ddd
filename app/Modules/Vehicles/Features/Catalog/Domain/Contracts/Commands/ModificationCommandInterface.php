@@ -40,6 +40,12 @@ interface ModificationCommandInterface
     public function deleteByModIdAndType(int $modId, string $type): void;
 
     /**
+     * Удаляет модификации по внутренним ids.
+     *
+     * Шаги:
+     * 1) Принять список внутренних ids модификаций.
+     * 2) Выполнить bulk delete найденных записей без удаления зависимостей, которые готовит cascade service.
+     *
      * @param  array<int, int>  $ids
      */
     public function deleteByIds(array $ids): void;

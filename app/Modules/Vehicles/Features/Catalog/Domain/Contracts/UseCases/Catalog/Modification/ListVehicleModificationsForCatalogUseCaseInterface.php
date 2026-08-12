@@ -12,6 +12,14 @@ use Illuminate\Support\Collection;
  */
 interface ListVehicleModificationsForCatalogUseCaseInterface
 {
-    /** @return Collection<int, CatalogModificationDTO>|null */
+    /**
+     * Возвращает модификации разрешенного автомобиля публичного каталога.
+     *
+     * Шаги:
+     * 1) Проверить автомобиль по catalog id.
+     * 2) Вернуть null для отсутствующего/закрытого автомобиля или collection modification DTO.
+     *
+     * @return Collection<int, CatalogModificationDTO>|null
+     */
     public function execute(int $vehicleId): ?Collection;
 }

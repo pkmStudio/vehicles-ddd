@@ -10,12 +10,24 @@ use App\Support\Http\Presenters\HttpArrayPresenter;
 
 final readonly class NomenclatureCrmReadPresenter
 {
+    /**
+     * Получает общий presenter для преобразования DTO в HTTP arrays.
+     *
+     * Шаги:
+     * 1) Принять HttpArrayPresenter из support layer.
+     * 2) Использовать его для page/detail CRM responses.
+     */
     public function __construct(
         private HttpArrayPresenter $arrays,
     ) {}
 
     /**
      * @return array{data: list<array<string, mixed>>, meta: array<string, int>}
+     *
+     * Шаги:
+     * 1) Принять DTO страницы CRM-результата.
+     * 2) Преобразовать элементы и meta в массив ответа.
+     * 3) Вернуть структуру, готовую для JSON ответ.
      */
     public function page(NomenclatureCrmPageDTO $page): array
     {
@@ -24,6 +36,11 @@ final readonly class NomenclatureCrmReadPresenter
 
     /**
      * @return array<string, mixed>
+     *
+     * Шаги:
+     * 1) Принять nullable DTO детальной CRM-проекции.
+     * 2) Вернуть null для отсутствующей записи.
+     * 3) Преобразовать найденный DTO в массив ответа.
      */
     public function detail(NomenclatureCrmListItemDTO $detail): array
     {

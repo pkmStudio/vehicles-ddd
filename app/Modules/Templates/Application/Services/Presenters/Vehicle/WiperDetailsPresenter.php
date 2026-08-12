@@ -22,11 +22,24 @@ final readonly class WiperDetailsPresenter extends AbstractDetailsPresenter
 {
     use FormatsExportCells;
 
+    /**
+     * Этот метод возвращает колонки vehicle wiper шаблона.
+     * Шаги:
+     * 1) Добавляет заголовки передней стороны.
+     * 2) Добавляет заголовки задней стороны.
+     * 3) Сохраняет порядок, ожидаемый `cells()`.
+     */
     public function headings(): array
     {
         return [...$this->frontHeadings(), ...$this->backHeadings()];
     }
 
+    /**
+     * Этот метод возвращает заголовки передней стороны дворников.
+     * Шаги:
+     * 1) Перечисляет диапазоны водительской и пассажирской щётки.
+     * 2) Добавляет тип крепления передних и количество передних щёток.
+     */
     private function frontHeadings(): array
     {
         return [
@@ -39,6 +52,12 @@ final readonly class WiperDetailsPresenter extends AbstractDetailsPresenter
         ];
     }
 
+    /**
+     * Этот метод возвращает заголовки задней стороны дворников.
+     * Шаги:
+     * 1) Перечисляет диапазон задней щётки.
+     * 2) Добавляет тип крепления задней и количество задних щёток.
+     */
     private function backHeadings(): array
     {
         return [
@@ -50,20 +69,25 @@ final readonly class WiperDetailsPresenter extends AbstractDetailsPresenter
     }
 
     /**
-     * Этот метод рендерит значения дворников (обе стороны) как плоский набор Excel-ячеек.
+     * Этот метод указывает Data-класс vehicle wiper presenter-а.
      * Шаги:
-     * 1) Берёт переднюю сторону, если она есть; если её нет (в смерженном
-     *    `WiperSpecificationService::mergeForExport()` массиве не было ключа `front`) —
-     *    возвращает пустые ячейки, чтобы количество колонок не поменялось.
-     * 2) То же самое для задней стороны.
-     * 3) Разворачивает ячейки обеих сторон подряд в один плоский список.
+     * 1) Возвращает class-string `WiperDetailsData` для восстановления details массива.
+     *
+     * @return class-string<WiperDetailsData>
      */
-    /** @return class-string<WiperDetailsData> */
     protected function dataClass(): string
     {
         return WiperDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит значения дворников (обе стороны) как плоский набор Excel-ячеек.
+     * Шаги:
+     * 1) Проверяет, что получен `WiperDetailsData`.
+     * 2) Рендерит переднюю сторону; при отсутствии данных возвращает пустые placeholders.
+     * 3) Рендерит заднюю сторону; при отсутствии данных возвращает пустые placeholders.
+     * 4) Разворачивает ячейки обеих сторон подряд в один плоский список.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, WiperDetailsData::class);
@@ -74,6 +98,14 @@ final readonly class WiperDetailsPresenter extends AbstractDetailsPresenter
         ];
     }
 
+    /**
+     * Этот метод рендерит переднюю сторону дворников.
+     * Шаги:
+     * 1) Если передней стороны нет — возвращает пустой набор из 6 ячеек для стабильной ширины
+     *    Excel-строки.
+     * 2) Иначе разворачивает два диапазона длины.
+     * 3) Склеивает типы переднего крепления в `;`-строку labels и добавляет количество щёток.
+     */
     private function frontCells(?WiperFrontDetailsData $front): array
     {
         if ($front === null) {
@@ -88,6 +120,13 @@ final readonly class WiperDetailsPresenter extends AbstractDetailsPresenter
         ];
     }
 
+    /**
+     * Этот метод рендерит заднюю сторону дворников.
+     * Шаги:
+     * 1) Если задней стороны нет — возвращает пустой набор из 4 ячеек.
+     * 2) Иначе разворачивает диапазон длины задней щётки.
+     * 3) Склеивает типы заднего крепления в labels и добавляет количество щёток.
+     */
     private function backCells(?WiperBackDetailsData $back): array
     {
         if ($back === null) {
@@ -101,7 +140,14 @@ final readonly class WiperDetailsPresenter extends AbstractDetailsPresenter
         ];
     }
 
-    /** @return array{0: ?int, 1: ?int} */
+    /**
+     * Этот метод превращает диапазон длины щётки в две Excel-ячейки.
+     * Шаги:
+     * 1) Берёт минимальную длину.
+     * 2) Берёт максимальную длину.
+     *
+     * @return array{0: ?int, 1: ?int}
+     */
     private function lengthRangeCells(WiperLengthRangeData $range): array
     {
         return [$range->min, $range->max];

@@ -14,11 +14,11 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\Crm\PackDim
 final readonly class ShowPackDimensionForCrmUseCase implements ShowPackDimensionForCrmUseCaseInterface
 {
     /**
-     * Инициализирует repository port упаковочных размеров для CRM detail-сценария.
+     * Инициализирует порт репозитория упаковочных размеров для CRM detail-сценария.
      *
      * Шаги:
-     * 1. Получает repository port owner-слоя Catalog.
-     * 2. Сохраняет port для lookup по внутреннему id.
+     * 1. Получает порт репозитория owner-слоя Catalog.
+     * 2. Сохраняет port для поиск по внутреннему id.
      */
     public function __construct(
         private PackDimensionCrmRepositoryInterface $packDimensions,
@@ -29,7 +29,7 @@ final readonly class ShowPackDimensionForCrmUseCase implements ShowPackDimension
      *
      * Шаги:
      * 1. Принимает внутренний id упаковочного размера.
-     * 2. Делегирует lookup repository port.
+     * 2. Делегирует поиск порт репозитория.
      * 3. Возвращает DTO или `null`, если запись не найдена.
      */
     public function execute(int $id): ?PackDimensionCrmListItemDTO

@@ -384,6 +384,8 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
                 'engines.number_of_valves',
                 'engines.fuel_type',
                 'engines.group_id',
+                'engines.provider',
+                'engines.allow_change_fields',
             ])
             ->groupBy('modification_id');
 

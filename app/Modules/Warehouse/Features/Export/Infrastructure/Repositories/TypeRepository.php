@@ -17,6 +17,11 @@ final readonly class TypeRepository implements TypeRepositoryInterface
     /**
      * Возвращает все типы в стабильном порядке id.
      *
+     * Шаги:
+     * 1) Прочитать Eloquent-модели типов с сортировкой по id.
+     * 2) Преобразовать результат в TypeData collection.
+     * 3) Вернуть коллекцию для справочных листов и resolver'ов.
+     *
      * @return Collection<int, TypeData>
      */
     public function all(): Collection
@@ -26,6 +31,11 @@ final readonly class TypeRepository implements TypeRepositoryInterface
 
     /**
      * Возвращает один тип по id или null, если он отсутствует.
+     *
+     * Шаги:
+     * 1) Найти Eloquent-модель типа по primary key.
+     * 2) Вернуть null, если запись не найдена.
+     * 3) Преобразовать найденную модель в TypeData.
      */
     public function findById(int $id): ?TypeData
     {

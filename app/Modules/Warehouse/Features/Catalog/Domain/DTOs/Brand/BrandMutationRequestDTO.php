@@ -20,7 +20,7 @@ final readonly class BrandMutationRequestDTO
     ) {}
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     public static function fromArray(array $payload): self
     {
@@ -37,7 +37,7 @@ final readonly class BrandMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function createRequest(array $payload): CreateBrandRequestDTO
     {
@@ -55,7 +55,7 @@ final readonly class BrandMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function updateRequest(array $payload): UpdateBrandRequestDTO
     {
@@ -74,7 +74,7 @@ final readonly class BrandMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function deleteRequest(array $payload): DeleteBrandRequestDTO
     {

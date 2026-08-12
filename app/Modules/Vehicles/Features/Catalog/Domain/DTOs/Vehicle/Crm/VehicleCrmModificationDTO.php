@@ -34,6 +34,8 @@ final readonly class VehicleCrmModificationDTO
         public ?string $localizedName,
         public ?int $numberOfCylinders,
         public ?float $capacityLt,
+        public string $provider,
+        public array $allowChangeFields,
         public Collection $engines,
     ) {}
 
@@ -62,6 +64,8 @@ final readonly class VehicleCrmModificationDTO
             'localized_name' => $this->localizedName,
             'number_of_cylinders' => $this->numberOfCylinders,
             'capacity_lt' => $this->capacityLt,
+            'provider' => $this->provider,
+            'allow_change_fields' => $this->allowChangeFields,
             'engines' => $this->engines
                 ->map(fn (VehicleCrmEngineDTO $engine): array => $engine->toArray())
                 ->values()

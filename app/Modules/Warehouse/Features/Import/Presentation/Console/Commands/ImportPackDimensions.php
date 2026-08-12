@@ -22,16 +22,37 @@ final class ImportPackDimensions extends RequestLocalImportCommand
 
     protected $description = 'Опубликовать RabbitMQ-запрос импорта упаковочных размеров Warehouse из локального Storage (файл не удаляется после импорта)';
 
+    /**
+     * Возвращает имя события запроса импорта упаковочных размеров.
+     *
+     * Шаги:
+     * 1) Выбрать wire event для Warehouse pack dimension import.
+     * 2) Передать имя события базовой команде публикации.
+     */
     protected function eventName(): string
     {
         return 'WAREHOUSE_PACK_DIMENSION_IMPORT_FILE_REQUESTED';
     }
 
+    /**
+     * Возвращает routing key запроса импорта упаковочных размеров.
+     *
+     * Шаги:
+     * 1) Выбрать routing key bindings для pack dimension import.
+     * 2) Передать routing key publisher'у через базовую команду.
+     */
     protected function routingKey(): string
     {
         return 'crm.warehouse.pack-dimensions.import';
     }
 
+    /**
+     * Возвращает тип импорта упаковочных размеров.
+     *
+     * Шаги:
+     * 1) Взять wire-значение ImportTypeEnum::PackDimension.
+     * 2) Передать его handler'у для выбора PackDimensionImport adapter.
+     */
     protected function importType(): string
     {
         return ImportTypeEnum::PackDimension->value;

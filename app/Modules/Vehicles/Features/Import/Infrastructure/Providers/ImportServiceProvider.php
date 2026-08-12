@@ -216,6 +216,14 @@ final class ImportServiceProvider extends ServiceProvider
         LocalImportRequestPublisherInterface::class => RabbitMqLocalImportRequestPublisher::class,
     ];
 
+    /**
+     * Зарегистрировать container bindings фичи Import.
+     *
+     * Шаги:
+     * 1) Зарегистрировать отдельные RabbitMQ/file report services.
+     * 2) Последовательно привязать use case, command, repository, import, factory и service ports.
+     * 3) Зарегистрировать client/file/publisher adapters.
+     */
     public function register(): void
     {
         // Уведомление о готовом файле уходит в RabbitMQ (сервису с Filament).

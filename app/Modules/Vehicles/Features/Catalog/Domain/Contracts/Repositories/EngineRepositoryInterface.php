@@ -22,6 +22,15 @@ interface EngineRepositoryInterface
     public function findByEngId(int $engId): ?EngineData;
 
     /**
+     * Возвращает следующий локальный отрицательный eng_id для двигателя каталога.
+     *
+     * Шаги:
+     * 1) Найти минимальный текущий eng_id в catalog storage.
+     * 2) Вернуть следующий отрицательный id для catalog-owned двигателя.
+     */
+    public function nextOwnEngId(): int;
+
+    /**
      * Возвращает ids связок двигателя с модификациями.
      *
      * Шаги:

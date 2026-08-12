@@ -20,6 +20,14 @@ use App\Modules\Templates\Domain\ModelData\Engine\SparkPlugThreadDetailsData;
  */
 final readonly class SparkPlugDetailsBuilder
 {
+    /**
+     * Этот метод собирает engine spark-plug details из последовательных ячеек импорта.
+     * Шаги:
+     * 1) Собирает вложенный блок резьбы.
+     * 2) Собирает вложенный блок электрода.
+     * 3) Читает ширину зева ключа через enum-справочник.
+     * 4) Возвращает `SparkPlugDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): SparkPlugDetailsData
     {
         return new SparkPlugDetailsData(
@@ -29,7 +37,14 @@ final readonly class SparkPlugDetailsBuilder
         );
     }
 
-    /** Читает 3 ячейки подряд: размер резьбы, шаг резьбы, длина резьбы. */
+    /**
+     * Этот метод собирает блок резьбы свечи зажигания.
+     * Шаги:
+     * 1) Читает размер резьбы как обязательный label `ThreadSizeEnum`.
+     * 2) Читает шаг резьбы как обязательный label `ThreadPitchEnum`.
+     * 3) Читает длину резьбы как обязательный label `ThreadLengthEnum`.
+     * 4) Возвращает `SparkPlugThreadDetailsData` с enum-name значениями.
+     */
     private function buildThread(DetailsRowCursor $cursor): SparkPlugThreadDetailsData
     {
         return new SparkPlugThreadDetailsData(
@@ -39,6 +54,12 @@ final readonly class SparkPlugDetailsBuilder
         );
     }
 
+    /**
+     * Этот метод собирает блок электрода свечи зажигания.
+     * Шаги:
+     * 1) Читает межконтактный зазор как обязательный label `ElectrodeGapEnum`.
+     * 2) Сохраняет enum-name зазора в `SparkPlugElectrodeDetailsData`.
+     */
     private function buildElectrode(DetailsRowCursor $cursor): SparkPlugElectrodeDetailsData
     {
         return new SparkPlugElectrodeDetailsData(

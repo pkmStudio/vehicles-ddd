@@ -17,10 +17,10 @@ use Illuminate\Support\Collection;
 final readonly class ListKitsForCrmUseCase implements ListKitsForCrmUseCaseInterface
 {
     /**
-     * Инициализирует repository port комплектов для CRM read-сценариев.
+     * Инициализирует порт репозитория комплектов для CRM read-сценариев.
      *
      * Шаги:
-     * 1. Получает repository port owner-слоя Catalog.
+     * 1. Получает порт репозитория owner-слоя Catalog.
      * 2. Сохраняет port для всех read-запросов use case.
      */
     public function __construct(
@@ -32,8 +32,8 @@ final readonly class ListKitsForCrmUseCase implements ListKitsForCrmUseCaseInter
      *
      * Шаги:
      * 1. Принимает read-query DTO.
-     * 2. Делегирует построение страницы repository port.
-     * 3. Возвращает page DTO для client/controller boundary.
+     * 2. Делегирует построение страницы порт репозитория.
+     * 3. Возвращает DTO страницы для границы клиента и контроллера.
      */
     public function execute(KitCrmReadQueryDTO $query): KitCrmPageDTO
     {
@@ -44,9 +44,9 @@ final readonly class ListKitsForCrmUseCase implements ListKitsForCrmUseCaseInter
      * Возвращает nomenclature options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Принимает optional search query, selected id и limit.
-     * 2. Делегирует lookup options repository port.
-     * 3. Возвращает collection DTO без framework-specific response shape.
+     * 1. Принимает необязательную строку поиска, выбранный id и лимит.
+     * 2. Делегирует options-поиск порт репозитория.
+     * 3. Возвращает collection DTO без framework-specific ответ shape.
      *
      * @return Collection<int, KitCrmOptionDTO>
      */
@@ -59,9 +59,9 @@ final readonly class ListKitsForCrmUseCase implements ListKitsForCrmUseCaseInter
      * Возвращает pack dimension options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Принимает optional search query, selected id и limit.
-     * 2. Делегирует lookup options repository port.
-     * 3. Возвращает collection DTO без framework-specific response shape.
+     * 1. Принимает необязательную строку поиска, выбранный id и лимит.
+     * 2. Делегирует options-поиск порт репозитория.
+     * 3. Возвращает collection DTO без framework-specific ответ shape.
      *
      * @return Collection<int, KitCrmOptionDTO>
      */
@@ -74,9 +74,9 @@ final readonly class ListKitsForCrmUseCase implements ListKitsForCrmUseCaseInter
      * Возвращает type options для CRM-формы комплекта.
      *
      * Шаги:
-     * 1. Принимает optional search query, selected id и limit.
-     * 2. Делегирует lookup options repository port.
-     * 3. Возвращает collection DTO без framework-specific response shape.
+     * 1. Принимает необязательную строку поиска, выбранный id и лимит.
+     * 2. Делегирует options-поиск порт репозитория.
+     * 3. Возвращает collection DTO без framework-specific ответ shape.
      *
      * @return Collection<int, KitCrmOptionDTO>
      */

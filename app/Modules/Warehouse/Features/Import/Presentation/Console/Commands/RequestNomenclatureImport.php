@@ -17,16 +17,37 @@ final class RequestNomenclatureImport extends RequestLocalImportCommand
 
     protected $description = 'Опубликовать RabbitMQ-запрос импорта Warehouse-номенклатуры из локального Storage';
 
+    /**
+     * Возвращает имя события запроса импорта номенклатуры.
+     *
+     * Шаги:
+     * 1) Выбрать wire event для Warehouse nomenclature import.
+     * 2) Передать имя события базовой команде публикации.
+     */
     protected function eventName(): string
     {
         return 'WAREHOUSE_NOMENCLATURE_IMPORT_FILE_REQUESTED';
     }
 
+    /**
+     * Возвращает routing key запроса импорта номенклатуры.
+     *
+     * Шаги:
+     * 1) Выбрать routing key bindings для nomenclature import.
+     * 2) Передать routing key publisher'у через базовую команду.
+     */
     protected function routingKey(): string
     {
         return 'crm.warehouse.nomenclatures.import';
     }
 
+    /**
+     * Возвращает тип импорта номенклатуры.
+     *
+     * Шаги:
+     * 1) Взять wire-значение ImportTypeEnum::Nomenclature.
+     * 2) Передать его handler'у для выбора NomenclatureImport adapter.
+     */
     protected function importType(): string
     {
         return ImportTypeEnum::Nomenclature->value;

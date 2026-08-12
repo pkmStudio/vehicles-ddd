@@ -19,6 +19,11 @@ final readonly class ImportFileRequestedHandler
 {
     /**
      * Получает use case запуска импорта и validator входящего payload.
+     *
+     * Шаги:
+     * 1) Принять use case запуска внешнего Warehouse-импорта.
+     * 2) Принять validator RabbitMQ payload.
+     * 3) Сохранить зависимости для обработки сообщений.
      */
     public function __construct(
         private StartExternalFileImportUseCaseInterface $useCase,

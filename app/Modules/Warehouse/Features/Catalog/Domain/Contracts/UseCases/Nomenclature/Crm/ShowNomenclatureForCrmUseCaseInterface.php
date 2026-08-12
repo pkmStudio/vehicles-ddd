@@ -8,5 +8,13 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\Nomencla
 
 interface ShowNomenclatureForCrmUseCaseInterface
 {
+    /**
+     * Возвращает детальную CRM-проекцию по идентификатору.
+     *
+     * Шаги:
+     * 1) Принять идентификатор записи каталога.
+     * 2) Запросить детальную CRM-проекцию в репозиторий.
+     * 3) Вернуть DTO или null, если запись не найдена.
+     */
     public function execute(int $id): ?NomenclatureCrmListItemDTO;
 }

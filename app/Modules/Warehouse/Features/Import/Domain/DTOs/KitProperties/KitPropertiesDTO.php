@@ -6,6 +6,9 @@ namespace App\Modules\Warehouse\Features\Import\Domain\DTOs\KitProperties;
 
 final readonly class KitPropertiesDTO
 {
+    /**
+     * Снимок рассчитанных свойств набора для записи Kit из строки импорта.
+     */
     public function __construct(
         public int $typeId,
         public ?int $packDimensionId,

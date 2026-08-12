@@ -23,6 +23,11 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 {
     /**
      * Получает локальный клиент МойСклад и mapper payload.
+     * Шаги:
+     * 1) Сохранить client port внешних операций с товарами МойСклад.
+     * 2) Сохранить read/write ports Warehouse integration-state.
+     * 3) Сохранить mapper, resolver папок, resolver совпадений товара и hasher payload.
+     * 4) Сохранить logger для actionable ошибок sync/delete workflow.
      */
     public function __construct(
         private MoySkladProductClientInterface $client,
@@ -38,6 +43,14 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 
     /**
      * Синхронизирует одну номенклатуру: грузит модель, создаёт integration и отправляет товар.
+     * Шаги:
+     * 1) Проверить feature flag MoySklad sync и выйти без действий, если он выключен.
+     * 2) Загрузить Warehouse-номенклатуру; если её нет, записать warning и завершить сценарий.
+     * 3) Найти integration-state или создать pending-запись для номенклатуры.
+     * 4) Определить папку товара, собрать payload и посчитать hash payload.
+     * 5) Пропустить update, если последний успешный payload не изменился и externalId сохранен.
+     * 6) Создать или обновить товар через ProductMatchResolver.
+     * 7) На успехе записать synced state, на ошибке записать failed state, залогировать и пробросить exception.
      */
     public function sync(int $nomenclatureId): void
     {
@@ -88,6 +101,14 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 
     /**
      * Удаляет товар МойСклад по сохранённой integration-связке или fallback-поиску.
+     * Шаги:
+     * 1) Проверить feature flag MoySklad sync и выйти без действий, если он выключен.
+     * 2) Построить expected externalCode по id номенклатуры.
+     * 3) Найти integration-state для удаления по id/code/integrationId.
+     * 4) Определить productId через сохраненную связь, externalId или fallback поиск по артикулу.
+     * 5) Если товар не найден, отметить integration удаленной и завершить сценарий.
+     * 6) Удалить товар во внешнем client и отметить integration deleted.
+     * 7) На ошибке отметить integration failed, залогировать контекст и пробросить exception.
      */
     public function delete(int $nomenclatureId, string $partNumber, ?string $externalId = null, ?int $integrationId = null): void
     {
@@ -135,6 +156,9 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 
     /**
      * Рассчитывает hash payload для тестов.
+     * Шаги:
+     * 1) Передать array или DTO payload в ProductPayloadHasher.
+     * 2) Вернуть stable hash, который используется для idempotent skip update.
      *
      * @param  array<string, mixed>|MoySkladProductPayloadDTO  $payload
      */
@@ -145,6 +169,10 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 
     /**
      * Проверяет, можно ли не отправлять update, если последний успешный payload не изменился.
+     * Шаги:
+     * 1) Убедиться, что integration находится в статусе synced.
+     * 2) Сравнить сохраненный payloadHash с текущим hash.
+     * 3) Проверить, что externalId сохранен непустой строкой.
      */
     private function shouldSkipUpdate(NomenclatureIntegrationData $integration, string $payloadHash): bool
     {
@@ -156,6 +184,10 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 
     /**
      * Записывает успешный результат синхронизации в `nomenclature_integrations`.
+     * Шаги:
+     * 1) Взять externalId из ответа МойСклад.
+     * 2) Взять externalCode из ответа или fallback-нуться на code отправленного payload.
+     * 3) Передать integration, external identifiers и payloadHash в command port markSynced().
      */
     private function markSyncSuccess(
         NomenclatureIntegrationData $integration,
@@ -176,6 +208,9 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 
     /**
      * Записывает ошибку последней синхронизации в integration-state.
+     * Шаги:
+     * 1) Извлечь message исходного Throwable.
+     * 2) Передать integration и message в command port markFailed().
      */
     private function markSyncFailure(NomenclatureIntegrationData $integration, Throwable $e): void
     {
@@ -184,6 +219,9 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 
     /**
      * Возвращает feature flag синхронизации Warehouse/MoySklad.
+     * Шаги:
+     * 1) Прочитать warehouse.moysklad.nomenclature_sync.enabled из config.
+     * 2) Вернуть false по умолчанию, чтобы интеграция была opt-in.
      */
     private function enabled(): bool
     {

@@ -22,6 +22,13 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
  */
 final readonly class DetailsDataFactory implements DetailsDataFactoryInterface
 {
+    /**
+     * Этот конструктор принимает набор билдеров автомобильных details-шаблонов.
+     * Шаги:
+     * 1) Сохраняет билдеры в readonly-поля.
+     * 2) Использует дефолтные инстансы для обычного runtime-сценария, где factory создаётся без
+     *    явной конфигурации контейнера.
+     */
     public function __construct(
         private WiperDetailsBuilder $wiper = new WiperDetailsBuilder,
         private SparkPlugDetailsBuilder $sparkPlugs = new SparkPlugDetailsBuilder,

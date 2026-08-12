@@ -29,6 +29,20 @@ final readonly class EngineRepository implements EngineRepositoryInterface
     }
 
     /**
+     * Возвращает следующий локальный отрицательный eng_id.
+     *
+     * Шаги:
+     * - Найти минимальный eng_id среди двигателей.
+     * - Сдвинуть значение ниже нуля, чтобы не пересечься с внешними id.
+     */
+    public function nextOwnEngId(): int
+    {
+        $minEngId = (int) (Engine::query()->min('eng_id') ?? 0);
+
+        return min($minEngId, 0) - 1;
+    }
+
+    /**
      * Возвращает ids связок двигателя с модификациями.
      *
      * Шаги:

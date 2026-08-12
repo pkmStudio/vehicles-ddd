@@ -16,6 +16,10 @@ final readonly class NomenclatureIntegrationCommand implements NomenclatureInteg
 {
     /**
      * Создаёт pending-связь для номенклатуры.
+     * Шаги:
+     * 1) Создать NomenclatureIntegration с provider=moysklad.
+     * 2) Записать nomenclature_id и статус pending.
+     * 3) Вернуть Data-снимок созданной Eloquent-модели.
      */
     public function createPendingForNomenclature(int $nomenclatureId): NomenclatureIntegrationData
     {
@@ -30,6 +34,11 @@ final readonly class NomenclatureIntegrationCommand implements NomenclatureInteg
 
     /**
      * Отмечает successful sync и сохраняет external ids/hash.
+     * Шаги:
+     * 1) Найти integration row по primary key Data-снимка.
+     * 2) Сохранить новые external_id/external_code или оставить прежние fallback значения.
+     * 3) Установить статус synced, synced_at, payload_hash и updated_at.
+     * 4) Очистить last_error.
      */
     public function markSynced(
         NomenclatureIntegrationData $integration,
@@ -52,6 +61,10 @@ final readonly class NomenclatureIntegrationCommand implements NomenclatureInteg
 
     /**
      * Отмечает failed sync и сохраняет текст ошибки.
+     * Шаги:
+     * 1) Найти integration row по primary key Data-снимка.
+     * 2) Установить статус failed.
+     * 3) Сохранить last_error и updated_at.
      */
     public function markFailed(NomenclatureIntegrationData $integration, string $error): void
     {
@@ -66,6 +79,12 @@ final readonly class NomenclatureIntegrationCommand implements NomenclatureInteg
 
     /**
      * Отмечает удаление товара МойСклад, если есть integration-связь.
+     * Шаги:
+     * 1) Если integration Data отсутствует, выйти без записи.
+     * 2) Найти integration row по primary key Data-снимка.
+     * 3) Сохранить external_id из аргумента или прежнего state.
+     * 4) Установить статус deleted, synced_at и updated_at.
+     * 5) Очистить last_error и payload_hash.
      */
     public function markDeleted(?NomenclatureIntegrationData $integration, ?string $externalId = null): void
     {

@@ -24,6 +24,14 @@ final readonly class OilFilterDetailsBuilder
     use BuildsNomenclatureMetrics;
     use ParsesBooleanCells;
 
+    /**
+     * Этот метод собирает nomenclature oil-filter details из Excel-строки.
+     * Шаги:
+     * 1) Читает исполнение, форму и признак корпуса фильтра.
+     * 2) Читает `father` через словари резьбы/папы.
+     * 3) Читает диаметр, mother и общий блок габаритов.
+     * 4) Возвращает `OilFilterDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): OilFilterDetailsData
     {
         return new OilFilterDetailsData(
@@ -40,6 +48,11 @@ final readonly class OilFilterDetailsBuilder
     /**
      * Читает `father`, пробуя два словаря по очереди (см. докблок `OilFilterDetailsData` —
      * зависимость от `performance` в исходном DSL не проверялась).
+     * Шаги:
+     * 1) Читает обязательную строковую ячейку `Резьба или Папа`.
+     * 2) Пробует найти label сначала в `OilFilterThreadEnum`, затем в `OilFilterFatherEnum`.
+     * 3) Если label неизвестен обоим словарям — бросает доменную ошибку.
+     * 4) Возвращает enum-name найденного case.
      */
     private function pullFather(DetailsRowCursor $cursor): string
     {

@@ -15,6 +15,11 @@ final readonly class KitRepository implements KitRepositoryInterface
 {
     /**
      * Возвращает набор по id или null.
+     *
+     * Шаги:
+     * 1) Найти Kit-модель по первичному ключу.
+     * 2) Преобразовать найденную модель в KitData.
+     * 3) Вернуть null, если модель отсутствует.
      */
     public function findById(int $id): ?KitData
     {
@@ -25,6 +30,11 @@ final readonly class KitRepository implements KitRepositoryInterface
 
     /**
      * Возвращает набор по import hash или null.
+     *
+     * Шаги:
+     * 1) Выполнить Eloquent-запрос по import_hash.
+     * 2) Преобразовать найденную модель в KitData.
+     * 3) Вернуть null, если набор с таким hash отсутствует.
      */
     public function findByImportHash(string $importHash): ?KitData
     {

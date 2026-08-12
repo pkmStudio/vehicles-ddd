@@ -11,12 +11,18 @@ use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ManufacturerData;
  */
 final readonly class CatalogManufacturerDTO
 {
+    /**
+     * Хранит публичные поля производителя для ответа каталога.
+     */
     public function __construct(
         public int $id,
         public int $mfaId,
         public string $name,
     ) {}
 
+    /**
+     * Собирает публичную проекцию производителя из Data-снимка.
+     */
     public static function fromData(ManufacturerData $manufacturer): self
     {
         return new self(

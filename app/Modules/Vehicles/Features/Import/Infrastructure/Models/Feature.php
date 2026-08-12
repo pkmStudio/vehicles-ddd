@@ -7,6 +7,4 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Models;
 /**
  * Eloquent-модель особенности автомобиля в import boundary.
  */
-class Feature extends AbstractModel
-{
-}
+class Feature extends AbstractModel {}

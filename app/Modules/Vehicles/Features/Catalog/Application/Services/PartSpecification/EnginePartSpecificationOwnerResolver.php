@@ -21,7 +21,11 @@ use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 final readonly class EnginePartSpecificationOwnerResolver implements EnginePartSpecificationOwnerResolverInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает read/write порты двигателя для разрешения владельца specification.
+     *
+     * Шаги:
+     * 1) Принять repository для поиска engine по внешнему eng_id.
+     * 2) Принять command для создания или обновления engine owner.
      */
     public function __construct(
         private EngineRepositoryInterface $engines,
@@ -95,6 +99,11 @@ final readonly class EnginePartSpecificationOwnerResolver implements EnginePartS
 
     /**
      * Собирает EngineData для создания или обновления владельца.
+     *
+     * Шаги:
+     * 1) Использовать external id владельца как eng_id каталожного двигателя.
+     * 2) Перенести nullable технические характеристики из owner payload без дополнительных defaults.
+     * 3) Проставить внутренний id только для update существующего двигателя.
      */
     private function engineData(
         int $engId,
@@ -120,6 +129,10 @@ final readonly class EnginePartSpecificationOwnerResolver implements EnginePartS
 
     /**
      * Собирает успешный результат разрешения двигателя-владельца.
+     *
+     * Шаги:
+     * 1) Собрать resolved owner DTO с типом ENGINE, внешним id и внутренним partable id.
+     * 2) Обернуть resolved owner в результат без reject reason.
      */
     private function resolved(int $externalId, int $partableId): PartSpecificationOwnerResolutionDTO
     {

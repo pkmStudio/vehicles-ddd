@@ -7,7 +7,7 @@ namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension;
 final readonly class PackDimensionCrmReadQueryDTO
 {
     /**
-     * @param  array<string, mixed>  $filters
+     * @param  array<string, mixed>  $фильтры
      */
     public function __construct(
         public int $page = 1,

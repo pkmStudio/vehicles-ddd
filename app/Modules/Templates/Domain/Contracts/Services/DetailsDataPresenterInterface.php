@@ -12,13 +12,33 @@ use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
  */
 interface DetailsDataPresenterInterface
 {
-    /** @return array<int, string> */
+    /**
+     * Этот метод должен вернуть Excel-заголовки vehicle details-шаблона.
+     * Шаги:
+     * 1) Выбрать presenter по `DetailTemplateEnum`.
+     * 2) Вернуть headings в том же порядке, в котором `toExportCells()` отдаёт значения.
+     *
+     * @return array<int, string>
+     */
     public function headingsFor(DetailTemplateEnum $template): array;
 
-    /** @return array<string, list<string>> */
+    /**
+     * Этот метод должен вернуть справочники select-полей vehicle details-шаблона.
+     * Шаги:
+     * 1) Выбрать enum-справочники, реально используемые колонками шаблона.
+     * 2) Вернуть labels, пригодные для Excel reference sheets.
+     *
+     * @return array<string, list<string>>
+     */
     public function referenceOptionsFor(DetailTemplateEnum $template): array;
 
     /**
+     * Этот метод должен отрендерить сохранённый details JSON в Excel-ячейки.
+     * Шаги:
+     * 1) Выбрать presenter по `DetailTemplateEnum`.
+     * 2) Восстановить typed Data из plain details-массива.
+     * 3) Вернуть values в порядке `headingsFor()`.
+     *
      * @param  array<string, mixed>  $details
      * @return array<int, mixed>
      */

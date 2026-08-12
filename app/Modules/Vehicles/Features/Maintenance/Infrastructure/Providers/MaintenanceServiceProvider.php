@@ -10,6 +10,13 @@ use Illuminate\Support\ServiceProvider;
 
 final class MaintenanceServiceProvider extends ServiceProvider
 {
+    /**
+     * Регистрирует adapters, нужные maintenance-сценариям Vehicles.
+     *
+     * Шаги:
+     * 1. Связать feature-local Templates client port с infrastructure adapter.
+     * 2. Оставить бизнес-сервисам зависимость только от Maintenance contract.
+     */
     public function register(): void
     {
         $this->app->bind(TemplatesClientInterface::class, TemplatesClient::class);

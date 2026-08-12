@@ -20,6 +20,10 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
 {
     /**
      * Получает сервис идемпотентности и фабрику Excel-адаптеров импорта.
+     *
+     * Шаги:
+     * 1) Принять cache-порт идемпотентности внешнего запуска.
+     * 2) Принять фабрику выбора Excel-адаптера по типу импорта.
      */
     public function __construct(
         private ExternalImportCacheServiceInterface $cache,

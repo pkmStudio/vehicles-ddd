@@ -17,6 +17,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class SparkPlugDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры engine spark plug details template.
+     */
     public function __construct(
         public readonly SparkPlugThreadDetailsData $thread,
         public readonly SparkPlugElectrodeDetailsData $electrode,

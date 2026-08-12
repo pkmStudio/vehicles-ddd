@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 
 /**
  * Передает параметры сценария или результат мутации двигателей.
@@ -29,5 +30,7 @@ final readonly class UpdateEngineRequestDTO
         public ?int $numberOfValves = null,
         public ?EngineFuelTypeEnum $fuelType = null,
         public ?int $groupId = null,
+        public ProviderEnum $provider = ProviderEnum::OD,
+        public array $allowChangeFields = [],
     ) {}
 }

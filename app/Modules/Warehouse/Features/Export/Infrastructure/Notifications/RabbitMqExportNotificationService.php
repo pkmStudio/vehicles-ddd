@@ -16,6 +16,10 @@ final readonly class RabbitMqExportNotificationService implements ExportNotifica
 {
     /**
      * Получает publisher внешнего брокера.
+     *
+     * Шаги:
+     * 1) Принять RabbitMQ publisher из rabbit-transport.
+     * 2) Сохранить publisher для отправки export completion events.
      */
     public function __construct(
         private RabbitMQPublisher $publisher,
@@ -23,6 +27,11 @@ final readonly class RabbitMqExportNotificationService implements ExportNotifica
 
     /**
      * Отправляет wire-payload завершения экспорта в настроенный outbound.
+     *
+     * Шаги:
+     * 1) Принять DTO итогового статуса экспорта.
+     * 2) Собрать RabbitMessageDTO с именем WAREHOUSE_FILE_EXPORTED.
+     * 3) Опубликовать сообщение через RabbitMQ publisher.
      */
     public function notifyExportCompleted(ExportCompletionNotificationDTO $payload): void
     {

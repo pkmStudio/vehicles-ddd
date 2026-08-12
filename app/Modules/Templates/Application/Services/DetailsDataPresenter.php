@@ -27,6 +27,13 @@ use App\Modules\Templates\Domain\Enums\Wiper\RearAdapterTypeEnum;
  */
 final readonly class DetailsDataPresenter implements DetailsDataPresenterInterface
 {
+    /**
+     * Этот конструктор принимает presenters автомобильных details-шаблонов.
+     * Шаги:
+     * 1) Сохраняет presenter каждого поддержанного `DetailTemplateEnum` в отдельное поле.
+     * 2) Использует дефолтные stateless-инстансы, потому что presenters вызываются только через
+     *    этот selector и не требуют контейнерной конфигурации.
+     */
     public function __construct(
         private WiperDetailsPresenter $wiper = new WiperDetailsPresenter,
         private SparkPlugDetailsPresenter $sparkPlugs = new SparkPlugDetailsPresenter,
@@ -49,6 +56,10 @@ final readonly class DetailsDataPresenter implements DetailsDataPresenterInterfa
     /**
      * Возвращает справочники select-полей vehicle details в тех же labels, что используют
      * presenters шаблона.
+     * Шаги:
+     * 1) Для дворников возвращает справочники типов переднего и заднего крепления.
+     * 2) Для свечей возвращает справочники резьбы, электрода и ширины ключа.
+     * 3) Для шаблонов без select-полей возвращает пустой массив.
      *
      * @return array<string, list<string>>
      */
@@ -101,6 +112,12 @@ final readonly class DetailsDataPresenter implements DetailsDataPresenterInterfa
     }
 
     /**
+     * Этот метод возвращает Excel-лейблы backed enum-справочника.
+     * Шаги:
+     * 1) Получает все cases enum-класса.
+     * 2) Берёт у каждого case его `value`, потому что именно value показывается в Excel.
+     * 3) Возвращает список labels в порядке объявления enum.
+     *
      * @param  class-string<\BackedEnum>  $enumClass
      * @return list<string>
      */

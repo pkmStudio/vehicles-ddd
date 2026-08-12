@@ -17,6 +17,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class BrakePadDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры тормозных колодок в nomenclature details template.
+     */
     public function __construct(
         public readonly string $position,
         public readonly string $brakePadsType,

@@ -17,6 +17,12 @@ final readonly class NomenclatureCommand implements NomenclatureCommandInterface
     /**
      * Обновляет запись по id. Бросает исключение, если запись не найдена или артикул уже занят
      * другой записью (уникальный индекс part_number допускает конфликт только с самой собой).
+     *
+     * Шаги:
+     * 1) Найти существующую номенклатуру по id.
+     * 2) Проверить, что part_number не занят другой записью.
+     * 3) Собрать payload без relation-поля type.
+     * 4) Обновить запись и вернуть refreshed NomenclatureData.
      */
     public function updateById(NomenclatureData $data): NomenclatureData
     {
@@ -52,6 +58,11 @@ final readonly class NomenclatureCommand implements NomenclatureCommandInterface
      * Создаёт новую номенклатуру. id не передаётся явно — колонка auto-increment, Postgres
      * назначит его сам (явный NULL в insert для serial-колонки — ошибка NOT NULL, поэтому id
      * здесь обязательно вырезается, в отличие от createWithId).
+     *
+     * Шаги:
+     * 1) Собрать payload без relation-поля type.
+     * 2) Удалить id, чтобы Postgres назначил его сам.
+     * 3) Создать запись и вернуть NomenclatureData.
      */
     public function create(NomenclatureData $data): NomenclatureData
     {
@@ -66,6 +77,11 @@ final readonly class NomenclatureCommand implements NomenclatureCommandInterface
     /**
      * Создаёт новую номенклатуру с явно заданным id — для импорта строк из внешней системы,
      * где id уже назначен, но записи с ним ещё нет в этой БД.
+     *
+     * Шаги:
+     * 1) Собрать payload без relation-поля type, сохранив id.
+     * 2) Создать запись с внешним id.
+     * 3) Вернуть NomenclatureData созданной записи.
      */
     public function createWithId(NomenclatureData $data): NomenclatureData
     {

@@ -18,6 +18,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class WiperDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры щетки стеклоочистителя в nomenclature details template.
+     */
     public function __construct(
         public readonly string $position,
         public readonly string $category,

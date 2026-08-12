@@ -6,6 +6,9 @@ namespace App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle;
 
 final readonly class VehicleWiperSheetRowDTO
 {
+    /**
+     * Фиксирует строку wiper specification листа для vehicle workbook.
+     */
     public function __construct(
         public ?int $msId,
         public ?string $templateSlug,

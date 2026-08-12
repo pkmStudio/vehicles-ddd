@@ -14,6 +14,11 @@ interface UpdatePackDimensionUseCaseInterface
 {
     /**
      * Выполняет обновление упаковочного размера Warehouse.
+     *
+     * Шаги:
+     * 1) Принять UpdatePackDimensionRequestDTO из boundary handler.
+     * 2) Обновить упаковочный размер после проверки записи и связанного type.
+     * 3) Вернуть result DTO или null для повторного operation_id.
      */
     public function execute(UpdatePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

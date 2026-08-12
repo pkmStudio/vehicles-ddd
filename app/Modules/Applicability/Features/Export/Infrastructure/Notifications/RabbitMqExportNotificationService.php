@@ -11,10 +11,25 @@ use PkmStudio\RabbitTransport\RabbitMQPublisher;
 
 final readonly class RabbitMqExportNotificationService implements ExportNotificationServiceInterface
 {
+    /**
+     * Получает RabbitMQ publisher для исходящих export notifications.
+     *
+     * Шаги:
+     * 1. Сохраняет publisher transport package.
+     * 2. Оставляет сбор конкретного message name в методе отправки.
+     */
     public function __construct(
         private RabbitMQPublisher $publisher,
     ) {}
 
+    /**
+     * Публикует результат export workflow в RabbitMQ.
+     *
+     * Шаги:
+     * 1. Преобразует локальный notification DTO в wire payload.
+     * 2. Оборачивает payload в Rabbit message `APPLICABILITY_FILE_EXPORTED`.
+     * 3. Передает сообщение в RabbitMQ publisher.
+     */
     public function notifyExportCompleted(ExportCompletionNotificationDTO $payload): void
     {
         $this->publisher->publish(new RabbitMessageDTO(

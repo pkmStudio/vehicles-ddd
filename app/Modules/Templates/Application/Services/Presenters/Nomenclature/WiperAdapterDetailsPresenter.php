@@ -16,17 +16,36 @@ final readonly class WiperAdapterDetailsPresenter extends AbstractDetailsPresent
 {
     use RendersNomenclatureMetrics;
 
+    /**
+     * Этот метод возвращает колонки адаптера дворника.
+     * Шаги:
+     * 1) Перечисляет расположение и типы переднего крепления.
+     * 2) Добавляет общий metrics-блок.
+     */
     public function headings(): array
     {
         return ['Расположение', 'Тип крепления передних', ...$this->metricsHeadings()];
     }
 
-    /** @return class-string<WiperAdapterDetailsData> */
+    /**
+     * Этот метод указывает Data-класс presenter-а адаптера дворника.
+     * Шаги:
+     * 1) Возвращает class-string `WiperAdapterDetailsData`.
+     *
+     * @return class-string<WiperAdapterDetailsData>
+     */
     protected function dataClass(): string
     {
         return WiperAdapterDetailsData::class;
     }
 
+    /**
+     * Этот метод рендерит details адаптера дворника в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет тип `WiperAdapterDetailsData`.
+     * 2) Переводит расположение и multi-select креплений в labels.
+     * 3) Разворачивает metrics-блок.
+     */
     public function cells(AbstractDetailsData $data): array
     {
         $data = $this->ensureData($data, WiperAdapterDetailsData::class);

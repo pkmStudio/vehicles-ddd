@@ -21,6 +21,14 @@ use App\Modules\Templates\Domain\ModelData\Engine\OilFilterMetricsData;
  */
 final readonly class OilFilterDetailsBuilder
 {
+    /**
+     * Этот метод собирает engine oil-filter details из последовательных ячеек импорта.
+     * Шаги:
+     * 1) Читает исполнение и форму фильтра через enum-справочники.
+     * 2) Читает поле `father`, разрешая его через два возможных словаря.
+     * 3) Читает диаметр, mother и блок габаритов.
+     * 4) Возвращает `OilFilterDetailsData` с типизированным вложенным metrics-объектом.
+     */
     public function build(DetailsRowCursor $cursor): OilFilterDetailsData
     {
         return new OilFilterDetailsData(
@@ -33,7 +41,14 @@ final readonly class OilFilterDetailsBuilder
         );
     }
 
-    /** Читает 3 ячейки подряд: список длины, список ширины, список высоты. */
+    /**
+     * Этот метод собирает габариты масляного фильтра.
+     * Шаги:
+     * 1) Читает обязательный список длин.
+     * 2) Читает обязательный список ширин.
+     * 3) Читает обязательный список высот.
+     * 4) Возвращает `OilFilterMetricsData`.
+     */
     private function buildMetrics(DetailsRowCursor $cursor): OilFilterMetricsData
     {
         return new OilFilterMetricsData(

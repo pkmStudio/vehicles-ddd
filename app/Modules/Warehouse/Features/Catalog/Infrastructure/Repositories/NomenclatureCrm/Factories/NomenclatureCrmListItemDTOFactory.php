@@ -8,14 +8,30 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\Nomencla
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\NomenclatureCrmTypeTemplateResolver;
 
 /**
- * Builds CRM list item DTO from SQL nomenclature projection.
+ * Собирает CRM list item DTO из SQL-проекции номенклатуры.
  */
 final readonly class NomenclatureCrmListItemDTOFactory
 {
+    /**
+     * Получает resolver details template для типа номенклатуры.
+     *
+     * Шаги:
+     * 1) Принять NomenclatureCrmTypeTemplateResolver из DI container.
+     * 2) Использовать resolver при сборке typeTemplate поля.
+     */
     public function __construct(
         private NomenclatureCrmTypeTemplateResolver $templateResolver,
     ) {}
 
+    /**
+     * Собирает list item DTO номенклатуры для CRM таблицы.
+     *
+     * Шаги:
+     * 1) Считать поля номенклатуры, бренда и типа из flat SQL projection.
+     * 2) Нормализовать JSON/list fields в массивы.
+     * 3) Разрешить template типа через resolver.
+     * 4) Вернуть NomenclatureCrmListItemDTO для CRM response.
+     */
     public function make(object $nomenclature): NomenclatureCrmListItemDTO
     {
         return new NomenclatureCrmListItemDTO(

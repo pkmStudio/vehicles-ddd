@@ -14,12 +14,12 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\PackDimensi
 use Illuminate\Support\Collection;
 
 /**
- * Read-only client CRM сценариев упаковочных размеров Warehouse.
+ * Read-only клиент CRM сценариев упаковочных размеров Warehouse.
  */
 final readonly class PackDimensionCrmClient implements PackDimensionCrmClientInterface
 {
     /**
-     * Инициализирует CRM client упаковочных размеров.
+     * Инициализирует CRM клиент упаковочных размеров.
      *
      * Шаги:
      * 1. Получает use case списка/options и detail упаковочных размеров.
@@ -36,7 +36,7 @@ final readonly class PackDimensionCrmClient implements PackDimensionCrmClientInt
      * Шаги:
      * 1. Принимает готовый read-query DTO.
      * 2. Делегирует запрос list use case.
-     * 3. Возвращает page DTO без доступа к БД из client.
+     * 3. Возвращает DTO страницы без доступа к БД из клиент.
      */
     public function paginate(PackDimensionCrmReadQueryDTO $query): PackDimensionCrmPageDTO
     {
@@ -48,7 +48,7 @@ final readonly class PackDimensionCrmClient implements PackDimensionCrmClientInt
      *
      * Шаги:
      * 1. Принимает внутренний id упаковочного размера.
-     * 2. Делегирует lookup detail use case.
+     * 2. Делегирует поиск detail use case.
      * 3. Возвращает DTO или `null`, если запись не найдена.
      */
     public function show(int $id): ?PackDimensionCrmListItemDTO
@@ -60,7 +60,7 @@ final readonly class PackDimensionCrmClient implements PackDimensionCrmClientInt
      * Возвращает type options для CRM-формы упаковочного размера.
      *
      * Шаги:
-     * 1. Принимает optional search query, selected id и limit.
+     * 1. Принимает необязательную строку поиска, выбранный id и лимит.
      * 2. Делегирует запрос options list use case.
      * 3. Возвращает collection DTO без дополнительного mapping.
      *

@@ -20,6 +20,11 @@ final class RecalculateBrakePadsKitsCommand extends Command
 
     /**
      * Запускает сервис пересчёта и печатает итог.
+     * Шаги:
+     * 1) Прочитать dry-run и chunk из console options.
+     * 2) Запустить RecalculateBrakePadsKitsService.
+     * 3) Напечатать summary updated/unchanged/failed.
+     * 4) Вернуть FAILURE, если были ошибки отдельных kits, иначе SUCCESS.
      */
     public function handle(RecalculateBrakePadsKitsService $service): int
     {

@@ -54,6 +54,13 @@ use App\Modules\Templates\Domain\Enums\Wiper\SteeringCompatibilityEnum;
  */
 final readonly class NomenclatureDetailsDataPresenter implements NomenclatureDetailsDataPresenterInterface
 {
+    /**
+     * Этот конструктор принимает presenters номенклатурных details-шаблонов.
+     * Шаги:
+     * 1) Сохраняет presenter каждого поддержанного `NomenclatureDetailTemplateEnum`.
+     * 2) Использует дефолтные stateless-инстансы, потому что selector не держит runtime-состояние
+     *    и только маршрутизирует вызовы headings/reference options/export cells.
+     */
     public function __construct(
         private BrakePadDetailsPresenter $brakePads = new BrakePadDetailsPresenter,
         private SparkPlugDetailsPresenter $sparkPlugs = new SparkPlugDetailsPresenter,
@@ -74,6 +81,12 @@ final readonly class NomenclatureDetailsDataPresenter implements NomenclatureDet
         private PolyVBeltDetailsPresenter $polyVBelt = new PolyVBeltDetailsPresenter,
     ) {}
 
+    /**
+     * Этот метод отдаёт полный список Excel-заголовков для номенклатурного шаблона.
+     * Шаги:
+     * 1) Находит presenter, соответствующий enum-шаблону.
+     * 2) Возвращает его headings без дополнительной трансформации.
+     */
     public function headingsFor(NomenclatureDetailTemplateEnum $template): array
     {
         $presenter = $this->presenterFor($template);
@@ -83,6 +96,11 @@ final readonly class NomenclatureDetailsDataPresenter implements NomenclatureDet
 
     /**
      * Возвращает справочники select-полей в тех же labels, что используют presenters шаблона.
+     * Шаги:
+     * 1) По типу шаблона выбирает только те enum-справочники, которые реально есть в его
+     *    колонках.
+     * 2) Для масляного фильтра объединяет два словаря одного Excel-поля `Резьба или Папа`.
+     * 3) Для шаблонов без select-полей возвращает пустой массив.
      *
      * @return array<string, list<string>>
      */
@@ -201,6 +219,10 @@ final readonly class NomenclatureDetailsDataPresenter implements NomenclatureDet
 
     /**
      * Возвращает Excel-лейблы enum-справочника.
+     * Шаги:
+     * 1) Получает cases enum-класса, реализующего `EnumHelperInterface`.
+     * 2) Берёт `value` каждого case как человекочитаемый Excel-label.
+     * 3) Возвращает labels в порядке объявления enum.
      *
      * @param  class-string<EnumHelperInterface>  $enumClass
      * @return list<string>

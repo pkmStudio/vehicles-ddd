@@ -14,6 +14,10 @@ interface WiperAdapterAuditServiceInterface
 {
     /**
      * Возвращает готовые строки отчёта.
+     * Шаги:
+     * 1) Загрузить kits-кандидаты через repository.
+     * 2) Сравнить адаптеры из состава комплекта с адаптерами, заявленными в details щёток.
+     * 3) Вернуть строки отчёта только для найденных расхождений.
      *
      * @return Collection<int, WiperAdapterAuditRowDTO>
      */

@@ -15,6 +15,11 @@ final readonly class PackDimensionRepository implements PackDimensionRepositoryI
 {
     /**
      * Возвращает упаковочный размер по id или null.
+     *
+     * Шаги:
+     * 1) Найти PackDimension-модель по первичному ключу.
+     * 2) Преобразовать найденную модель в PackDimensionData.
+     * 3) Вернуть null, если модель отсутствует.
      */
     public function findById(int $id): ?PackDimensionData
     {

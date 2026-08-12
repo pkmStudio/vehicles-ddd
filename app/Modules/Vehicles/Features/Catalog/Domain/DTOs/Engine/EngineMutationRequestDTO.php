@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 
 /**
  * Передает параметры сценария или результат мутации двигателей.
@@ -79,7 +80,7 @@ final readonly class EngineMutationRequestDTO
         return new $class(
             userId: (int) $payload['user_id'],
             operationId: (string) $payload['operation_id'],
-            engId: (int) $engine['eng_id'],
+            engId: isset($engine['eng_id']) ? (int) $engine['eng_id'] : null,
             codeEngine: isset($engine['code_engine']) ? (string) $engine['code_engine'] : null,
             powerKwStart: isset($engine['power_kw_start']) ? (int) $engine['power_kw_start'] : null,
             powerKwUpto: isset($engine['power_kw_upto']) ? (int) $engine['power_kw_upto'] : null,
@@ -91,6 +92,23 @@ final readonly class EngineMutationRequestDTO
             numberOfValves: isset($engine['number_of_valves']) ? (int) $engine['number_of_valves'] : null,
             fuelType: isset($engine['fuel_type']) ? EngineFuelTypeEnum::from((string) $engine['fuel_type']) : null,
             groupId: isset($engine['group_id']) ? (int) $engine['group_id'] : null,
+            provider: isset($engine['provider']) ? ProviderEnum::from((string) $engine['provider']) : ProviderEnum::OD,
+            allowChangeFields: self::stringList($engine['allow_change_fields'] ?? []),
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function stringList(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            static fn (mixed $item): ?string => is_scalar($item) ? (string) $item : null,
+            $value,
+        )));
     }
 }

@@ -13,11 +13,25 @@ use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureIntegra
 
 final readonly class ProductMatchResolver
 {
+    /**
+     * Получает client МойСклад и mapper внешних кодов номенклатуры.
+     * Шаги:
+     * 1) Сохранить MoySkladProductClientInterface для поиска, создания и обновления товаров.
+     * 2) Сохранить mapper, который строит stable externalCode для Warehouse-номенклатуры.
+     */
     public function __construct(
         private MoySkladProductClientInterface $client,
         private NomenclatureProductMapper $mapper,
     ) {}
 
+    /**
+     * Сохраняет товар МойСклад для номенклатуры, обновляя известный товар или создавая новый.
+     * Шаги:
+     * 1) Если integration уже содержит externalId, обновить товар по этому id.
+     * 2) Иначе найти существующий товар по артикулу в ожидаемой папке.
+     * 3) Если артикул не дал подходящий товар, найти товар по stable externalCode.
+     * 4) Обновить найденный товар или создать новый товар из payload.
+     */
     public function saveProduct(
         NomenclatureIntegrationData $integration,
         NomenclatureData $nomenclature,
@@ -31,6 +45,15 @@ final readonly class ProductMatchResolver
         return $this->findOrCreateProduct($nomenclature, $payload, $productFolderMeta, updateExisting: true);
     }
 
+    /**
+     * Определяет id товара МойСклад для удаления.
+     * Шаги:
+     * 1) Использовать explicit externalId из события удаления, если он передан.
+     * 2) Иначе использовать externalId из найденной integration-связи.
+     * 3) Иначе найти товар по stable externalCode номенклатуры.
+     * 4) Последним fallback-ом найти товар по артикулу.
+     * 5) Вернуть id найденного товара или null.
+     */
     public function resolveDeleteProductId(
         int $nomenclatureId,
         string $partNumber,

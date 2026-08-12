@@ -7,6 +7,13 @@ namespace App\Modules\Applicability\Features\Import\Domain\Contracts\Services;
 interface ImportKitApplicabilityRowServiceInterface
 {
     /**
+     * Импортирует одну строку XLSX применяемости комплекта.
+     *
+     * Шаги:
+     * 1. Валидирует обязательные идентификаторы строки.
+     * 2. Проверяет внешние справочники kit и modification.
+     * 3. Делегирует запись связи применяемости command boundary.
+     *
      * @param  array<int, mixed>  $row
      */
     public function importFromRow(array $row): void;

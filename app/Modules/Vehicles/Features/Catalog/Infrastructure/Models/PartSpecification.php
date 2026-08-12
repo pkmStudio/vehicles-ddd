@@ -20,6 +20,10 @@ class PartSpecification extends AbstractModel
 
     /**
      * Возвращает стабильный morph type вместо FQCN модели.
+     *
+     * Шаги:
+     * - Не использовать имя Eloquent-класса как morph type.
+     * - Вернуть значение enum, ожидаемое partable-связями спецификаций.
      */
     public function getMorphClass(): string
     {

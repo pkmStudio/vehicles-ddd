@@ -24,7 +24,12 @@ use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePartSpecificationOwnerResolverInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты и policy, нужные для разрешения vehicle owner у part specification.
+     *
+     * Шаги:
+     * 1) Принять repository автомобилей для поиска owner/parent по ms_id.
+     * 2) Принять repository производителей для проверки mfa_id из owner payload.
+     * 3) Принять command записи автомобиля и write policy для provider-aware merge.
      */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
@@ -191,6 +196,10 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
 
     /**
      * Собирает успешный результат разрешения автомобиля-владельца.
+     *
+     * Шаги:
+     * 1) Собрать resolved owner DTO с типом VEHICLE, внешним id и внутренним partable id.
+     * 2) Обернуть resolved owner в результат без reject reason.
      */
     private function resolved(int $externalId, int $partableId): PartSpecificationOwnerResolutionDTO
     {

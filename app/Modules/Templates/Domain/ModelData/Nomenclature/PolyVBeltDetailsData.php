@@ -13,6 +13,9 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
  */
 final class PolyVBeltDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры поликлинового ремня в nomenclature details template.
+     */
     public function __construct(
         public readonly NomenclatureMetricsData $metrics,
     ) {}

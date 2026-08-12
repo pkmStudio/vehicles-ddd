@@ -16,11 +16,26 @@ use Maatwebsite\Excel\Facades\Excel;
  */
 final class EnginesCodeImport implements EnginesCodeImportInterface, ToCollection
 {
+    /**
+     * Прочитать первый лист файла кодов двигателей.
+     *
+     * Шаги:
+     * 1) Передать текущий reader в Laravel Excel.
+     * 2) Получить коллекции листов из файла.
+     * 3) Вернуть первую коллекцию строк.
+     */
     public function parse(string $path): Collection
     {
         return Excel::toCollection($this, $path)->first();
     }
 
+    /**
+     * Вернуть строки листа без преобразования.
+     *
+     * Шаги:
+     * 1) Принять коллекцию строк от Laravel Excel.
+     * 2) Вернуть её как результат чтения deprecated reader-а.
+     */
     public function collection(Collection $collection)
     {
         return $collection;

@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Cache;
 final readonly class LaravelImportFailureStore implements ImportFailureStoreInterface
 {
     /**
+     * Получить накопленные failures из Laravel Cache.
+     *
+     * Шаги:
+     * 1) Прочитать cache entry по ключу import run.
+     * 2) Вернуть массив failures или пустой список при некорректном payload.
+     *
      * @return array<int, mixed>
      */
     public function get(string $key): array
@@ -22,6 +28,13 @@ final readonly class LaravelImportFailureStore implements ImportFailureStoreInte
         return is_array($failures) ? $failures : [];
     }
 
+    /**
+     * Удалить накопленные failures import run.
+     *
+     * Шаги:
+     * 1) Найти cache entry по ключу.
+     * 2) Удалить entry из Laravel Cache.
+     */
     public function forget(string $key): void
     {
         Cache::forget($key);

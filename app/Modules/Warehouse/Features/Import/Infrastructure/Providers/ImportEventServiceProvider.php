@@ -21,6 +21,11 @@ final class ImportEventServiceProvider extends ServiceProvider
 {
     /**
      * Регистрирует одинаковые listeners на все родственные события завершения импорта.
+     *
+     * Шаги:
+     * 1) Подписать ReportImportResultListener на completion-события каждого типа импорта.
+     * 2) Подписать CleanupExternalImportFileListener на те же completion-события.
+     * 3) Оставить выбор конкретного типа импорта внутри listener'а.
      */
     public function boot(): void
     {

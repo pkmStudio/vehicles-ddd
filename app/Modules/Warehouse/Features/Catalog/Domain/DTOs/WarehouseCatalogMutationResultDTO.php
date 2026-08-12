@@ -29,7 +29,7 @@ final readonly class WarehouseCatalogMutationResultDTO
     ) {}
 
     /**
-     * Преобразует результат мутации в snake_case payload для RabbitMQ.
+     * Преобразует результат мутации в snake_case данные сообщения для RabbitMQ.
      *
      * @return array<string, mixed>
      */

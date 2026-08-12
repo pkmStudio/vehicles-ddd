@@ -20,7 +20,7 @@ final readonly class KitMutationRequestDTO
     ) {}
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     public static function fromArray(array $payload): self
     {
@@ -37,7 +37,7 @@ final readonly class KitMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function createRequest(array $payload): CreateKitRequestDTO
     {
@@ -54,7 +54,7 @@ final readonly class KitMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function updateRequest(array $payload): UpdateKitRequestDTO
     {
@@ -72,7 +72,7 @@ final readonly class KitMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $данные  сообщения
      */
     private static function deleteRequest(array $payload): DeleteKitRequestDTO
     {

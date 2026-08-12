@@ -10,13 +10,28 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPage
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPartSpecificationDTO;
 use App\Support\Http\Presenters\HttpArrayPresenter;
 
+/**
+ * Преобразует CRM DTO ТС в массивы HTTP-ответов.
+ */
 final readonly class VehicleCrmReadPresenter
 {
+    /**
+     * Получает общий преобразователь DTO, поддерживающих toArray().
+     *
+     * Шаги:
+     * - Сохранить преобразователь массивов для страницы и детального ответа.
+     */
     public function __construct(
         private HttpArrayPresenter $arrays,
     ) {}
 
     /**
+     * Возвращает HTTP-форму страницы ТС.
+     *
+     * Шаги:
+     * - Преобразовать элементы страницы через общий presenter коллекций.
+     * - Сохранить meta pagination рядом с data.
+     *
      * @return array{data: list<array<string, mixed>>, meta: array<string, int>}
      */
     public function page(VehicleCrmPageDTO $page): array
@@ -25,6 +40,13 @@ final readonly class VehicleCrmReadPresenter
     }
 
     /**
+     * Возвращает HTTP-форму детального снимка ТС.
+     *
+     * Шаги:
+     * - Преобразовать основное ТС в массив.
+     * - Добавить массивы модификаций и спецификаций деталей.
+     * - Сбросить ключи вложенных коллекций перед возвратом.
+     *
      * @return array<string, mixed>
      */
     public function detail(VehicleCrmDetailDTO $detail): array
