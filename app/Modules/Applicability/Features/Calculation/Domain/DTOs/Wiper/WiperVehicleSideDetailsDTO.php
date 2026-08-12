@@ -29,8 +29,7 @@ final readonly class WiperVehicleSideDetailsDTO
     public function adapters(WiperSideEnum $side): array
     {
         $value = $this->data[$side->adapterField()] ?? [];
-        $value = is_array($value) ? $value : [$value];
-        $value = array_map(static fn (mixed $adapter): string => trim((string) $adapter), $value);
+        $value = array_map(static fn (string $adapter): string => trim($adapter), $value);
 
         return array_values(array_filter($value, static fn (string $adapter): bool => $adapter !== ''));
     }

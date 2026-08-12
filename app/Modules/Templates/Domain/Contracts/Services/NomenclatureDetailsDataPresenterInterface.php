@@ -41,7 +41,7 @@ interface NomenclatureDetailsDataPresenterInterface
      * 3) Вернуть values в порядке `headingsFor()`.
      *
      * @param  array<string, mixed>  $details
-     * @return array<int, mixed>
+     * @return array<int, string|int|float|null>
      */
     public function toExportCells(NomenclatureDetailTemplateEnum $template, array $details): array;
 }

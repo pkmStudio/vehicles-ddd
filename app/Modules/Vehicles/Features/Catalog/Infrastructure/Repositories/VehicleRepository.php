@@ -69,7 +69,7 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
      * Шаги:
      * 1. Фильтрует Vehicles по производителю.
      * 2. Забирает только колонку `id`.
-     * 3. Нормализует значения в integer collection.
+     * 3. Возвращает найденные ids.
      *
      * @return Collection<int, int>
      */
@@ -78,7 +78,6 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
         return Vehicle::query()
             ->where('manufacturer_id', $manufacturerId)
             ->pluck('id')
-            ->map($this->toInteger(...))
             ->values();
     }
 
@@ -88,7 +87,7 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
      * Шаги:
      * 1. Возвращает пустую collection для пустого списка parent ids.
      * 2. Фильтрует Vehicles по `parent_id`.
-     * 3. Нормализует найденные ids в integer collection.
+     * 3. Возвращает найденные ids.
      *
      * @param  array<int, int>  $parentIds
      * @return Collection<int, int>
@@ -102,7 +101,6 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
         return Vehicle::query()
             ->whereIn('parent_id', $parentIds)
             ->pluck('id')
-            ->map($this->toInteger(...))
             ->values();
     }
 
@@ -119,17 +117,5 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
         $minMsId = Vehicle::query()->min('ms_id');
 
         return min((int) ($minMsId ?? 0), 0) - 1;
-    }
-
-    /**
-     * Нормализует id из database scalar в integer.
-     *
-     * Шаги:
-     * 1. Принимает scalar значение id из Eloquent result.
-     * 2. Возвращает значение, приведенное к `int`.
-     */
-    private function toInteger(mixed $id): int
-    {
-        return (int) $id;
     }
 }

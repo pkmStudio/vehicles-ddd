@@ -23,7 +23,7 @@ interface NomenclatureDetailsDataFactoryInterface
      * 3) Сдвинуть `$index` на позицию после прочитанных details-колонок.
      * 4) Вернуть типизированный `AbstractDetailsData`.
      *
-     * @param  array<int, mixed>  $row
+     * @param  array<int, string|int|float|null>  $row
      */
     public function make(NomenclatureDetailTemplateEnum $template, array $row, int &$index): AbstractDetailsData;
 }

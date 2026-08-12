@@ -64,8 +64,7 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
      * Шаги:
      * 1) Отфильтровать Nomenclature по brand_id.
      * 2) Получить только id через pluck, не загружая модели.
-     * 3) Привести значения DB driver к int.
-     * 4) Вернуть плотную values collection.
+     * 3) Вернуть плотную values collection.
      *
      * @return Collection<int, int>
      */
@@ -74,7 +73,6 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
         return Nomenclature::query()
             ->where('brand_id', $brandId)
             ->pluck('id')
-            ->map($this->toInteger(...))
             ->values();
     }
 
@@ -101,16 +99,6 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
             ->where('nomenclature_id', $id)
             ->get(['id', 'provider', 'external_id', 'external_code'])
             ->map($toDeletionContext);
-    }
-
-    /**
-     * Приводит id из Eloquent/DB driver к int.
-     * Шаги:
-     * 1) Выполнить явный integer cast для значений, полученных через pluck().
-     */
-    private function toInteger(mixed $id): int
-    {
-        return (int) $id;
     }
 
     /**

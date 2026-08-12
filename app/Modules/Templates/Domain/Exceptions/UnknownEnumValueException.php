@@ -12,12 +12,12 @@ final class UnknownEnumValueException extends DetailsDataBuildException
     /**
      * Создает ошибку неизвестной подписи enum в human-readable словаре.
      */
-    public static function label(string $dictionary, mixed $value): self
+    public static function label(string $dictionary, string|int|float|null $value): self
     {
         return new self(sprintf(
             'Не найдено совпадение в справочнике %s. Значение: %s',
             $dictionary,
-            is_scalar($value) ? (string) $value : get_debug_type($value),
+            $value === null ? 'null' : (string) $value,
         ));
     }
 

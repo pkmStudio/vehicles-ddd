@@ -10,13 +10,16 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm\KitCrmOptionDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm\KitCrmPageDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm\KitCrmPaginationMetaDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitCrmReadQueryDTO;
-use Illuminate\Database\Query\Builder;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Kit;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\PackDimension;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 /**
- * SQL adapter CRM read API комплектов Warehouse.
+ * Eloquent adapter CRM read API комплектов Warehouse.
  */
 final readonly class KitCrmRepository implements KitCrmRepositoryInterface
 {
@@ -24,12 +27,6 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
 
     /**
      * Читает постраничный список комплектов для CRM.
-     *
-     * Шаги:
-     * 1. Собирает базовый query builder комплектов.
-     * 2. Применяет фильтры, search и сортировку из read-query DTO.
-     * 3. Выполняет пагинацию.
-     * 4. Маппит строки БД в DTO страницы.
      */
     public function paginate(KitCrmReadQueryDTO $query): KitCrmPageDTO
     {
@@ -45,7 +42,7 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
         );
 
         $items = collect($paginator->items())
-            ->map(fn (object $kit): KitCrmListItemDTO => $this->item($kit))
+            ->map(fn (Kit $kit): KitCrmListItemDTO => $this->item($kit))
             ->values();
 
         return new KitCrmPageDTO(
@@ -56,52 +53,32 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
 
     /**
      * Читает detail-снимок комплекта по id.
-     *
-     * Шаги:
-     * 1. Добавляет фильтр по внутреннему id к базовому query builder.
-     * 2. Возвращает `null`, если комплект не найден.
-     * 3. Загружает номенклатуры комплекта для detail-снимка.
-     * 4. Маппит строку БД в DTO.
      */
     public function findById(int $id): ?KitCrmListItemDTO
     {
         $kit = $this->baseQuery()
-            ->where('kits.id', $id)
+            ->whereKey($id)
             ->first();
 
-        if ($kit === null) {
-            return null;
-        }
-
-        return $this->item($kit, $this->nomenclatures($id));
+        return $kit === null ? null : $this->item($kit, withNomenclatures: true);
     }
 
     /**
      * Читает nomenclature options для CRM-формы комплекта.
      *
-     * Шаги:
-     * 1. Собирает query builder номенклатур с брендом.
-     * 2. Применяет выбранный id или search-фильтр.
-     * 3. Ограничивает результат безопасным лимитом options endpoint-а.
-     * 4. Маппит строки БД в option DTO.
-     *
      * @return Collection<int, KitCrmOptionDTO>
      */
     public function nomenclatureOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection
     {
-        $builder = DB::table('nomenclatures')
+        $builder = Nomenclature::query()
+            ->select('nomenclatures.*')
+            ->with('brand')
             ->leftJoin('brands', 'brands.id', '=', 'nomenclatures.brand_id')
-            ->select([
-                'nomenclatures.id',
-                'nomenclatures.part_number',
-                'nomenclatures.name',
-                'brands.name as brand_name',
-            ])
             ->orderBy('brands.name')
             ->orderBy('nomenclatures.part_number');
 
         if ($id !== null) {
-            $builder->where('nomenclatures.id', $id);
+            $builder->whereKey($id);
         } elseif ($query !== null && trim($query) !== '') {
             $search = trim($query);
             $builder->where(function (Builder $builder) use ($search): void {
@@ -119,12 +96,12 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
         return $builder
             ->limit($this->optionLimit($limit))
             ->get()
-            ->map(fn (object $row): KitCrmOptionDTO => new KitCrmOptionDTO(
-                id: (int) $row->id,
-                label: trim("[{$row->part_number}] {$row->name}"),
+            ->map(fn (Nomenclature $nomenclature): KitCrmOptionDTO => new KitCrmOptionDTO(
+                id: (int) $nomenclature->id,
+                label: trim("[{$nomenclature->part_number}] {$nomenclature->name}"),
                 meta: [
-                    'part_number' => (string) $row->part_number,
-                    'brand_name' => $row->brand_name === null ? null : (string) $row->brand_name,
+                    'part_number' => (string) $nomenclature->part_number,
+                    'brand_name' => $nomenclature->brand?->name === null ? null : (string) $nomenclature->brand->name,
                 ],
             ))
             ->values();
@@ -133,37 +110,24 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
     /**
      * Читает pack dimension options для CRM-формы комплекта.
      *
-     * Шаги:
-     * 1. Собирает query builder упаковочных размеров с типом.
-     * 2. Применяет выбранный id или search-фильтр.
-     * 3. Ограничивает результат безопасным лимитом options endpoint-а.
-     * 4. Маппит строки БД в option DTO.
-     *
      * @return Collection<int, KitCrmOptionDTO>
      */
     public function packDimensionOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection
     {
-        $builder = DB::table('pack_dimensions')
-            ->leftJoin('types', 'types.id', '=', 'pack_dimensions.type_id')
-            ->select([
-                'pack_dimensions.id',
-                'pack_dimensions.name',
-                'pack_dimensions.weight',
-                'pack_dimensions.width',
-                'pack_dimensions.height',
-                'pack_dimensions.length',
-                'types.name as type_name',
-            ])
+        $builder = PackDimension::query()
+            ->with('type')
             ->orderBy('pack_dimensions.name');
 
         if ($id !== null) {
-            $builder->where('pack_dimensions.id', $id);
+            $builder->whereKey($id);
         } elseif ($query !== null && trim($query) !== '') {
             $search = trim($query);
             $builder->where(function (Builder $builder) use ($search): void {
                 $builder
                     ->where('pack_dimensions.name', 'ilike', "%{$search}%")
-                    ->orWhere('types.name', 'ilike', "%{$search}%");
+                    ->orWhereHas('type', function (Builder $type) use ($search): void {
+                        $type->where('types.name', 'ilike', "%{$search}%");
+                    });
 
                 if (is_numeric($search)) {
                     $builder->orWhere('pack_dimensions.id', (int) $search);
@@ -174,13 +138,13 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
         return $builder
             ->limit($this->optionLimit($limit))
             ->get()
-            ->map(fn (object $row): KitCrmOptionDTO => new KitCrmOptionDTO(
-                id: (int) $row->id,
-                label: (string) $row->name,
+            ->map(fn (PackDimension $packDimension): KitCrmOptionDTO => new KitCrmOptionDTO(
+                id: (int) $packDimension->id,
+                label: (string) $packDimension->name,
                 meta: [
-                    'type_name' => $row->type_name === null ? null : (string) $row->type_name,
-                    'weight' => (int) $row->weight,
-                    'dimensions' => "{$row->width} x {$row->height} x {$row->length}",
+                    'type_name' => $packDimension->type?->name === null ? null : (string) $packDimension->type->name,
+                    'weight' => (int) $packDimension->weight,
+                    'dimensions' => "{$packDimension->width} x {$packDimension->height} x {$packDimension->length}",
                 ],
             ))
             ->values();
@@ -189,22 +153,14 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
     /**
      * Читает type options для CRM-формы комплекта.
      *
-     * Шаги:
-     * 1. Собирает query builder типов.
-     * 2. Применяет выбранный id или search-фильтр.
-     * 3. Ограничивает результат безопасным лимитом options endpoint-а.
-     * 4. Маппит строки БД в option DTO.
-     *
      * @return Collection<int, KitCrmOptionDTO>
      */
     public function typeOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection
     {
-        $builder = DB::table('types')
-            ->select(['id', 'name', 'char'])
-            ->orderBy('id');
+        $builder = Type::query()->orderBy('id');
 
         if ($id !== null) {
-            $builder->where('id', $id);
+            $builder->whereKey($id);
         } elseif ($query !== null && trim($query) !== '') {
             $search = trim($query);
             $builder->where(function (Builder $builder) use ($search): void {
@@ -221,59 +177,29 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
         return $builder
             ->limit($this->optionLimit($limit))
             ->get()
-            ->map(fn (object $row): KitCrmOptionDTO => new KitCrmOptionDTO(
-                id: (int) $row->id,
-                label: (string) $row->name,
-                meta: ['char' => $row->char === null ? null : (string) $row->char],
+            ->map(fn (Type $type): KitCrmOptionDTO => new KitCrmOptionDTO(
+                id: (int) $type->id,
+                label: (string) $type->name,
+                meta: ['char' => $type->char === null ? null : (string) $type->char],
             ))
             ->values();
     }
 
     /**
      * Собирает базовый query builder комплектов для CRM read API.
-     *
-     * Шаги:
-     * 1. Открывает query builder таблицы `kits`.
-     * 2. Подключает типы и упаковочные размеры.
-     * 3. Добавляет scalar поля, счетчик и summary номенклатур.
      */
     private function baseQuery(): Builder
     {
-        return DB::table('kits')
-            ->leftJoin('types', 'types.id', '=', 'kits.type_id')
-            ->leftJoin('pack_dimensions', 'pack_dimensions.id', '=', 'kits.pack_dimension_id')
-            ->select([
-                'kits.id',
-                'kits.complectation',
-                'kits.guarantee',
-                'kits.quantity_in_package',
-                'kits.quantity_package',
-                'kits.complement',
-                'kits.weight',
-                'kits.pack_dimension_id',
-                'pack_dimensions.name as pack_dimension_name',
-                'kits.type_id',
-                'types.name as type_name',
-                'types.char as type_char',
-                'kits.import_hash',
-                'kits.is_sale_separately',
-                'kits.is_active',
-                'kits.created_at',
-                'kits.updated_at',
-                DB::raw('(select count(*) from kit_nomenclature where kit_nomenclature.kit_id = kits.id) as nomenclatures_count'),
-                DB::raw("(select coalesce(string_agg(nomenclatures.part_number, ', ' order by kit_nomenclature.sort), '') from kit_nomenclature join nomenclatures on nomenclatures.id = kit_nomenclature.nomenclature_id where kit_nomenclature.kit_id = kits.id) as nomenclatures_list"),
-            ]);
+        return Kit::query()
+            ->select('kits.*')
+            ->with(['type', 'packDimension', 'nomenclatures'])
+            ->withCount('nomenclatures');
     }
 
     /**
      * Применяет фильтры CRM списка комплектов.
      *
-     * Шаги:
-     * 1. Применяет multi-value фильтры `type_id` и `pack_dimension_id`.
-     * 2. Пропускает пустые значения фильтров.
-     * 3. Применяет текстовый фильтр `complectation`.
-     *
-     * @param  array<string, mixed>  $фильтры
+     * @param  array<string, mixed>  $filters
      */
     private function applyFilters(Builder $query, array $filters): void
     {
@@ -286,23 +212,13 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
             $query->whereIn("kits.{$field}", $values);
         }
 
-        foreach (['complectation'] as $field) {
-            if (! isset($filters[$field]) || trim((string) $filters[$field]) === '') {
-                continue;
-            }
-
-            $query->where("kits.{$field}", 'ilike', '%'.trim((string) $filters[$field]).'%');
+        if (isset($filters['complectation']) && trim((string) $filters['complectation']) !== '') {
+            $query->where('kits.complectation', 'ilike', '%'.trim((string) $filters['complectation']).'%');
         }
     }
 
     /**
      * Применяет полнотекстовый search к CRM списку комплектов.
-     *
-     * Шаги:
-     * 1. Нормализует поисковую строку.
-     * 2. Пропускает пустой search.
-     * 3. Ищет по комплектации, типу, упаковочному размеру и номенклатурам комплекта.
-     * 4. Для числового search дополнительно проверяет внутренний id комплекта.
      */
     private function applySearch(Builder $query, ?string $search): void
     {
@@ -315,19 +231,16 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
         $query->where(function (Builder $query) use ($search): void {
             $query
                 ->where('kits.complectation', 'ilike', "%{$search}%")
-                ->orWhere('types.name', 'ilike', "%{$search}%")
-                ->orWhere('pack_dimensions.name', 'ilike', "%{$search}%")
-                ->orWhereExists(function (Builder $exists) use ($search): void {
-                    $exists
-                        ->selectRaw('1')
-                        ->from('kit_nomenclature')
-                        ->join('nomenclatures', 'nomenclatures.id', '=', 'kit_nomenclature.nomenclature_id')
-                        ->whereColumn('kit_nomenclature.kit_id', 'kits.id')
-                        ->where(function (Builder $nomenclatures) use ($search): void {
-                            $nomenclatures
-                                ->where('nomenclatures.part_number', 'ilike', "%{$search}%")
-                                ->orWhere('nomenclatures.name', 'ilike', "%{$search}%");
-                        });
+                ->orWhereHas('type', function (Builder $type) use ($search): void {
+                    $type->where('types.name', 'ilike', "%{$search}%");
+                })
+                ->orWhereHas('packDimension', function (Builder $packDimension) use ($search): void {
+                    $packDimension->where('pack_dimensions.name', 'ilike', "%{$search}%");
+                })
+                ->orWhereHas('nomenclatures', function (Builder $nomenclatures) use ($search): void {
+                    $nomenclatures
+                        ->where('nomenclatures.part_number', 'ilike', "%{$search}%")
+                        ->orWhere('nomenclatures.name', 'ilike', "%{$search}%");
                 });
 
             if (is_numeric($search)) {
@@ -338,24 +251,35 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
 
     /**
      * Применяет сортировку CRM списка комплектов.
-     *
-     * Шаги:
-     * 1. Определяет направление по префиксу `-`.
-     * 2. Переводит публичное имя поля в SQL column.
-     * 3. Добавляет `order by` к query builder.
      */
     private function applySort(Builder $query, string $sort): void
     {
         $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
         $field = ltrim($sort, '-');
 
+        if ($field === 'type_name') {
+            $query
+                ->leftJoin('types', 'types.id', '=', 'kits.type_id')
+                ->select('kits.*')
+                ->orderBy('types.name', $direction);
+
+            return;
+        }
+
+        if ($field === 'pack_dimension_name') {
+            $query
+                ->leftJoin('pack_dimensions', 'pack_dimensions.id', '=', 'kits.pack_dimension_id')
+                ->select('kits.*')
+                ->orderBy('pack_dimensions.name', $direction);
+
+            return;
+        }
+
         $column = match ($field) {
             'id' => 'kits.id',
             'complectation' => 'kits.complectation',
             'weight' => 'kits.weight',
             'guarantee' => 'kits.guarantee',
-            'type_name' => 'types.name',
-            'pack_dimension_name' => 'pack_dimensions.name',
             default => 'kits.id',
         };
 
@@ -363,73 +287,55 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
     }
 
     /**
-     * Читает номенклатуры комплекта для detail-снимка.
-     *
-     * Шаги:
-     * 1. Читает связи `kit_nomenclature` для комплекта.
-     * 2. Подключает номенклатуры и сохраняет порядок сортировку.
-     * 3. Возвращает плоский список массивов для DTO detail.
+     * Маппит комплект в CRM DTO.
+     */
+    private function item(Kit $kit, bool $withNomenclatures = false): KitCrmListItemDTO
+    {
+        return new KitCrmListItemDTO(
+            id: (int) $kit->id,
+            complectation: (string) $kit->complectation,
+            guarantee: (int) $kit->guarantee,
+            quantityInPackage: (int) $kit->quantity_in_package,
+            quantityPackage: (int) $kit->quantity_package,
+            complement: (bool) $kit->complement,
+            weight: (int) $kit->weight,
+            packDimensionId: (int) $kit->pack_dimension_id,
+            packDimensionName: $kit->packDimension?->name === null ? null : (string) $kit->packDimension->name,
+            typeId: (int) $kit->type_id,
+            typeName: $kit->type?->name === null ? null : (string) $kit->type->name,
+            typeChar: $kit->type?->char === null ? null : (string) $kit->type->char,
+            importHash: $kit->import_hash === null ? null : (string) $kit->import_hash,
+            isSaleSeparately: (bool) $kit->is_sale_separately,
+            isActive: (bool) $kit->is_active,
+            nomenclaturesCount: (int) $kit->nomenclatures_count,
+            nomenclaturesList: $kit->nomenclatures
+                ->pluck('part_number')
+                ->implode(', '),
+            nomenclatures: $withNomenclatures ? $this->nomenclatures($kit) : [],
+            createdAt: $kit->created_at === null ? null : (string) $kit->created_at,
+            updatedAt: $kit->updated_at === null ? null : (string) $kit->updated_at,
+        );
+    }
+
+    /**
+     * Возвращает detail-список номенклатур комплекта.
      *
      * @return list<array{id: int, label: string, part_number: string}>
      */
-    private function nomenclatures(int $kitId): array
+    private function nomenclatures(Kit $kit): array
     {
-        return DB::table('kit_nomenclature')
-            ->join('nomenclatures', 'nomenclatures.id', '=', 'kit_nomenclature.nomenclature_id')
-            ->where('kit_nomenclature.kit_id', $kitId)
-            ->orderBy('kit_nomenclature.sort')
-            ->get(['nomenclatures.id', 'nomenclatures.part_number', 'nomenclatures.name'])
-            ->map(fn (object $row): array => [
-                'id' => (int) $row->id,
-                'label' => trim("[{$row->part_number}] {$row->name}"),
-                'part_number' => (string) $row->part_number,
+        return $kit->nomenclatures
+            ->map(fn (Nomenclature $nomenclature): array => [
+                'id' => (int) $nomenclature->id,
+                'label' => trim("[{$nomenclature->part_number}] {$nomenclature->name}"),
+                'part_number' => (string) $nomenclature->part_number,
             ])
             ->values()
             ->all();
     }
 
     /**
-     * Маппит SQL projection комплекта в CRM DTO.
-     *
-     * Шаги:
-     * 1. Приводит scalar поля projection к типам DTO.
-     * 2. Добавляет summary и detail-список номенклатур.
-     * 3. Возвращает `KitCrmListItemDTO`.
-     *
-     * @param  list<array{id: int, label: string, part_number: string}>  $nomenclatures
-     */
-    private function item(object $row, array $nomenclatures = []): KitCrmListItemDTO
-    {
-        return new KitCrmListItemDTO(
-            id: (int) $row->id,
-            complectation: (string) $row->complectation,
-            guarantee: (int) $row->guarantee,
-            quantityInPackage: (int) $row->quantity_in_package,
-            quantityPackage: (int) $row->quantity_package,
-            complement: (bool) $row->complement,
-            weight: (int) $row->weight,
-            packDimensionId: (int) $row->pack_dimension_id,
-            packDimensionName: $row->pack_dimension_name === null ? null : (string) $row->pack_dimension_name,
-            typeId: (int) $row->type_id,
-            typeName: $row->type_name === null ? null : (string) $row->type_name,
-            typeChar: $row->type_char === null ? null : (string) $row->type_char,
-            importHash: $row->import_hash === null ? null : (string) $row->import_hash,
-            isSaleSeparately: (bool) $row->is_sale_separately,
-            isActive: (bool) $row->is_active,
-            nomenclaturesCount: (int) $row->nomenclatures_count,
-            nomenclaturesList: (string) $row->nomenclatures_list,
-            nomenclatures: $nomenclatures,
-            createdAt: $row->created_at === null ? null : (string) $row->created_at,
-            updatedAt: $row->updated_at === null ? null : (string) $row->updated_at,
-        );
-    }
-
-    /**
      * Маппит Laravel paginator в CRM DTO метаданных пагинации.
-     *
-     * Шаги:
-     * 1. Читает текущую страницу, per-page, total и last page.
-     * 2. Возвращает типизированный DTO метаданных для презентера ответа.
      */
     private function meta(LengthAwarePaginator $paginator): KitCrmPaginationMetaDTO
     {
@@ -443,10 +349,6 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
 
     /**
      * Нормализует лимит options endpoint-а.
-     *
-     * Шаги:
-     * 1. Принимает requested лимит.
-     * 2. Ограничивает значение диапазоном `1..OPTION_LIMIT`.
      */
     private function optionLimit(int $limit): int
     {

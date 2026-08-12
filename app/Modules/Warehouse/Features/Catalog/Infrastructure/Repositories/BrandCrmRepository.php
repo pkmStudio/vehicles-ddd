@@ -9,12 +9,12 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandCrmReadQueryDT
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\Crm\BrandCrmListItemDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\Crm\BrandCrmPageDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\Crm\BrandCrmPaginationMetaDTO;
-use Illuminate\Database\Query\Builder;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 
 /**
- * SQL adapter CRM read API Warehouse-брендов.
+ * Eloquent adapter CRM read API Warehouse-брендов.
  */
 final readonly class BrandCrmRepository implements BrandCrmRepositoryInterface
 {
@@ -32,7 +32,7 @@ final readonly class BrandCrmRepository implements BrandCrmRepositoryInterface
         );
 
         $items = collect($paginator->items())
-            ->map(fn (object $brand): BrandCrmListItemDTO => $this->item($brand))
+            ->map(fn (Brand $brand): BrandCrmListItemDTO => $this->item($brand))
             ->values();
 
         return new BrandCrmPageDTO(
@@ -44,7 +44,7 @@ final readonly class BrandCrmRepository implements BrandCrmRepositoryInterface
     public function findById(int $id): ?BrandCrmListItemDTO
     {
         $brand = $this->baseQuery()
-            ->where('brands.id', $id)
+            ->whereKey($id)
             ->first();
 
         return $brand === null ? null : $this->item($brand);
@@ -52,18 +52,7 @@ final readonly class BrandCrmRepository implements BrandCrmRepositoryInterface
 
     private function baseQuery(): Builder
     {
-        return DB::table('brands')
-            ->select([
-                'brands.id',
-                'brands.name',
-                'brands.number_sert',
-                'brands.date_start',
-                'brands.date_end',
-                'brands.char',
-                'brands.created_at',
-                'brands.updated_at',
-                DB::raw('(select count(*) from nomenclatures where nomenclatures.brand_id = brands.id) as nomenclatures_count'),
-            ]);
+        return Brand::query()->withCount('nomenclatures');
     }
 
     /**
@@ -119,18 +108,18 @@ final readonly class BrandCrmRepository implements BrandCrmRepositoryInterface
         $query->orderBy($column, $direction);
     }
 
-    private function item(object $row): BrandCrmListItemDTO
+    private function item(Brand $brand): BrandCrmListItemDTO
     {
         return new BrandCrmListItemDTO(
-            id: (int) $row->id,
-            name: (string) $row->name,
-            numberSert: (string) $row->number_sert,
-            dateStart: (string) $row->date_start,
-            dateEnd: (string) $row->date_end,
-            char: $row->char === null ? null : (string) $row->char,
-            nomenclaturesCount: (int) $row->nomenclatures_count,
-            createdAt: $row->created_at === null ? null : (string) $row->created_at,
-            updatedAt: $row->updated_at === null ? null : (string) $row->updated_at,
+            id: (int) $brand->id,
+            name: (string) $brand->name,
+            numberSert: (string) $brand->number_sert,
+            dateStart: (string) $brand->date_start,
+            dateEnd: (string) $brand->date_end,
+            char: $brand->char === null ? null : (string) $brand->char,
+            nomenclaturesCount: (int) $brand->nomenclatures_count,
+            createdAt: $brand->created_at === null ? null : (string) $brand->created_at,
+            updatedAt: $brand->updated_at === null ? null : (string) $brand->updated_at,
         );
     }
 

@@ -101,7 +101,7 @@ final readonly class EngineCommand implements EngineCommandInterface
             ];
         }
 
-        $allowedFields = $this->stringList($engine->allow_change_fields ?? []);
+        $allowedFields = $engine->allow_change_fields;
         $payload = [];
 
         foreach ($incoming as $field => $value) {
@@ -118,26 +118,5 @@ final readonly class EngineCommand implements EngineCommandInterface
         $payload['allow_change_fields'] = array_values(array_unique($allowedFields));
 
         return $payload;
-    }
-
-    /**
-     * Нормализует список разрешённых к изменению полей.
-     *
-     * Шаги:
-     * - Вернуть пустой список для не-массива.
-     * - Оставить только scalar-значения и привести их к строкам.
-     *
-     * @return list<string>
-     */
-    private function stringList(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        return array_values(array_filter(array_map(
-            static fn (mixed $item): ?string => is_scalar($item) ? (string) $item : null,
-            $value,
-        )));
     }
 }

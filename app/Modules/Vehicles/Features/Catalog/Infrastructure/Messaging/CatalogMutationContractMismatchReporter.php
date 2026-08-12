@@ -44,11 +44,18 @@ final readonly class CatalogMutationContractMismatchReporter
      */
     public function report(CatalogEntityEnum $entity, array $payload, array $invalidKeys): void
     {
-        $userId = $this->integerOrNull($payload['user_id'] ?? null);
-        $operationId = $this->stringOrNull($payload['operation_id'] ?? null);
-        $operation = $this->operationOrNull($payload['operation'] ?? null);
+        $userId = $payload['user_id'] ?? null;
+        $operationId = $payload['operation_id'] ?? null;
+        $operationValue = $payload['operation'] ?? null;
 
-        if ($userId === null || $operationId === null || $operation === null) {
+        if (! is_int($userId) || ! is_string($operationId) || ! is_string($operationValue)) {
+            return;
+        }
+
+        $operationId = trim($operationId);
+        $operation = $this->operationOrNull($operationValue);
+
+        if ($operationId === '' || $operation === null) {
             return;
         }
 
@@ -102,7 +109,9 @@ final readonly class CatalogMutationContractMismatchReporter
             return null;
         }
 
-        return $this->integerOrNull($entityPayload[$idKey] ?? null);
+        $externalId = $entityPayload[$idKey] ?? null;
+
+        return is_int($externalId) ? $externalId : null;
     }
 
     /**
@@ -113,42 +122,16 @@ final readonly class CatalogMutationContractMismatchReporter
      * 2. Пытается собрать `CatalogMutationOperationEnum`.
      * 3. Возвращает `null`, если значение не входит в wire-contract enum.
      */
-    private function operationOrNull(mixed $operation): ?CatalogMutationOperationEnum
+    private function operationOrNull(?string $operation): ?CatalogMutationOperationEnum
     {
+        if ($operation === null || $operation === '') {
+            return null;
+        }
+
         try {
-            return CatalogMutationOperationEnum::from((string) $operation);
+            return CatalogMutationOperationEnum::from($operation);
         } catch (ValueError) {
             return null;
         }
-    }
-
-    /**
-     * Нормализует nullable scalar значение в integer.
-     *
-     * Шаги:
-     * 1. Отбрасывает `null` и пустую строку как отсутствие значения.
-     * 2. Приводит непустое значение к `int`.
-     */
-    private function integerOrNull(mixed $value): ?int
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        return (int) $value;
-    }
-
-    /**
-     * Нормализует nullable scalar значение в непустую строку.
-     *
-     * Шаги:
-     * 1. Приводит значение к строке и убирает внешние пробелы.
-     * 2. Возвращает `null`, если после нормализации строка пустая.
-     */
-    private function stringOrNull(mixed $value): ?string
-    {
-        $value = is_string($value) ? trim($value) : (string) $value;
-
-        return $value === '' ? null : $value;
     }
 }

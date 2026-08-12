@@ -84,10 +84,9 @@ final readonly class WiperNomenclatureDetailsDTO
     /**
      * @return array<int, string>
      */
-    private function adapterList(mixed $value): array
+    private function adapterList(array $value): array
     {
-        $value = is_array($value) ? $value : [];
-        $value = array_map(static fn (mixed $adapter): string => trim((string) $adapter), $value);
+        $value = array_map(static fn (string $adapter): string => trim($adapter), $value);
 
         return array_values(array_filter($value, static fn (string $adapter): bool => $adapter !== ''));
     }

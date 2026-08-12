@@ -16,43 +16,31 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPage
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPartSpecificationDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmSearchItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmDetailDTOFactory;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmModificationDTOFactory;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Engine;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Feature;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\FeatureValue;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Modification;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\PartSpecification;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmPageDTOFactory;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmPartSpecificationDTOFactory;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmSearchItemDTOFactory;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 /**
- * SQL read adapter CRM API каталога Vehicles.
+ * Eloquent read adapter CRM API каталога Vehicles.
  */
 final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterface
 {
     /**
-     * Инициализирует factories для mapping CRM projections.
-     *
-     * Шаги:
-     * 1. Получает factories search item, page, detail, modification и part specification DTO.
-     * 2. Сохраняет dependencies для mapping SQL rows в локальные DTO.
+     * Инициализирует factory page DTO.
      */
     public function __construct(
-        private VehicleCrmSearchItemDTOFactory $searchItemFactory,
         private VehicleCrmPageDTOFactory $pageFactory,
-        private VehicleCrmDetailDTOFactory $detailFactory,
-        private VehicleCrmModificationDTOFactory $modificationFactory,
-        private VehicleCrmPartSpecificationDTOFactory $partSpecificationFactory,
     ) {}
 
     /**
      * Читает постраничный список автомобилей для CRM.
-     *
-     * Шаги:
-     * 1. Собирает базовый query builder автомобилей.
-     * 2. Применяет filters, search и sort из read-query DTO.
-     * 3. Выполняет pagination.
-     * 4. Маппит строки БД в DTO страницы.
      */
     public function paginate(VehicleCrmReadQueryDTO $query): VehicleCrmPageDTO
     {
@@ -68,7 +56,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         );
 
         $items = collect($paginator->items())
-            ->map(fn (object $vehicle): VehicleCrmListItemDTO => VehicleCrmListItemDTO::fromArray((array) $vehicle))
+            ->map(fn (Vehicle $vehicle): VehicleCrmListItemDTO => $this->item($vehicle))
             ->values();
 
         return $this->pageFactory->make($items, $paginator);
@@ -76,38 +64,36 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
 
     /**
      * Читает detail-снимок автомобиля по id.
-     *
-     * Шаги:
-     * 1. Добавляет фильтр по внутреннему id к базовому query builder.
-     * 2. Возвращает `null`, если автомобиль не найден.
-     * 3. Загружает вложенные модификации и спецификации деталей.
-     * 4. Собирает detail DTO через factory.
      */
     public function findById(int $id): ?VehicleCrmDetailDTO
     {
         $vehicle = $this->baseQuery()
-            ->where('vehicles.id', $id)
+            ->with([
+                'modifications' => fn (Builder $query): Builder => $query
+                    ->orderBy('year_from')
+                    ->orderBy('description'),
+                'modifications.engines' => fn (Builder $query): Builder => $query->orderBy('code_engine'),
+                'partSpecifications' => fn (Builder $query): Builder => $query
+                    ->orderBy('template')
+                    ->orderBy('id'),
+                'partSpecifications.featureValue.feature',
+            ])
+            ->whereKey($id)
             ->first();
 
         if ($vehicle === null) {
             return null;
         }
 
-        return $this->detailFactory->make(
-            vehicle: VehicleCrmListItemDTO::fromArray((array) $vehicle),
-            modifications: $this->modifications((int) $vehicle->id),
-            partSpecifications: $this->partSpecifications((int) $vehicle->id),
+        return new VehicleCrmDetailDTO(
+            vehicle: $this->item($vehicle),
+            modifications: $this->modifications($vehicle),
+            partSpecifications: $this->partSpecifications($vehicle),
         );
     }
 
     /**
      * Читает compact search options автомобилей для CRM autocomplete.
-     *
-     * Шаги:
-     * 1. Собирает базовый query builder автомобилей.
-     * 2. Применяет search-фильтр.
-     * 3. Ограничивает результат безопасным limit.
-     * 4. Маппит строки БД в search item DTO.
      *
      * @return Collection<int, VehicleCrmSearchItemDTO>
      */
@@ -117,41 +103,36 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         $this->applySearch($builder, $query);
 
         return $builder
+            ->leftJoin('manufacturers', 'manufacturers.id', '=', 'vehicles.manufacturer_id')
+            ->select('vehicles.*')
             ->orderBy('manufacturers.name')
             ->orderBy('vehicles.name')
             ->limit(min(max($limit, 1), 50))
             ->get()
-            ->map(fn (object $vehicle): VehicleCrmSearchItemDTO => $this->searchItemFactory->make($vehicle))
+            ->map(fn (Vehicle $vehicle): VehicleCrmSearchItemDTO => $this->searchItem($vehicle))
             ->values();
     }
 
     /**
      * Читает feature options автомобилей для CRM filters.
      *
-     * Шаги:
-     * 1. Фильтрует features по entity type `vehicle`.
-     * 2. Сортирует результат по названию.
-     * 3. Маппит строки БД в option DTO.
-     *
      * @return Collection<int, VehicleCrmFeatureOptionDTO>
      */
     public function featureOptions(): Collection
     {
-        return DB::table('features')
+        return Feature::query()
             ->where('entity_type', 'vehicle')
             ->orderBy('name')
-            ->get(['id', 'name as label'])
-            ->map(fn (object $feature): VehicleCrmFeatureOptionDTO => VehicleCrmFeatureOptionDTO::fromArray((array) $feature))
+            ->get()
+            ->map(fn (Feature $feature): VehicleCrmFeatureOptionDTO => new VehicleCrmFeatureOptionDTO(
+                id: (int) $feature->id,
+                label: (string) $feature->name,
+            ))
             ->values();
     }
 
     /**
      * Читает feature value options одной характеристики.
-     *
-     * Шаги:
-     * 1. Возвращает пустую collection для невалидного feature id.
-     * 2. Фильтрует feature values по feature id.
-     * 3. Сортирует и маппит строки БД в option DTO.
      *
      * @return Collection<int, VehicleCrmFeatureValueOptionDTO>
      */
@@ -161,33 +142,30 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             return collect();
         }
 
-        return DB::table('feature_values')
+        return FeatureValue::query()
             ->where('feature_id', $featureId)
             ->orderBy('name')
-            ->get(['id', 'feature_id', 'name as label', 'short_code'])
-            ->map(fn (object $value): VehicleCrmFeatureValueOptionDTO => VehicleCrmFeatureValueOptionDTO::fromArray((array) $value))
+            ->get()
+            ->map(fn (FeatureValue $value): VehicleCrmFeatureValueOptionDTO => new VehicleCrmFeatureValueOptionDTO(
+                id: (int) $value->id,
+                featureId: (int) $value->feature_id,
+                label: (string) $value->name,
+                shortCode: (string) $value->short_code,
+            ))
             ->values();
     }
 
     /**
      * Читает manufacturer options для CRM forms.
      *
-     * Шаги:
-     * 1. Собирает query builder производителей.
-     * 2. Применяет selected id или search-фильтр.
-     * 3. Ограничивает результат безопасным limit.
-     * 4. Маппит строки БД в option DTO.
-     *
      * @return Collection<int, VehicleCrmManufacturerOptionDTO>
      */
     public function manufacturerOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection
     {
-        $builder = DB::table('manufacturers')
-            ->select(['id', 'mfa_id', 'name as label'])
-            ->orderBy('name');
+        $builder = Manufacturer::query()->orderBy('name');
 
         if ($id !== null) {
-            $builder->where('id', $id);
+            $builder->whereKey($id);
         } elseif ($query !== null && trim($query) !== '') {
             $search = trim($query);
 
@@ -203,53 +181,26 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         return $builder
             ->limit(min(max($limit, 1), 50))
             ->get()
-            ->map(fn (object $manufacturer): VehicleCrmManufacturerOptionDTO => VehicleCrmManufacturerOptionDTO::fromArray((array) $manufacturer))
+            ->map(fn (Manufacturer $manufacturer): VehicleCrmManufacturerOptionDTO => new VehicleCrmManufacturerOptionDTO(
+                id: (int) $manufacturer->id,
+                mfaId: (int) $manufacturer->mfa_id,
+                label: (string) $manufacturer->name,
+            ))
             ->values();
     }
 
     /**
      * Собирает общий vehicle query для CRM read API.
-     *
-     * Шаги:
-     * 1. Открывает query builder таблицы `vehicles`.
-     * 2. Подключает parent vehicle и производителя.
-     * 3. Выбирает поля projection, нужные list/detail/search сценариям.
      */
     private function baseQuery(): Builder
     {
-        return DB::table('vehicles')
-            ->leftJoin('vehicles as parent_vehicles', 'parent_vehicles.id', '=', 'vehicles.parent_id')
-            ->leftJoin('manufacturers', 'manufacturers.id', '=', 'vehicles.manufacturer_id')
-            ->select([
-                'vehicles.id',
-                'vehicles.parent_id',
-                'parent_vehicles.ms_id as parent_ms_id',
-                'vehicles.manufacturer_id',
-                'manufacturers.name as manufacturer_name',
-                'vehicles.mfa_id',
-                'vehicles.ms_id',
-                'vehicles.name',
-                'vehicles.localized_name',
-                'vehicles.excel_table_id',
-                'vehicles.generation',
-                'vehicles.generation_short',
-                'vehicles.generation_year_from',
-                'vehicles.generation_year_to',
-                'vehicles.type',
-                'vehicles.type_carcase',
-                'vehicles.provider',
-                'vehicles.steering_type',
-                'vehicles.is_allow',
-            ]);
+        return Vehicle::query()
+            ->select('vehicles.*')
+            ->with(['manufacturer', 'parent']);
     }
 
     /**
      * Применяет CRM filters к vehicle query.
-     *
-     * Шаги:
-     * 1. Применяет multi-value фильтры manufacturer/type/provider.
-     * 2. Применяет текстовые фильтры name/manufacturer_name.
-     * 3. Применяет boolean-фильтр `is_allow`.
      *
      * @param  array<string, mixed>  $filters
      */
@@ -264,31 +215,24 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             $query->whereIn("vehicles.{$field}", $values);
         }
 
-        foreach (['name' => 'vehicles.name', 'manufacturer_name' => 'manufacturers.name'] as $field => $column) {
-            if (! isset($filters[$field]) || trim((string) $filters[$field]) === '') {
-                continue;
-            }
-
-            $query->where($column, 'ilike', '%'.trim((string) $filters[$field]).'%');
+        if (isset($filters['name']) && trim((string) $filters['name']) !== '') {
+            $query->where('vehicles.name', 'ilike', '%'.trim((string) $filters['name']).'%');
         }
 
-        foreach (['is_allow'] as $field) {
-            if (! array_key_exists($field, $filters) || $filters[$field] === '') {
-                continue;
-            }
+        if (isset($filters['manufacturer_name']) && trim((string) $filters['manufacturer_name']) !== '') {
+            $manufacturerName = trim((string) $filters['manufacturer_name']);
+            $query->whereHas('manufacturer', function (Builder $manufacturer) use ($manufacturerName): void {
+                $manufacturer->where('manufacturers.name', 'ilike', "%{$manufacturerName}%");
+            });
+        }
 
-            $query->where("vehicles.{$field}", filter_var($filters[$field], FILTER_VALIDATE_BOOL));
+        if (array_key_exists('is_allow', $filters) && $filters['is_allow'] !== '') {
+            $query->where('vehicles.is_allow', filter_var($filters['is_allow'], FILTER_VALIDATE_BOOL));
         }
     }
 
     /**
      * Применяет search по автомобилям и производителям.
-     *
-     * Шаги:
-     * 1. Нормализует поисковую строку.
-     * 2. Пропускает пустой search.
-     * 3. Ищет по названию, производителю, поколению и localized name.
-     * 4. Для числового search дополнительно проверяет `ms_id`.
      */
     private function applySearch(Builder $query, ?string $search): void
     {
@@ -301,9 +245,11 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         $query->where(function (Builder $query) use ($search): void {
             $query
                 ->where('vehicles.name', 'ilike', "%{$search}%")
-                ->orWhere('manufacturers.name', 'ilike', "%{$search}%")
                 ->orWhere('vehicles.generation', 'ilike', "%{$search}%")
-                ->orWhere('vehicles.localized_name', 'ilike', "%{$search}%");
+                ->orWhere('vehicles.localized_name', 'ilike', "%{$search}%")
+                ->orWhereHas('manufacturer', function (Builder $manufacturer) use ($search): void {
+                    $manufacturer->where('manufacturers.name', 'ilike', "%{$search}%");
+                });
 
             if (is_numeric($search)) {
                 $query->orWhere('vehicles.ms_id', (int) $search);
@@ -313,22 +259,25 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
 
     /**
      * Применяет whitelisted CRM sort expression.
-     *
-     * Шаги:
-     * 1. Определяет направление по префиксу `-`.
-     * 2. Переводит публичное имя поля в SQL column.
-     * 3. Добавляет `order by` к query builder.
      */
     private function applySort(Builder $query, string $sort): void
     {
         $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
         $field = ltrim($sort, '-');
 
+        if ($field === 'manufacturer_name') {
+            $query
+                ->leftJoin('manufacturers', 'manufacturers.id', '=', 'vehicles.manufacturer_id')
+                ->select('vehicles.*')
+                ->orderBy('manufacturers.name', $direction);
+
+            return;
+        }
+
         $column = match ($field) {
             'id' => 'vehicles.id',
             'ms_id' => 'vehicles.ms_id',
             'mfa_id' => 'vehicles.mfa_id',
-            'manufacturer_name' => 'manufacturers.name',
             'name' => 'vehicles.name',
             'generation_year_from' => 'vehicles.generation_year_from',
             'generation_year_to' => 'vehicles.generation_year_to',
@@ -341,101 +290,139 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         $query->orderBy($column, $direction);
     }
 
-    /**
-     * Читает модификации и двигатели для CRM detail автомобиля.
-     *
-     * Шаги:
-     * 1. Загружает модификации автомобиля в стабильном порядке.
-     * 2. Возвращает пустую collection, если модификаций нет.
-     * 3. Загружает двигатели, сгруппированные по id модификации.
-     * 4. Маппит каждую модификацию с ее двигателями в DTO.
-     *
-     * @return Collection<int, VehicleCrmModificationDTO>
-     */
-    private function modifications(int $vehicleId): Collection
+    private function item(Vehicle $vehicle): VehicleCrmListItemDTO
     {
-        $modifications = DB::table('modifications')
-            ->where('vehicle_id', $vehicleId)
-            ->orderBy('year_from')
-            ->orderBy('description')
-            ->get()
-            ->values();
+        return new VehicleCrmListItemDTO(
+            id: (int) $vehicle->id,
+            parentId: $vehicle->parent_id === null ? null : (int) $vehicle->parent_id,
+            parentMsId: $vehicle->parent?->ms_id === null ? null : (int) $vehicle->parent->ms_id,
+            manufacturerId: (int) $vehicle->manufacturer_id,
+            manufacturerName: $vehicle->manufacturer?->name === null ? null : (string) $vehicle->manufacturer->name,
+            mfaId: (int) $vehicle->mfa_id,
+            msId: (int) $vehicle->ms_id,
+            name: (string) $vehicle->name,
+            localizedName: $vehicle->localized_name === null ? null : (string) $vehicle->localized_name,
+            excelTableId: $vehicle->excel_table_id === null ? null : (string) $vehicle->excel_table_id,
+            generation: $vehicle->generation === null ? null : (string) $vehicle->generation,
+            generationShort: $vehicle->generation_short === null ? null : (string) $vehicle->generation_short,
+            generationYearFrom: $vehicle->generation_year_from === null ? null : (int) $vehicle->generation_year_from,
+            generationYearTo: $vehicle->generation_year_to === null ? null : (int) $vehicle->generation_year_to,
+            type: $vehicle->type->value,
+            typeCarcase: $vehicle->type_carcase->value,
+            provider: $vehicle->provider->value,
+            steeringType: $vehicle->steering_type->value,
+            isAllow: (bool) $vehicle->is_allow,
+        );
+    }
 
-        if ($modifications->isEmpty()) {
-            return collect();
-        }
-
-        $engines = DB::table('engine_modification')
-            ->join('engines', 'engines.id', '=', 'engine_modification.engine_id')
-            ->whereIn('engine_modification.modification_id', $modifications->pluck('id')->all())
-            ->orderBy('engines.code_engine')
-            ->get([
-                'engine_modification.modification_id',
-                'engines.id',
-                'engines.eng_id',
-                'engines.code_engine',
-                'engines.engine_capacity',
-                'engines.cylinder_count',
-                'engines.cylinder_diameter',
-                'engines.power_kw_start',
-                'engines.power_kw_upto',
-                'engines.power_ps_start',
-                'engines.power_ps_upto',
-                'engines.number_of_valves',
-                'engines.fuel_type',
-                'engines.group_id',
-                'engines.provider',
-                'engines.allow_change_fields',
-            ])
-            ->groupBy('modification_id');
-
-        return $modifications
-            ->map(function (object $modification) use ($engines): VehicleCrmModificationDTO {
-                $modificationEngines = collect($engines->get($modification->id, []))
-                    ->map(fn (object $engine): VehicleCrmEngineDTO => VehicleCrmEngineDTO::fromArray((array) $engine))
-                    ->values();
-
-                return $this->modificationFactory->make($modification, $modificationEngines);
-            })
-            ->values();
+    private function searchItem(Vehicle $vehicle): VehicleCrmSearchItemDTO
+    {
+        return new VehicleCrmSearchItemDTO(
+            id: (int) $vehicle->id,
+            label: sprintf(
+                '%s | %s %s %s | %s (%s-%s)',
+                $vehicle->ms_id,
+                $vehicle->manufacturer?->name,
+                $vehicle->name,
+                $vehicle->generation,
+                $vehicle->localized_name ?: '',
+                $vehicle->generation_year_from,
+                $vehicle->generation_year_to ?: 'н.в.',
+            ),
+            msId: (int) $vehicle->ms_id,
+            manufacturer: $vehicle->manufacturer?->name === null ? null : (string) $vehicle->manufacturer->name,
+        );
     }
 
     /**
-     * Читает спецификации деталей автомобиля для CRM detail views.
-     *
-     * Шаги:
-     * 1. Загружает vehicle part specifications с feature/feature value metadata.
-     * 2. Сортирует результат по template и id.
-     * 3. Маппит строки БД в part specification DTO.
-     *
+     * @return Collection<int, VehicleCrmModificationDTO>
+     */
+    private function modifications(Vehicle $vehicle): Collection
+    {
+        return $vehicle->modifications
+            ->map(fn (Modification $modification): VehicleCrmModificationDTO => $this->modification($modification))
+            ->values();
+    }
+
+    private function modification(Modification $modification): VehicleCrmModificationDTO
+    {
+        return new VehicleCrmModificationDTO(
+            id: (int) $modification->id,
+            vehicleId: (int) $modification->vehicle_id,
+            msId: (int) $modification->ms_id,
+            modId: (int) $modification->mod_id,
+            yearFrom: $modification->year_from === null ? null : (int) $modification->year_from,
+            yearTo: $modification->year_to === null ? null : (int) $modification->year_to,
+            description: $modification->description === null ? null : (string) $modification->description,
+            type: $modification->type->value,
+            brakeSystemType: $modification->brake_system_type?->value,
+            powerPs: $modification->power_ps === null ? null : (int) $modification->power_ps,
+            powerKw: $modification->power_kw === null ? null : (int) $modification->power_kw,
+            engineType: $modification->engine_type?->value,
+            gearType: $modification->gear_type?->value,
+            driveType: $modification->drive_type?->value,
+            localizedName: $modification->localized_name === null ? null : (string) $modification->localized_name,
+            numberOfCylinders: $modification->number_of_cylinders === null ? null : (int) $modification->number_of_cylinders,
+            capacityLt: $modification->capacity_lt === null ? null : (float) $modification->capacity_lt,
+            provider: $modification->provider->value,
+            allowChangeFields: $modification->allow_change_fields,
+            engines: $modification->engines
+                ->map(fn (Engine $engine): VehicleCrmEngineDTO => $this->engine($engine))
+                ->values(),
+        );
+    }
+
+    private function engine(Engine $engine): VehicleCrmEngineDTO
+    {
+        return new VehicleCrmEngineDTO(
+            id: (int) $engine->id,
+            engId: (int) $engine->eng_id,
+            codeEngine: $engine->code_engine === null ? null : (string) $engine->code_engine,
+            engineCapacity: $engine->engine_capacity === null ? null : (string) $engine->engine_capacity,
+            cylinderCount: $engine->cylinder_count === null ? null : (int) $engine->cylinder_count,
+            cylinderDiameter: $engine->cylinder_diameter === null ? null : (float) $engine->cylinder_diameter,
+            powerKwStart: $engine->power_kw_start === null ? null : (int) $engine->power_kw_start,
+            powerKwUpto: $engine->power_kw_upto === null ? null : (int) $engine->power_kw_upto,
+            powerPsStart: $engine->power_ps_start === null ? null : (int) $engine->power_ps_start,
+            powerPsUpto: $engine->power_ps_upto === null ? null : (int) $engine->power_ps_upto,
+            numberOfValves: $engine->number_of_valves === null ? null : (int) $engine->number_of_valves,
+            fuelType: $engine->fuel_type?->value,
+            groupId: $engine->group_id === null ? null : (int) $engine->group_id,
+            provider: $engine->provider->value,
+            allowChangeFields: $engine->allow_change_fields,
+        );
+    }
+
+    /**
      * @return Collection<int, VehicleCrmPartSpecificationDTO>
      */
-    private function partSpecifications(int $vehicleId): Collection
+    private function partSpecifications(Vehicle $vehicle): Collection
     {
-        return DB::table('part_specifications')
-            ->leftJoin('feature_values', 'feature_values.id', '=', 'part_specifications.feature_value_id')
-            ->leftJoin('features', 'features.id', '=', 'feature_values.feature_id')
-            ->where('part_specifications.partable_type', 'vehicle')
-            ->where('part_specifications.partable_id', $vehicleId)
-            ->orderBy('part_specifications.template')
-            ->orderBy('part_specifications.id')
-            ->get([
-                'part_specifications.id',
-                'part_specifications.partable_type',
-                'part_specifications.partable_id',
-                'part_specifications.feature_value_id',
-                'features.id as feature_id',
-                'features.name as feature_name',
-                'feature_values.name as feature_value_name',
-                'feature_values.short_code as feature_value_short_code',
-                'part_specifications.template',
-                'part_specifications.name',
-                'part_specifications.text',
-                'part_specifications.details',
-                'part_specifications.created_at',
-                'part_specifications.updated_at',
-            ])
-            ->map(fn (object $specification): VehicleCrmPartSpecificationDTO => $this->partSpecificationFactory->make($specification))
+        return $vehicle->partSpecifications
+            ->map(fn (PartSpecification $specification): VehicleCrmPartSpecificationDTO => $this->partSpecification($specification))
             ->values();
+    }
+
+    private function partSpecification(PartSpecification $specification): VehicleCrmPartSpecificationDTO
+    {
+        $featureValue = $specification->featureValue;
+        $feature = $featureValue?->feature;
+
+        return new VehicleCrmPartSpecificationDTO(
+            id: (int) $specification->id,
+            partableType: $specification->partable_type->value,
+            partableId: (int) $specification->partable_id,
+            featureId: $feature?->id === null ? null : (int) $feature->id,
+            featureName: $feature?->name === null ? null : (string) $feature->name,
+            featureValueId: $featureValue?->id === null ? null : (int) $featureValue->id,
+            featureValueName: $featureValue?->name === null ? null : (string) $featureValue->name,
+            featureValueShortCode: $featureValue?->short_code === null ? null : (string) $featureValue->short_code,
+            template: $specification->template->value,
+            name: $specification->name === null ? null : (string) $specification->name,
+            text: $specification->text === null ? null : (string) $specification->text,
+            details: $specification->details,
+            createdAt: $specification->created_at === null ? null : (string) $specification->created_at,
+            updatedAt: $specification->updated_at === null ? null : (string) $specification->updated_at,
+        );
     }
 }

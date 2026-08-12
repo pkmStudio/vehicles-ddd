@@ -43,9 +43,8 @@ final readonly class VehicleKitApplicabilityExportService implements VehicleKitA
      * 1. Принимает строку от Laravel Excel и трактует ее как `VehicleKitApplicabilityRowDTO`.
      * 2. Возвращает значения комплекта, модели, годов и кузова в порядке headings.
      */
-    public function mapRow(mixed $row): array
+    public function mapRow(VehicleKitApplicabilityRowDTO $row): array
     {
-        /** @var VehicleKitApplicabilityRowDTO $row */
         return [
             $row->kitId,
             $row->partNumbers,

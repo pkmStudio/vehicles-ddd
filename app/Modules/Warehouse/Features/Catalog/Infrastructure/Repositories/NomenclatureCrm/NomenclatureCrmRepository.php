@@ -10,35 +10,26 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\Nomencla
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmPageDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmSearchItemDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureCrmReadQueryDTO;
-use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\Factories\NomenclatureCrmBrandOptionDTOFactory;
-use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\Factories\NomenclatureCrmListItemDTOFactory;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\Factories\NomenclatureCrmPageDTOFactory;
-use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\Factories\NomenclatureCrmSearchItemDTOFactory;
-use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\Factories\NomenclatureCrmTypeOptionDTOFactory;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 /**
- * SQL read adapter for CRM Warehouse nomenclature endpoints.
+ * Eloquent read adapter for CRM Warehouse nomenclature endpoints.
  */
 final readonly class NomenclatureCrmRepository implements NomenclatureCrmRepositoryInterface
 {
     private const int OPTION_LIMIT = 1000;
 
     /**
-     * Получает фабрики DTO, которыми репозиторий переводит сырые SQL-строки в CRM read-модель.
-     * Шаги:
-     * 1) Сохранить фабрику для строк списка номенклатуры.
-     * 2) Сохранить фабрику для paginator DTO страницы.
-     * 3) Сохранить фабрику для search/type/brand option DTO.
+     * Получает зависимости для сборки CRM read DTO.
      */
     public function __construct(
-        private NomenclatureCrmListItemDTOFactory $listItemFactory,
         private NomenclatureCrmPageDTOFactory $pageFactory,
-        private NomenclatureCrmSearchItemDTOFactory $searchItemFactory,
-        private NomenclatureCrmTypeOptionDTOFactory $typeOptionFactory,
-        private NomenclatureCrmBrandOptionDTOFactory $brandOptionFactory,
+        private NomenclatureCrmTypeTemplateResolver $templateResolver,
     ) {}
 
     /**
@@ -64,7 +55,7 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
         );
 
         $items = collect($paginator->items())
-            ->map(fn (object $nomenclature): NomenclatureCrmListItemDTO => $this->listItemFactory->make($nomenclature))
+            ->map(fn (Nomenclature $nomenclature): NomenclatureCrmListItemDTO => $this->item($nomenclature))
             ->values();
 
         return $this->pageFactory->make($items, $paginator);
@@ -84,7 +75,7 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
             ->where('nomenclatures.id', $id)
             ->first();
 
-        return $nomenclature === null ? null : $this->listItemFactory->make($nomenclature);
+        return $nomenclature === null ? null : $this->item($nomenclature);
     }
 
     /**
@@ -104,11 +95,13 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
         $this->applySearch($builder, $query);
 
         return $builder
+            ->leftJoin('brands', 'brands.id', '=', 'nomenclatures.brand_id')
+            ->select('nomenclatures.*')
             ->orderBy('brands.name')
             ->orderBy('nomenclatures.part_number')
             ->limit(min(max($limit, 1), 50))
             ->get()
-            ->map(fn (object $nomenclature): NomenclatureCrmSearchItemDTO => $this->searchItemFactory->make($nomenclature))
+            ->map(fn (Nomenclature $nomenclature): NomenclatureCrmSearchItemDTO => $this->searchItem($nomenclature))
             ->values();
     }
 
@@ -123,14 +116,15 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
      */
     public function typeOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection
     {
-        return $this->optionRows(
-            table: 'types',
-            orderBy: 'id',
-            query: $query,
-            id: $id,
-            limit: $limit,
-            mapper: fn (object $type): NomenclatureCrmOptionDTO => $this->typeOptionFactory->make($type),
-        );
+        $builder = Type::query()->orderBy('id');
+
+        $this->applyOptionLookup($builder, $query, $id);
+
+        return $builder
+            ->limit(min(max($limit, 1), self::OPTION_LIMIT))
+            ->get()
+            ->map(fn (Type $type): NomenclatureCrmOptionDTO => $this->typeOption($type))
+            ->values();
     }
 
     /**
@@ -144,45 +138,14 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
      */
     public function brandOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection
     {
-        return $this->optionRows(
-            table: 'brands',
-            orderBy: 'name',
-            query: $query,
-            id: $id,
-            limit: $limit,
-            mapper: fn (object $brand): NomenclatureCrmOptionDTO => $this->brandOptionFactory->make($brand),
-        );
-    }
-
-    /**
-     * Выполняет общий SQL поиск для type/brand option endpoints.
-     * Шаги:
-     * 1) Построить запрос к справочной таблице с id/name/char и заданной сортировкой.
-     * 2) Применить точный id поиск или текстовый поиск через applyOptionLookup().
-     * 3) Ограничить лимит безопасным диапазоном 1..OPTION_LIMIT.
-     * 4) Преобразовать каждую строку переданным mapper callable.
-     *
-     * @param  callable(object): NomenclatureCrmOptionDTO  $mapper
-     * @return Collection<int, NomenclatureCrmOptionDTO>
-     */
-    private function optionRows(
-        string $table,
-        string $orderBy,
-        ?string $query,
-        ?int $id,
-        int $limit,
-        callable $mapper,
-    ): Collection {
-        $builder = DB::table($table)
-            ->select(['id', 'name', 'char'])
-            ->orderBy($orderBy);
+        $builder = Brand::query()->orderBy('name');
 
         $this->applyOptionLookup($builder, $query, $id);
 
         return $builder
             ->limit(min(max($limit, 1), self::OPTION_LIMIT))
             ->get()
-            ->map($mapper)
+            ->map(fn (Brand $brand): NomenclatureCrmOptionDTO => $this->brandOption($brand))
             ->values();
     }
 
@@ -197,7 +160,7 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
     private function applyOptionLookup(Builder $builder, ?string $query, ?int $id): void
     {
         if ($id !== null) {
-            $builder->where('id', $id);
+            $builder->whereKey($id);
 
             return;
         }
@@ -228,30 +191,9 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
      */
     private function baseQuery(): Builder
     {
-        return DB::table('nomenclatures')
-            ->leftJoin('types', 'types.id', '=', 'nomenclatures.type_id')
-            ->leftJoin('brands', 'brands.id', '=', 'nomenclatures.brand_id')
-            ->select([
-                'nomenclatures.id',
-                'nomenclatures.type_id',
-                'types.name as type_name',
-                'types.char as type_char',
-                'nomenclatures.brand_id',
-                'brands.name as brand_name',
-                'brands.char as brand_char',
-                'nomenclatures.name',
-                'nomenclatures.country',
-                'nomenclatures.part_number',
-                'nomenclatures.color',
-                'nomenclatures.weight',
-                'nomenclatures.material',
-                'nomenclatures.vehicle_type',
-                'nomenclatures.quantity_pak',
-                'nomenclatures.quantity_in_pak',
-                'nomenclatures.details',
-                'nomenclatures.created_at',
-                'nomenclatures.updated_at',
-            ]);
+        return Nomenclature::query()
+            ->select('nomenclatures.*')
+            ->with(['type', 'brand']);
     }
 
     /**
@@ -304,8 +246,12 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
                 ->where('nomenclatures.name', 'ilike', "%{$search}%")
                 ->orWhere('nomenclatures.part_number', 'ilike', "%{$search}%")
                 ->orWhere('nomenclatures.country', 'ilike', "%{$search}%")
-                ->orWhere('types.name', 'ilike', "%{$search}%")
-                ->orWhere('brands.name', 'ilike', "%{$search}%");
+                ->orWhereHas('type', function (Builder $type) use ($search): void {
+                    $type->where('types.name', 'ilike', "%{$search}%");
+                })
+                ->orWhereHas('brand', function (Builder $brand) use ($search): void {
+                    $brand->where('brands.name', 'ilike', "%{$search}%");
+                });
 
             if (is_numeric($search)) {
                 $query->orWhere('nomenclatures.id', (int) $search);
@@ -326,13 +272,29 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
         $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
         $field = ltrim($sort, '-');
 
+        if ($field === 'type_name') {
+            $query
+                ->leftJoin('types', 'types.id', '=', 'nomenclatures.type_id')
+                ->select('nomenclatures.*')
+                ->orderBy('types.name', $direction);
+
+            return;
+        }
+
+        if ($field === 'brand_name') {
+            $query
+                ->leftJoin('brands', 'brands.id', '=', 'nomenclatures.brand_id')
+                ->select('nomenclatures.*')
+                ->orderBy('brands.name', $direction);
+
+            return;
+        }
+
         $column = match ($field) {
             'id' => 'nomenclatures.id',
             'name' => 'nomenclatures.name',
             'country' => 'nomenclatures.country',
             'part_number' => 'nomenclatures.part_number',
-            'type_name' => 'types.name',
-            'brand_name' => 'brands.name',
             'weight' => 'nomenclatures.weight',
             'quantity_pak' => 'nomenclatures.quantity_pak',
             'quantity_in_pak' => 'nomenclatures.quantity_in_pak',
@@ -340,5 +302,69 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
         };
 
         $query->orderBy($column, $direction);
+    }
+
+    private function item(Nomenclature $nomenclature): NomenclatureCrmListItemDTO
+    {
+        return new NomenclatureCrmListItemDTO(
+            id: (int) $nomenclature->id,
+            typeId: (int) $nomenclature->type_id,
+            typeName: $nomenclature->type?->name === null ? null : (string) $nomenclature->type->name,
+            typeChar: $nomenclature->type?->char === null ? null : (string) $nomenclature->type->char,
+            typeTemplate: $nomenclature->type === null ? null : $this->templateResolver->value($nomenclature->type),
+            brandId: (int) $nomenclature->brand_id,
+            brandName: $nomenclature->brand?->name === null ? null : (string) $nomenclature->brand->name,
+            brandChar: $nomenclature->brand?->char === null ? null : (string) $nomenclature->brand->char,
+            name: (string) $nomenclature->name,
+            country: (string) $nomenclature->country,
+            partNumber: (string) $nomenclature->part_number,
+            color: (string) $nomenclature->color,
+            weight: (int) $nomenclature->weight,
+            material: $nomenclature->material,
+            vehicleType: $nomenclature->vehicle_type,
+            quantityPak: (int) $nomenclature->quantity_pak,
+            quantityInPak: (int) $nomenclature->quantity_in_pak,
+            details: $nomenclature->details,
+            createdAt: $nomenclature->created_at === null ? null : (string) $nomenclature->created_at,
+            updatedAt: $nomenclature->updated_at === null ? null : (string) $nomenclature->updated_at,
+        );
+    }
+
+    private function searchItem(Nomenclature $nomenclature): NomenclatureCrmSearchItemDTO
+    {
+        return new NomenclatureCrmSearchItemDTO(
+            id: (int) $nomenclature->id,
+            label: trim(sprintf(
+                '%s | %s | %s | %s',
+                $nomenclature->id,
+                $nomenclature->part_number,
+                $nomenclature->brand?->name,
+                $nomenclature->name,
+            )),
+            partNumber: (string) $nomenclature->part_number,
+        );
+    }
+
+    private function typeOption(Type $type): NomenclatureCrmOptionDTO
+    {
+        return new NomenclatureCrmOptionDTO(
+            id: (int) $type->id,
+            label: (string) $type->name,
+            meta: [
+                'char' => $type->char === null ? null : (string) $type->char,
+                'template' => $this->templateResolver->value($type),
+            ],
+        );
+    }
+
+    private function brandOption(Brand $brand): NomenclatureCrmOptionDTO
+    {
+        return new NomenclatureCrmOptionDTO(
+            id: (int) $brand->id,
+            label: (string) $brand->name,
+            meta: [
+                'char' => $brand->char === null ? null : (string) $brand->char,
+            ],
+        );
     }
 }

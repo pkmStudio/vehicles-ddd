@@ -136,7 +136,7 @@ final readonly class WiperDetailsBuilder
      * 2) `count` раз читает следующую ячейку через `pullCell()`.
      * 3) Возвращает список в исходном порядке чтения.
      *
-     * @return array<int, mixed>
+     * @return array<int, string|int|float|null>
      */
     private function pullCells(DetailsRowCursor $cursor, int $count): array
     {
@@ -156,7 +156,7 @@ final readonly class WiperDetailsBuilder
      * 2) Любое значение, отличное от null и пустой строки, считает заполнением блока.
      * 3) Возвращает true только если заполненных ячеек не найдено.
      *
-     * @param  array<int, mixed>  $cells
+     * @param  array<int, string|int|float|null>  $cells
      */
     private function allBlank(array $cells): bool
     {

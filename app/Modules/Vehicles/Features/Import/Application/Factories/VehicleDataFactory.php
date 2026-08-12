@@ -52,7 +52,7 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
                 'provider' => ['required', Rule::enum(ProviderEnum::class)],
                 'generation_year_from' => ['nullable', 'integer'],
                 'generation_year_to' => ['nullable', 'integer'],
-                'is_allow' => ['nullable', 'boolean'],
+                'is_allow' => ['sometimes', 'boolean'],
                 'id' => ['nullable', 'integer'],
             ])->validate();
         } catch (ValidationException $e) {
@@ -66,11 +66,11 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
             name: (string) $valid['name'],
             type: VehicleTypeEnum::from($valid['type']),
             steeringType: isset($valid['steering_type']) ? SteeringTypeEnum::from($valid['steering_type']) : SteeringTypeEnum::LEFT,
-            generation: isset($valid['generation']) ? (string) $valid['generation'] : null,
             typeCarcase: CarcaseTypeEnum::from($valid['type_carcase']),
+            provider: ProviderEnum::from($valid['provider']),
+            generation: isset($valid['generation']) ? (string) $valid['generation'] : null,
             generationYearFrom: isset($valid['generation_year_from']) ? (int) $valid['generation_year_from'] : null,
             generationYearTo: isset($valid['generation_year_to']) ? (int) $valid['generation_year_to'] : null,
-            provider: ProviderEnum::from($valid['provider']),
             parentId: isset($valid['parent_id']) ? (int) $valid['parent_id'] : null,
             excelTableId: isset($valid['excel_table_id']) ? (string) $valid['excel_table_id'] : null,
             localizedName: isset($valid['localized_name']) ? (string) $valid['localized_name'] : null,
@@ -92,9 +92,12 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
      */
     private function normalizeRow(array $row): array
     {
+        $type = $row['type'] ?? null;
+        $typeCarcase = $row['type_carcase'] ?? null;
+
         $row['type_carcase'] = $this->defaultTypeCarcase(
-            type: $row['type'] ?? null,
-            typeCarcase: $row['type_carcase'] ?? null,
+            type: $type instanceof VehicleTypeEnum ? $type->value : ($type === null ? null : (string) $type),
+            typeCarcase: $typeCarcase instanceof CarcaseTypeEnum ? $typeCarcase->value : ($typeCarcase === null ? null : (string) $typeCarcase),
         );
 
         return $row;
@@ -107,13 +110,13 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
      * 2) Если тип ТС равен `MB` — вернуть `MOTORCYCLE`.
      * 3) Для остальных типов оставить исходное пустое значение, чтобы validator сообщил ошибку.
      */
-    private function defaultTypeCarcase(mixed $type, mixed $typeCarcase): mixed
+    private function defaultTypeCarcase(?string $type, ?string $typeCarcase): ?string
     {
         if ($typeCarcase !== null && $typeCarcase !== '') {
             return $typeCarcase;
         }
 
-        if ($type === VehicleTypeEnum::MB || $type === VehicleTypeEnum::MB->value) {
+        if ($type === VehicleTypeEnum::MB->value) {
             return CarcaseTypeEnum::MOTORCYCLE->value;
         }
 

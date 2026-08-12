@@ -31,10 +31,8 @@ final class ImportRowValidationException extends DomainException
     {
         $errors = [];
 
-        array_walk_recursive($messages, static function (mixed $message) use (&$errors): void {
-            if (is_scalar($message)) {
-                $errors[] = (string) $message;
-            }
+        array_walk_recursive($messages, static function (string $message) use (&$errors): void {
+            $errors[] = $message;
         });
 
         return new self($errors === [] ? ['Ошибка валидации строки импорта.'] : $errors);

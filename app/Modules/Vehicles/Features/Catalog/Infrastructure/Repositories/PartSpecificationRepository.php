@@ -34,7 +34,7 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
      * Шаги:
      * 1. Возвращает пустую collection для пустого списка owner ids.
      * 2. Фильтрует спецификации по типу и id владельца.
-     * 3. Нормализует найденные ids в integer collection.
+     * 3. Возвращает найденные ids.
      *
      * @param  array<int, int>  $partableIds
      * @return Collection<int, int>
@@ -49,19 +49,6 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
             ->where('partable_type', $partableType->value)
             ->whereIn('partable_id', $partableIds)
             ->pluck('id')
-            ->map($this->toInteger(...))
             ->values();
-    }
-
-    /**
-     * Нормализует id из database scalar в integer.
-     *
-     * Шаги:
-     * 1. Принимает scalar значение id из Eloquent result.
-     * 2. Возвращает значение, приведенное к `int`.
-     */
-    private function toInteger(mixed $id): int
-    {
-        return (int) $id;
     }
 }

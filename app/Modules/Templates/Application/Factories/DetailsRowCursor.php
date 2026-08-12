@@ -34,6 +34,7 @@ final class DetailsRowCursor
      *    читать row последовательно.
      */
     public function __construct(
+        /** @var array<int, string|int|float|null> */
         private readonly array $row,
         int $startIndex = 0,
     ) {
@@ -61,7 +62,7 @@ final class DetailsRowCursor
      *    упрощение старого поведения, где пустая строка иногда passthrough'илась как есть; ни
      *    один тест на это не завязан).
      */
-    public function pullCell(): mixed
+    public function pullCell(): string|int|float|null
     {
         $value = $this->row[$this->index] ?? null;
         $this->index++;
@@ -357,7 +358,7 @@ final class DetailsRowCursor
      *
      * @param  class-string<EnumHelperInterface>  $enumClass
      */
-    private function resolveLabel(string $enumClass, mixed $label): ?EnumHelperInterface
+    private function resolveLabel(string $enumClass, string|int|float|null $label): ?EnumHelperInterface
     {
         if ($label === null || $label === '') {
             return null;
@@ -380,7 +381,7 @@ final class DetailsRowCursor
      * 3) Для пустой или нецелой строки бросает ошибку некорректной numeric-ячейки.
      * 4) Возвращает приведённый `int`.
      */
-    private function parseInt(mixed $value, string $field): ?int
+    private function parseInt(string|int|float|null $value, string $field): ?int
     {
         if ($value === null) {
             return null;
@@ -403,7 +404,7 @@ final class DetailsRowCursor
      *    ошибку некорректной numeric-ячейки.
      * 4) Возвращает приведённый `float`.
      */
-    private function parseFloat(mixed $value, string $field): ?float
+    private function parseFloat(string|int|float|null $value, string $field): ?float
     {
         if ($value === null) {
             return null;

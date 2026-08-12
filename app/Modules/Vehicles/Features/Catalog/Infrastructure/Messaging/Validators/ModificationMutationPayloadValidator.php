@@ -71,6 +71,7 @@ final readonly class ModificationMutationPayloadValidator
                 'modification.allow_change_fields' => ['nullable', 'array'],
                 'modification.allow_change_fields.*' => ['string', 'max:64'],
                 'modification.engines' => ['nullable', 'array'],
+                'modification.engines.*' => ['array'],
                 'modification.engines.*.eng_id' => ['nullable', 'integer'],
                 'modification.engines.*.code_engine' => ['nullable', 'string', 'max:255'],
                 'modification.engines.*.engine_capacity' => ['nullable', 'string', 'max:255'],

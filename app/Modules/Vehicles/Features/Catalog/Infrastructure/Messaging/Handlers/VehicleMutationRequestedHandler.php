@@ -87,15 +87,21 @@ final readonly class VehicleMutationRequestedHandler
             return $data;
         }
 
-        $data['vehicle']['type_carcase'] = $this->enumValueByName(
-            CarcaseTypeEnum::class,
-            $data['vehicle']['type_carcase'] ?? null,
-        ) ?? ($data['vehicle']['type_carcase'] ?? null);
+        $typeCarcase = $data['vehicle']['type_carcase'] ?? null;
+        if (is_string($typeCarcase)) {
+            $data['vehicle']['type_carcase'] = $this->enumValueByName(
+                CarcaseTypeEnum::class,
+                $typeCarcase,
+            ) ?? $typeCarcase;
+        }
 
-        $data['vehicle']['steering_type'] = $this->enumValueByName(
-            SteeringTypeEnum::class,
-            $data['vehicle']['steering_type'] ?? null,
-        ) ?? ($data['vehicle']['steering_type'] ?? null);
+        $steeringType = $data['vehicle']['steering_type'] ?? null;
+        if (is_string($steeringType)) {
+            $data['vehicle']['steering_type'] = $this->enumValueByName(
+                SteeringTypeEnum::class,
+                $steeringType,
+            ) ?? $steeringType;
+        }
 
         return $data;
     }
@@ -103,12 +109,8 @@ final readonly class VehicleMutationRequestedHandler
     /**
      * @param  class-string  $enum
      */
-    private function enumValueByName(string $enum, mixed $value): ?string
+    private function enumValueByName(string $enum, string $value): ?string
     {
-        if (! is_string($value)) {
-            return null;
-        }
-
         foreach ($enum::cases() as $case) {
             if ($case->name === $value) {
                 return $case->value;

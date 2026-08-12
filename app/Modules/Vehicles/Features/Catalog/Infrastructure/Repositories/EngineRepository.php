@@ -48,7 +48,7 @@ final readonly class EngineRepository implements EngineRepositoryInterface
      * Шаги:
      * 1. Фильтрует связки по внутреннему id двигателя.
      * 2. Забирает только колонку `id`.
-     * 3. Нормализует значения в integer collection.
+     * 3. Возвращает найденные ids.
      *
      * @return Collection<int, int>
      */
@@ -57,19 +57,6 @@ final readonly class EngineRepository implements EngineRepositoryInterface
         return EngineModification::query()
             ->where('engine_id', $engineId)
             ->pluck('id')
-            ->map($this->toInteger(...))
             ->values();
-    }
-
-    /**
-     * Нормализует id из database scalar в integer.
-     *
-     * Шаги:
-     * 1. Принимает scalar значение id из Eloquent result.
-     * 2. Возвращает значение, приведенное к `int`.
-     */
-    private function toInteger(mixed $id): int
-    {
-        return (int) $id;
     }
 }

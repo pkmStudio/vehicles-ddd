@@ -22,7 +22,7 @@ class DetailsDataBuildException extends DomainException
     /**
      * Создает ошибку неизвестного значения справочника details-шаблона.
      */
-    public static function unknownDictionaryValue(string $dictionary, mixed $value): self
+    public static function unknownDictionaryValue(string $dictionary, string|int|float|null $value): self
     {
         return UnknownEnumValueException::label($dictionary, $value);
     }

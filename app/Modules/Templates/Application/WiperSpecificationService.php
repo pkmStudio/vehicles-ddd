@@ -78,37 +78,23 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
     }
 
     /**
-     * Нормализует значение адаптера к массиву уникальных непустых строк-кодов.
+     * Нормализует массив адаптеров к массиву уникальных непустых строк-кодов.
      * Шаги:
-     * 1) Для массива отбрасывает null/пустую строку, приводит значения к string и удаляет дубли.
-     * 2) Для строки возвращает один trimmed-код или пустой список.
-     * 3) Для scalar-чисел и boolean возвращает строковое представление.
-     * 4) Для остальных типов возвращает пустой список.
+     * 1) Отбрасывает null/пустую строку.
+     * 2) Приводит значения к string и удаляет дубли.
+     * 3) Переиндексирует список.
      *
+     * @param  array<int, string|null>  $value
      * @return array<int, string>
      */
-    private function normalizeAdapters(mixed $value): array
+    private function normalizeAdapters(array $value): array
     {
-        if (is_array($value)) {
-            $isFilledAdapter = static fn ($item) => $item !== null && $item !== '';
-            $toAdapterString = static fn ($item) => (string) $item;
+        $isFilledAdapter = static fn (?string $item) => $item !== null && $item !== '';
+        $toAdapterString = static fn (string $item) => $item;
 
-            $adapters = array_filter($value, $isFilledAdapter);
+        $adapters = array_filter($value, $isFilledAdapter);
 
-            return array_values(array_unique(array_map($toAdapterString, $adapters)));
-        }
-
-        if (is_string($value)) {
-            $trimmed = trim($value);
-
-            return $trimmed === '' ? [] : [$trimmed];
-        }
-
-        if (is_int($value) || is_float($value) || is_bool($value)) {
-            return [(string) $value];
-        }
-
-        return [];
+        return array_values(array_unique(array_map($toAdapterString, $adapters)));
     }
 
     /**
@@ -119,7 +105,7 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
      * 2. Логирует предупреждение, если кодов больше одного.
      * 3. Возвращает нормализованный массив без потери данных.
      */
-    private function normalizeVehicleAdapters(?int $partSpecificationId, string $side, mixed $rawAdapters): array
+    private function normalizeVehicleAdapters(?int $partSpecificationId, string $side, array $rawAdapters): array
     {
         $adapters = $this->normalizeAdapters($rawAdapters);
 

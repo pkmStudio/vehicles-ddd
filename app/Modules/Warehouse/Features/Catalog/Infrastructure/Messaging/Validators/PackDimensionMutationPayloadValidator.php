@@ -62,7 +62,7 @@ final readonly class PackDimensionMutationPayloadValidator
                 'pack_dimension.length' => ['required', 'integer', 'min:1'],
                 'pack_dimension.price' => ['required', 'integer', 'min:0'],
                 'pack_dimension.type_id' => ['required', 'integer', 'min:1'],
-                'pack_dimension.generated' => ['nullable', 'boolean'],
+                'pack_dimension.generated' => ['sometimes', 'boolean'],
             ];
         }
 

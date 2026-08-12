@@ -67,13 +67,8 @@ final readonly class KitRepository implements KitRepositoryInterface
             $query->whereIn('type_id', $filters->typeIds);
         }
 
-        if ($filters->isActive !== null) {
-            $query->where('is_active', $filters->isActive);
-        }
-
-        if ($filters->isSaleSeparately !== null) {
-            $query->where('is_sale_separately', $filters->isSaleSeparately);
-        }
+        $query->where('is_active', $filters->isActive);
+        $query->where('is_sale_separately', $filters->isSaleSeparately);
 
         if ($filters->nomenclaturePartNumbers !== []) {
             $query->whereHas(

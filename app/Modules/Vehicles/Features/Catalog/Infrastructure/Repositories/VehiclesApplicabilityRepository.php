@@ -8,15 +8,16 @@ use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehiclesApplicabilityRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Applicability\VehicleApplicabilityLookupDTO;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Modification;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\PartSpecification;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Applicability\VehiclePartSpecificationForApplicabilityDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use stdClass;
 
 /**
- * SQL adapter read API Vehicles Catalog для Applicability.
+ * Eloquent adapter read API Vehicles Catalog для Applicability.
  */
 final readonly class VehiclesApplicabilityRepository implements VehiclesApplicabilityRepositoryInterface
 {
@@ -75,7 +76,7 @@ final readonly class VehiclesApplicabilityRepository implements VehiclesApplicab
      */
     public function findVehicleByMsId(int $msId): ?VehicleApplicabilityLookupDTO
     {
-        $vehicle = DB::table('vehicles')
+        $vehicle = Vehicle::query()
             ->where('ms_id', $msId)
             ->first(['id', 'ms_id', 'parent_id']);
 
@@ -100,8 +101,8 @@ final readonly class VehiclesApplicabilityRepository implements VehiclesApplicab
      */
     public function findVehicleMsIdById(int $id): ?int
     {
-        $msId = DB::table('vehicles')
-            ->where('id', $id)
+        $msId = Vehicle::query()
+            ->whereKey($id)
             ->value('ms_id');
 
         return $msId === null ? null : (int) $msId;
@@ -117,7 +118,7 @@ final readonly class VehiclesApplicabilityRepository implements VehiclesApplicab
      */
     public function findModificationIdByMsAndModId(int $msId, int $modId): ?int
     {
-        $id = DB::table('modifications')
+        $id = Modification::query()
             ->where('ms_id', $msId)
             ->where('mod_id', $modId)
             ->value('id');
@@ -137,7 +138,7 @@ final readonly class VehiclesApplicabilityRepository implements VehiclesApplicab
     {
         $otherSide = $side === WiperSideEnum::FRONT ? WiperSideEnum::BACK : WiperSideEnum::FRONT;
 
-        return DB::table('part_specifications')
+        return PartSpecification::query()
             ->where('partable_type', PartableTypeEnum::VEHICLE->value)
             ->where('template', DetailTemplateEnum::WIPER->value)
             ->whereRaw("jsonb_exists(details, '{$side->value}')")
@@ -152,42 +153,17 @@ final readonly class VehiclesApplicabilityRepository implements VehiclesApplicab
      * 2. Приводит ids к integer и details к массиву.
      * 3. Возвращает переиндексированную collection DTO.
      *
-     * @param  Collection<int, stdClass>  $specifications
+     * @param  Collection<int, PartSpecification>  $specifications
      * @return Collection<int, VehiclePartSpecificationForApplicabilityDTO>
      */
     private function mapSpecifications(Collection $specifications): Collection
     {
         return $specifications
-            ->map(fn (stdClass $specification): VehiclePartSpecificationForApplicabilityDTO => new VehiclePartSpecificationForApplicabilityDTO(
+            ->map(fn (PartSpecification $specification): VehiclePartSpecificationForApplicabilityDTO => new VehiclePartSpecificationForApplicabilityDTO(
                 id: (int) $specification->id,
                 vehicleId: (int) $specification->partable_id,
-                details: $this->jsonArray($specification->details),
+                details: $specification->details,
             ))
             ->values();
-    }
-
-    /**
-     * Нормализует JSONB details из SQL result в массив.
-     *
-     * Шаги:
-     * 1. Возвращает value как есть, если это уже массив.
-     * 2. Возвращает пустой массив для пустого или нестрокового значения.
-     * 3. Декодирует JSON-строку и возвращает массив либо пустой fallback.
-     *
-     * @return array<string, mixed>
-     */
-    private function jsonArray(mixed $value): array
-    {
-        if (is_array($value)) {
-            return $value;
-        }
-
-        if (! is_string($value) || trim($value) === '') {
-            return [];
-        }
-
-        $decoded = json_decode($value, true);
-
-        return is_array($decoded) ? $decoded : [];
     }
 }

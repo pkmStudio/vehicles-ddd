@@ -131,7 +131,7 @@ final readonly class PartSpecificationMutationPayloadValidator
             'part_specification.owner.vehicle.type_carcase' => ['required_with:part_specification.owner.vehicle', 'string', Rule::in($this->enumValues(CarcaseTypeEnum::cases()))],
             'part_specification.owner.vehicle.provider' => ['nullable', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
             'part_specification.owner.vehicle.steering_type' => ['nullable', 'string', Rule::in($this->enumValues(SteeringTypeEnum::cases()))],
-            'part_specification.owner.vehicle.is_allow' => ['nullable', 'boolean'],
+            'part_specification.owner.vehicle.is_allow' => ['sometimes', 'boolean'],
         ];
     }
 

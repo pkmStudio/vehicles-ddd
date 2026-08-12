@@ -41,7 +41,7 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
      * 6) Собрать PackDimensionData.
      * 7) Если id найден в базе, обновить запись; иначе создать новую.
      *
-     * @param  array<int, mixed>  $row
+     * @param  array<int, string|int|float|null>  $row
      */
     public function importFromRow(array $row): PackDimensionData
     {
@@ -54,7 +54,7 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
         $height = (int) ($row[4] ?? 0);
         $length = (int) ($row[5] ?? 0);
         $price = (int) ($row[6] ?? 0);
-        $type = $this->resolveType($row[7] ?? null);
+        $type = $this->resolveType(trim((string) ($row[7] ?? '')));
 
         if ($name === '') {
             throw ImportRowValidationException::withMessage('Пустое название коробки');
@@ -97,27 +97,26 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
      * 5) Сравнить normalized value с char-кодом типа, если он есть.
      * 6) Если совпадений нет, выбросить validation error со ссылкой на лист справочников.
      */
-    private function resolveType(mixed $value): TypeData
+    private function resolveType(string $raw): TypeData
     {
-        $raw = trim((string) $value);
         if ($raw === '') {
             throw ImportRowValidationException::withMessage(
                 'Тип товара обязателен. Укажите название или код из листа «Справочники».',
             );
         }
 
-        $normalized = $this->normalizeTypeValue($raw);
+        $normalized = mb_strtoupper($raw);
 
         foreach ($this->types->all() as $type) {
             if ($type->id !== null && $raw === (string) $type->id) {
                 return $type;
             }
 
-            if ($this->normalizeTypeValue($type->name) === $normalized) {
+            if (mb_strtoupper(trim($type->name)) === $normalized) {
                 return $type;
             }
 
-            if ($type->char !== null && $this->normalizeTypeValue($type->char) === $normalized) {
+            if ($type->char !== null && mb_strtoupper(trim($type->char)) === $normalized) {
                 return $type;
             }
         }
@@ -125,16 +124,5 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
         throw ImportRowValidationException::withMessage(
             "Тип товара «{$raw}» не найден. Укажите название или код из листа «Справочники».",
         );
-    }
-
-    /**
-     * Нормализует значение типа для case-insensitive сравнения.
-     * Шаги:
-     * 1) Обрезать внешние пробелы.
-     * 2) Привести строку к upper-case с учетом multibyte символов.
-     */
-    private function normalizeTypeValue(string $value): string
-    {
-        return mb_strtoupper(trim($value));
     }
 }

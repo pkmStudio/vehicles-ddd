@@ -12,12 +12,12 @@ final class InvalidDetailsCellException extends DetailsDataBuildException
     /**
      * Создает ошибку для ячейки, которая должна содержать число.
      */
-    public static function numeric(string $field, mixed $value): self
+    public static function numeric(string $field, string|int|float|null $value): self
     {
         return new self(sprintf(
             'Поле «%s» должно быть числом. Значение: %s',
             $field,
-            is_scalar($value) ? (string) $value : get_debug_type($value),
+            $value === null ? 'null' : (string) $value,
         ));
     }
 }

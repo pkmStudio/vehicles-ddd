@@ -93,22 +93,7 @@ final readonly class EngineMutationRequestDTO
             fuelType: isset($engine['fuel_type']) ? EngineFuelTypeEnum::from((string) $engine['fuel_type']) : null,
             groupId: isset($engine['group_id']) ? (int) $engine['group_id'] : null,
             provider: isset($engine['provider']) ? ProviderEnum::from((string) $engine['provider']) : ProviderEnum::OD,
-            allowChangeFields: self::stringList($engine['allow_change_fields'] ?? []),
+            allowChangeFields: $engine['allow_change_fields'] ?? [],
         );
-    }
-
-    /**
-     * @return list<string>
-     */
-    private static function stringList(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        return array_values(array_filter(array_map(
-            static fn (mixed $item): ?string => is_scalar($item) ? (string) $item : null,
-            $value,
-        )));
     }
 }

@@ -102,7 +102,7 @@ final readonly class ModificationMutationRequestDTO
             capacityLt: isset($modification['capacity_lt']) ? (float) $modification['capacity_lt'] : null,
             localizedName: isset($modification['localized_name']) ? (string) $modification['localized_name'] : null,
             provider: isset($modification['provider']) ? ProviderEnum::from((string) $modification['provider']) : ProviderEnum::OD,
-            allowChangeFields: self::stringList($modification['allow_change_fields'] ?? ['year_from', 'year_to']),
+            allowChangeFields: $modification['allow_change_fields'] ?? ['year_from', 'year_to'],
             engines: self::engines($modification['engines'] ?? []),
             syncEngines: array_key_exists('engines', $modification),
         );
@@ -111,12 +111,8 @@ final readonly class ModificationMutationRequestDTO
     /**
      * @return list<ModificationEngineRequestDTO>
      */
-    private static function engines(mixed $value): array
+    private static function engines(array $engines): array
     {
-        if (! is_array($value)) {
-            return [];
-        }
-
         return array_values(array_map(
             static fn (array $engine): ModificationEngineRequestDTO => new ModificationEngineRequestDTO(
                 engId: isset($engine['eng_id']) ? (int) $engine['eng_id'] : null,
@@ -132,24 +128,9 @@ final readonly class ModificationMutationRequestDTO
                 fuelType: isset($engine['fuel_type']) ? EngineFuelTypeEnum::from((string) $engine['fuel_type']) : null,
                 groupId: isset($engine['group_id']) ? (int) $engine['group_id'] : null,
                 provider: isset($engine['provider']) ? ProviderEnum::from((string) $engine['provider']) : ProviderEnum::OD,
-                allowChangeFields: self::stringList($engine['allow_change_fields'] ?? []),
+                allowChangeFields: $engine['allow_change_fields'] ?? [],
             ),
-            array_filter($value, 'is_array'),
+            $engines,
         ));
-    }
-
-    /**
-     * @return list<string>
-     */
-    private static function stringList(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        return array_values(array_filter(array_map(
-            static fn (mixed $item): ?string => is_scalar($item) ? (string) $item : null,
-            $value,
-        )));
     }
 }

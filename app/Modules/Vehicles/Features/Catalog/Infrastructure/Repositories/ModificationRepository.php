@@ -87,7 +87,7 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
      * Шаги:
      * 1. Возвращает пустую collection для пустого списка vehicle ids.
      * 2. Фильтрует Modifications по `vehicle_id`.
-     * 3. Нормализует найденные ids в integer collection.
+     * 3. Возвращает найденные ids.
      *
      * @param  array<int, int>  $vehicleIds
      * @return Collection<int, int>
@@ -101,7 +101,6 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
         return Modification::query()
             ->whereIn('vehicle_id', $vehicleIds)
             ->pluck('id')
-            ->map($this->toInteger(...))
             ->values();
     }
 
@@ -111,7 +110,7 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
      * Шаги:
      * 1. Возвращает пустую collection для пустого списка modification ids.
      * 2. Фильтрует связки по `modification_id`.
-     * 3. Нормализует найденные ids в integer collection.
+     * 3. Возвращает найденные ids.
      *
      * @param  array<int, int>  $modificationIds
      * @return Collection<int, int>
@@ -125,19 +124,6 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
         return EngineModification::query()
             ->whereIn('modification_id', $modificationIds)
             ->pluck('id')
-            ->map($this->toInteger(...))
             ->values();
-    }
-
-    /**
-     * Нормализует id из database scalar в integer.
-     *
-     * Шаги:
-     * 1. Принимает scalar значение id из Eloquent result.
-     * 2. Возвращает значение, приведенное к `int`.
-     */
-    private function toInteger(mixed $id): int
-    {
-        return (int) $id;
     }
 }

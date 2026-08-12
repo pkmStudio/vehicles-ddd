@@ -76,7 +76,7 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
      * 9) Если id не передан, искать существующую запись по part number.
      * 10) Создать или обновить запись и опубликовать created/updated event с import context.
      *
-     * @param  array<int, mixed>  $row
+     * @param  array<int, string|int|float|null>  $row
      * @param  Collection<int, TypeData>  $types
      * @param  Collection<int, BrandData>  $brands
      */
@@ -121,11 +121,14 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
         $details = $this->templates->buildNomenclatureDetails($template, $row, self::DETAILS_START_INDEX);
         $this->validateDetails($template, $details, (string) ($row[5] ?? ''));
 
-        $weight = $this->parsePositiveInteger(
-            value: $row[7] ?? null,
-            columnName: 'Вес',
-            columnLetter: 'H',
-        );
+        $weightCell = isset($row[7]) ? trim((string) $row[7]) : '';
+        if ($weightCell === '' || preg_match('/^\d+$/', $weightCell) !== 1 || (int) $weightCell <= 0) {
+            throw ImportRowValidationException::withMessage(
+                'Вес должен быть обязательным положительным целым числом в граммах. Проверьте столбец H.',
+            );
+        }
+
+        $weight = (int) $weightCell;
 
         $data = new NomenclatureData(
             typeId: $type->id,
@@ -261,36 +264,6 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
             id: $id,
             type: $data->type,
         );
-    }
-
-    /**
-     * Возвращает положительное целое значение из Excel-ячейки.
-     * Шаги:
-     * 1) Нормализовать string value через trim, остальные scalar оставить как есть.
-     * 2) Принять int, целый float или строку только из цифр.
-     * 3) Отклонить null, дробные, нечисловые и неположительные значения.
-     * 4) Вернуть int в граммах или выбросить ImportRowValidationException с именем колонки.
-     */
-    private function parsePositiveInteger(mixed $value, string $columnName, string $columnLetter): int
-    {
-        $normalized = is_string($value) ? trim($value) : $value;
-        $parsed = null;
-
-        if (is_int($normalized)) {
-            $parsed = $normalized;
-        } elseif (is_float($normalized) && floor($normalized) === $normalized) {
-            $parsed = (int) $normalized;
-        } elseif (is_string($normalized) && preg_match('/^\d+$/', $normalized) === 1) {
-            $parsed = (int) $normalized;
-        }
-
-        if ($parsed === null || $parsed <= 0) {
-            throw ImportRowValidationException::withMessage(
-                "{$columnName} должен быть положительным целым числом в граммах. Проверьте столбец {$columnLetter}.",
-            );
-        }
-
-        return $parsed;
     }
 
     /**

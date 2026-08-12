@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Export\Domain\Contracts\Services;
 
+use App\Modules\Applicability\Features\Export\Domain\DTOs\VehicleKitApplicabilityRowDTO;
 use Illuminate\Support\Collection;
 
 interface VehicleKitApplicabilityExportServiceInterface
@@ -26,7 +27,7 @@ interface VehicleKitApplicabilityExportServiceInterface
      *
      * @return array<int, mixed>
      */
-    public function mapRow(mixed $row): array;
+    public function mapRow(VehicleKitApplicabilityRowDTO $row): array;
 
     /**
      * Возвращает заголовки основного листа применяемости.

@@ -10,13 +10,14 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\Crm\PackDim
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\Crm\PackDimensionCrmPageDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\Crm\PackDimensionCrmPaginationMetaDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\PackDimensionCrmReadQueryDTO;
-use Illuminate\Database\Query\Builder;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\PackDimension;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 /**
- * SQL adapter CRM read API упаковочных размеров Warehouse.
+ * Eloquent adapter CRM read API упаковочных размеров Warehouse.
  */
 final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepositoryInterface
 {
@@ -45,7 +46,7 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
         );
 
         $items = collect($paginator->items())
-            ->map(fn (object $packDimension): PackDimensionCrmListItemDTO => $this->item($packDimension))
+            ->map(fn (PackDimension $packDimension): PackDimensionCrmListItemDTO => $this->item($packDimension))
             ->values();
 
         return new PackDimensionCrmPageDTO(
@@ -65,7 +66,7 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
     public function findById(int $id): ?PackDimensionCrmListItemDTO
     {
         $packDimension = $this->baseQuery()
-            ->where('pack_dimensions.id', $id)
+            ->whereKey($id)
             ->first();
 
         return $packDimension === null ? null : $this->item($packDimension);
@@ -84,12 +85,10 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
      */
     public function typeOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection
     {
-        $builder = DB::table('types')
-            ->select(['id', 'name', 'char'])
-            ->orderBy('id');
+        $builder = Type::query()->orderBy('id');
 
         if ($id !== null) {
-            $builder->where('id', $id);
+            $builder->whereKey($id);
         } elseif ($query !== null && trim($query) !== '') {
             $search = trim($query);
             $builder->where(function (Builder $builder) use ($search): void {
@@ -106,10 +105,10 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
         return $builder
             ->limit(min(max($limit, 1), self::OPTION_LIMIT))
             ->get()
-            ->map(fn (object $row): NomenclatureCrmOptionDTO => new NomenclatureCrmOptionDTO(
-                id: (int) $row->id,
-                label: (string) $row->name,
-                meta: ['char' => $row->char === null ? null : (string) $row->char],
+            ->map(fn (Type $type): NomenclatureCrmOptionDTO => new NomenclatureCrmOptionDTO(
+                id: (int) $type->id,
+                label: (string) $type->name,
+                meta: ['char' => $type->char === null ? null : (string) $type->char],
             ))
             ->values();
     }
@@ -124,24 +123,10 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
      */
     private function baseQuery(): Builder
     {
-        return DB::table('pack_dimensions')
-            ->leftJoin('types', 'types.id', '=', 'pack_dimensions.type_id')
-            ->select([
-                'pack_dimensions.id',
-                'pack_dimensions.name',
-                'pack_dimensions.weight',
-                'pack_dimensions.width',
-                'pack_dimensions.height',
-                'pack_dimensions.length',
-                'pack_dimensions.price',
-                'pack_dimensions.type_id',
-                'types.name as type_name',
-                'types.char as type_char',
-                'pack_dimensions.generated',
-                'pack_dimensions.created_at',
-                'pack_dimensions.updated_at',
-                DB::raw('(select count(*) from kits where kits.pack_dimension_id = pack_dimensions.id) as kits_count'),
-            ]);
+        return PackDimension::query()
+            ->select('pack_dimensions.*')
+            ->with('type')
+            ->withCount('kits');
     }
 
     /**
@@ -186,7 +171,9 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
         $query->where(function (Builder $query) use ($search): void {
             $query
                 ->where('pack_dimensions.name', 'ilike', "%{$search}%")
-                ->orWhere('types.name', 'ilike', "%{$search}%");
+                ->orWhereHas('type', function (Builder $type) use ($search): void {
+                    $type->where('types.name', 'ilike', "%{$search}%");
+                });
 
             if (is_numeric($search)) {
                 $query->orWhere('pack_dimensions.id', (int) $search);
@@ -207,6 +194,15 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
         $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
         $field = ltrim($sort, '-');
 
+        if ($field === 'type_name') {
+            $query
+                ->leftJoin('types', 'types.id', '=', 'pack_dimensions.type_id')
+                ->select('pack_dimensions.*')
+                ->orderBy('types.name', $direction);
+
+            return;
+        }
+
         $column = match ($field) {
             'id' => 'pack_dimensions.id',
             'name' => 'pack_dimensions.name',
@@ -215,7 +211,6 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
             'height' => 'pack_dimensions.height',
             'length' => 'pack_dimensions.length',
             'price' => 'pack_dimensions.price',
-            'type_name' => 'types.name',
             default => 'pack_dimensions.id',
         };
 
@@ -230,23 +225,23 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
      * 2. Добавляет данные типа и счетчик связанных комплектов.
      * 3. Возвращает `PackDimensionCrmListItemDTO`.
      */
-    private function item(object $row): PackDimensionCrmListItemDTO
+    private function item(PackDimension $packDimension): PackDimensionCrmListItemDTO
     {
         return new PackDimensionCrmListItemDTO(
-            id: (int) $row->id,
-            name: (string) $row->name,
-            weight: (int) $row->weight,
-            width: (int) $row->width,
-            height: (int) $row->height,
-            length: (int) $row->length,
-            price: (int) $row->price,
-            typeId: (int) $row->type_id,
-            typeName: $row->type_name === null ? null : (string) $row->type_name,
-            typeChar: $row->type_char === null ? null : (string) $row->type_char,
-            generated: (bool) $row->generated,
-            kitsCount: (int) $row->kits_count,
-            createdAt: $row->created_at === null ? null : (string) $row->created_at,
-            updatedAt: $row->updated_at === null ? null : (string) $row->updated_at,
+            id: (int) $packDimension->id,
+            name: (string) $packDimension->name,
+            weight: (int) $packDimension->weight,
+            width: (int) $packDimension->width,
+            height: (int) $packDimension->height,
+            length: (int) $packDimension->length,
+            price: (int) $packDimension->price,
+            typeId: (int) $packDimension->type_id,
+            typeName: $packDimension->type?->name === null ? null : (string) $packDimension->type->name,
+            typeChar: $packDimension->type?->char === null ? null : (string) $packDimension->type->char,
+            generated: (bool) $packDimension->generated,
+            kitsCount: (int) $packDimension->kits_count,
+            createdAt: $packDimension->created_at === null ? null : (string) $packDimension->created_at,
+            updatedAt: $packDimension->updated_at === null ? null : (string) $packDimension->updated_at,
         );
     }
 

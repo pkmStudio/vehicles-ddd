@@ -36,7 +36,7 @@ interface TemplatesClientInterface
      * 2) Передать details выбранному vehicle presenter-у.
      *
      * @param  array<string, mixed>  $details
-     * @return array<int, mixed>
+     * @return array<int, string|int|float|null>
      */
     public function renderVehicleDetails(string $template, array $details): array;
 
@@ -47,7 +47,7 @@ interface TemplatesClientInterface
      * 2) Прочитать details-колонки, начиная со стартового индекса.
      * 3) Вернуть plain array typed Data-объекта.
      *
-     * @param  array<int, mixed>  $row
+     * @param  array<int, string|int|float|null>  $row
      * @return array<string, mixed>
      */
     public function buildVehicleDetails(string $template, array $row, int $startIndex): array;
@@ -134,7 +134,7 @@ interface TemplatesClientInterface
      * 2) Передать details выбранному nomenclature presenter-у.
      *
      * @param  array<string, mixed>  $details
-     * @return array<int, mixed>
+     * @return array<int, string|int|float|null>
      */
     public function renderNomenclatureDetails(string $template, array $details): array;
 
@@ -145,7 +145,7 @@ interface TemplatesClientInterface
      * 2) Прочитать details-колонки, начиная со стартового индекса.
      * 3) Вернуть plain array typed Data-объекта.
      *
-     * @param  array<int, mixed>  $row
+     * @param  array<int, string|int|float|null>  $row
      * @return array<string, mixed>
      */
     public function buildNomenclatureDetails(string $template, array $row, int $startIndex): array;

@@ -55,13 +55,7 @@ final readonly class KitRepository implements KitRepositoryInterface
         return Kit::query()
             ->where('pack_dimension_id', $packDimensionId)
             ->pluck('id')
-            ->map($this->toInteger(...))
             ->values();
-    }
-
-    private function toInteger(mixed $id): int
-    {
-        return (int) $id;
     }
 
     private function findByColumn(string $column, int|string $value): ?KitData

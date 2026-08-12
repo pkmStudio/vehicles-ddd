@@ -9,12 +9,12 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Manufacturer\Crm\Manufactu
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Manufacturer\Crm\ManufacturerCrmPageDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Manufacturer\Crm\ManufacturerCrmPaginationMetaDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Manufacturer\ManufacturerCrmReadQueryDTO;
-use Illuminate\Database\Query\Builder;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 
 /**
- * SQL adapter CRM read API производителей.
+ * Eloquent adapter CRM read API производителей.
  */
 final readonly class ManufacturerCrmRepository implements ManufacturerCrmRepositoryInterface
 {
@@ -32,7 +32,7 @@ final readonly class ManufacturerCrmRepository implements ManufacturerCrmReposit
         );
 
         $items = collect($paginator->items())
-            ->map(fn (object $manufacturer): ManufacturerCrmListItemDTO => $this->item($manufacturer))
+            ->map(fn (Manufacturer $manufacturer): ManufacturerCrmListItemDTO => $this->item($manufacturer))
             ->values();
 
         return new ManufacturerCrmPageDTO(
@@ -44,7 +44,7 @@ final readonly class ManufacturerCrmRepository implements ManufacturerCrmReposit
     public function findById(int $id): ?ManufacturerCrmListItemDTO
     {
         $manufacturer = $this->baseQuery()
-            ->where('manufacturers.id', $id)
+            ->whereKey($id)
             ->first();
 
         return $manufacturer === null ? null : $this->item($manufacturer);
@@ -52,14 +52,7 @@ final readonly class ManufacturerCrmRepository implements ManufacturerCrmReposit
 
     private function baseQuery(): Builder
     {
-        return DB::table('manufacturers')
-            ->select([
-                'manufacturers.id',
-                'manufacturers.mfa_id',
-                'manufacturers.name',
-                'manufacturers.provider',
-                DB::raw('(select count(*) from vehicles where vehicles.manufacturer_id = manufacturers.id) as vehicles_count'),
-            ]);
+        return Manufacturer::query()->withCount('vehicles');
     }
 
     /**
@@ -114,14 +107,14 @@ final readonly class ManufacturerCrmRepository implements ManufacturerCrmReposit
         $query->orderBy($column, $direction);
     }
 
-    private function item(object $row): ManufacturerCrmListItemDTO
+    private function item(Manufacturer $manufacturer): ManufacturerCrmListItemDTO
     {
         return new ManufacturerCrmListItemDTO(
-            id: (int) $row->id,
-            mfaId: (int) $row->mfa_id,
-            name: (string) $row->name,
-            provider: (string) $row->provider,
-            vehiclesCount: (int) $row->vehicles_count,
+            id: (int) $manufacturer->id,
+            mfaId: (int) $manufacturer->mfa_id,
+            name: (string) $manufacturer->name,
+            provider: $manufacturer->provider->value,
+            vehiclesCount: (int) $manufacturer->vehicles_count,
         );
     }
 

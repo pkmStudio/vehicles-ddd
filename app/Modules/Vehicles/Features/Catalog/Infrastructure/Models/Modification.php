@@ -10,6 +10,8 @@ use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\BrakeSystemTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\DriveTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\GearTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * Представляет Eloquent-модель таблицы модификаций внутри фичи Catalog.
@@ -27,4 +29,22 @@ class Modification extends AbstractModel
     ];
 
     public $timestamps = false;
+
+    /**
+     * Возвращает автомобиль модификации.
+     */
+    public function vehicle(): BelongsTo
+    {
+        return $this->belongsTo(Vehicle::class);
+    }
+
+    /**
+     * Возвращает двигатели модификации через pivot table.
+     */
+    public function engines(): BelongsToMany
+    {
+        return $this
+            ->belongsToMany(Engine::class)
+            ->withPivot(['eng_id', 'mod_id', 'type']);
+    }
 }

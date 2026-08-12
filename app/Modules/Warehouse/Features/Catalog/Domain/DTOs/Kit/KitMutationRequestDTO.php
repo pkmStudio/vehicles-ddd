@@ -84,12 +84,12 @@ final readonly class KitMutationRequestDTO
     }
 
     /**
-     * @param  array<int, mixed>  $ids
+     * @param  array<int, int|string>  $ids
      * @return array<int, int>
      */
     private static function ids(array $ids): array
     {
-        $toIntegerId = fn (mixed $id): int => (int) $id;
+        $toIntegerId = fn (int|string $id): int => (int) $id;
 
         return array_values(array_map($toIntegerId, $ids));
     }

@@ -57,8 +57,8 @@ final readonly class KitMutationPayloadValidator
             $rules += [
                 'kit.nomenclature_ids' => ['required', 'array', 'min:1'],
                 'kit.nomenclature_ids.*' => ['required', 'integer', 'min:1', 'distinct'],
-                'kit.is_sale_separately' => ['nullable', 'boolean'],
-                'kit.is_active' => ['nullable', 'boolean'],
+                'kit.is_sale_separately' => ['sometimes', 'boolean'],
+                'kit.is_active' => ['sometimes', 'boolean'],
                 'kit.guarantee' => ['nullable', 'integer', 'min:0'],
             ];
         }

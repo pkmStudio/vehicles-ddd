@@ -157,18 +157,16 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
     }
 
     /**
-     * Приводит значения adapters к уникальному списку строк.
+     * Приводит adapters к уникальному списку строк.
      *
      * Шаги:
-     * 1. Cast-ит каждое значение к string.
+     * 1. Принимает уже строковые adapter-коды из DTO.
      * 2. Убирает дубликаты с сохранением порядка первого появления.
      *
-     * @param  array<int, mixed>  $values
+     * @param  array<int, string>  $values
      */
     private function uniqueStrings(array $values): array
     {
-        $values = array_map(static fn (mixed $value): string => (string) $value, $values);
-
         return array_values(array_unique($values));
     }
 }

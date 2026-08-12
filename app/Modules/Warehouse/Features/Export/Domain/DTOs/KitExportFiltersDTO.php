@@ -19,8 +19,8 @@ final readonly class KitExportFiltersDTO
     public function __construct(
         public array $ids = [],
         public array $typeIds = [],
-        public ?bool $isActive = null,
-        public ?bool $isSaleSeparately = null,
+        public bool $isActive = true,
+        public bool $isSaleSeparately = false,
         public array $nomenclaturePartNumbers = [],
         public ?string $search = null,
     ) {}

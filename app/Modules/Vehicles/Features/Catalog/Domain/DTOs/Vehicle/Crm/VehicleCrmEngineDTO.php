@@ -50,7 +50,7 @@ final readonly class VehicleCrmEngineDTO
             fuelType: isset($data['fuel_type']) ? (string) $data['fuel_type'] : null,
             groupId: isset($data['group_id']) ? (int) $data['group_id'] : null,
             provider: isset($data['provider']) ? (string) $data['provider'] : 'TD',
-            allowChangeFields: self::stringList($data['allow_change_fields'] ?? []),
+            allowChangeFields: $data['allow_change_fields'] ?? [],
         );
     }
 
@@ -78,25 +78,5 @@ final readonly class VehicleCrmEngineDTO
             'provider' => $this->provider,
             'allow_change_fields' => $this->allowChangeFields,
         ];
-    }
-
-    /**
-     * @return list<string>
-     */
-    private static function stringList(mixed $value): array
-    {
-        if (is_string($value)) {
-            $decoded = json_decode($value, true);
-            $value = is_array($decoded) ? $decoded : [];
-        }
-
-        if (! is_array($value)) {
-            return [];
-        }
-
-        return array_values(array_filter(array_map(
-            static fn (mixed $item): ?string => is_scalar($item) ? (string) $item : null,
-            $value,
-        )));
     }
 }
