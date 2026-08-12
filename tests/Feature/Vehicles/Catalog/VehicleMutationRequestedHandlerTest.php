@@ -224,6 +224,44 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
         ]);
     }
 
+    public function test_accepts_dan_center_vehicle_rest_update_sample_payload(): void
+    {
+        $manufacturer = $this->createManufacturer(900);
+        $this->createVehicle(msId: 7001, manufacturer: $manufacturer, name: 'Original Vehicle');
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Vehicle
+                && $result->operation === CatalogMutationOperationEnum::Update
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->operationId === 'dan-center-vehicle-rest-update-sample'
+                && $result->externalId === 7001));
+
+        app(VehicleMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'dan-center-vehicle-rest-update-sample',
+            'operation' => 'update',
+            'vehicle' => [
+                'ms_id' => 7001,
+                'mfa_id' => 900,
+                'name' => 'Updated Vehicle',
+                'type' => 'PC',
+                'type_carcase' => 'HATCHBACK',
+                'provider' => 'OD',
+                'steering_type' => 'LEFT',
+                'is_allow' => true,
+            ],
+        ]);
+
+        $this->assertDatabaseHas('vehicles', [
+            'ms_id' => 7001,
+            'mfa_id' => 900,
+            'name' => 'Updated Vehicle',
+            'is_allow' => true,
+        ]);
+    }
+
     public function test_update_od_vehicle_allows_catalog_managed_fields(): void
     {
         $existingManufacturer = $this->createManufacturer(21);

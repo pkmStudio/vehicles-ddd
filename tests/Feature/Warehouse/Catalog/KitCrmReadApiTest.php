@@ -11,6 +11,9 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\PackDimension;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Read\DTO\KitCrmResource as WireKitCrmResource;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Read\DTO\PaginationMeta as WirePaginationMeta;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Read\DTO\WarehouseCrmOption as WireWarehouseCrmOption;
 use Tests\TestCase;
 
 /**
@@ -39,6 +42,9 @@ final class KitCrmReadApiTest extends TestCase
             ->assertJsonPath('data.1.complectation', 'Rear pair')
             ->assertJsonPath('data.0.type_name', 'Дворники')
             ->assertJsonPath('data.0.pack_dimension_name', 'Box 600');
+
+        self::assertSame($response->json('data.0'), WireKitCrmResource::fromArray($response->json('data.0'))->toArray());
+        self::assertSame($response->json('meta'), WirePaginationMeta::fromArray($response->json('meta'))->toArray());
     }
 
     public function test_show_returns_kit_details_with_nomenclatures(): void
@@ -66,6 +72,8 @@ final class KitCrmReadApiTest extends TestCase
             ->assertJsonPath('data.nomenclatures_count', 1)
             ->assertJsonPath('data.nomenclatures.0.part_number', 'DUR-060L')
             ->assertJsonPath('data.nomenclatures.0.label', '[DUR-060L] Denso Hybrid');
+
+        self::assertSame($response->json('data'), WireKitCrmResource::fromArray($response->json('data'))->toArray());
     }
 
     public function test_show_returns_not_found_for_missing_kit(): void
@@ -84,22 +92,31 @@ final class KitCrmReadApiTest extends TestCase
         $packDimension = $this->createPackDimension($type, name: 'Box 600');
         $this->createNomenclature($type, $brand, partNumber: 'DUR-060L', name: 'Denso Hybrid');
 
-        $this->getJson('/api/v1/crm/warehouse/kits/options/nomenclatures?q=Hybrid')
+        $nomenclatureResponse = $this->getJson('/api/v1/crm/warehouse/kits/options/nomenclatures?q=Hybrid');
+        $nomenclatureResponse
             ->assertOk()
             ->assertJsonPath('data.0.label', '[DUR-060L] Denso Hybrid')
             ->assertJsonPath('data.0.part_number', 'DUR-060L')
             ->assertJsonPath('data.0.brand_name', 'Denso');
 
-        $this->getJson('/api/v1/crm/warehouse/kits/options/pack-dimensions?q=Box')
+        self::assertSame($nomenclatureResponse->json('data.0'), WireWarehouseCrmOption::fromArray($nomenclatureResponse->json('data.0'))->toArray());
+
+        $packDimensionResponse = $this->getJson('/api/v1/crm/warehouse/kits/options/pack-dimensions?q=Box');
+        $packDimensionResponse
             ->assertOk()
             ->assertJsonPath('data.0.id', $packDimension->id)
             ->assertJsonPath('data.0.label', 'Box 600')
             ->assertJsonPath('data.0.type_name', 'Дворники');
 
-        $this->getJson('/api/v1/crm/warehouse/kits/options/types?q=Дворники')
+        self::assertSame($packDimensionResponse->json('data.0'), WireWarehouseCrmOption::fromArray($packDimensionResponse->json('data.0'))->toArray());
+
+        $typeResponse = $this->getJson('/api/v1/crm/warehouse/kits/options/types?q=Дворники');
+        $typeResponse
             ->assertOk()
             ->assertJsonPath('data.0.id', $type->id)
             ->assertJsonPath('data.0.char', 'WB');
+
+        self::assertSame($typeResponse->json('data.0'), WireWarehouseCrmOption::fromArray($typeResponse->json('data.0'))->toArray());
     }
 
     private function createType(string $name, string $char): Type

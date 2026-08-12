@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Providers;
 
+use App\Modules\Vehicles\Features\Catalog\Application\Clients\CRM\ManufacturerCrmClient;
 use App\Modules\Vehicles\Features\Catalog\Application\Clients\CRM\VehicleCrmClient;
 use App\Modules\Vehicles\Features\Catalog\Application\Clients\VehicleCatalogClient;
 use App\Modules\Vehicles\Features\Catalog\Application\Factories\PartSpecificationMutationRequestFactory;
@@ -18,6 +19,8 @@ use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Manufactu
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Modification\ListVehicleModificationsForCatalogUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Modification\ShowModificationForCatalogUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Vehicle\ListManufacturerVehiclesForCatalogUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Manufacturer\ListManufacturersForCrmUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Manufacturer\ShowManufacturerForCrmUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\ListVehicleCrmOptionsUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\ListVehiclesForCrmUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\SearchVehiclesForCrmUseCase;
@@ -42,6 +45,7 @@ use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle\DeleteVehicleUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle\StartVehicleMutationUseCase;
 use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle\UpdateVehicleUseCase;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\ManufacturerCrmClientInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\VehicleCatalogClientInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\VehicleCrmClientInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineCommandInterface;
@@ -53,6 +57,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\VehicleComma
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\PartSpecificationMutationRequestFactoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\PartSpecificationOwnerResolverFactoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerCrmRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
@@ -71,6 +76,8 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Manu
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ListVehicleModificationsForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ShowModificationForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Vehicle\ListManufacturerVehiclesForCatalogUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Manufacturer\ListManufacturersForCrmUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Manufacturer\ShowManufacturerForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmOptionsUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehiclesForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\SearchVehiclesForCrmUseCaseInterface;
@@ -104,6 +111,7 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\PartSpecificat
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\VehicleCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Notifications\RabbitMqCatalogMutationNotificationService;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\EngineRepository;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\ManufacturerCrmRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\ManufacturerRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\ModificationRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\PartSpecificationRepository;
@@ -127,6 +135,8 @@ final class CatalogServiceProvider extends ServiceProvider
         ListVehicleCrmOptionsUseCaseInterface::class => ListVehicleCrmOptionsUseCase::class,
         ShowVehicleForCrmUseCaseInterface::class => ShowVehicleForCrmUseCase::class,
         SearchVehiclesForCrmUseCaseInterface::class => SearchVehiclesForCrmUseCase::class,
+        ListManufacturersForCrmUseCaseInterface::class => ListManufacturersForCrmUseCase::class,
+        ShowManufacturerForCrmUseCaseInterface::class => ShowManufacturerForCrmUseCase::class,
         StartManufacturerMutationUseCaseInterface::class => StartManufacturerMutationUseCase::class,
         CreateManufacturerUseCaseInterface::class => CreateManufacturerUseCase::class,
         UpdateManufacturerUseCaseInterface::class => UpdateManufacturerUseCase::class,
@@ -156,6 +166,7 @@ final class CatalogServiceProvider extends ServiceProvider
     private const array CLIENT_BINDINGS = [
         VehicleCatalogClientInterface::class => VehicleCatalogClient::class,
         VehicleCrmClientInterface::class => VehicleCrmClient::class,
+        ManufacturerCrmClientInterface::class => ManufacturerCrmClient::class,
     ];
 
     private const array COMMAND_BINDINGS = [
@@ -171,6 +182,7 @@ final class CatalogServiceProvider extends ServiceProvider
         VehicleRepositoryInterface::class => VehicleRepository::class,
         VehicleCrmRepositoryInterface::class => VehicleCrmRepository::class,
         ManufacturerRepositoryInterface::class => ManufacturerRepository::class,
+        ManufacturerCrmRepositoryInterface::class => ManufacturerCrmRepository::class,
         EngineRepositoryInterface::class => EngineRepository::class,
         ModificationRepositoryInterface::class => ModificationRepository::class,
         PartSpecificationRepositoryInterface::class => PartSpecificationRepository::class,

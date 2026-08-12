@@ -8,6 +8,9 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Kit;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\PackDimension;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Read\DTO\PackDimensionCrmResource as WirePackDimensionCrmResource;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Read\DTO\PaginationMeta as WirePaginationMeta;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Read\DTO\WarehouseCrmOption as WireWarehouseCrmOption;
 use Tests\TestCase;
 
 /**
@@ -34,6 +37,9 @@ final class PackDimensionCrmReadApiTest extends TestCase
             ->assertJsonPath('data.0.name', 'Box 600')
             ->assertJsonPath('data.1.name', 'Box 450')
             ->assertJsonPath('data.0.type_name', 'Дворники');
+
+        self::assertSame($response->json('data.0'), WirePackDimensionCrmResource::fromArray($response->json('data.0'))->toArray());
+        self::assertSame($response->json('meta'), WirePaginationMeta::fromArray($response->json('meta'))->toArray());
     }
 
     public function test_show_returns_pack_dimension_details_with_kits_count(): void
@@ -50,6 +56,8 @@ final class PackDimensionCrmReadApiTest extends TestCase
             ->assertJsonPath('data.name', 'Box 600')
             ->assertJsonPath('data.type_char', 'WB')
             ->assertJsonPath('data.kits_count', 1);
+
+        self::assertSame($response->json('data'), WirePackDimensionCrmResource::fromArray($response->json('data'))->toArray());
     }
 
     public function test_show_returns_not_found_for_missing_pack_dimension(): void
@@ -66,11 +74,14 @@ final class PackDimensionCrmReadApiTest extends TestCase
         $type = $this->createType(name: 'Дворники', char: 'WB');
         $this->createType(name: 'Свечи', char: 'SP');
 
-        $this->getJson('/api/v1/crm/warehouse/pack-dimensions/options/types?q=Дворники')
+        $response = $this->getJson('/api/v1/crm/warehouse/pack-dimensions/options/types?q=Дворники');
+        $response
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $type->id)
             ->assertJsonPath('data.0.char', 'WB');
+
+        self::assertSame($response->json('data.0'), WireWarehouseCrmOption::fromArray($response->json('data.0'))->toArray());
     }
 
     private function createType(string $name, string $char): Type

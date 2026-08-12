@@ -1,7 +1,9 @@
 <?php
 
+use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\ManufacturerCrmController;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\VehicleCatalogController;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\VehicleCrmController;
+use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\BrandCrmController;
 use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\KitCrmController;
 use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\NomenclatureCrmController;
 use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\PackDimensionCrmController;
@@ -28,6 +30,8 @@ Route::prefix('v1')->group(function (): void {
                 Route::get('options/feature-values', [VehicleCrmController::class, 'featureValues']);
                 Route::get('options/detail-templates', [VehicleCrmController::class, 'detailTemplates']);
                 Route::get('options/manufacturers', [VehicleCrmController::class, 'manufacturers']);
+                Route::get('manufacturers/{id}', [ManufacturerCrmController::class, 'show'])->whereNumber('id');
+                Route::get('manufacturers', [ManufacturerCrmController::class, 'index']);
                 Route::get('search', [VehicleCrmController::class, 'search']);
                 Route::get('{id}', [VehicleCrmController::class, 'show'])->whereNumber('id');
                 Route::get('/', [VehicleCrmController::class, 'index']);
@@ -39,6 +43,11 @@ Route::prefix('v1')->group(function (): void {
                 Route::get('search', [NomenclatureCrmController::class, 'search']);
                 Route::get('{id}', [NomenclatureCrmController::class, 'show'])->whereNumber('id');
                 Route::get('/', [NomenclatureCrmController::class, 'index']);
+            });
+
+            Route::prefix('warehouse/brands')->group(function (): void {
+                Route::get('{id}', [BrandCrmController::class, 'show'])->whereNumber('id');
+                Route::get('/', [BrandCrmController::class, 'index']);
             });
 
             Route::prefix('warehouse/kits')->group(function (): void {

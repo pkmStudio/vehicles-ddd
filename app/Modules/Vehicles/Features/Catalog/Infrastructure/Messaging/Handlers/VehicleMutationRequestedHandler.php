@@ -9,6 +9,8 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleMutationReq
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\CatalogMutationContractMismatchReporter;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validators\VehicleMutationPayloadValidator;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -44,6 +46,7 @@ final readonly class VehicleMutationRequestedHandler
      */
     public function handle(array $data): void
     {
+        $data = $this->normalizeAliases($data);
         $validator = $this->validator->make($data);
         $validationFailed = $validator->fails();
 
@@ -72,5 +75,46 @@ final readonly class VehicleMutationRequestedHandler
         }
 
         $this->useCase->execute($requestDto);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizeAliases(array $data): array
+    {
+        if (! isset($data['vehicle']) || ! is_array($data['vehicle'])) {
+            return $data;
+        }
+
+        $data['vehicle']['type_carcase'] = $this->enumValueByName(
+            CarcaseTypeEnum::class,
+            $data['vehicle']['type_carcase'] ?? null,
+        ) ?? ($data['vehicle']['type_carcase'] ?? null);
+
+        $data['vehicle']['steering_type'] = $this->enumValueByName(
+            SteeringTypeEnum::class,
+            $data['vehicle']['steering_type'] ?? null,
+        ) ?? ($data['vehicle']['steering_type'] ?? null);
+
+        return $data;
+    }
+
+    /**
+     * @param  class-string  $enum
+     */
+    private function enumValueByName(string $enum, mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        foreach ($enum::cases() as $case) {
+            if ($case->name === $value) {
+                return $case->value;
+            }
+        }
+
+        return null;
     }
 }

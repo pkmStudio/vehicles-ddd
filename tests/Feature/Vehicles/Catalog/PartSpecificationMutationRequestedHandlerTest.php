@@ -179,6 +179,78 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
         ], $details);
     }
 
+    public function test_accepts_dan_center_vehicle_rest_part_specification_sample_payloads(): void
+    {
+        $manufacturer = $this->createManufacturer(900);
+        $vehicle = $this->createVehicle(msId: 7001, manufacturer: $manufacturer, name: 'Original Vehicle');
+
+        PartSpecification::query()->create([
+            'id' => 10,
+            'partable_type' => PartableTypeEnum::VEHICLE->value,
+            'partable_id' => $vehicle->id,
+            'template' => DetailTemplateEnum::WIPER->value,
+            'details' => [
+                'front' => ['length_main' => ['min' => 600]],
+            ],
+            'name' => 'Original front wiper',
+        ]);
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->times(2)
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::PartSpecification
+                && $result->status === CatalogMutationStatusEnum::Completed));
+
+        app(PartSpecificationMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'dan-center-part-specification-update-sample',
+            'operation' => 'update',
+            'part_specification' => [
+                'id' => 10,
+                'owner' => [
+                    'type' => 'vehicle',
+                    'external_id' => 7001,
+                ],
+                'template' => 'wiper',
+                'details' => [
+                    'front' => ['length_main' => ['min' => 650]],
+                ],
+                'name' => 'Updated front wiper',
+            ],
+        ]);
+
+        app(PartSpecificationMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'dan-center-part-specification-create-sample',
+            'operation' => 'create',
+            'part_specification' => [
+                'owner' => [
+                    'type' => 'vehicle',
+                    'external_id' => 7001,
+                ],
+                'template' => 'wiper',
+                'details' => [
+                    'back' => ['length_rear' => ['min' => 350]],
+                ],
+                'name' => 'New rear wiper',
+            ],
+        ]);
+
+        $this->assertDatabaseHas('part_specifications', [
+            'id' => 10,
+            'partable_type' => PartableTypeEnum::VEHICLE->value,
+            'partable_id' => $vehicle->id,
+            'template' => DetailTemplateEnum::WIPER->value,
+            'name' => 'Updated front wiper',
+        ]);
+        $this->assertDatabaseHas('part_specifications', [
+            'partable_type' => PartableTypeEnum::VEHICLE->value,
+            'partable_id' => $vehicle->id,
+            'template' => DetailTemplateEnum::WIPER->value,
+            'name' => 'New rear wiper',
+        ]);
+    }
+
     public function test_invalid_vehicle_wiper_details_are_rejected_before_owner_resolution(): void
     {
         $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
