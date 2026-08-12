@@ -66,11 +66,13 @@
    - Warehouse: import/export, catalog mutations, CRM read DTO для nomenclatures и следующих сущностей.
    - Applicability: import/export/calculation request/result DTO.
    - Shared result DTO: import completed, file exported, catalog mutation completed.
-   - [ ] Пакет пока неполный для текущего REST read surface: в установленном
-     `dan-wire-contracts` нет Warehouse CRM read DTO для `/api/v1/crm/warehouse/nomenclatures`,
-     `/api/v1/crm/warehouse/kits` и `/api/v1/crm/warehouse/pack-dimensions`. Источник пакета
-     находится в `/home/user/projects/packages/dan-wire-contracts` и уже содержит незакоммиченные
-     изменения, поэтому обновлять его нужно отдельным package-срезом, а не правкой `vendor`.
+   - [x] В исходном пакете `/home/user/projects/packages/dan-wire-contracts` добавлены Warehouse
+     CRM read DTO для `/api/v1/crm/warehouse/nomenclatures`, `/api/v1/crm/warehouse/kits` и
+     `/api/v1/crm/warehouse/pack-dimensions`: resource, search/option, pagination meta и list
+     query shapes. Пакетные unit tests зелёные.
+   - [ ] `dan-vehicles` пока использует `composer.lock` reference
+     `869b19f772d85dd02f18a55b7babf2035a7b363c`; после публикации package-среза нужно подтянуть
+     новую ревизию `pkmstudio/dan-wire-contracts` и добавить REST response gates на новые DTO.
 
 3. [ ] Добавить producer/provider контрактные тесты.
    - Тестировать `toArray()/fromArray()` package DTO.
@@ -92,6 +94,15 @@
      опубликованные `dan-wire-contracts` DTO принимаются текущими handlers `Vehicles Import`,
      `Vehicles Export`, `Warehouse Import`, `Warehouse Export`, `Applicability Import`,
      `Applicability Export` и `Applicability Calculation`.
+   - [x] Vehicles import result payload приведён к published `ImportCompleted` contract:
+     `ImportCompletionNotificationDTO` теперь отдаёт обязательный `import_type`, а
+     `ReportImportResultListener` мапит конкретное completion event в `ExternalImportTypeEnum`.
+   - [x] Добавлен contract gate для result payload из `dan-vehicles`: локальные result DTO
+     `Vehicles/Warehouse/Applicability` import/export и Applicability calculation принимаются
+     опубликованными `ImportCompleted`, `FileExported`, `CalculationCompleted` wire DTO.
+   - [x] Проверено: `docker compose run --rm --no-deps app php artisan test
+     tests/Feature/Vehicles/Import/ReportImportResultListenerTest.php
+     tests/Unit/Contracts/ResultPayloadContractTest.php` — 11 passed, 107 assertions.
    - [x] Проверено: `docker compose run --rm --no-deps app php artisan test
      tests/Feature/Vehicles/Import/ImportFileRequestedHandlerTest.php
      tests/Feature/Vehicles/Export/ExportFileRequestedHandlerTest.php

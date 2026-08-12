@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Application\Listeners;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Reporting\ReportImportResultServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Enums\ExternalImportTypeEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Events\AbstractImportCompleted;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineCrossImportCompleted;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineImportCompleted;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Manufacturer\ManufacturerImportCompleted;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Vehicle\VehicleImportCompleted;
+use LogicException;
 
 /**
  * Реагирует на завершение import-сценария и публикует result notification.
@@ -31,6 +37,25 @@ final readonly class ReportImportResultListener
      */
     public function handle(AbstractImportCompleted $event): void
     {
-        $this->service->report($event->userId, $event->cacheKey, $event->operationId);
+        $this->service->report(
+            userId: $event->userId,
+            cacheKey: $event->cacheKey,
+            importType: $this->importTypeFor($event),
+            operationId: $event->operationId,
+        );
+    }
+
+    /**
+     * Определяет wire import_type по конкретному событию завершения.
+     */
+    private function importTypeFor(AbstractImportCompleted $event): ExternalImportTypeEnum
+    {
+        return match (true) {
+            $event instanceof VehicleImportCompleted => ExternalImportTypeEnum::VehicleMultiSheet,
+            $event instanceof EngineImportCompleted => ExternalImportTypeEnum::EngineMultiSheet,
+            $event instanceof EngineCrossImportCompleted => ExternalImportTypeEnum::EngineCross,
+            $event instanceof ManufacturerImportCompleted => ExternalImportTypeEnum::Manufacturer,
+            default => throw new LogicException(sprintf('Unknown Vehicles import completion event [%s].', $event::class)),
+        };
     }
 }

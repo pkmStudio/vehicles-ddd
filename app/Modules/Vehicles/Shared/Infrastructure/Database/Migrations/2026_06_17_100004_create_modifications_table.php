@@ -23,7 +23,8 @@ return new class extends Migration
             $table->year('year_to')->nullable();
 
             $table->string('localized_name')->nullable()->comment('Локализованное название');
-            $table->string('description')->nullable();
+            $table->string('description')->nullable()->comment('Описание модификации из Текдока');
+            $table->string('description_short')->nullable()->comment('Наше описание модификации');
             $table->string('type')->comment('VehicleTypeEnum');
 
             $table->smallInteger('power_ps')->nullable()->comment('Мощность (л.с.)');
@@ -39,6 +40,8 @@ return new class extends Migration
 
             $table->string('provider')->default('TD')->comment('ProviderEnum');
             $table->jsonb('allow_change_fields')->default(DB::raw("'[\"year_from\", \"year_to\"]'::jsonb"));
+
+            $table->unique(['mod_id', 'type']);
         });
     }
 

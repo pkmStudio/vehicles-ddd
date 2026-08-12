@@ -9,6 +9,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailur
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailureStoreInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Reporting\ReportImportResultServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportCompletionNotificationDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Enums\ExternalImportTypeEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Enums\ImportCompletionStatusEnum;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -46,8 +47,12 @@ final readonly class ReportImportResultService implements ReportImportResultServ
      * 5) При сбое reporting workflow залогировать error и отправить `Failed`.
      * 6) В любом случае очистить cached failures.
      */
-    public function report(int $userId, string $cacheKey, ?string $operationId = null): void
-    {
+    public function report(
+        int $userId,
+        string $cacheKey,
+        ExternalImportTypeEnum $importType,
+        ?string $operationId = null,
+    ): void {
         $failures = $this->failureStore->get($cacheKey);
         $errorsCount = count($failures);
 
@@ -61,6 +66,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
                 $notification = new ImportCompletionNotificationDTO(
                     userId: $userId,
                     status: ImportCompletionStatusEnum::CompletedWithErrors,
+                    importType: $importType,
                     operationId: $operationId,
                     disk: $reportDisk,
                     errorsCount: $errorsCount,
@@ -71,6 +77,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
                 $notification = new ImportCompletionNotificationDTO(
                     userId: $userId,
                     status: ImportCompletionStatusEnum::Completed,
+                    importType: $importType,
                     operationId: $operationId,
                     disk: null,
                 );
@@ -87,6 +94,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
             $failedNotification = new ImportCompletionNotificationDTO(
                 userId: $userId,
                 status: ImportCompletionStatusEnum::Failed,
+                importType: $importType,
                 operationId: $operationId,
                 errorsCount: $errorsCount,
             );
