@@ -29,6 +29,10 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
 
     /**
      * Инициализирует зависимости и заголовки шаблона дворников.
+     *
+     * Шаги:
+     * 1) Сохранить read repository, row mapper, expander и Templates client.
+     * 2) Получить заголовки details-шаблона дворников для последующей сборки листа.
      */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
@@ -41,6 +45,10 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
 
     /**
      * Возвращает строки основного листа автомобилей.
+     *
+     * Шаги:
+     * 1) Передать флаг фильтрации разрешенных автомобилей в repository.
+     * 2) Вернуть коллекцию typed `VehicleData`.
      */
     public function getMainRows(bool $isAllow): Collection
     {
@@ -49,6 +57,10 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
 
     /**
      * Возвращает заголовки основного листа автомобилей.
+     *
+     * Шаги:
+     * 1) Делегировать формирование базовых заголовков row mapper-у.
+     * 2) Вернуть список Excel-колонок без details-шаблона.
      */
     public function getMainHeadings(): array
     {
@@ -57,6 +69,10 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
 
     /**
      * Преобразует Data-снимок автомобиля в строку основного листа.
+     *
+     * Шаги:
+     * 1) Передать typed `VehicleData` в базовый row mapper.
+     * 2) Вернуть плоский массив Excel-ячеек.
      */
     public function mapMainRow(VehicleData $row): array
     {
@@ -65,6 +81,10 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
 
     /**
      * Возвращает развернутые строки листа дворников.
+     *
+     * Шаги:
+     * 1) Получить автомобили со спецификациями дворников из repository.
+     * 2) Развернуть каждую машину в одну или несколько строк export DTO.
      */
     public function getWiperRows(bool $isAllow): Collection
     {
@@ -73,6 +93,11 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
 
     /**
      * Возвращает заголовки листа дворников.
+     *
+     * Шаги:
+     * 1) Собрать базовые заголовки автомобиля.
+     * 2) Добавить колонки metadata part specification.
+     * 3) Добавить заголовки details-шаблона дворников.
      */
     public function getWiperHeadings(): array
     {
@@ -88,6 +113,13 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
 
     /**
      * Преобразует пару спецификаций дворников в плоский набор Excel-ячеек.
+     *
+     * Шаги:
+     * 1) Сформировать базовые ячейки автомобиля.
+     * 2) Если обе спецификации пустые — вернуть пустые metadata/details колонки.
+     * 3) Прочитать front/back детали через Templates client.
+     * 4) Собрать metadata спецификации из доступной стороны.
+     * 5) Смержить стороны дворников и отрендерить details-ячейки.
      */
     public function mapWiperRow(WiperExportRowDTO $row): array
     {
@@ -121,6 +153,14 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
         return array_merge($baseData, $specData, $detailsData);
     }
 
+    /**
+     * Возвращает строки справочного листа автомобилей.
+     *
+     * Шаги:
+     * 1) Собрать справочные колонки из локальных enum и Templates reference options.
+     * 2) Найти максимальную высоту среди колонок.
+     * 3) Развернуть колонки в построчные Excel-значения.
+     */
     public function getReferenceRows(): Collection
     {
         $columns = array_values($this->referenceColumns());
@@ -137,12 +177,25 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
         return collect($rows);
     }
 
+    /**
+     * Возвращает заголовки справочного листа автомобилей.
+     *
+     * Шаги:
+     * 1) Собрать справочные колонки.
+     * 2) Вернуть их имена как заголовки Excel-листа.
+     */
     public function getReferenceHeadings(): array
     {
         return array_keys($this->referenceColumns());
     }
 
     /**
+     * Возвращает справочные колонки для export-файла автомобилей.
+     *
+     * Шаги:
+     * 1) Добавить локальные vehicle enum-справочники.
+     * 2) Добавить reference options details-шаблона дворников.
+     *
      * @return array<string, list<string>>
      */
     private function referenceColumns(): array
@@ -159,6 +212,8 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
     }
 
     /**
+     * Возвращает Excel-значения backed enum-справочника.
+     *
      * @param  class-string<\BackedEnum>  $enumClass
      * @return list<string>
      */

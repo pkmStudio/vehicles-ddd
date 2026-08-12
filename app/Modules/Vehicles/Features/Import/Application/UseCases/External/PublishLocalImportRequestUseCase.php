@@ -18,6 +18,11 @@ final readonly class PublishLocalImportRequestUseCase implements PublishLocalImp
 {
     /**
      * Получает порты Storage/RabbitMQ и PSR logger для workflow-событий.
+     *
+     * Шаги:
+     * 1) Сохранить storage port для проверки локального import file.
+     * 2) Сохранить publisher port для отправки RabbitMQ request.
+     * 3) Сохранить PSR logger для actionable workflow anomalies.
      */
     public function __construct(
         private LocalImportFileStorageInterface $storage,
@@ -27,6 +32,14 @@ final readonly class PublishLocalImportRequestUseCase implements PublishLocalImp
 
     /**
      * Проверяет входные параметры, существование файла и публикует RabbitMQ-request.
+     *
+     * Шаги:
+     * 1) Проверить положительный `userId`.
+     * 2) Проверить, что path является безопасным относительным путем.
+     * 3) Проверить наличие настроенного storage disk.
+     * 4) Проверить наличие файла и залогировать warning, если его нет.
+     * 5) Опубликовать RabbitMQ request через publisher port.
+     * 6) Вернуть result DTO с сообщением успеха или ошибкой публикации.
      */
     public function execute(LocalImportRequestDTO $request): LocalImportRequestResultDTO
     {
@@ -74,6 +87,11 @@ final readonly class PublishLocalImportRequestUseCase implements PublishLocalImp
 
     /**
      * Проверяет, что path безопасен для локального Storage disk.
+     *
+     * Шаги:
+     * 1) Отклонить пустой путь.
+     * 2) Отклонить absolute path.
+     * 3) Отклонить path traversal через `..`.
      */
     private function isValidRelativePath(string $path): bool
     {

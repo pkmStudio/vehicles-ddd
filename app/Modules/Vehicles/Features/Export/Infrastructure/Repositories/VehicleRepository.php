@@ -11,8 +11,19 @@ use App\Modules\Vehicles\Features\Export\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Models\Vehicle;
 use Illuminate\Support\Collection;
 
+/**
+ * Читает автомобили и связанные specification records для Excel-экспорта Vehicles.
+ */
 final readonly class VehicleRepository implements VehicleRepositoryInterface
 {
+    /**
+     * Возвращает данные автомобилей для конкретного export-листа.
+     *
+     * Шаги:
+     * 1) Сопоставить enum листа с приватным query method.
+     * 2) Передать флаг фильтрации разрешенных автомобилей в выбранный query method.
+     * 3) Вернуть коллекцию typed `VehicleData`.
+     */
     public function forSheet(VehicleExportSheetEnum $sheet, bool $onlyAllowed): Collection
     {
         return match ($sheet) {
@@ -21,6 +32,14 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
         };
     }
 
+    /**
+     * Возвращает данные для основного листа автомобилей.
+     *
+     * Шаги:
+     * 1) Подготовить optional scope `is_allow = true`.
+     * 2) Прочитать автомобили с manufacturer и parent relations.
+     * 3) Сконвертировать Eloquent collection в Support Collection typed `VehicleData`.
+     */
     private function mainSheet(bool $onlyAllowed): Collection
     {
         $onlyAllowedFilter = fn ($query) => $query->where('is_allow', true);
@@ -33,6 +52,15 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
         return VehicleData::collect($vehicles, Collection::class);
     }
 
+    /**
+     * Возвращает автомобили со спецификациями дворников.
+     *
+     * Шаги:
+     * 1) Подготовить scope для загрузки только `WIPER` part specifications с feature value.
+     * 2) Подготовить optional scope `is_allow = true`.
+     * 3) Прочитать автомобили с manufacturer, parent и отфильтрованными specifications.
+     * 4) Сконвертировать Eloquent collection в Support Collection typed `VehicleData`.
+     */
     private function wiperSheet(bool $onlyAllowed): Collection
     {
         $wiperSpecifications = fn ($query) => $query

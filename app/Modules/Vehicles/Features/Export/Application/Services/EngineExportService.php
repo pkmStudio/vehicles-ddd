@@ -25,6 +25,10 @@ final readonly class EngineExportService implements EngineExportServiceInterface
 
     /**
      * Инициализирует зависимости и заголовки шаблона свечей зажигания.
+     *
+     * Шаги:
+     * 1) Сохранить read repository, row mapper, expander и Templates client.
+     * 2) Получить заголовки details-шаблона свечей для последующей сборки листа.
      */
     public function __construct(
         private EngineRepositoryInterface $engines,
@@ -37,6 +41,10 @@ final readonly class EngineExportService implements EngineExportServiceInterface
 
     /**
      * Возвращает строки основного листа двигателей.
+     *
+     * Шаги:
+     * 1) Запросить у repository данные для основного листа.
+     * 2) Вернуть коллекцию typed `EngineData`.
      */
     public function getMainRows(): Collection
     {
@@ -45,6 +53,10 @@ final readonly class EngineExportService implements EngineExportServiceInterface
 
     /**
      * Возвращает заголовки основного листа двигателей.
+     *
+     * Шаги:
+     * 1) Делегировать формирование базовых заголовков row mapper-у.
+     * 2) Вернуть список Excel-колонок без details-шаблона.
      */
     public function getMainHeadings(): array
     {
@@ -53,6 +65,10 @@ final readonly class EngineExportService implements EngineExportServiceInterface
 
     /**
      * Преобразует Data-снимок двигателя в строку основного листа.
+     *
+     * Шаги:
+     * 1) Передать typed `EngineData` в базовый row mapper.
+     * 2) Вернуть плоский массив Excel-ячеек.
      */
     public function mapMainRow(EngineData $row): array
     {
@@ -61,6 +77,10 @@ final readonly class EngineExportService implements EngineExportServiceInterface
 
     /**
      * Возвращает развернутые строки листа свечей зажигания.
+     *
+     * Шаги:
+     * 1) Получить двигатели со спецификациями свечей из repository.
+     * 2) Развернуть каждый двигатель в одну или несколько строк export DTO.
      */
     public function getSparkPlugRows(): Collection
     {
@@ -69,6 +89,10 @@ final readonly class EngineExportService implements EngineExportServiceInterface
 
     /**
      * Возвращает заголовки листа свечей зажигания.
+     *
+     * Шаги:
+     * 1) Получить базовые заголовки двигателя.
+     * 2) Добавить заголовки details-шаблона свечей.
      */
     public function getSparkPlugHeadings(): array
     {
@@ -77,6 +101,12 @@ final readonly class EngineExportService implements EngineExportServiceInterface
 
     /**
      * Преобразует строку спецификации свечей в плоский набор Excel-ячеек.
+     *
+     * Шаги:
+     * 1) Сформировать базовые ячейки двигателя.
+     * 2) Если спецификация есть — отрендерить ее details через Templates.
+     * 3) Если спецификации нет — заполнить details-колонки пустыми значениями.
+     * 4) Склеить базовые ячейки и details-ячейки в одну export-строку.
      */
     public function mapSparkPlugRow(PartSpecificationExportRowDTO $row): array
     {
@@ -91,6 +121,14 @@ final readonly class EngineExportService implements EngineExportServiceInterface
         return array_merge($baseData, $detailsData);
     }
 
+    /**
+     * Возвращает строки справочного листа двигателя.
+     *
+     * Шаги:
+     * 1) Собрать справочные колонки из локальных enum и Templates reference options.
+     * 2) Найти максимальную высоту среди колонок.
+     * 3) Развернуть колонки в построчные Excel-значения.
+     */
     public function getReferenceRows(): Collection
     {
         $columns = array_values($this->referenceColumns());
@@ -107,12 +145,25 @@ final readonly class EngineExportService implements EngineExportServiceInterface
         return collect($rows);
     }
 
+    /**
+     * Возвращает заголовки справочного листа двигателя.
+     *
+     * Шаги:
+     * 1) Собрать справочные колонки.
+     * 2) Вернуть их имена как заголовки Excel-листа.
+     */
     public function getReferenceHeadings(): array
     {
         return array_keys($this->referenceColumns());
     }
 
     /**
+     * Возвращает справочные колонки для export-файла двигателей.
+     *
+     * Шаги:
+     * 1) Добавить локальные engine enum-справочники.
+     * 2) Добавить reference options details-шаблона свечей.
+     *
      * @return array<string, list<string>>
      */
     private function referenceColumns(): array
@@ -126,6 +177,8 @@ final readonly class EngineExportService implements EngineExportServiceInterface
     }
 
     /**
+     * Возвращает Excel-значения backed enum-справочника.
+     *
      * @param  class-string<\BackedEnum>  $enumClass
      * @return list<string>
      */

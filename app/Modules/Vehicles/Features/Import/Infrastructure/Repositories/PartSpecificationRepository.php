@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Repositories;
 
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\PartSpecification;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Support\Collection;
 
 /**
@@ -17,6 +17,15 @@ use Illuminate\Support\Collection;
  */
 final readonly class PartSpecificationRepository implements PartSpecificationRepositoryInterface
 {
+    /**
+     * Ищет specification по владельцу, шаблону и feature value.
+     *
+     * Шаги:
+     * 1) Отфильтровать `part_specifications` по polymorphic owner.
+     * 2) Ограничить запись template enum value.
+     * 3) Ограничить запись optional `feature_value_id`.
+     * 4) Сконвертировать найденную Eloquent-модель в optional `PartSpecificationData`.
+     */
     public function findByPartableTemplateAndFeatureValue(
         string $partableType,
         int $partableId,
@@ -33,6 +42,16 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
         return PartSpecificationData::optional($specification);
     }
 
+    /**
+     * Возвращает vehicle specifications конкретного шаблона, где details содержит сторону дворников.
+     *
+     * Шаги:
+     * 1) Ограничить записи владельцем vehicle и переданным vehicle id.
+     * 2) Ограничить записи template enum value.
+     * 3) Проверить наличие JSONB-ключа стороны в details.
+     * 4) Отсортировать записи по id для стабильного import/update порядка.
+     * 5) Сконвертировать Eloquent collection в Support Collection typed `PartSpecificationData`.
+     */
     public function forVehicleTemplateAndSide(int $vehicleId, DetailTemplateEnum $template, string $side): Collection
     {
         $specifications = PartSpecification::query()
@@ -46,6 +65,18 @@ final readonly class PartSpecificationRepository implements PartSpecificationRep
         return PartSpecificationData::collect($specifications, Collection::class);
     }
 
+    /**
+     * Ищет vehicle specification по template, стороне и полному details JSON.
+     *
+     * Шаги:
+     * 1) Ограничить записи владельцем vehicle и переданным vehicle id.
+     * 2) Ограничить записи template enum value.
+     * 3) Проверить наличие JSONB-ключа стороны в details.
+     * 4) Сравнить details с переданным JSON payload.
+     * 5) Вернуть первую запись в стабильном порядке id как optional `PartSpecificationData`.
+     *
+     * @param  array<string, mixed>  $details
+     */
     public function findByVehicleTemplateSideAndDetails(
         int $vehicleId,
         DetailTemplateEnum $template,

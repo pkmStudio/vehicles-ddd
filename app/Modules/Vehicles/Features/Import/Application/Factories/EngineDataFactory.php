@@ -17,6 +17,18 @@ use Illuminate\Validation\ValidationException;
  */
 final readonly class EngineDataFactory implements EngineDataFactoryInterface
 {
+    /**
+     * Валидирует import-строку двигателя и собирает typed `EngineData`.
+     *
+     * Шаги:
+     * 1) Проверить scalar и enum-поля через Laravel Validator.
+     * 2) Перевести validation errors в `ImportRowValidationException`.
+     * 3) Привести валидные значения к типам конструктора `EngineData`.
+     *
+     * @param  array<string, mixed>  $row
+     *
+     * @throws ImportRowValidationException
+     */
     public function make(array $row): EngineData
     {
         try {

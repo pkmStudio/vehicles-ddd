@@ -499,6 +499,18 @@ Presentation/Http/Controllers/*Controller
    - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Catalog` repository slice:
      domain repository ports, Eloquent repositories, `VehiclesApplicabilityRepository`,
      `VehicleCrmRepository` и его DTO factories.
+   - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Export` application/repository slice:
+     export services, row expanders, base row mappers, stale export cleanup service и SQL
+     repositories.
+   - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Import/Application/Factories`:
+     import row data factories, external import factory и spark-plug part specification factory.
+   - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Import/Infrastructure/Repositories`:
+     engine, manufacturer, vehicle, modification, feature value и part specification read adapters.
+   - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Import/Application/Listeners`:
+     command import listeners, import result reporter, external file cleanup listener и
+     engine/modification readiness subscriber.
+   - [x] Выровнены PHPDoc/`Шаги:` в `Vehicles/Features/Import/Application/UseCases`:
+     TecDoc command import start, external file import start и local import request publishing.
 
    - `Vehicles`: проверено 1168 методов; 472 метода без PHPDoc, 580 методов имеют PHPDoc без
      `Шаги:`, 116 методов уже соответствуют правилу.

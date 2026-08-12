@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Export\Application\Services\Expanders;
 
+use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\WiperExportRowDTO;
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\VehicleData;
-use App\Modules\Templates\Domain\Enums\Wiper\WiperSideEnum;
 use Illuminate\Support\Collection;
 
 /**
@@ -22,12 +22,25 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
 {
     /**
      * Инициализирует client шаблонов для чтения сторон дворников.
+     *
+     * Шаги:
+     * 1) Сохранить Templates client для извлечения данных front/back сторон.
      */
     public function __construct(
         private TemplatesClientInterface $templates,
     ) {}
 
     /**
+     * Разворачивает автомобили со спецификациями дворников в export DTO.
+     *
+     * Шаги:
+     * 1) Для каждого автомобиля проверить наличие wiper-спецификаций.
+     * 2) Добавить пустую строку, если спецификаций нет.
+     * 3) Отдельно найти front-only, back-only и legacy both-sides спецификации.
+     * 4) Legacy both-sides спецификации вывести отдельными строками.
+     * 5) Односторонние спецификации объединить декартовым произведением front x back.
+     * 6) Если ни одна строка не добавлена — вернуть пустую строку автомобиля.
+     *
      * @param  Collection<int, VehicleData>  $vehicles  ТС с загруженной связью partSpecifications (только wiper)
      * @return Collection<int, WiperExportRowDTO>
      */
@@ -96,13 +109,16 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
 
     /**
      * Собирает DTO строки экспорта дворников.
+     *
+     * Шаги:
+     * 1) Передать автомобиль и найденные side-спецификации в export DTO.
+     * 2) Вернуть immutable строку для последующего mapping-а в Excel.
      */
     private function row(
         VehicleData $vehicle,
         ?PartSpecificationData $frontSpec,
         ?PartSpecificationData $backSpec,
-    ): WiperExportRowDTO
-    {
+    ): WiperExportRowDTO {
         return new WiperExportRowDTO(
             vehicle: $vehicle,
             frontSpec: $frontSpec,
@@ -112,6 +128,12 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
 
     /**
      * Односторонние записи: есть данные нужной стороны и нет противоположной.
+     *
+     * Шаги:
+     * 1) Определить противоположную сторону для переданного side.
+     * 2) Для каждой спецификации извлечь details нужной и противоположной стороны.
+     * 3) Оставить только записи, где нужная сторона заполнена, а противоположная пустая.
+     * 4) Сбросить ключи коллекции перед возвратом.
      *
      * @param  Collection<int, PartSpecificationData>  $specifications
      * @return Collection<int, PartSpecificationData>
@@ -135,6 +157,11 @@ final readonly class WiperRowExpander implements WiperRowExpanderInterface
 
     /**
      * Legacy-записи с обеими сторонами в одной спецификации.
+     *
+     * Шаги:
+     * 1) Для каждой спецификации извлечь front/back details.
+     * 2) Оставить только записи, где обе стороны заполнены.
+     * 3) Сбросить ключи коллекции перед возвратом.
      *
      * @param  Collection<int, PartSpecificationData>  $specifications
      * @return Collection<int, PartSpecificationData>

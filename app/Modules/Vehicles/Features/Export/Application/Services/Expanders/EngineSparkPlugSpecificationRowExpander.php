@@ -15,6 +15,13 @@ use Illuminate\Support\Collection;
 final readonly class EngineSparkPlugSpecificationRowExpander implements EngineSparkPlugSpecificationRowExpanderInterface
 {
     /**
+     * Разворачивает двигатели по спецификациям свечей зажигания.
+     *
+     * Шаги:
+     * 1) Для каждого двигателя проверить наличие загруженных part specifications.
+     * 2) Если спецификаций нет — добавить строку с пустой specification.
+     * 3) Если спецификации есть — добавить отдельную строку на каждую specification.
+     *
      * @param  Collection<int, EngineData>  $entities  модели с загруженной связью partSpecifications
      * @return Collection<int, PartSpecificationExportRowDTO>
      */

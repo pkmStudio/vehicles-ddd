@@ -18,6 +18,12 @@ use App\Modules\Vehicles\Features\Import\Domain\Enums\ExternalImportTypeEnum;
  */
 final readonly class ExternalFileImportFactory implements ExternalFileImportFactoryInterface
 {
+    /**
+     * Инициализирует доступные Excel import adapters.
+     *
+     * Шаги:
+     * 1) Сохранить adapters для каждого поддержанного external import type.
+     */
     public function __construct(
         private VehicleMultiSheetImportInterface $vehicleMultiSheetImport,
         private EngineMultiSheetImportInterface $engineMultiSheetImport,
@@ -26,6 +32,13 @@ final readonly class ExternalFileImportFactory implements ExternalFileImportFact
         private ManufacturerImportInterface $manufacturerImport,
     ) {}
 
+    /**
+     * Возвращает Excel import adapter для внешнего типа импорта.
+     *
+     * Шаги:
+     * 1) Сопоставить `ExternalImportTypeEnum` с заранее внедренным adapter-ом.
+     * 2) Вернуть adapter через общий `FileImportInterface`.
+     */
     public function make(ExternalImportTypeEnum $type): FileImportInterface
     {
         return match ($type) {

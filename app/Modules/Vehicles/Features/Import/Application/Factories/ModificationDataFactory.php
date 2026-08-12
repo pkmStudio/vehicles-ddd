@@ -21,6 +21,18 @@ use Illuminate\Validation\ValidationException;
  */
 final readonly class ModificationDataFactory implements ModificationDataFactoryInterface
 {
+    /**
+     * Валидирует import-строку модификации и собирает typed `ModificationData`.
+     *
+     * Шаги:
+     * 1) Проверить identifiers, годы, характеристики и enum-поля через Laravel Validator.
+     * 2) Перевести validation errors в `ImportRowValidationException`.
+     * 3) Привести валидные значения к типам конструктора `ModificationData`.
+     *
+     * @param  array<string, mixed>  $row
+     *
+     * @throws ImportRowValidationException
+     */
     public function make(array $row): ModificationData
     {
         try {

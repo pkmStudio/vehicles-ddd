@@ -13,7 +13,10 @@ use App\Modules\Vehicles\Features\Export\Domain\ModelData\VehicleData;
 final readonly class VehicleExportRow implements VehicleExportRowInterface
 {
     /**
-     * Возвращает базовые заголовки для автомобиля
+     * Возвращает базовые заголовки для автомобиля.
+     *
+     * Шаги:
+     * 1) Вернуть фиксированный список колонок основного vehicle-листа.
      */
     public function getBaseHeadings(): array
     {
@@ -38,7 +41,11 @@ final readonly class VehicleExportRow implements VehicleExportRowInterface
     }
 
     /**
-     * Возвращает базовые данные автомобиля
+     * Возвращает базовые данные автомобиля.
+     *
+     * Шаги:
+     * 1) Прочитать scalar, enum и eager-loaded relation поля из typed `VehicleData`.
+     * 2) Вернуть значения в порядке базовых заголовков vehicle-листа.
      *
      * @param  VehicleData  $vehicle  Данные автомобиля (manufacturer/parent — если eager-loaded)
      */

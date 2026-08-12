@@ -15,6 +15,10 @@ final readonly class StartTecDocImportUseCase implements StartTecDocImportUseCas
 {
     /**
      * Инициализирует зависимости сценария консольного импорта TecDoc.
+     *
+     * Шаги:
+     * 1) Сохранить readiness gate для сброса состояния каскада.
+     * 2) Сохранить import port производителей как стартовую точку TecDoc-цепочки.
      */
     public function __construct(
         private EngineModificationReadinessGateInterface $gate,
