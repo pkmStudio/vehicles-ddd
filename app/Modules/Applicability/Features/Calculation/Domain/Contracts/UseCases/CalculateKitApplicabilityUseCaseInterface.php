@@ -15,7 +15,13 @@ interface CalculateKitApplicabilityUseCaseInterface
      * 1. Создает operation id, если caller не передал внешний id.
      * 2. Читает активные kits с optional фильтром по kit id и chunk size.
      * 3. Рассчитывает каждый kit и синхронизирует рассчитанные targets.
-     * 4. Собирает aggregate result, публикует факт завершения и возвращает DTO результата.
+     * 4. Собирает aggregate result и возвращает DTO результата.
+     * 5. Публикует факт завершения, если caller не отключил событие для внутреннего chunk-flow.
      */
-    public function execute(?int $kitId = null, int $chunk = 1000, ?string $operationId = null): KitApplicabilityCalculationResultDTO;
+    public function execute(
+        ?int $kitId = null,
+        int $chunk = 1000,
+        ?string $operationId = null,
+        bool $dispatchResultEvent = true,
+    ): KitApplicabilityCalculationResultDTO;
 }

@@ -38,10 +38,15 @@ final readonly class CalculateKitApplicabilityUseCase implements CalculateKitApp
      * 3. Для каждого kit запускает calculator и учитывает skipped result для неподдержанных templates.
      * 4. Синхронизирует рассчитанные targets через command и копит affected kit ids.
      * 5. Перехватывает ошибки отдельных kit-ов, чтобы остальные комплекты продолжили расчет.
-     * 6. Собирает aggregate result DTO, публикует `KitApplicabilityRecalculated` и возвращает result.
+     * 6. Собирает aggregate result DTO.
+     * 7. Публикует `KitApplicabilityRecalculated`, если caller не отключил событие для chunk-flow.
      */
-    public function execute(?int $kitId = null, int $chunk = 1000, ?string $operationId = null): KitApplicabilityCalculationResultDTO
-    {
+    public function execute(
+        ?int $kitId = null,
+        int $chunk = 1000,
+        ?string $operationId = null,
+        bool $dispatchResultEvent = true,
+    ): KitApplicabilityCalculationResultDTO {
         $operationId ??= (string) Str::uuid();
         $processed = 0;
         $calculated = 0;
@@ -86,7 +91,9 @@ final readonly class CalculateKitApplicabilityUseCase implements CalculateKitApp
             errors: $errors,
         );
 
-        event(new KitApplicabilityRecalculated($operationId, $result));
+        if ($dispatchResultEvent) {
+            event(new KitApplicabilityRecalculated($operationId, $result));
+        }
 
         return $result;
     }

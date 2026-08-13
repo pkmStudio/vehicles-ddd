@@ -50,7 +50,7 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
             WiperKitPositionEnum::BACK => $this->rear($wipers, $adapters),
             WiperKitPositionEnum::UNIVERSAL => $this->front($wipers, $adapters)
                 ->merge($this->rear($wipers, $adapters))
-                ->unique('id')
+                ->unique(static fn (VehiclePartSpecificationData $specification): int => $specification->id)
                 ->values(),
         };
     }

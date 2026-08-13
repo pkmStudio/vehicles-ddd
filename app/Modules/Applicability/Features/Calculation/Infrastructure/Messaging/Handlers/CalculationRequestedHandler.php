@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Calculation\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Applicability\Features\Calculation\Infrastructure\Jobs\CalculateKitApplicabilityJob;
+use App\Modules\Applicability\Features\Calculation\Infrastructure\Jobs\DispatchKitApplicabilityCalculationJob;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Messaging\Validators\CalculationRequestedPayloadValidator;
 use Illuminate\Support\Facades\Log;
 
@@ -46,7 +46,7 @@ final readonly class CalculationRequestedHandler
 
         $data = $validator->validated();
 
-        CalculateKitApplicabilityJob::dispatch(
+        DispatchKitApplicabilityCalculationJob::dispatch(
             kitId: isset($data['kit_id']) ? (int) $data['kit_id'] : null,
             chunk: (int) ($data['chunk'] ?? 1000),
             operationId: (string) $data['operation_id'],
