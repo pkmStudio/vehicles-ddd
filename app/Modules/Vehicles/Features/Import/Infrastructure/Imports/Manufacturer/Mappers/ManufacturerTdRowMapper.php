@@ -13,6 +13,10 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\Impor
  */
 final readonly class ManufacturerTdRowMapper
 {
+    private const int MFA_ID = 0;
+
+    private const int NAME = 1;
+
     /**
      * Получить нормализатор значений ячеек Excel.
      *
@@ -39,8 +43,8 @@ final readonly class ManufacturerTdRowMapper
     public function map(array $row): ManufacturerTdRowDTO
     {
         return new ManufacturerTdRowDTO(
-            mfaId: $this->formatter->requiredInt($row[0] ?? null, 'mfa_id'),
-            name: $this->formatter->requiredString($row[1] ?? null, 'name'),
+            mfaId: $this->formatter->requiredInt($row[self::MFA_ID] ?? null, 'mfa_id'),
+            name: $this->formatter->requiredString($row[self::NAME] ?? null, 'name'),
         );
     }
 }

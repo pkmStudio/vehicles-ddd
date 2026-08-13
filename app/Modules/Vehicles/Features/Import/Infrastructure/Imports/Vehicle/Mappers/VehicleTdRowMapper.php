@@ -13,6 +13,22 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\Impor
  */
 final readonly class VehicleTdRowMapper
 {
+    private const int MFA_ID = 0;
+
+    private const int MS_ID = 1;
+
+    private const int NAME = 2;
+
+    private const int GENERATION = 3;
+
+    private const int TYPE_CARCASE = 4;
+
+    private const int GENERATION_YEAR_FROM = 5;
+
+    private const int GENERATION_YEAR_TO = 6;
+
+    private const int TYPE = 7;
+
     /**
      * Получить нормализатор значений ячеек Excel.
      *
@@ -39,14 +55,14 @@ final readonly class VehicleTdRowMapper
     public function map(array $row): VehicleTdRowDTO
     {
         return new VehicleTdRowDTO(
-            mfaId: $this->formatter->requiredInt($row[0] ?? null, 'mfa_id'),
-            msId: $this->formatter->requiredInt($row[1] ?? null, 'ms_id'),
-            name: $this->formatter->requiredString($row[2] ?? null, 'name'),
-            generation: $this->formatter->requiredString($row[3] ?? null, 'generation'),
-            typeCarcase: $this->formatter->nullableString($row[4] ?? null),
-            generationYearFrom: $this->formatter->requiredInt($row[5] ?? null, 'generation_year_from'),
-            generationYearTo: $this->formatter->nullableInt($row[6] ?? null, 'generation_year_to'),
-            type: $this->formatter->requiredString($row[7] ?? null, 'type'),
+            mfaId: $this->formatter->requiredInt($row[self::MFA_ID] ?? null, 'mfa_id'),
+            msId: $this->formatter->requiredInt($row[self::MS_ID] ?? null, 'ms_id'),
+            name: $this->formatter->requiredString($row[self::NAME] ?? null, 'name'),
+            generation: $this->formatter->requiredString($row[self::GENERATION] ?? null, 'generation'),
+            typeCarcase: $this->formatter->nullableString($row[self::TYPE_CARCASE] ?? null),
+            generationYearFrom: $this->formatter->requiredInt($row[self::GENERATION_YEAR_FROM] ?? null, 'generation_year_from'),
+            generationYearTo: $this->formatter->nullableInt($row[self::GENERATION_YEAR_TO] ?? null, 'generation_year_to'),
+            type: $this->formatter->requiredString($row[self::TYPE] ?? null, 'type'),
         );
     }
 }
