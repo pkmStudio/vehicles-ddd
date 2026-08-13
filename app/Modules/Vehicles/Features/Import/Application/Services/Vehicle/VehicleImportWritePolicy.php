@@ -7,9 +7,9 @@ namespace App\Modules\Vehicles\Features\Import\Application\Services\Vehicle;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleImportWritePolicyInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleImportWriteContextDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Enums\VehicleImportSourceEnum;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
-use Psr\Log\LoggerInterface;
 
 /**
  * Применяет provider-aware правила записи автомобиля для import workflows.
@@ -17,22 +17,12 @@ use Psr\Log\LoggerInterface;
 final readonly class VehicleImportWritePolicy implements VehicleImportWritePolicyInterface
 {
     /**
-     * Инициализирует зависимости policy через контейнер.
-     *
-     * Шаги:
-     * 1) Сохранить PSR logger для provider ownership conflicts и corrections.
-     */
-    public function __construct(
-        private LoggerInterface $logger,
-    ) {}
-
-    /**
      * Возвращает данные автомобиля, которые можно безопасно записать из import source.
      *
      * Шаги:
      * 1) Если существующей записи нет — применить правила create.
-     * 2) Если source является авторитетным TecDoc command import — применить полный TecDoc update.
-     * 3) При конфликте provider ownership залогировать warning с контекстом строки.
+     * 2) Если provider существующей записи отличается от provider источника — отклонить строку.
+     * 3) Если source является авторитетным TecDoc command import — применить полный TecDoc update.
      * 4) Для остальных updates применить правила writable/locked fields.
      */
     public function apply(
@@ -44,23 +34,22 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
             return $this->forCreate($incoming, $context);
         }
 
+        if ($existing->provider !== $context->sourceProvider) {
+            throw ImportRowValidationException::fromMessage(
+                sprintf(
+                    'ТС ms_id=%d уже принадлежит provider=%s; импорт provider=%s не может менять provider существующей записи.',
+                    $context->msId,
+                    $existing->provider->value,
+                    $context->sourceProvider->value,
+                ),
+            );
+        }
+
         if ($context->source === VehicleImportSourceEnum::TecDocCommand) {
             return $this->forAuthoritativeTecDocUpdate(
                 incoming: $incoming,
                 existing: $existing,
-                context: $context,
             );
-        }
-
-        if ($existing->provider !== $context->sourceProvider) {
-            $this->logger->warning('Vehicles import kept existing vehicle ownership on provider conflict', [
-                'operation_id' => $context->operationId,
-                'source' => $context->source->value,
-                'source_provider' => $context->sourceProvider->value,
-                'existing_provider' => $existing->provider->value,
-                'ms_id' => $context->msId,
-                'row_identifier' => $context->rowIdentifier,
-            ]);
         }
 
         return $this->forUpdate(
@@ -74,26 +63,13 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
      * TecDoc command import является источником истины и полностью исправляет существующую запись.
      *
      * Шаги:
-     * 1) Если текущий provider не TD — залогировать correction warning.
-     * 2) Собрать `VehicleData` из incoming business fields.
-     * 3) Принудительно сохранить provider TD и id существующей записи.
+     * 1) Собрать `VehicleData` из incoming business fields.
+     * 2) Сохранить provider TD и id существующей записи.
      */
     private function forAuthoritativeTecDocUpdate(
         VehicleData $incoming,
         VehicleData $existing,
-        VehicleImportWriteContextDTO $context,
     ): VehicleData {
-        if ($existing->provider !== ProviderEnum::TD) {
-            $this->logger->warning('Vehicles TecDoc import corrected existing vehicle provider', [
-                'operation_id' => $context->operationId,
-                'source' => $context->source->value,
-                'source_provider' => $context->sourceProvider->value,
-                'existing_provider' => $existing->provider->value,
-                'ms_id' => $context->msId,
-                'row_identifier' => $context->rowIdentifier,
-            ]);
-        }
-
         return new VehicleData(
             msId: $incoming->msId,
             mfaId: $incoming->mfaId,

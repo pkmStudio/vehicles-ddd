@@ -13,16 +13,17 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\Vehic
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleImportWriteContextDTO;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Enums\VehicleImportSourceEnum;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNotFoundException;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
-use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\VehicleEventPayloadDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleUpdated;
 
 /**
  * Use-case: создать/обновить ТС из строки авторитетного импорта (приведение к виду TD).
- * Производитель должен уже существовать (резолв по mfa_id) — иначе сценарий сигналит null,
- * адаптер отражает это в отчёте об ошибках.
+ * Производитель должен уже существовать (резолв по mfa_id) — иначе сценарий выбрасывает
+ * ошибку отсутствующей ссылки, а адаптер отражает это в отчёте об ошибках.
  */
 final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromTdRowServiceInterface
 {
@@ -50,42 +51,28 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
      * Создает или обновляет автомобиль из авторитетной TecDoc строки.
      *
      * Шаги:
-     * 1) Найти производителя по `mfa_id`; если он отсутствует — вернуть null.
-     * 2) Собрать raw row array и преобразовать его в `VehicleData`.
+     * 1) Найти производителя по `mfa_id`; если он отсутствует — выбросить reference error.
+     * 2) Передать typed row DTO и resolved manufacturer id в factory.
      * 3) Найти существующий vehicle по `ms_id`.
      * 4) Применить TecDoc write context через write policy.
      * 5) Выполнить create или update через command.
      * 6) Опубликовать catalog mutation event о создании или обновлении.
      *
-     * @return VehicleData|null null, если производитель с таким mfa_id не найден
-     *
      * @throws ImportRowValidationException
+     * @throws ImportRowReferenceNotFoundException
      */
-    public function upsertFromRow(VehicleTdRowDTO $row): ?VehicleData
+    public function upsertFromRow(VehicleTdRowDTO $row): VehicleData
     {
         $manufacturer = $this->manufacturers->findByMfaId($row->mfaId);
-
         if (! $manufacturer) {
-            return null;
+            throw ImportRowReferenceNotFoundException::withMessage("Производитель mfa_id={$row->mfaId} не найден.");
         }
 
-        $data = $this->factory->make([
-            'ms_id' => $row->msId,
-            'mfa_id' => $row->mfaId,
-            'name' => $row->name,
-            'type' => $row->type,
-            'type_carcase' => $row->typeCarcase,
-            'generation' => $row->generation,
-            'generation_year_from' => $row->generationYearFrom,
-            'generation_year_to' => $row->generationYearTo,
-            'manufacturer_id' => $manufacturer->id,
-            'provider' => ProviderEnum::TD->value,
-        ]);
-
+        $data = $this->factory->makeFromTdRow($row, (int) $manufacturer->id);
         $existing = $this->vehicles->findByMsId($data->msId);
         $writeContext = new VehicleImportWriteContextDTO(
             source: VehicleImportSourceEnum::TecDocCommand,
-            sourceProvider: ProviderEnum::TD,
+            sourceProvider: $data->provider,
             operationId: self::OPERATION_ID,
             msId: $data->msId,
             rowIdentifier: (string) $row->msId,
@@ -98,11 +85,32 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
 
         $vehicle = $existing === null
             ? $this->command->create($writeData)
-            : $this->command->updateByMsId($writeData);
+            : $this->command->update($writeData);
+
+        $payload = new VehicleEventPayloadDTO(
+            id: (int) $vehicle->id,
+            msId: $vehicle->msId,
+            mfaId: $vehicle->mfaId,
+            manufacturerId: $vehicle->manufacturerId,
+            name: $vehicle->name,
+            type: $vehicle->type,
+            steeringType: $vehicle->steeringType,
+            typeCarcase: $vehicle->typeCarcase,
+            provider: $vehicle->provider,
+            generation: $vehicle->generation,
+            generationYearFrom: $vehicle->generationYearFrom,
+            generationYearTo: $vehicle->generationYearTo,
+            parentId: $vehicle->parentId,
+            parentMsId: $vehicle->parentMsId ?? null,
+            excelTableId: $vehicle->excelTableId,
+            localizedName: $vehicle->localizedName,
+            generationShort: $vehicle->generationShort,
+            isAllow: $vehicle->isAllow,
+        );
 
         event($existing === null
-            ? new VehicleCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $vehicle->toArray())
-            : new VehicleUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $vehicle->toArray()));
+            ? new VehicleCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $payload)
+            : new VehicleUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $payload));
 
         return $vehicle;
     }

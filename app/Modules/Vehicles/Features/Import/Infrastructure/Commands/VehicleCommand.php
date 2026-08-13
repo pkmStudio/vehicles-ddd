@@ -29,14 +29,14 @@ final readonly class VehicleCommand implements VehicleCommandInterface
     }
 
     /**
-     * Обновить vehicle row по ms_id через Eloquent.
+     * Обновить vehicle row через Eloquent.
      *
      * Шаги:
-     * 1) Найти vehicle по внешнему ms_id.
+     * 1) Найти vehicle по внешнему ms_id из VehicleData.
      * 2) Обновить writable fields из VehicleData.
      * 3) Refresh model и вернуть VehicleData snapshot.
      */
-    public function updateByMsId(VehicleData $data): VehicleData
+    public function update(VehicleData $data): VehicleData
     {
         $vehicle = Vehicle::query()->where('ms_id', $data->msId)->firstOrFail();
         $vehicle->update(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS));

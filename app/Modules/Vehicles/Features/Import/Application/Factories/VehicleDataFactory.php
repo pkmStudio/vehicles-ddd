@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Application\Factories;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\VehicleDataFactoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
@@ -27,11 +29,69 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
      * 2) Валидирует нормализованные значения через Laravel Validator.
      * 3) Переводит scalar values в enum/value object поля `VehicleData`.
      *
+     * @throws ImportRowValidationException
+     */
+    public function makeFromSheetRow(VehicleSheetRowDTO $row, int $msId, int $mfaId, int $manufacturerId, ?int $parentId): VehicleData
+    {
+        return $this->makeFromValues([
+            'ms_id' => $msId,
+            'mfa_id' => $mfaId,
+            'name' => $row->name,
+            'type' => $row->type,
+            'type_carcase' => $row->typeCarcase,
+            'steering_type' => $row->steeringType,
+            'generation' => $row->generation,
+            'generation_short' => $row->generationShort,
+            'localized_name' => $row->localizedName,
+            'excel_table_id' => $row->excelTableId,
+            'provider' => $row->provider,
+            'generation_year_from' => $row->generationYearFrom,
+            'generation_year_to' => $row->generationYearTo,
+            'is_allow' => $row->isAllow,
+            'manufacturer_id' => $manufacturerId,
+            'parent_id' => $parentId,
+        ]);
+    }
+
+    /**
+     * Этот метод валидирует строку TecDoc vehicle import и собирает `VehicleData`.
+     *
+     * Шаги:
+     * 1) Собирает сценарные значения из typed DTO и найденного manufacturer id.
+     * 2) Валидирует нормализованные значения через Laravel Validator.
+     * 3) Переводит scalar values в enum/value object поля `VehicleData`.
+     *
+     * @throws ImportRowValidationException
+     */
+    public function makeFromTdRow(VehicleTdRowDTO $row, int $manufacturerId): VehicleData
+    {
+        return $this->makeFromValues([
+            'ms_id' => $row->msId,
+            'mfa_id' => $row->mfaId,
+            'name' => $row->name,
+            'type' => $row->type,
+            'type_carcase' => $row->typeCarcase,
+            'generation' => $row->generation,
+            'generation_year_from' => $row->generationYearFrom,
+            'generation_year_to' => $row->generationYearTo,
+            'manufacturer_id' => $manufacturerId,
+            'provider' => ProviderEnum::TD->value,
+        ]);
+    }
+
+    /**
+     * Этот метод валидирует подготовленные значения vehicle import и собирает `VehicleData`.
+     *
+     * Шаги:
+     * 1) Нормализует входную строку, включая дефолт типа кузова для мотоциклов TecDoc.
+     * 2) Валидирует нормализованные значения через Laravel Validator.
+     * 3) Переводит scalar values в enum/value object поля `VehicleData`.
+     *
      * @param  array<string, mixed>  $row
      *
      * @throws ImportRowValidationException
      */
-    public function make(array $row): VehicleData
+    private function makeFromValues(array $row): VehicleData
     {
         $row = $this->normalizeRow($row);
 

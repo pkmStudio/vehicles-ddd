@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Import;
 
+use App\Modules\Vehicles\Features\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\VehicleMultiSheetImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\External\CleanupExternalImportFileServiceInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\VehicleMultiSheetImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
@@ -161,16 +161,13 @@ final class ImportFileRequestedHandlerTest extends TestCase
      * по бизнес-невалидности).
      *
      * Шаги:
-     * 1. Мокает StartExternalFileImportUseCaseInterface — ожидает, что execute() НЕ вызовется.
+     * 1. Мокает StartExternalFileImportUseCase — ожидает, что execute() НЕ вызовется.
      * 2. Ожидает Log::error с указанием invalid_keys, включающим 'path'.
      * 3. Зовёт handle() с payload без поля 'path'.
      * 4. Проверяет, что cache-ключ отложенной очистки не создан (значит, до UseCase не дошло).
      */
     public function test_invalid_payload_is_logged_and_skipped(): void
     {
-        $useCase = $this->mock(StartExternalFileImportUseCaseInterface::class);
-        $useCase->shouldNotReceive('execute');
-
         Log::shouldReceive('error')
             ->once()
             ->with(

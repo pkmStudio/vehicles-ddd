@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Import\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
+use App\Modules\Warehouse\Features\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ExternalImportFileRequestDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportTypeEnum;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Messaging\Validators\ImportFileRequestedPayloadValidator;
@@ -26,7 +26,7 @@ final readonly class ImportFileRequestedHandler
      * 3) Сохранить зависимости для обработки сообщений.
      */
     public function __construct(
-        private StartExternalFileImportUseCaseInterface $useCase,
+        private StartExternalFileImportUseCase $useCase,
         private ImportFileRequestedPayloadValidator $validator,
     ) {}
 
