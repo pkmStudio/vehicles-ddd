@@ -10,9 +10,27 @@ use Illuminate\Support\Collection;
 
 interface VehiclesApplicabilityClientInterface
 {
-    /** @return Collection<int, VehiclePartSpecificationData> */
+    /**
+     * Читает front-спецификации дворников автомобилей по расчетным длинам комплекта.
+     *
+     * Шаги:
+     * 1. Передает длины основного и второго дворника во внешний Vehicles boundary.
+     * 2. Ограничивает поиск количеством дворников из комплекта.
+     * 3. Возвращает локальные `VehiclePartSpecificationData` для расчета применяемости.
+     *
+     * @return Collection<int, VehiclePartSpecificationData>
+     */
     public function frontWiperSpecifications(WiperLengthDTO $length): Collection;
 
-    /** @return Collection<int, VehiclePartSpecificationData> */
+    /**
+     * Читает rear-спецификации дворников автомобилей по расчетной длине комплекта.
+     *
+     * Шаги:
+     * 1. Передает заднюю длину как основной размер во внешний Vehicles boundary.
+     * 2. Ограничивает поиск количеством дворников из комплекта.
+     * 3. Возвращает локальные `VehiclePartSpecificationData` для расчета применяемости.
+     *
+     * @return Collection<int, VehiclePartSpecificationData>
+     */
     public function rearWiperSpecifications(WiperLengthDTO $length): Collection;
 }

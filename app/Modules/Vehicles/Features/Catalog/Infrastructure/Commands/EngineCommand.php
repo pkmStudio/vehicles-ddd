@@ -5,13 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineCommandInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineModificationCommandInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Engine;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\EngineModification;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\PartSpecification;
-use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
@@ -20,10 +16,18 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class EngineCommand implements EngineCommandInterface
 {
-    public function __construct(
-        private EngineModificationCommandInterface $engineModifications,
-        private PartSpecificationCommandInterface $partSpecifications,
-    ) {}
+    private const array BUSINESS_FIELDS = [
+        'code_engine',
+        'power_kw_start',
+        'power_kw_upto',
+        'power_ps_start',
+        'power_ps_upto',
+        'engine_capacity',
+        'cylinder_diameter',
+        'cylinder_count',
+        'number_of_valves',
+        'fuel_type',
+    ];
 
     /**
      * Создает запись двигателей.
@@ -53,7 +57,7 @@ final readonly class EngineCommand implements EngineCommandInterface
     {
         return DB::transaction(function () use ($data): EngineData {
             $engine = Engine::query()->where('eng_id', $data->engId)->firstOrFail();
-            $engine->fill(Arr::except($data->toArray(), ['id']));
+            $engine->fill($this->updatePayload($engine, $data));
             $engine->save();
 
             return EngineData::from($engine->refresh());
@@ -70,28 +74,49 @@ final readonly class EngineCommand implements EngineCommandInterface
     public function deleteByEngId(int $engId): void
     {
         DB::transaction(function () use ($engId): void {
-            $engine = Engine::query()->where('eng_id', $engId)->first();
-            if ($engine === null) {
-                return;
-            }
-
-            $toIntegerId = fn (mixed $id): int => (int) $id;
-
-            $engineModificationIds = EngineModification::query()
-                ->where('engine_id', $engine->id)
-                ->pluck('id')
-                ->map($toIntegerId)
-                ->all();
-            $partSpecificationIds = PartSpecification::query()
-                ->where('partable_type', PartableTypeEnum::ENGINE->value)
-                ->where('partable_id', $engine->id)
-                ->pluck('id')
-                ->map($toIntegerId)
-                ->all();
-
-            $this->engineModifications->deleteByIds($engineModificationIds);
-            $this->partSpecifications->deleteByIds($partSpecificationIds);
-            $engine->delete();
+            Engine::query()
+                ->where('eng_id', $engId)
+                ->delete();
         });
+    }
+
+    /**
+     * Собирает payload обновления с учётом provider-правил.
+     *
+     * Шаги:
+     * - Взять только бизнес-поля из входящего Data-снимка.
+     * - Для provider OD разрешить запись всех бизнес-полей.
+     * - Для остальных provider записать только пустые или явно разрешённые поля.
+     *
+     * @return array<string, mixed>
+     */
+    private function updatePayload(Engine $engine, EngineData $data): array
+    {
+        $incoming = Arr::only($data->toArray(), self::BUSINESS_FIELDS);
+
+        if ($engine->provider === ProviderEnum::OD) {
+            return [
+                ...$incoming,
+                'allow_change_fields' => $data->allowChangeFields,
+            ];
+        }
+
+        $allowedFields = $engine->allow_change_fields;
+        $payload = [];
+
+        foreach ($incoming as $field => $value) {
+            $current = $engine->getAttribute($field);
+            if ($current === null || in_array($field, $allowedFields, true)) {
+                $payload[$field] = $value;
+
+                if ($current === null && $value !== null && $value !== '') {
+                    $allowedFields[] = $field;
+                }
+            }
+        }
+
+        $payload['allow_change_fields'] = array_values(array_unique($allowedFields));
+
+        return $payload;
     }
 }

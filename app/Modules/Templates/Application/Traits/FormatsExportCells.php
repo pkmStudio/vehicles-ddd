@@ -6,6 +6,7 @@ namespace App\Modules\Templates\Application\Traits;
 
 use App\Modules\Templates\Domain\Contracts\EnumHelperInterface;
 use App\Modules\Templates\Domain\Enums\BooleanOptionEnum;
+use App\Modules\Templates\Domain\Exceptions\UnknownEnumValueException;
 
 /**
  * Общие переводы "хранимое имя case'а enum'а" ↔ "Excel-лейбл", нужны более чем одному
@@ -26,7 +27,17 @@ trait FormatsExportCells
      */
     private function nameToLabel(string $enumClass, ?string $name): ?string
     {
-        return $name === null ? null : $enumClass::fromName($name)?->value;
+        if ($name === null) {
+            return null;
+        }
+
+        $case = $enumClass::fromName($name);
+
+        if ($case === null) {
+            throw UnknownEnumValueException::name($enumClass, $name);
+        }
+
+        return $case->value;
     }
 
     /**
@@ -85,6 +96,9 @@ trait FormatsExportCells
     /**
      * Этот метод склеивает массив целых чисел в `;`-джойн строку для Excel-ячейки. Симметрично
      * `DetailsRowCursor::pullIntArray()`.
+     * Шаги:
+     * 1) Принимает готовый массив `int`-значений.
+     * 2) Склеивает их через `;`; пустой массив превращается в пустую строку.
      *
      * @param  array<int, int>  $values
      */

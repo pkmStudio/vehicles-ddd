@@ -9,6 +9,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailur
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Reporting\ImportFailureStoreInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Reporting\ReportImportResultServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportCompletionNotificationDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Enums\ExternalImportTypeEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Enums\ImportCompletionStatusEnum;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -19,6 +20,15 @@ use Throwable;
  */
 final readonly class ReportImportResultService implements ReportImportResultServiceInterface
 {
+    /**
+     * Инициализирует порты формирования и отправки результата импорта.
+     *
+     * Шаги:
+     * 1) Сохранить reporter для записи файла ошибок.
+     * 2) Сохранить failure store для чтения и очистки cached row failures.
+     * 3) Сохранить notifier для публикации import completion.
+     * 4) Сохранить logger для actionable reporting failures.
+     */
     public function __construct(
         private ImportFailureReporterInterface $reporter,
         private ImportFailureStoreInterface $failureStore,
@@ -26,8 +36,23 @@ final readonly class ReportImportResultService implements ReportImportResultServ
         private LoggerInterface $logger,
     ) {}
 
-    public function report(int $userId, string $cacheKey, ?string $operationId = null): void
-    {
+    /**
+     * Формирует отчет об ошибках и отправляет notification о завершении импорта.
+     *
+     * Шаги:
+     * 1) Получить failures по cache key и посчитать количество ошибок.
+     * 2) Попробовать сохранить report artifact через reporter.
+     * 3) Если ошибки есть — отправить `CompletedWithErrors` с disk/path отчета.
+     * 4) Если ошибок нет — отправить `Completed`.
+     * 5) При сбое reporting workflow залогировать error и отправить `Failed`.
+     * 6) В любом случае очистить cached failures.
+     */
+    public function report(
+        int $userId,
+        string $cacheKey,
+        ExternalImportTypeEnum $importType,
+        ?string $operationId = null,
+    ): void {
         $failures = $this->failureStore->get($cacheKey);
         $errorsCount = count($failures);
 
@@ -41,6 +66,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
                 $notification = new ImportCompletionNotificationDTO(
                     userId: $userId,
                     status: ImportCompletionStatusEnum::CompletedWithErrors,
+                    importType: $importType,
                     operationId: $operationId,
                     disk: $reportDisk,
                     errorsCount: $errorsCount,
@@ -51,6 +77,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
                 $notification = new ImportCompletionNotificationDTO(
                     userId: $userId,
                     status: ImportCompletionStatusEnum::Completed,
+                    importType: $importType,
                     operationId: $operationId,
                     disk: null,
                 );
@@ -67,6 +94,7 @@ final readonly class ReportImportResultService implements ReportImportResultServ
             $failedNotification = new ImportCompletionNotificationDTO(
                 userId: $userId,
                 status: ImportCompletionStatusEnum::Failed,
+                importType: $importType,
                 operationId: $operationId,
                 errorsCount: $errorsCount,
             );

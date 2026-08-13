@@ -14,6 +14,9 @@ final readonly class NomenclatureBackfillService
 {
     /**
      * Получает порт чтения номенклатуры и порт постановки sync-задач.
+     * Шаги:
+     * 1) Сохранить repository номенклатуры для cursor-чтения по id.
+     * 2) Сохранить dispatcher для постановки sync jobs без знания конкретной queue реализации.
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
@@ -22,6 +25,10 @@ final readonly class NomenclatureBackfillService
 
     /**
      * Ставит sync-задачи для всех номенклатур чанками.
+     * Шаги:
+     * 1) Нормализовать chunk до значения не меньше 1.
+     * 2) Получить cursor Data-снимков номенклатуры из repository.
+     * 3) Для каждой номенклатуры поставить sync job по id.
      */
     public function execute(int $chunk = 100): void
     {

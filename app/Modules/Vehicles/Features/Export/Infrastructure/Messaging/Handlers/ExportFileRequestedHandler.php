@@ -15,6 +15,13 @@ use Illuminate\Support\Facades\Log;
  */
 final readonly class ExportFileRequestedHandler
 {
+    /**
+     * Получить зависимости обработчика входящего export-запроса.
+     *
+     * Шаги:
+     * - Принять use case запуска экспорта.
+     * - Принять validator payload входящего RabbitMQ-события.
+     */
     public function __construct(
         private StartExportUseCaseInterface $useCase,
         private ExportFileRequestedPayloadValidator $validator,
@@ -27,6 +34,12 @@ final readonly class ExportFileRequestedHandler
      * не из сообщения: это наш выбор, куда писать, а не то, что просит инициатор
      * (симметрично тому, как ImportFileRequestedHandler резолвит disk для входного
      * файла из filesystems.files_disk, а не из payload).
+     *
+     * Шаги:
+     * - Провалидировать входной payload события.
+     * - Залогировать ошибку и завершить обработку при невалидных данных.
+     * - Собрать ExportFileRequestDTO с output disk из конфигурации.
+     * - Передать запрос в application use case запуска экспорта.
      *
      * @param  array<string, mixed>  $data
      */
@@ -45,7 +58,7 @@ final readonly class ExportFileRequestedHandler
 
         $data = $validator->validated();
 
-        $outputDisk = (string) config('vehicles.export.output.disk', 'local');
+        $outputDisk = (string) config('vehicles.export.output.disk');
 
         $request = new ExportFileRequestDTO(
             userId: (int) $data['user_id'],

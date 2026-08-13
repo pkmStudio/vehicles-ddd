@@ -15,6 +15,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class BallJointDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры шаровой опоры в nomenclature details template.
+     */
     public function __construct(
         #[MapName('thread_1')]
         public readonly string $thread1,

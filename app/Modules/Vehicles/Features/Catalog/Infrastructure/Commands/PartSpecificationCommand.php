@@ -65,6 +65,12 @@ final readonly class PartSpecificationCommand implements PartSpecificationComman
     }
 
     /**
+     * Удаляет спецификации деталей по внутренним id.
+     *
+     * Шаги:
+     * - Пропустить пустой список id.
+     * - В транзакции удалить найденные спецификации.
+     *
      * @param  array<int, int>  $ids
      */
     public function deleteByIds(array $ids): void

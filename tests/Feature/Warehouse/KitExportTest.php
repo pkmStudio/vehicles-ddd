@@ -108,7 +108,15 @@ final class KitExportTest extends TestCase
             operationId: 'warehouse-kits',
         );
 
-        $export = app(KitExportInterface::class);
+        $export = app()->makeWith(
+            abstract: KitExportInterface::class,
+            parameters: [
+                'filters' => new KitExportFiltersDTO(
+                    isActive: false,
+                    isSaleSeparately: true,
+                ),
+            ],
+        );
         $path = $export->export(
             context: $context,
             disk: 'local',

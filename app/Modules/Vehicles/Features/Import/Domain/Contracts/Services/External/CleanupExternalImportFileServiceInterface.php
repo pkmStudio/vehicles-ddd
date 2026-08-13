@@ -11,6 +11,10 @@ interface CleanupExternalImportFileServiceInterface
 {
     /**
      * Удалить исходный файл, связанный с operationId, если такая инструкция была сохранена.
+     *
+     * Шаги:
+     * 1) Получить cleanup instruction из cache по operationId.
+     * 2) Удалить исходный файл через storage adapter, если instruction есть.
      */
     public function cleanup(?string $operationId): void;
 }

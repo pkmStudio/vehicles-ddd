@@ -12,6 +12,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class PartSpecificationData extends Data
 {
+    /**
+     * Фиксирует данные part specification для polymorphic owner entity.
+     */
     public function __construct(
         public readonly string $partableType,
         public readonly int $partableId,

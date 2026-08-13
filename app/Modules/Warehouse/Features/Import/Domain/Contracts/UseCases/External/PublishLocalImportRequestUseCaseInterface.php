@@ -14,6 +14,11 @@ interface PublishLocalImportRequestUseCaseInterface
 {
     /**
      * Проверяет запрос и публикует его во входящий import flow.
+     *
+     * Шаги:
+     * 1) Проверить userId, путь и доступность локального файла.
+     * 2) Опубликовать request во внешний transport.
+     * 3) Вернуть result DTO с успехом или причиной отказа.
      */
     public function execute(LocalImportRequestDTO $request): LocalImportRequestResultDTO;
 }

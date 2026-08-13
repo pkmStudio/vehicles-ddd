@@ -11,6 +11,9 @@ use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
  */
 final readonly class CatalogModificationDTO
 {
+    /**
+     * Хранит публичные поля модификации для ответа каталога.
+     */
     public function __construct(
         public int $id,
         public int $modId,
@@ -29,6 +32,9 @@ final readonly class CatalogModificationDTO
         public ?float $capacityLt,
     ) {}
 
+    /**
+     * Собирает публичную проекцию модификации из Data-снимка.
+     */
     public static function fromData(ModificationData $modification): self
     {
         return new self(

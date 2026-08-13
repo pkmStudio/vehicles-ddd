@@ -9,6 +9,9 @@ namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm;
  */
 final readonly class NomenclatureCrmPaginationMetaDTO
 {
+    /**
+     * Фиксирует значения DTO без дополнительного поведения.
+     */
     public function __construct(
         public int $currentPage,
         public int $perPage,

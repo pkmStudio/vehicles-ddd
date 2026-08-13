@@ -13,7 +13,13 @@ namespace App\Modules\Templates\Domain\Contracts;
  */
 interface EnumHelperInterface
 {
+    /**
+     * Возвращает enum-case по человекочитаемому Excel-label.
+     */
     public static function fromLabel(?string $label): ?static;
 
+    /**
+     * Возвращает enum-case по хранимому PHP enum-name.
+     */
     public static function fromName(?string $name): ?static;
 }

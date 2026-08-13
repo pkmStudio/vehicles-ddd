@@ -17,6 +17,13 @@ final readonly class WheelHubDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает details ступицы из Excel-строки.
+     * Шаги:
+     * 1) Читает числовую высоту, ABS, три крепления, внутренний диаметр и число шлицов.
+     * 2) Читает числовой внешний диаметр и общий блок габаритов.
+     * 3) Возвращает `WheelHubDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): WheelHubDetailsData
     {
         return new WheelHubDetailsData(

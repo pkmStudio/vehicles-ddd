@@ -12,6 +12,9 @@ enum ExportTypeEnum: string
     case Vehicle = 'vehicle_multi_sheet';
     case Engine = 'engine_multi_sheet';
 
+    /**
+     * Возвращает stable prefix имени export-файла для типа каталога.
+     */
     public function filePrefix(): string
     {
         return match ($this) {

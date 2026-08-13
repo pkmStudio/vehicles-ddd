@@ -27,6 +27,14 @@ final readonly class WiperDetailsBuilder
 {
     use ParsesBooleanCells;
 
+    /**
+     * Этот метод собирает details щётки стеклоочистителя как товара номенклатуры.
+     * Шаги:
+     * 1) Читает позицию, категорию, конструкцию и сезон через enum-справочники.
+     * 2) Читает длины передней основной, передней второй и задней щётки.
+     * 3) Проверяет, что заполнена хотя бы водительская или задняя длина.
+     * 4) Читает крепления, покрытие, boolean-признаки и совместимость рулевого управления.
+     */
     public function build(DetailsRowCursor $cursor): WiperDetailsData
     {
         $position = $cursor->pullRequiredLabel(PositionEnum::class, 'Расположение')->name;
@@ -61,6 +69,11 @@ final readonly class WiperDetailsBuilder
     }
 
     /**
+     * Этот метод переводит резолвнутые enum-cases креплений в хранимые enum names.
+     * Шаги:
+     * 1) Берёт `name` у каждого case из multi-select списка.
+     * 2) Возвращает names в том же порядке, в котором они были прочитаны из ячейки.
+     *
      * @param  array<int, EnumHelperInterface>  $cases
      * @return array<int, string>
      */

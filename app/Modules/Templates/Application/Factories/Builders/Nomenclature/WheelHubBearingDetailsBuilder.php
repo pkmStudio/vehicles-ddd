@@ -17,6 +17,13 @@ final readonly class WheelHubBearingDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает details ступичного подшипника из Excel-строки.
+     * Шаги:
+     * 1) Читает высоту, ABS, два крепления и диаметры как строковые поля.
+     * 2) Читает общий блок габаритов.
+     * 3) Возвращает `WheelHubBearingDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): WheelHubBearingDetailsData
     {
         return new WheelHubBearingDetailsData(

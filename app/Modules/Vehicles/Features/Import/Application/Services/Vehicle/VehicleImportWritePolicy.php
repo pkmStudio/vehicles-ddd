@@ -18,6 +18,9 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
 {
     /**
      * Инициализирует зависимости policy через контейнер.
+     *
+     * Шаги:
+     * 1) Сохранить PSR logger для provider ownership conflicts и corrections.
      */
     public function __construct(
         private LoggerInterface $logger,
@@ -25,6 +28,12 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
 
     /**
      * Возвращает данные автомобиля, которые можно безопасно записать из import source.
+     *
+     * Шаги:
+     * 1) Если существующей записи нет — применить правила create.
+     * 2) Если source является авторитетным TecDoc command import — применить полный TecDoc update.
+     * 3) При конфликте provider ownership залогировать warning с контекстом строки.
+     * 4) Для остальных updates применить правила writable/locked fields.
      */
     public function apply(
         VehicleData $incoming,
@@ -44,7 +53,7 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
         }
 
         if ($existing->provider !== $context->sourceProvider) {
-            $this->logger->info('Vehicles import kept existing vehicle ownership on provider conflict', [
+            $this->logger->warning('Vehicles import kept existing vehicle ownership on provider conflict', [
                 'operation_id' => $context->operationId,
                 'source' => $context->source->value,
                 'source_provider' => $context->sourceProvider->value,
@@ -63,6 +72,11 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
 
     /**
      * TecDoc command import является источником истины и полностью исправляет существующую запись.
+     *
+     * Шаги:
+     * 1) Если текущий provider не TD — залогировать correction warning.
+     * 2) Собрать `VehicleData` из incoming business fields.
+     * 3) Принудительно сохранить provider TD и id существующей записи.
      */
     private function forAuthoritativeTecDocUpdate(
         VehicleData $incoming,
@@ -70,7 +84,7 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
         VehicleImportWriteContextDTO $context,
     ): VehicleData {
         if ($existing->provider !== ProviderEnum::TD) {
-            $this->logger->info('Vehicles TecDoc import corrected existing vehicle provider', [
+            $this->logger->warning('Vehicles TecDoc import corrected existing vehicle provider', [
                 'operation_id' => $context->operationId,
                 'source' => $context->source->value,
                 'source_provider' => $context->sourceProvider->value,
@@ -104,21 +118,16 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
 
     /**
      * Создает новую запись с provider владельца import source.
+     *
+     * Шаги:
+     * 1) Собрать `VehicleData` из incoming fields.
+     * 2) Установить provider из import context.
+     * 3) Сохранить incoming id для create-сценариев, где он уже известен.
      */
     private function forCreate(
         VehicleData $incoming,
         VehicleImportWriteContextDTO $context,
     ): VehicleData {
-        if ($incoming->provider !== $context->sourceProvider) {
-            $this->logMaskedField(
-                context: $context,
-                provider: $context->sourceProvider,
-                field: 'provider',
-                incoming: $incoming->provider->value,
-                preserved: $context->sourceProvider->value,
-            );
-        }
-
         return new VehicleData(
             msId: $incoming->msId,
             mfaId: $incoming->mfaId,
@@ -143,6 +152,12 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
 
     /**
      * Обновляет только writable поля и сохраняет ownership существующей записи.
+     *
+     * Шаги:
+     * 1) Определить, нужно ли сохранять locked fields существующей записи.
+     * 2) Если locked fields можно менять — вернуть update data с incoming business fields.
+     * 3) Если locked fields нужно сохранить — оставить owner/provider/id-sensitive fields из existing.
+     * 4) Вернуть `VehicleData` с id существующей записи.
      */
     private function forUpdate(
         VehicleData $incoming,
@@ -151,9 +166,6 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
     ): VehicleData {
         $preserveLockedFields = $existing->provider !== ProviderEnum::OD
             || $existing->provider !== $context->sourceProvider;
-
-        $this->logIfChanged($context, $existing, 'ms_id', $incoming->msId, $existing->msId);
-        $this->logIfChanged($context, $existing, 'provider', $incoming->provider->value, $existing->provider->value);
 
         if (! $preserveLockedFields) {
             return new VehicleData(
@@ -178,12 +190,6 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
             );
         }
 
-        $this->logIfChanged($context, $existing, 'mfa_id', $incoming->mfaId, $existing->mfaId);
-        $this->logIfChanged($context, $existing, 'manufacturer_id', $incoming->manufacturerId, $existing->manufacturerId);
-        $this->logIfChanged($context, $existing, 'parent_id', $incoming->parentId, $existing->parentId);
-        $this->logIfChanged($context, $existing, 'generation', $incoming->generation, $existing->generation);
-        $this->logIfChanged($context, $existing, 'type_carcase', $incoming->typeCarcase->value, $existing->typeCarcase->value);
-
         return new VehicleData(
             msId: $existing->msId,
             mfaId: $existing->mfaId,
@@ -204,51 +210,5 @@ final readonly class VehicleImportWritePolicy implements VehicleImportWritePolic
             isAllow: $incoming->isAllow,
             id: $existing->id,
         );
-    }
-
-    /**
-     * Логирует сохранение locked поля, если входящее значение отличается от сохраняемого.
-     */
-    private function logIfChanged(
-        VehicleImportWriteContextDTO $context,
-        VehicleData $existing,
-        string $field,
-        mixed $incoming,
-        mixed $preserved,
-    ): void {
-        if ($incoming === $preserved) {
-            return;
-        }
-
-        $this->logMaskedField(
-            context: $context,
-            provider: $existing->provider,
-            field: $field,
-            incoming: $incoming,
-            preserved: $preserved,
-        );
-    }
-
-    /**
-     * Пишет debug-событие о field masking без Laravel facade.
-     */
-    private function logMaskedField(
-        VehicleImportWriteContextDTO $context,
-        ProviderEnum $provider,
-        string $field,
-        mixed $incoming,
-        mixed $preserved,
-    ): void {
-        $this->logger->debug('Vehicles import kept locked vehicle field', [
-            'operation_id' => $context->operationId,
-            'source' => $context->source->value,
-            'source_provider' => $context->sourceProvider->value,
-            'ms_id' => $context->msId,
-            'row_identifier' => $context->rowIdentifier,
-            'provider' => $provider->value,
-            'field' => $field,
-            'incoming' => $incoming,
-            'preserved' => $preserved,
-        ]);
     }
 }

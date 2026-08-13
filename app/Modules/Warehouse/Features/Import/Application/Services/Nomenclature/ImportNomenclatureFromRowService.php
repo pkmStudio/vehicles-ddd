@@ -10,10 +10,13 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\Nomenclature
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Nomenclature\ImportNomenclatureFromRowServiceInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\Nomenclature\NomenclatureImportRowDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
+use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
+use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use Illuminate\Support\Collection;
 
 /**
@@ -47,6 +50,11 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
 
     /**
      * Получает чтение номенклатуры, команду записи, resolver шаблона и фабрику details.
+     * Шаги:
+     * 1) Сохранить repository для поиска существующей номенклатуры по id/part number.
+     * 2) Сохранить command port для create/update записи.
+     * 3) Сохранить resolver detail template по Warehouse type.
+     * 4) Сохранить Templates client для построения typed details из Excel-строки.
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
@@ -57,34 +65,47 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
 
     /**
      * Валидирует строку и пишет номенклатуру через явные create/update команды.
+     * Шаги:
+     * 1) Переиндексировать предзагруженные types и brands по upper-case имени.
+     * 2) Прочитать optional id, type name и brand name из Excel-строки.
+     * 3) Найти type/brand в предзагруженных справочниках и дать адресную ошибку по колонке.
+     * 4) Определить detail template для type и построить details через Templates boundary.
+     * 5) Проверить domain-critical details для template WIPER.
+     * 6) Распарсить положительный вес и map label-списки material/vehicle_type во внутренние keys.
+     * 7) Собрать NomenclatureData.
+     * 8) Если id передан, обновить найденную запись или создать запись с заданным id.
+     * 9) Если id не передан, искать существующую запись по part number.
+     * 10) Создать или обновить запись и опубликовать created/updated event с import context.
      *
-     * @param  array<int, mixed>  $row
      * @param  Collection<int, TypeData>  $types
      * @param  Collection<int, BrandData>  $brands
      */
-    public function importFromRow(array $row, Collection $types, Collection $brands): NomenclatureData
-    {
+    public function importFromRow(
+        NomenclatureImportRowDTO $row,
+        Collection $types,
+        Collection $brands,
+        ?int $userId = null,
+        ?string $operationId = null,
+    ): NomenclatureData {
         $typeNameKey = fn (TypeData $type): string => mb_strtoupper(trim($type->name));
         $brandNameKey = fn (BrandData $brand): string => mb_strtoupper(trim($brand->name));
 
         $typesByName = $types->keyBy($typeNameKey);
         $brandsByName = $brands->keyBy($brandNameKey);
 
-        $id = isset($row[0]) && trim((string) $row[0]) !== '' ? (int) trim((string) $row[0]) : null;
-
-        $typeName = mb_strtoupper(trim((string) ($row[1] ?? '')));
+        $typeName = mb_strtoupper($row->typeName);
         $type = $typesByName->get($typeName);
         if ($type === null) {
             throw ImportRowValidationException::withMessage(
-                "Тип товара «{$row[1]}» не найден. Проверьте колонку «Тип товара» (столбец B).",
+                "Тип товара «{$row->typeName}» не найден. Проверьте колонку «Тип товара» (столбец B).",
             );
         }
 
-        $brandName = mb_strtoupper(trim((string) ($row[2] ?? '')));
+        $brandName = mb_strtoupper($row->brandName);
         $brand = $brandsByName->get($brandName);
         if ($brand === null) {
             throw ImportRowValidationException::withMessage(
-                "Бренд «{$row[2]}» не найден. Проверьте колонку «Бренд» (столбец C).",
+                "Бренд «{$row->brandName}» не найден. Проверьте колонку «Бренд» (столбец C).",
             );
         }
 
@@ -95,49 +116,96 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
             );
         }
 
-        $details = $this->templates->buildNomenclatureDetails($template, $row, self::DETAILS_START_INDEX);
-        $this->validateDetails($template, $details, (string) ($row[5] ?? ''));
-
-        $weight = $this->parsePositiveInteger(
-            value: $row[7] ?? null,
-            columnName: 'Вес',
-            columnLetter: 'H',
-        );
+        $details = $this->templates->buildNomenclatureDetails($template, $row->sourceCells, self::DETAILS_START_INDEX);
+        $this->validateDetails($template, $details, $row->partNumber);
 
         $data = new NomenclatureData(
             typeId: $type->id,
             brandId: $brand->id,
-            name: (string) ($row[3] ?? ''),
-            country: (string) ($row[4] ?? ''),
-            partNumber: trim((string) ($row[5] ?? '')),
-            color: (string) ($row[6] ?? ''),
-            weight: $weight,
-            material: $this->labelsToKeys((string) ($row[8] ?? ''), self::MATERIAL_KEYS_BY_LABEL),
-            vehicleType: $this->labelsToKeys((string) ($row[9] ?? ''), self::VEHICLE_TYPE_KEYS_BY_LABEL),
-            quantityPak: isset($row[10]) ? (int) $row[10] : 1,
-            quantityInPak: isset($row[11]) ? (int) $row[11] : 1,
+            name: $row->name,
+            country: $row->country,
+            partNumber: $row->partNumber,
+            color: $row->color,
+            weight: $row->weight,
+            material: $this->labelsToKeys($row->materialLabels, self::MATERIAL_KEYS_BY_LABEL),
+            vehicleType: $this->labelsToKeys($row->vehicleTypeLabels, self::VEHICLE_TYPE_KEYS_BY_LABEL),
+            quantityPak: $row->quantityPak,
+            quantityInPak: $row->quantityInPak,
             details: $details,
-            id: $id,
+            id: $row->id,
         );
 
-        if ($id !== null) {
-            $existingById = $this->nomenclatures->findById($id);
+        if ($row->id !== null) {
+            $existingById = $this->nomenclatures->findById($row->id);
 
-            return $existingById === null
-                ? $this->command->createWithId($data)
-                : $this->command->updateById($data);
+            if ($existingById === null) {
+                $created = $this->command->createWithId($data);
+                $this->dispatchMutationEvent($created, wasExisting: false, userId: $userId, operationId: $operationId);
+
+                return $created;
+            }
+
+            $updated = $this->command->updateById($data);
+            $this->dispatchMutationEvent($updated, wasExisting: true, userId: $userId, operationId: $operationId);
+
+            return $updated;
         }
 
         $existing = $this->nomenclatures->findByPartNumber($data->partNumber);
         if ($existing !== null) {
-            return $this->command->updateById($this->withId($data, $existing->id));
+            $updated = $this->command->updateById($this->withId($data, $existing->id));
+            $this->dispatchMutationEvent($updated, wasExisting: true, userId: $userId, operationId: $operationId);
+
+            return $updated;
         }
 
-        return $this->command->create($data);
+        $created = $this->command->create($data);
+        $this->dispatchMutationEvent($created, wasExisting: false, userId: $userId, operationId: $operationId);
+
+        return $created;
+    }
+
+    /**
+     * Публикует shared catalog mutation event после import-created/import-updated записи.
+     * Шаги:
+     * 1) Подставить fallback userId/operationId для локальных импортов без внешнего контекста.
+     * 2) Для существующей записи опубликовать NomenclatureUpdated.
+     * 3) Для новой записи опубликовать NomenclatureCreated.
+     * 4) Передать snapshot номенклатуры как array payload публичного события.
+     */
+    private function dispatchMutationEvent(
+        NomenclatureData $nomenclature,
+        bool $wasExisting,
+        ?int $userId,
+        ?string $operationId,
+    ): void {
+        $eventUserId = $userId ?? 0;
+        $eventOperationId = $operationId ?? 'warehouse-nomenclature-import';
+
+        if ($wasExisting) {
+            event(new NomenclatureUpdated(
+                userId: $eventUserId,
+                operationId: $eventOperationId,
+                nomenclature: $nomenclature->toArray(),
+            ));
+
+            return;
+        }
+
+        event(new NomenclatureCreated(
+            userId: $eventUserId,
+            operationId: $eventOperationId,
+            nomenclature: $nomenclature->toArray(),
+        ));
     }
 
     /**
      * Проверяет обязательные поля details, которые критичны для последующей сборки комплектов.
+     * Шаги:
+     * 1) Для всех templates кроме WIPER не применять дополнительное правило.
+     * 2) Для WIPER прочитать category из details.
+     * 3) Разрешить непустую category.
+     * 4) Если category пустая, выбросить ImportRowValidationException с артикулом и колонкой.
      *
      * @param  array<string, mixed>  $details
      */
@@ -162,6 +230,10 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
 
     /**
      * Возвращает копию data с id найденной записи.
+     * Шаги:
+     * 1) Перенести все поля NomenclatureData без повторного parsing.
+     * 2) Заменить только id найденной записи.
+     * 3) Сохранить type snapshot, если он уже был в исходном Data.
      */
     private function withId(NomenclatureData $data, ?int $id): NomenclatureData
     {
@@ -184,32 +256,12 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
     }
 
     /**
-     * Возвращает положительное целое значение из Excel-ячейки.
-     */
-    private function parsePositiveInteger(mixed $value, string $columnName, string $columnLetter): int
-    {
-        $normalized = is_string($value) ? trim($value) : $value;
-        $parsed = null;
-
-        if (is_int($normalized)) {
-            $parsed = $normalized;
-        } elseif (is_float($normalized) && floor($normalized) === $normalized) {
-            $parsed = (int) $normalized;
-        } elseif (is_string($normalized) && preg_match('/^\d+$/', $normalized) === 1) {
-            $parsed = (int) $normalized;
-        }
-
-        if ($parsed === null || $parsed <= 0) {
-            throw ImportRowValidationException::withMessage(
-                "{$columnName} должен быть положительным целым числом в граммах. Проверьте столбец {$columnLetter}.",
-            );
-        }
-
-        return $parsed;
-    }
-
-    /**
      * Переводит `;`-джойн русских лейблов в массив внутренних ключей.
+     * Шаги:
+     * 1) Для пустой ячейки вернуть пустой список.
+     * 2) Разбить ячейку по ';'.
+     * 3) Нормализовать каждый label в upper-case trimmed string.
+     * 4) Добавить только labels, присутствующие в переданном словаре.
      *
      * @param  array<string, string>  $keysByLabel
      * @return array<int, string>

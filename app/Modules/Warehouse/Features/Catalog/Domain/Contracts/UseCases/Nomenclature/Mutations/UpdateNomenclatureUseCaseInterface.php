@@ -14,6 +14,11 @@ interface UpdateNomenclatureUseCaseInterface
 {
     /**
      * Выполняет обновление Warehouse-номенклатуры.
+     *
+     * Шаги:
+     * 1) Принять UpdateNomenclatureRequestDTO из boundary handler.
+     * 2) Обновить номенклатуру после проверки type/brand и part_number conflict.
+     * 3) Вернуть result DTO или null для повторного operation_id.
      */
     public function execute(UpdateNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

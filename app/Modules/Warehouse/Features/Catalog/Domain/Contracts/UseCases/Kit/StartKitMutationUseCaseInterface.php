@@ -14,6 +14,11 @@ interface StartKitMutationUseCaseInterface
 {
     /**
      * Запускает сценарий мутации Warehouse-набора.
+     *
+     * Шаги:
+     * 1) Принять общий KitMutationRequestDTO.
+     * 2) Выбрать create/update/delete сценарий по operation.
+     * 3) Вернуть result DTO выбранного сценария или null для повтора.
      */
     public function execute(KitMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

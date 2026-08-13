@@ -20,6 +20,13 @@ final readonly class BrakePadDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает details тормозных колодок из Excel-строки.
+     * Шаги:
+     * 1) Читает расположение, вид колодки и материал накладок через enum-справочники.
+     * 2) Читает общий блок габаритов номенклатуры.
+     * 3) Возвращает `BrakePadDetailsData` с enum-name значениями.
+     */
     public function build(DetailsRowCursor $cursor): BrakePadDetailsData
     {
         return new BrakePadDetailsData(

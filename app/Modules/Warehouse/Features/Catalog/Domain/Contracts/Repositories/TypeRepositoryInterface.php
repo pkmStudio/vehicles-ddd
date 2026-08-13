@@ -13,6 +13,10 @@ interface TypeRepositoryInterface
 {
     /**
      * Возвращает тип по id или null.
+     *
+     * Шаги:
+     * 1. Принять внутренний id типа.
+     * 2. Вернуть `TypeData` или `null`, если запись не найдена.
      */
     public function findById(int $id): ?TypeData;
 }

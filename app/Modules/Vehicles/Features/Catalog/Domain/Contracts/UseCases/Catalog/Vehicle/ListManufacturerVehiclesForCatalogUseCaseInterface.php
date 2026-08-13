@@ -12,6 +12,14 @@ use Illuminate\Support\Collection;
  */
 interface ListManufacturerVehiclesForCatalogUseCaseInterface
 {
-    /** @return Collection<int, CatalogVehicleDTO>|null */
+    /**
+     * Возвращает разрешенные автомобили производителя публичного каталога.
+     *
+     * Шаги:
+     * 1) Проверить производителя по catalog id.
+     * 2) Вернуть null для неизвестного производителя или collection vehicle DTO.
+     *
+     * @return Collection<int, CatalogVehicleDTO>|null
+     */
     public function execute(int $manufacturerId): ?Collection;
 }

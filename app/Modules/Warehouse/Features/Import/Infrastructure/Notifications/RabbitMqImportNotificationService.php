@@ -16,6 +16,10 @@ final readonly class RabbitMqImportNotificationService implements ImportNotifica
 {
     /**
      * Получает publisher пакета rabbit-transport.
+     *
+     * Шаги:
+     * 1) Принять RabbitMQ publisher.
+     * 2) Сохранить publisher для отправки completion-событий.
      */
     public function __construct(
         private RabbitMQPublisher $publisher,
@@ -23,6 +27,11 @@ final readonly class RabbitMqImportNotificationService implements ImportNotifica
 
     /**
      * Отправляет wire-payload завершения импорта в настроенный outbound.
+     *
+     * Шаги:
+     * 1) Преобразовать completion DTO в массив wire-payload.
+     * 2) Собрать RabbitMessageDTO с именем WAREHOUSE_IMPORT_COMPLETED.
+     * 3) Опубликовать сообщение через rabbit-transport.
      */
     public function notifyImportCompleted(ImportCompletionNotificationDTO $payload): void
     {

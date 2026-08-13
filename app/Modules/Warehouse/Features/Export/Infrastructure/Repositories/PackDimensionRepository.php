@@ -15,6 +15,13 @@ use Illuminate\Support\Collection;
 final readonly class PackDimensionRepository implements PackDimensionRepositoryInterface
 {
     /**
+     * Возвращает упаковочные размеры со связанным типом.
+     *
+     * Шаги:
+     * 1) Построить Eloquent query с eager-load связи type.
+     * 2) Отсортировать упаковки по id для стабильного Excel-файла.
+     * 3) Преобразовать модели в PackDimensionData collection.
+     *
      * @return Collection<int, PackDimensionData>
      */
     public function all(): Collection

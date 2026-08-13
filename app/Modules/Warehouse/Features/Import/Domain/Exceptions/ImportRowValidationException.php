@@ -9,6 +9,9 @@ namespace App\Modules\Warehouse\Features\Import\Domain\Exceptions;
  */
 final class ImportRowValidationException extends WarehouseImportException
 {
+    /**
+     * Создаёт ошибку валидации строки с готовым доменным сообщением.
+     */
     public static function withMessage(string $message): self
     {
         return new self($message);

@@ -16,6 +16,7 @@ use App\Modules\Vehicles\Features\Export\Infrastructure\Messaging\Handlers\Expor
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Export\DTO\ExportFileRequested as WireExportFileRequested;
 use Tests\TestCase;
 
 /**
@@ -98,6 +99,49 @@ final class ExportFileRequestedHandlerTest extends TestCase
             'operation_id' => 'run-123',
             'export_type' => 'vehicle_multi_sheet',
         ]);
+    }
+
+    /**
+     * Проверяет, что handler принимает payload, собранный опубликованным wire DTO экспорта.
+     */
+    public function test_accepts_published_wire_export_request_payload(): void
+    {
+        config([
+            'vehicles.export.output.disk' => 's3',
+            'vehicles.export.output.directory' => 'dan-vehicles/export',
+        ]);
+
+        $adapter = Mockery::mock(FileExportInterface::class);
+        $adapter->shouldReceive('export')
+            ->once()
+            ->with(
+                Mockery::on(fn (ExportRunContextDTO $context): bool => $context->userId === 42
+                    && $context->operationId === 'wire-export-vehicles'),
+                's3',
+            )
+            ->andReturn('dan-vehicles/export/vehicle-catalog-wire-export-vehicles.xlsx');
+
+        $factory = $this->mock(ExportFileFactoryInterface::class);
+        $factory->shouldReceive('make')
+            ->once()
+            ->with(ExportTypeEnum::Vehicle, true)
+            ->andReturn($adapter);
+
+        $notifier = $this->mock(ExportNotificationServiceInterface::class);
+        $notifier->shouldReceive('notifyExportCompleted')
+            ->once()
+            ->with(Mockery::on(fn (ExportCompletionNotificationDTO $payload): bool => $payload->operationId === 'wire-export-vehicles'
+                && $payload->exportType === ExportTypeEnum::Vehicle
+                && $payload->status === ExportCompletionStatusEnum::Completed));
+
+        $message = new WireExportFileRequested(
+            userId: 42,
+            operationId: 'wire-export-vehicles',
+            exportType: 'vehicle_multi_sheet',
+            isAllow: true,
+        );
+
+        app(ExportFileRequestedHandler::class)->handle($message->toArray());
     }
 
     /**

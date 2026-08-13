@@ -19,6 +19,9 @@ final readonly class ExportFileRequestedHandler
 {
     /**
      * Получает сценарий запуска экспорта и validator входящего сообщения.
+     * Шаги:
+     * 1) Сохранить external export use case port.
+     * 2) Сохранить payload validator для входящего RabbitMQ сообщения.
      */
     public function __construct(
         private StartExportUseCaseInterface $useCase,
@@ -77,32 +80,42 @@ final readonly class ExportFileRequestedHandler
 
     /**
      * Собирает нормализованные фильтры Kit Export из валидированного payload.
+     * Шаги:
+     * 1) Безопасно получить вложенный filters array.
+     * 2) Нормализовать search в trimmed string|null.
+     * 3) Привести ids/type_ids к list<int>.
+     * 4) Привести boolean filters к доменным значениям.
+     * 5) Привести part numbers к непустому list<string>.
      *
      * @param  array<string, mixed>  $data
      */
     private function kitFilters(array $data): KitExportFiltersDTO
     {
-        $filters = $this->arrayValue($data['filters'] ?? []);
+        $filters = $data['filters'] ?? [];
         $search = isset($filters['search']) ? trim((string) $filters['search']) : null;
 
         return new KitExportFiltersDTO(
-            ids: $this->intList($filters['ids'] ?? []),
-            typeIds: $this->intList($filters['type_ids'] ?? []),
-            isActive: $this->nullableBool($filters, 'is_active'),
-            isSaleSeparately: $this->nullableBool($filters, 'is_sale_separately'),
-            nomenclaturePartNumbers: $this->stringList($filters['nomenclature_part_numbers'] ?? []),
+            ids: array_values(array_map('intval', $filters['ids'] ?? [])),
+            typeIds: array_values(array_map('intval', $filters['type_ids'] ?? [])),
+            isActive: $filters['is_active'] ?? true,
+            isSaleSeparately: $filters['is_sale_separately'] ?? false,
+            nomenclaturePartNumbers: $this->filledStringList($filters['nomenclature_part_numbers'] ?? []),
             search: $search === '' ? null : $search,
         );
     }
 
     /**
      * Собирает сортировку Kit Export из валидированного payload.
+     * Шаги:
+     * 1) Безопасно получить вложенный sort array.
+     * 2) Взять field из payload или fallback-нуться на id.
+     * 3) Взять direction из payload или fallback-нуться на asc.
      *
      * @param  array<string, mixed>  $data
      */
     private function kitSort(array $data): KitExportSortDTO
     {
-        $sort = $this->arrayValue($data['sort'] ?? []);
+        $sort = $data['sort'] ?? [];
 
         return new KitExportSortDTO(
             field: isset($sort['field']) ? (string) $sort['field'] : 'id',
@@ -111,40 +124,18 @@ final readonly class ExportFileRequestedHandler
     }
 
     /**
-     * Гарантирует array-тип после валидации вложенных payload-полей.
-     *
-     * @return array<string, mixed>
-     */
-    private function arrayValue(mixed $value): array
-    {
-        return is_array($value) ? $value : [];
-    }
-
-    /**
-     * Приводит список числовых значений payload к list<int>.
-     *
-     * @return list<int>
-     */
-    private function intList(mixed $values): array
-    {
-        $values = is_array($values) ? $values : [];
-        $toInteger = fn (mixed $value): int => (int) $value;
-
-        return array_values(array_map(
-            $toInteger,
-            $values,
-        ));
-    }
-
-    /**
      * Приводит список строковых значений payload к непустому list<string>.
+     * Шаги:
+     * 1) Привести каждое валидированное строковое значение к trimmed string.
+     * 2) Отфильтровать пустые строки.
+     * 3) Переиндексировать результат как list<string>.
      *
+     * @param  list<string>  $values
      * @return list<string>
      */
-    private function stringList(mixed $values): array
+    private function filledStringList(array $values): array
     {
-        $values = is_array($values) ? $values : [];
-        $trimValue = fn (mixed $value): string => trim((string) $value);
+        $trimValue = fn (string $value): string => trim($value);
         $isFilledValue = fn (string $value): bool => $value !== '';
 
         $values = array_map(
@@ -156,19 +147,5 @@ final readonly class ExportFileRequestedHandler
             array: $values,
             callback: $isFilledValue,
         ));
-    }
-
-    /**
-     * Возвращает nullable bool для необязательных boolean-фильтров.
-     *
-     * @param  array<string, mixed>  $filters
-     */
-    private function nullableBool(array $filters, string $key): ?bool
-    {
-        if (! array_key_exists($key, $filters)) {
-            return null;
-        }
-
-        return filter_var($filters[$key], FILTER_VALIDATE_BOOL);
     }
 }

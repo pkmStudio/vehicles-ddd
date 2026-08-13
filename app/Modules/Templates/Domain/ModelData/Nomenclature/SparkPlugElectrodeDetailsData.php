@@ -12,6 +12,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class SparkPlugElectrodeDetailsData extends Data
 {
+    /**
+     * Фиксирует параметры электрода свечи зажигания.
+     */
     public function __construct(
         public readonly string $gap,
         public readonly string $countSide,

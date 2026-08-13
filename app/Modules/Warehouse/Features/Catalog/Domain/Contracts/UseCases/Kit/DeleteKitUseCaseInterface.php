@@ -14,6 +14,11 @@ interface DeleteKitUseCaseInterface
 {
     /**
      * Выполняет удаление Warehouse-набора.
+     *
+     * Шаги:
+     * 1) Принять DeleteKitRequestDTO из boundary handler.
+     * 2) Удалить kit вместе с pivot-составом.
+     * 3) Вернуть result DTO или null для повторного operation_id.
      */
     public function execute(DeleteKitRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

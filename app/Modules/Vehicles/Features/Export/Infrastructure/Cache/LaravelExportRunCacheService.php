@@ -14,6 +14,11 @@ final readonly class LaravelExportRunCacheService implements ExportRunCacheServi
 {
     /**
      * Атомарно принимает operationId для идемпотентного запуска экспорта.
+     *
+     * Шаги:
+     * - Собрать cache-ключ принятого запроса.
+     * - Записать флаг через atomic add с TTL.
+     * - Вернуть true только для первого принятого operationId.
      */
     public function accept(string $operationId): bool
     {
@@ -22,6 +27,10 @@ final readonly class LaravelExportRunCacheService implements ExportRunCacheServi
 
     /**
      * Снимает отметку принятого operationId после сбоя экспорта.
+     *
+     * Шаги:
+     * - Собрать тот же cache-ключ принятого запроса.
+     * - Удалить отметку, чтобы повторный запуск мог быть принят.
      */
     public function forgetAccepted(string $operationId): void
     {
@@ -30,6 +39,10 @@ final readonly class LaravelExportRunCacheService implements ExportRunCacheServi
 
     /**
      * Получить cache-ключ принятого внешнего запроса на экспорт.
+     *
+     * Шаги:
+     * - Прочитать шаблон ключа из конфигурации Vehicles export.
+     * - Подставить operationId во внешний idempotency key.
      */
     private function acceptedCacheKey(string $operationId): string
     {
@@ -38,9 +51,13 @@ final readonly class LaravelExportRunCacheService implements ExportRunCacheServi
 
     /**
      * TTL технических cache-записей внешнего экспорта в секундах.
+     *
+     * Шаги:
+     * - Прочитать TTL из конфигурации внешнего export flow.
+     * - Привести значение к integer для Laravel Cache.
      */
     private function cacheTtlSeconds(): int
     {
-        return (int) config('vehicles.export.external.cache.ttl_seconds', 86400);
+        return (int) config('vehicles.export.external.cache.ttl_seconds');
     }
 }

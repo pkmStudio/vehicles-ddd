@@ -16,12 +16,27 @@ use Illuminate\Support\Collection;
  */
 final readonly class ListVehicleModificationsForCatalogUseCase implements ListVehicleModificationsForCatalogUseCaseInterface
 {
+    /**
+     * Подключает репозитории ТС и модификаций.
+     *
+     * Шаги:
+     * - Сохранить зависимости для проверки доступности ТС и чтения его модификаций.
+     */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
         private ModificationRepositoryInterface $modifications,
     ) {}
 
-    /** @return Collection<int, CatalogModificationDTO>|null */
+    /**
+     * Возвращает модификации разрешённого ТС.
+     *
+     * Шаги:
+     * - Найти ТС по catalog id.
+     * - Вернуть null, если ТС отсутствует или закрыто для публичного каталога.
+     * - Прочитать модификации ТС и преобразовать их в DTO публичного каталога.
+     *
+     * @return Collection<int, CatalogModificationDTO>|null
+     */
     public function execute(int $vehicleId): ?Collection
     {
         $vehicle = $this->vehicles->findById($vehicleId);

@@ -17,9 +17,9 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationR
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
+use App\Modules\Warehouse\Features\Catalog\Domain\Exceptions\KitPropertiesCompositionException;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
-use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 use App\Modules\Warehouse\Shared\Domain\Events\Kit\KitCreated;
 use Throwable;
 
@@ -30,6 +30,10 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
 {
     /**
      * Инициализирует чтение номенклатуры, расчёт свойств, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repositories номенклатуры/комплектов и KitProperties client.
+     * 2) Принять command записи, idempotency cache и result service.
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
@@ -141,7 +145,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
     }
 
     /**
-     * Резолвит номенклатуры по id, сохраняя порядок входящего payload.
+     * Резолвит номенклатуры по id, сохраняя порядок входящего данные сообщения.
      *
      * @param  array<int, int>  $ids
      * @return array{items: array<int, NomenclatureData>, missing_ids: array<int, int>}
@@ -179,7 +183,7 @@ final readonly class CreateKitUseCase implements CreateKitUseCaseInterface
     ): KitPropertiesDTO|WarehouseCatalogMutationResultDTO {
         try {
             return $this->kitProperties->build($nomenclatures);
-        } catch (KitCompositionException $e) {
+        } catch (KitPropertiesCompositionException $e) {
             return $this->results->rejected(
                 userId: $request->userId,
                 operationId: $request->operationId,

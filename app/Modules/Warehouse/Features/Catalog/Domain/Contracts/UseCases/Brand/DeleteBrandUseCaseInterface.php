@@ -14,6 +14,11 @@ interface DeleteBrandUseCaseInterface
 {
     /**
      * Выполняет удаление Warehouse-бренда.
+     *
+     * Шаги:
+     * 1) Принять DeleteBrandRequestDTO из boundary handler.
+     * 2) Удалить бренд с каскадной очисткой связанных номенклатур.
+     * 3) Вернуть result DTO или null для повторного operation_id.
      */
     public function execute(DeleteBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

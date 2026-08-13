@@ -77,7 +77,7 @@ final class EngineSparkPlugSpecificationImportTest extends TestCase
         $engine = Engine::query()->create([
             'eng_id' => 500,
             'code_engine' => 'M54B30',
-            'eng_fuel_type' => 'бензин',
+            'fuel_type' => 'бензин',
         ]);
         $engine->modifications()->attach($modification->id, ['eng_id' => 500, 'mod_id' => 50, 'type' => 'PC']);
 

@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class Engine extends AbstractModel
 {
     protected $casts = [
-        'eng_fuel_type' => EngineFuelTypeEnum::class,
+        'fuel_type' => EngineFuelTypeEnum::class,
         'details' => 'array',
     ];
 
@@ -24,6 +24,10 @@ class Engine extends AbstractModel
     /**
      * См. Vehicle::getMorphClass() — тот же повод: стабильный дискриминатор `partable_type`
      * общий для всех фич и Maintenance.
+     *
+     * Шаги:
+     * - Вернуть enum-значение engine для polymorphic discriminator.
+     * - Оставить связь совместимой с rows, созданными другими Vehicles features.
      */
     public function getMorphClass(): string
     {
@@ -31,6 +35,13 @@ class Engine extends AbstractModel
     }
 
     // RELATIONS
+    /**
+     * Связь двигателя с part specifications, которые выгружаются отдельными sheets.
+     *
+     * Шаги:
+     * - Описать polymorphic morphMany связь через partable.
+     * - Вернуть query relation на export-копию PartSpecification.
+     */
     public function partSpecifications(): MorphMany
     {
         return $this->morphMany(PartSpecification::class, 'partable');

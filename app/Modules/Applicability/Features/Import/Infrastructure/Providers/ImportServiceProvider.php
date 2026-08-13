@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Import\Infrastructure\Providers;
 
-use App\Modules\Applicability\Features\Import\Application\Factories\ImportFileFactory;
-use App\Modules\Applicability\Features\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Modules\Applicability\Features\Import\Application\Services\ImportKitApplicabilityRowService;
+use App\Modules\Applicability\Features\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Clients\VehiclesModificationClientInterface;
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Clients\WarehouseKitClientInterface;
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Commands\KitApplicabilityCommandInterface;
@@ -23,6 +22,7 @@ use App\Modules\Applicability\Features\Import\Domain\Contracts\UseCases\External
 use App\Modules\Applicability\Features\Import\Infrastructure\Clients\VehiclesModificationClient;
 use App\Modules\Applicability\Features\Import\Infrastructure\Clients\WarehouseKitClient;
 use App\Modules\Applicability\Features\Import\Infrastructure\Commands\KitApplicabilityCommand;
+use App\Modules\Applicability\Features\Import\Infrastructure\Factories\ImportFileFactory;
 use App\Modules\Applicability\Features\Import\Infrastructure\Imports\KitApplicabilityImport;
 use App\Modules\Applicability\Features\Import\Infrastructure\Notifications\RabbitMqImportNotificationService;
 use App\Modules\Applicability\Features\Import\Infrastructure\Reporting\CacheImportFailureStore;
@@ -71,6 +71,13 @@ final class ImportServiceProvider extends ServiceProvider
         FailuresExportInterface::class => FailuresExport::class,
     ];
 
+    /**
+     * Регистрирует bindings фичи Applicability Import.
+     *
+     * Шаги:
+     * 1. Получает сгруппированные массивы bindings по типам ports.
+     * 2. Регистрирует каждый interface-to-implementation mapping в Laravel container.
+     */
     public function register(): void
     {
         foreach ($this->bindings() as $bindings) {
@@ -82,6 +89,10 @@ final class ImportServiceProvider extends ServiceProvider
 
     /**
      * Возвращает сгруппированные DI bindings фичи Import.
+     *
+     * Шаги:
+     * 1. Собирает bindings clients, commands, imports, services, factories, use cases, notifications и reporting.
+     * 2. Возвращает группы единым списком для `register()`.
      */
     private function bindings(): array
     {

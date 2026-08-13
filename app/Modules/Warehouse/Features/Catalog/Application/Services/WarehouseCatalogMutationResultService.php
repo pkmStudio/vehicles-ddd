@@ -18,7 +18,11 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutation
 final readonly class WarehouseCatalogMutationResultService implements WarehouseCatalogMutationResultServiceInterface
 {
     /**
-     * Инициализирует notification-порт.
+     * Получает notification port для публикации результата catalog mutation.
+     *
+     * Шаги:
+     * 1) Принять WarehouseCatalogMutationNotificationServiceInterface.
+     * 2) Использовать port во всех outcome-методах после сборки result DTO.
      */
     public function __construct(
         private WarehouseCatalogMutationNotificationServiceInterface $notifier,
@@ -26,6 +30,11 @@ final readonly class WarehouseCatalogMutationResultService implements WarehouseC
 
     /**
      * Собирает и публикует completed-результат.
+     *
+     * Шаги:
+     * 1) Принять контекст успешной мутации и бизнес-ключ.
+     * 2) Собрать DTO результата со статусом completed.
+     * 3) Передать результат в notification-сервис и вернуть DTO.
      */
     public function completed(
         int $userId,
@@ -52,6 +61,11 @@ final readonly class WarehouseCatalogMutationResultService implements WarehouseC
      * Собирает и публикует rejected-результат.
      *
      * @param  array<string, mixed>  $errors
+     *
+     * Шаги:
+     * 1) Принять контекст отклонения и причину.
+     * 2) Собрать DTO результата со статусом rejected.
+     * 3) Передать результат в notification-сервис и вернуть DTO.
      */
     public function rejected(
         int $userId,
@@ -80,6 +94,11 @@ final readonly class WarehouseCatalogMutationResultService implements WarehouseC
 
     /**
      * Собирает и публикует failed-результат.
+     *
+     * Шаги:
+     * 1) Принять контекст технического сбоя мутации.
+     * 2) Собрать DTO результата со статусом failed.
+     * 3) Отправить уведомление о неуспешном завершении.
      */
     public function failed(
         int $userId,

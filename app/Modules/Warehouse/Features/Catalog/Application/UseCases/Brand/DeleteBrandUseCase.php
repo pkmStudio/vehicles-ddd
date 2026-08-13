@@ -6,6 +6,7 @@ namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\BrandCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogCascadeDeleteServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\DeleteBrandUseCaseInterface;
@@ -24,16 +25,27 @@ final readonly class DeleteBrandUseCase implements DeleteBrandUseCaseInterface
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repository поиска бренда и cascade service связанных данных.
+     * 2) Принять command удаления, idempotency cache и result service.
      */
     public function __construct(
         private BrandRepositoryInterface $brands,
         private BrandCommandInterface $command,
+        private WarehouseCatalogCascadeDeleteServiceInterface $cascade,
         private WarehouseCatalogMutationCacheServiceInterface $cache,
         private WarehouseCatalogMutationResultServiceInterface $results,
     ) {}
 
     /**
      * Удаляет бренд вручную вместе со связанными данными.
+     *
+     * Шаги:
+     * 1) Зафиксировать operation_id в cache для защиты от повторов.
+     * 2) Найти бренд и вернуть rejected result, если записи нет.
+     * 3) Удалить связанные номенклатуры, затем бренд, и отправить BrandDeleted.
+     * 4) Вернуть completed result или снять cache-флаг при техническом сбое.
      */
     public function execute(DeleteBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -56,6 +68,7 @@ final readonly class DeleteBrandUseCase implements DeleteBrandUseCaseInterface
                 );
             }
 
+            $this->cascade->deleteNomenclaturesByBrandId($request->id);
             $this->command->deleteById($request->id);
 
             event(new BrandDeleted(

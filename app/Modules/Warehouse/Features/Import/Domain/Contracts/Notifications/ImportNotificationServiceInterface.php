@@ -13,6 +13,11 @@ interface ImportNotificationServiceInterface
 {
     /**
      * Публикует итоговый статус импорта наружу.
+     *
+     * Шаги:
+     * 1) Принять DTO с типом импорта, статусом, пользователем и operationId.
+     * 2) Преобразовать DTO в transport payload.
+     * 3) Отправить уведомление во внешний канал завершения импорта.
      */
     public function notifyImportCompleted(ImportCompletionNotificationDTO $payload): void;
 }

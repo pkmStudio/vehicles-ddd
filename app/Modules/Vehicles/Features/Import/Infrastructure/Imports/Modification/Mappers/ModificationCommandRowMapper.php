@@ -7,13 +7,30 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Modificati
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Modification\ModificationCommandRowDTO;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 
+/**
+ * Переводит строку командного импорта модификаций в DTO.
+ */
 final readonly class ModificationCommandRowMapper
 {
+    /**
+     * Получить нормализатор значений ячеек Excel.
+     *
+     * Шаги:
+     * 1) Принять общий нормализатор строк импорта через DI.
+     * 2) Использовать его при чтении идентификаторов и атрибутов модификации.
+     */
     public function __construct(
         private ImportRowValueFormatter $formatter,
     ) {}
 
     /**
+     * Собрать DTO модификации из строки командного импорта.
+     *
+     * Шаги:
+     * 1) Прочитать ms_id, mod_id, годы выпуска, описание и характеристики из фиксированных колонок.
+     * 2) Нормализовать числовые поля и текстовые признаки через общий нормализатор.
+     * 3) Вернуть DTO для построчного сервиса сохранения модификации.
+     *
      * @param  array<int, string|int|float|null>  $row
      */
     public function map(array $row): ModificationCommandRowDTO

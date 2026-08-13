@@ -26,6 +26,11 @@ final readonly class ReportImportResultListener
 {
     /**
      * Получает reporter ошибок импорта и notifier завершения.
+     *
+     * Шаги:
+     * 1) Принять порт сохранения отчёта об ошибках.
+     * 2) Принять хранилище накопленных validation failures.
+     * 3) Принять порт публикации итогового уведомления.
      */
     public function __construct(
         private ImportFailureReporterInterface $reporter,

@@ -13,6 +13,9 @@ use Spatie\LaravelData\Data;
  */
 final class NomenclatureMetricsData extends Data
 {
+    /**
+     * Фиксирует базовые габаритные диапазоны номенклатуры.
+     */
     public function __construct(
         /** @var array<int, int> */
         public readonly array $length,

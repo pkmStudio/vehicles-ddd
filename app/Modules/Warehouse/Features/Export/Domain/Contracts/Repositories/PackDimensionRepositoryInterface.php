@@ -15,6 +15,11 @@ interface PackDimensionRepositoryInterface
     /**
      * Возвращает все упаковочные размеры для Excel-выгрузки.
      *
+     * Шаги:
+     * 1) Прочитать упаковочные размеры в стабильном порядке.
+     * 2) Подготовить связанные типы для отображения в строках.
+     * 3) Вернуть PackDimensionData для application-сервиса.
+     *
      * @return Collection<int, PackDimensionData>
      */
     public function all(): Collection;

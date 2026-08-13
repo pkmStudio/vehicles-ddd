@@ -9,6 +9,11 @@ interface ImportFailureReporterInterface
     /**
      * Сохраняет отчёт об ошибках импорта в общее хранилище.
      *
+     * Шаги:
+     * 1) Проверить наличие failures.
+     * 2) Сформировать файл отчета, если ошибки есть.
+     * 3) Вернуть путь к файлу или null.
+     *
      * @param  array<int, mixed>  $failures
      * @return string|null путь к сохранённому файлу или null, если ошибок нет
      */

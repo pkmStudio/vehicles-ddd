@@ -14,6 +14,9 @@ class Nomenclature extends AbstractModel
         'vehicle_type' => 'array',
     ];
 
+    /**
+     * Возвращает тип складской номенклатуры.
+     */
     public function type(): BelongsTo
     {
         return $this->belongsTo(Type::class);

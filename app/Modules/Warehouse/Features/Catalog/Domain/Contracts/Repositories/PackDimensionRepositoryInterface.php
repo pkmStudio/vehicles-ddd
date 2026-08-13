@@ -13,7 +13,10 @@ interface PackDimensionRepositoryInterface
 {
     /**
      * Возвращает упаковочный размер по id или null.
+     *
+     * Шаги:
+     * 1. Принять внутренний id упаковочного размера.
+     * 2. Вернуть `PackDimensionData` или `null`, если запись не найдена.
      */
     public function findById(int $id): ?PackDimensionData;
-
 }

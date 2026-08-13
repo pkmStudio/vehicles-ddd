@@ -32,6 +32,13 @@ interface CatalogMutationResultServiceInterface
     ): CatalogMutationResultDTO;
 
     /**
+     * Собирает результат мутации со статусом rejected.
+     *
+     * Шаги:
+     * 1) Создать DTO результата с reason, optional errors и optional record id.
+     * 2) Передать DTO в notification-порт.
+     * 3) Вернуть опубликованный DTO вызывающему коду.
+     *
      * @param  array<string, mixed>  $errors
      */
     public function rejected(

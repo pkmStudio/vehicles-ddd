@@ -4,21 +4,44 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Shared\Domain\Events\Nomenclature;
 
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\NomenclatureIntegrationDeletionContextDTO;
+use Illuminate\Support\Collection;
+
 /**
  * Доменный факт удаления Warehouse-номенклатуры.
  */
 final readonly class NomenclatureDeleted
 {
+    public int $userId;
+
+    public string $operationId;
+
+    public int $nomenclatureId;
+
+    public string $partNumber;
+
+    /** @var Collection<int, NomenclatureIntegrationDeletionContextDTO> */
+    public Collection $integrations;
+
     /**
-     * Хранит контекст операции, локальный id и внешний контекст удалённой номенклатуры.
-     *
-     * @param  array<int, array<string, mixed>>  $integrations
+     * @param  array<int, array<string, mixed>|NomenclatureIntegrationDeletionContextDTO>  $integrations
      */
     public function __construct(
-        public int $userId,
-        public string $operationId,
-        public int $nomenclatureId,
-        public string $partNumber,
-        public array $integrations = [],
-    ) {}
+        int $userId,
+        string $operationId,
+        int $nomenclatureId,
+        string $partNumber,
+        array $integrations = [],
+    ) {
+        $this->userId = $userId;
+        $this->operationId = $operationId;
+        $this->nomenclatureId = $nomenclatureId;
+        $this->partNumber = $partNumber;
+        $this->integrations = new Collection(array_map(
+            fn (array|NomenclatureIntegrationDeletionContextDTO $integration): NomenclatureIntegrationDeletionContextDTO => is_array($integration)
+                ? NomenclatureIntegrationDeletionContextDTO::fromArray($integration)
+                : $integration,
+            $integrations,
+        ));
+    }
 }

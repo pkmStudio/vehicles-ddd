@@ -32,6 +32,13 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
  */
 final readonly class NomenclatureDetailsDataFactory implements NomenclatureDetailsDataFactoryInterface
 {
+    /**
+     * Этот конструктор принимает набор билдеров номенклатурных details-шаблонов.
+     * Шаги:
+     * 1) Сохраняет каждый билдер в поле, соответствующее конкретному enum-шаблону.
+     * 2) Использует дефолтные инстансы, потому что билдеры не имеют собственного состояния и
+     *    вызываются только этим selector-классом.
+     */
     public function __construct(
         private BrakePadDetailsBuilder $brakePads = new BrakePadDetailsBuilder,
         private SparkPlugDetailsBuilder $sparkPlugs = new SparkPlugDetailsBuilder,

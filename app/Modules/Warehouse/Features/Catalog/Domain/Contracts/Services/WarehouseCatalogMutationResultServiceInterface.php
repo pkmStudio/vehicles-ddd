@@ -16,6 +16,11 @@ interface WarehouseCatalogMutationResultServiceInterface
 {
     /**
      * Собирает и публикует completed-результат.
+     *
+     * Шаги:
+     * 1) Принять контекст успешной мутации и бизнес-ключ.
+     * 2) Собрать DTO результата со статусом completed.
+     * 3) Передать результат в notification-сервис и вернуть DTO.
      */
     public function completed(
         int $userId,
@@ -30,6 +35,11 @@ interface WarehouseCatalogMutationResultServiceInterface
      * Собирает и публикует rejected-результат.
      *
      * @param  array<string, mixed>  $errors
+     *
+     * Шаги:
+     * 1) Принять контекст отклонения и причину.
+     * 2) Собрать DTO результата со статусом rejected.
+     * 3) Передать результат в notification-сервис и вернуть DTO.
      */
     public function rejected(
         int $userId,
@@ -44,6 +54,11 @@ interface WarehouseCatalogMutationResultServiceInterface
 
     /**
      * Собирает и публикует failed-результат.
+     *
+     * Шаги:
+     * 1) Принять контекст технического сбоя мутации.
+     * 2) Собрать DTO результата со статусом failed.
+     * 3) Отправить уведомление о неуспешном завершении.
      */
     public function failed(
         int $userId,

@@ -22,6 +22,10 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
 {
     /**
      * Инициализирует use case конкретных операций.
+     * Шаги:
+     * 1) Сохранить сценарий создания упаковочного размера Warehouse.
+     * 2) Сохранить сценарий обновления упаковочного размера Warehouse.
+     * 3) Сохранить сценарий удаления упаковочного размера Warehouse.
      */
     public function __construct(
         private CreatePackDimensionUseCaseInterface $createPackDimension,
@@ -31,6 +35,11 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
 
     /**
      * Запускает сценарий мутации упаковочного размера Warehouse по типу операции.
+     * Шаги:
+     * 1) Прочитать operation из общего PackDimensionMutationRequestDTO.
+     * 2) Для create извлечь CreatePackDimensionRequestDTO и вызвать create use case.
+     * 3) Для update извлечь UpdatePackDimensionRequestDTO и вызвать update use case.
+     * 4) Для delete извлечь DeletePackDimensionRequestDTO и вызвать delete use case.
      */
     public function execute(PackDimensionMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -43,6 +52,10 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
 
     /**
      * Делегирует создание упаковочного размера профильному use case.
+     * Шаги:
+     * 1) Получить CreatePackDimensionRequestDTO из общего request.
+     * 2) Передать DTO в CreatePackDimensionUseCaseInterface.
+     * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function create(PackDimensionMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -53,6 +66,10 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
 
     /**
      * Делегирует обновление упаковочного размера профильному use case.
+     * Шаги:
+     * 1) Получить UpdatePackDimensionRequestDTO из общего request.
+     * 2) Передать DTO в UpdatePackDimensionUseCaseInterface.
+     * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function update(PackDimensionMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -63,6 +80,10 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
 
     /**
      * Делегирует удаление упаковочного размера профильному use case.
+     * Шаги:
+     * 1) Получить DeletePackDimensionRequestDTO из общего request.
+     * 2) Передать DTO в DeletePackDimensionUseCaseInterface.
+     * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function delete(PackDimensionMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -73,6 +94,8 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
 
     /**
      * Возвращает DTO создания упаковочного размера из общего DTO мутации.
+     * Шаги:
+     * 1) Вернуть типизированный request, уже подготовленный границу validator/фабрику.
      */
     private function createRequest(PackDimensionMutationRequestDTO $request): CreatePackDimensionRequestDTO
     {
@@ -81,6 +104,8 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
 
     /**
      * Возвращает DTO обновления упаковочного размера из общего DTO мутации.
+     * Шаги:
+     * 1) Вернуть типизированный request, уже подготовленный границу validator/фабрику.
      */
     private function updateRequest(PackDimensionMutationRequestDTO $request): UpdatePackDimensionRequestDTO
     {
@@ -89,6 +114,8 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
 
     /**
      * Возвращает DTO удаления упаковочного размера из общего DTO мутации.
+     * Шаги:
+     * 1) Вернуть типизированный request, уже подготовленный границу validator/фабрику.
      */
     private function deleteRequest(PackDimensionMutationRequestDTO $request): DeletePackDimensionRequestDTO
     {

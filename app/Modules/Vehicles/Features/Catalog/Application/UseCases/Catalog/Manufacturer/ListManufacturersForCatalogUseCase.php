@@ -15,11 +15,26 @@ use Illuminate\Support\Collection;
  */
 final readonly class ListManufacturersForCatalogUseCase implements ListManufacturersForCatalogUseCaseInterface
 {
+    /**
+     * Подключает репозиторий производителей публичного каталога.
+     *
+     * Шаги:
+     * - Сохранить зависимость для последующего чтения производителей с разрешёнными ТС.
+     */
     public function __construct(
         private ManufacturerRepositoryInterface $manufacturers,
     ) {}
 
-    /** @return Collection<int, CatalogManufacturerDTO> */
+    /**
+     * Возвращает производителей, у которых есть разрешённые к показу ТС.
+     *
+     * Шаги:
+     * - Запросить производителей через catalog-read репозиторий.
+     * - Преобразовать каждую запись в DTO для публичного каталога.
+     * - Сбросить ключи коллекции перед возвратом.
+     *
+     * @return Collection<int, CatalogManufacturerDTO>
+     */
     public function execute(): Collection
     {
         return $this->manufacturers

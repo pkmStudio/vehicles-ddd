@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Applicability\Features\Calculation\Infrastructure\Clients;
 
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\WarehouseKitClientInterface;
-use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\KitData;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\NomenclatureData;
 use App\Modules\Applicability\Features\Calculation\Domain\ModelData\TypeData;
@@ -19,13 +18,24 @@ use App\Modules\Warehouse\Shared\Domain\DTOs\Applicability\WarehouseTypeForAppli
  */
 final readonly class WarehouseKitClient implements WarehouseKitClientInterface
 {
+    /**
+     * Получает публичный Warehouse applicability client.
+     *
+     * Шаги:
+     * 1. Сохраняет read-only Warehouse boundary.
+     * 2. Оставляет ленивое чтение и mapping active kits методу `activeKits()`.
+     */
     public function __construct(
         private PublicWarehouseApplicabilityClientInterface $warehouse,
-        private TypeTemplateResolverInterface $templates,
     ) {}
 
     /**
      * Возвращает активные наборы ленивым потоком, чтобы расчет не грузил все строки в память.
+     *
+     * Шаги:
+     * 1. Запрашивает active applicability kits во внешнем Warehouse boundary.
+     * 2. Итерирует результат как stream с optional kit filter и chunk size.
+     * 3. Для каждого kit возвращает локальный `KitData`.
      */
     public function activeKits(?int $kitId = null, int $chunk = 1000): iterable
     {
@@ -74,17 +84,11 @@ final readonly class WarehouseKitClient implements WarehouseKitClientInterface
             return null;
         }
 
-        $typeData = new TypeData(
+        return new TypeData(
             name: $type->name,
             char: $type->char,
             id: $type->id,
-        );
-
-        return new TypeData(
-            name: $typeData->name,
-            char: $typeData->char,
-            id: $typeData->id,
-            template: $this->templates->resolve($typeData),
+            template: $type->template,
         );
     }
 }

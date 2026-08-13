@@ -14,6 +14,11 @@ interface UpdateBrandUseCaseInterface
 {
     /**
      * Выполняет обновление Warehouse-бренда.
+     *
+     * Шаги:
+     * 1) Принять UpdateBrandRequestDTO из boundary handler.
+     * 2) Обновить бренд или отклонить операцию при not found/name conflict.
+     * 3) Вернуть result DTO или null для повторного operation_id.
      */
     public function execute(UpdateBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

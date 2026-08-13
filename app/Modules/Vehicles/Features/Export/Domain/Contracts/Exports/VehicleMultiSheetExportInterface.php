@@ -7,6 +7,4 @@ namespace App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports;
 /**
  * Экспортирует оба листа: Main + Wipers.
  */
-interface VehicleMultiSheetExportInterface extends FileExportInterface
-{
-}
+interface VehicleMultiSheetExportInterface extends FileExportInterface {}

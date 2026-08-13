@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Templates\Domain\Enums\Filter;
 
-use App\Modules\Templates\Domain\Traits\EnumHelperTrait;
 use App\Modules\Templates\Domain\Contracts\EnumHelperInterface;
+use App\Modules\Templates\Domain\Traits\EnumHelperTrait;
 
 /** Резьба масляного фильтра (для performance=WIND_UP). */
 enum OilFilterThreadEnum: string implements EnumHelperInterface

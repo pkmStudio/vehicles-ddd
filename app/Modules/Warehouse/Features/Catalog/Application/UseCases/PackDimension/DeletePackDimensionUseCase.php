@@ -6,6 +6,7 @@ namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimens
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\PackDimensionCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogCascadeDeleteServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\DeletePackDimensionUseCaseInterface;
@@ -24,16 +25,27 @@ final readonly class DeletePackDimensionUseCase implements DeletePackDimensionUs
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repository поиска упаковки и cascade service комплектов.
+     * 2) Принять command удаления, idempotency cache и result service.
      */
     public function __construct(
         private PackDimensionRepositoryInterface $packDimensions,
         private PackDimensionCommandInterface $command,
+        private WarehouseCatalogCascadeDeleteServiceInterface $cascade,
         private WarehouseCatalogMutationCacheServiceInterface $cache,
         private WarehouseCatalogMutationResultServiceInterface $results,
     ) {}
 
     /**
      * Удаляет упаковочный размер вручную вместе со связанными наборами.
+     *
+     * Шаги:
+     * 1) Зафиксировать operation_id в cache для защиты от повторов.
+     * 2) Найти упаковочный размер и вернуть rejected result, если записи нет.
+     * 3) Удалить связанные kits, затем упаковку, и отправить PackDimensionDeleted.
+     * 4) Вернуть completed result или снять cache-флаг при техническом сбое.
      */
     public function execute(DeletePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
@@ -56,6 +68,7 @@ final readonly class DeletePackDimensionUseCase implements DeletePackDimensionUs
                 );
             }
 
+            $this->cascade->deleteKitsByPackDimensionId($request->id);
             $this->command->deleteById($request->id);
 
             event(new PackDimensionDeleted(

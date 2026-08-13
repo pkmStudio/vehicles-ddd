@@ -22,34 +22,104 @@ use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\Failure;
 
 /**
- * Excel-адаптер импорта модификаций (механика): читает файл по чанкам и на каждую строку
- * зовёт построчный сценарий. Бизнес-логика строки — в UpsertModificationFromRowService.
+ * Excel-адаптер командного импорта модификаций: читает файл и передаёт строки сервису записи.
  */
 final class ModificationCommandImport implements ModificationCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
-    public function __construct(
-        private readonly UpsertModificationFromRowServiceInterface $service,
-        private readonly ModificationCommandRowMapper $rowMapper,
-    ) {}
+    private ?UpsertModificationFromRowServiceInterface $service = null;
 
+    private ?ModificationCommandRowMapper $rowMapper = null;
+
+    /**
+     * Получить зависимости для прямого запуска командного импорта модификаций.
+     *
+     * Шаги:
+     * 1) Принять сервис сохранения модификации из строки.
+     * 2) Принять маппер командной строки модификации.
+     * 3) Сохранить зависимости до сериализации задания очереди.
+     */
+    public function __construct(
+        UpsertModificationFromRowServiceInterface $service,
+        ModificationCommandRowMapper $rowMapper,
+    ) {
+        $this->service = $service;
+        $this->rowMapper = $rowMapper;
+    }
+
+    /**
+     * Подготовить импорт к сериализации в очередь.
+     *
+     * Шаги:
+     * 1) Не сохранять сервис записи модификации.
+     * 2) Не сохранять маппер строки.
+     * 3) Оставить импорт в очереди сериализуемым без графа зависимостей.
+     *
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [];
+    }
+
+    /**
+     * Восстановить импорт после очереди.
+     *
+     * Шаги:
+     * 1) Сбросить сервис записи модификации.
+     * 2) Сбросить маппер строки.
+     * 3) Позволить методам lazy-resolve получить зависимости из контейнера при обработке.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->service = null;
+        $this->rowMapper = null;
+    }
+
+    /**
+     * Запустить командный импорт модификаций.
+     *
+     * Шаги:
+     * 1) Передать текущий адаптер в Laravel Excel.
+     * 2) Прочитать файл по переданному пути.
+     */
     public function import(string $path): void
     {
         Excel::import($this, $path);
     }
 
+    /**
+     * Вернуть размер чанка для командного импорта модификаций.
+     *
+     * Шаги:
+     * 1) Зафиксировать размер пачки для построчной записи.
+     * 2) Вернуть значение, которое использует Laravel Excel.
+     */
     public function chunkSize(): int
     {
         return 500;
     }
 
+    /**
+     * Обработать пачку строк командного импорта модификаций.
+     *
+     * Шаги:
+     * 1) Получить маппер и сервис записи после возможного восстановления из очереди.
+     * 2) Сохранить модификацию и отдельно зафиксировать ошибку, если родительское ТС не найдено.
+     * 3) Передать ошибки валидации строки в общий помощник ошибок Laravel Excel.
+     */
     public function collection(Collection $collection): void
     {
+        $rowMapper = $this->rowMapper();
+        $service = $this->service();
+
         foreach ($collection as $index => $row) {
             $line = $index + $this->startRow();
             $rowValues = $row->toArray();
             try {
-                $modificationRow = $this->rowMapper->map($rowValues);
-                $modification = $this->service->upsertFromRow($modificationRow);
+                $modificationRow = $rowMapper->map($rowValues);
+                $modification = $service->upsertFromRow($modificationRow);
 
                 if (! $modification) {
                     $this->fail($line, "ТС ms_id={$modificationRow->msId} не найдено", $rowValues);
@@ -60,11 +130,25 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
         }
     }
 
+    /**
+     * Превратить ошибку строки модификации в ошибку Laravel Excel.
+     *
+     * Шаги:
+     * 1) Привести строку или массив ошибок к массиву.
+     * 2) Сохранить ошибку с атрибутом «Модификация» и исходными значениями строки.
+     */
     private function fail(int $row, string|array $errors, array $values): void
     {
         $this->onFailure(new Failure($row, 'Модификация', (array) $errors, $values));
     }
 
+    /**
+     * Записать ошибки командного импорта модификаций в лог ошибок.
+     *
+     * Шаги:
+     * 1) Пройти по всем ошибкам, которые вернул Laravel Excel или код импорта.
+     * 2) Записать номер строки, атрибут, ошибки и исходные значения.
+     */
     public function onFailure(Failure ...$failures): void
     {
         foreach ($failures as $failure) {
@@ -77,11 +161,25 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
         }
     }
 
+    /**
+     * Вернуть номер первой строки данных командного импорта модификаций.
+     *
+     * Шаги:
+     * 1) Пропустить строку заголовков Excel.
+     * 2) Начать обработку со второй строки.
+     */
     public function startRow(): int
     {
         return 2;
     }
 
+    /**
+     * Зарегистрировать событие завершения командного импорта модификаций.
+     *
+     * Шаги:
+     * 1) Вернуть обработчик AfterImport как сериализуемую пару «класс/метод».
+     * 2) Не использовать замыкание внутри импорта в очереди.
+     */
     public function registerEvents(): array
     {
         return [
@@ -89,8 +187,39 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
         ];
     }
 
+    /**
+     * Опубликовать доменное событие завершения командного импорта модификаций.
+     *
+     * Шаги:
+     * 1) Создать факт ModificationCommandImported.
+     * 2) Отправить его через события Laravel.
+     */
     public static function afterImport(): void
     {
         event(new ModificationCommandImported);
+    }
+
+    /**
+     * Получить сервис сохранения модификации.
+     *
+     * Шаги:
+     * 1) Вернуть уже переданный сервис, если импорт не проходил через очередь.
+     * 2) Иначе резолвить сервис из контейнера во время обработки.
+     */
+    private function service(): UpsertModificationFromRowServiceInterface
+    {
+        return $this->service ??= app(UpsertModificationFromRowServiceInterface::class);
+    }
+
+    /**
+     * Получить маппер командной строки модификации.
+     *
+     * Шаги:
+     * 1) Вернуть уже переданный маппер, если импорт не проходил через очередь.
+     * 2) Иначе резолвить маппер из контейнера во время обработки.
+     */
+    private function rowMapper(): ModificationCommandRowMapper
+    {
+        return $this->rowMapper ??= app(ModificationCommandRowMapper::class);
     }
 }

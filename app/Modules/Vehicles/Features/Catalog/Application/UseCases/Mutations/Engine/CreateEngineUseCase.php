@@ -24,7 +24,12 @@ use Throwable;
 final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты create engine workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для генерации/проверки eng_id.
+     * 2) Принять command для записи двигателя.
+     * 3) Принять cache/result сервисы для идемпотентности и публикации результата.
      */
     public function __construct(
         private EngineRepositoryInterface $engines,
@@ -50,8 +55,11 @@ final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
             return null;
         }
 
+        $engId = $request->engId ?? 0;
+
         try {
-            $existingEngine = $this->engines->findByEngId($request->engId);
+            $engId = $request->engId ?? $this->engines->nextOwnEngId();
+            $existingEngine = $this->engines->findByEngId($engId);
 
             if ($existingEngine !== null) {
                 return $this->results->rejected(
@@ -59,24 +67,26 @@ final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
                     operationId: $request->operationId,
                     entity: CatalogEntityEnum::Engine,
                     operation: CatalogMutationOperationEnum::Create,
-                    externalId: $request->engId,
+                    externalId: $engId,
                     reason: CatalogMutationRejectReasonEnum::AlreadyExists,
                 );
             }
 
             $engineData = new EngineData(
-                engId: $request->engId,
+                engId: $engId,
                 codeEngine: $request->codeEngine,
-                engPowerKwStart: $request->engPowerKwStart,
-                engPowerKwUpto: $request->engPowerKwUpto,
-                engPowerPsStart: $request->engPowerPsStart,
-                engPowerPsUpto: $request->engPowerPsUpto,
+                powerKwStart: $request->powerKwStart,
+                powerKwUpto: $request->powerKwUpto,
+                powerPsStart: $request->powerPsStart,
+                powerPsUpto: $request->powerPsUpto,
                 engineCapacity: $request->engineCapacity,
                 cylinderDiameter: $request->cylinderDiameter,
                 cylinderCount: $request->cylinderCount,
-                engNumberOfValves: $request->engNumberOfValves,
-                engFuelType: $request->engFuelType,
+                numberOfValves: $request->numberOfValves,
+                fuelType: $request->fuelType,
                 groupId: $request->groupId,
+                provider: $request->provider,
+                allowChangeFields: $request->allowChangeFields,
             );
 
             $engine = $this->command->create($engineData);
@@ -102,7 +112,7 @@ final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
                 operationId: $request->operationId,
                 entity: CatalogEntityEnum::Engine,
                 operation: CatalogMutationOperationEnum::Create,
-                externalId: $request->engId,
+                externalId: $engId,
             );
 
             throw $e;

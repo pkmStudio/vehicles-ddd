@@ -13,6 +13,11 @@ use App\Modules\Vehicles\Features\Export\Domain\ModelData\VehicleData;
  */
 final readonly class WiperExportRowDTO
 {
+    /**
+     * @param  VehicleData  $vehicle  автомобиль основной строки export sheet
+     * @param  PartSpecificationData|null  $frontSpec  specification переднего дворника
+     * @param  PartSpecificationData|null  $backSpec  specification заднего дворника
+     */
     public function __construct(
         public VehicleData $vehicle,
         public ?PartSpecificationData $frontSpec = null,

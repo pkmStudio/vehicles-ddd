@@ -13,11 +13,21 @@ interface PackDimensionCommandInterface
 {
     /**
      * Обновляет упаковочный размер по id.
+     *
+     * Шаги:
+     * 1) Найти упаковочный размер по id из DTO.
+     * 2) Обновить тип и габаритные поля.
+     * 3) Вернуть актуальный снимок PackDimensionData.
      */
     public function updateById(PackDimensionData $data): PackDimensionData;
 
     /**
      * Создаёт новый упаковочный размер.
+     *
+     * Шаги:
+     * 1) Собрать поля упаковочного размера из DTO.
+     * 2) Создать новую запись.
+     * 3) Вернуть снимок созданной PackDimensionData.
      */
     public function create(PackDimensionData $data): PackDimensionData;
 }

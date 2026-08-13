@@ -15,6 +15,11 @@ final readonly class TypeRepository implements TypeRepositoryInterface
 {
     /**
      * Возвращает тип по id или null.
+     *
+     * Шаги:
+     * 1) Собрать Eloquent query по входному признаку.
+     * 2) Получить первую подходящую запись каталога.
+     * 3) Преобразовать найденную модель в Data или вернуть null.
      */
     public function findById(int $id): ?TypeData
     {

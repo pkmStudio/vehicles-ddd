@@ -18,8 +18,6 @@ use App\Modules\Vehicles\Features\Import\Domain\Enums\VehicleImportSourceEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\Manufacturer\ManufacturerCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleUpdated;
@@ -37,6 +35,14 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
 
     private const string VEHICLE_OPERATION_ID = 'vehicles-vehicle-import';
 
+    /**
+     * Инициализирует порты сценария upsert автомобиля из ручного sheet row.
+     *
+     * Шаги:
+     * 1) Сохранить vehicle command/factory/repository зависимости.
+     * 2) Сохранить manufacturer factory/repository/command для inline-создания производителя.
+     * 3) Сохранить write policy, которая применяет provider-aware правила обновления.
+     */
     public function __construct(
         private VehicleCommandInterface $command,
         private VehicleDataFactoryInterface $factory,
@@ -48,6 +54,17 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
     ) {}
 
     /**
+     * Создает или обновляет автомобиль из строки ручного import-листа.
+     *
+     * Шаги:
+     * 1) Подготовить минимальные отрицательные ids для новых manufacturer/vehicle записей.
+     * 2) Если указан parent `ms_id` — найти parent vehicle id.
+     * 3) Разрешить или создать производителя для строки.
+     * 4) Собрать raw row array и преобразовать его в `VehicleData`.
+     * 5) Найти существующий vehicle по `ms_id`.
+     * 6) Применить provider-aware write policy.
+     * 7) Выполнить create или update через command и опубликовать event.
+     *
      * @throws ImportRowValidationException
      */
     public function upsertFromRow(VehicleSheetRowDTO $row): VehicleData
@@ -59,16 +76,6 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
             ? $this->vehicles->findByMsId($row->parentMsId)?->id
             : null;
 
-        $type = $row->type;
-        $typeCarcase = $row->typeCarcase;
-
-        // TODO: удалить после прогонки импорта и экспорта.
-        // TecDoc не даёт тип кузова для мотоциклов — подставляем безопасный дефолт,
-        // иначе падает валидатор VehicleDataFactory.
-        if (! $typeCarcase && $type === VehicleTypeEnum::MB->value) {
-            $typeCarcase = CarcaseTypeEnum::MOTORCYCLE->value;
-        }
-
         [$mfaId, $manufacturerId] = $this->resolveManufacturer($minMfaId, $row);
         $msId = $row->msId ?? --$minMsId;
 
@@ -77,7 +84,7 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
             'mfa_id' => $mfaId,
             'name' => $row->name,
             'type' => $row->type,
-            'type_carcase' => $typeCarcase,
+            'type_carcase' => $row->typeCarcase,
             'steering_type' => $row->steeringType,
             'generation' => $row->generation,
             'generation_short' => $row->generationShort,
@@ -117,6 +124,16 @@ final readonly class UpsertVehicleFromSheetService implements UpsertVehicleFromS
     }
 
     /**
+     * Разрешает производителя для строки ручного import-листа.
+     *
+     * Шаги:
+     * 1) Если `mfa_id` не указан — искать производителя по имени.
+     * 2) Если `mfa_id` указан — искать производителя по нему.
+     * 3) Если производитель не найден — назначить новый отрицательный `mfa_id`.
+     * 4) Собрать `ManufacturerData` с provider OD и создать производителя через command.
+     * 5) Опубликовать event создания производителя.
+     * 6) Вернуть пару `[mfa_id, manufacturer_id]`.
+     *
      * @return array{0: int, 1: int} [mfa_id, manufacturer_id]
      */
     private function resolveManufacturer(int &$minMfaId, VehicleSheetRowDTO $row): array

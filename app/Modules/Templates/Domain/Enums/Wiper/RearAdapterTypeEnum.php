@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Templates\Domain\Enums\Wiper;
 
-use App\Modules\Templates\Domain\Traits\EnumHelperTrait;
 use App\Modules\Templates\Domain\Contracts\EnumHelperInterface;
+use App\Modules\Templates\Domain\Traits\EnumHelperTrait;
 
 /** Тип крепления задних дворников. */
 enum RearAdapterTypeEnum: string implements EnumHelperInterface

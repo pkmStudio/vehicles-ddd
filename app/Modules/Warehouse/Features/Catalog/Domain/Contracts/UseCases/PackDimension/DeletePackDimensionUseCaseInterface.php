@@ -14,6 +14,11 @@ interface DeletePackDimensionUseCaseInterface
 {
     /**
      * Выполняет удаление упаковочного размера Warehouse.
+     *
+     * Шаги:
+     * 1) Принять DeletePackDimensionRequestDTO из boundary handler.
+     * 2) Удалить упаковочный размер с каскадной очисткой связанных комплектов.
+     * 3) Вернуть result DTO или null для повторного operation_id.
      */
     public function execute(DeletePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

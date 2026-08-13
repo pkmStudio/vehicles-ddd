@@ -22,6 +22,10 @@ final class BackfillNomenclatureIntegrationJob implements ShouldQueue
 
     /**
      * Сохраняет размер чанка backfill и выбирает очередь МойСклад.
+     * Шаги:
+     * 1) Сохранить chunk как serializable scalar.
+     * 2) Прочитать имя очереди из warehouse.moysklad config.
+     * 3) Назначить job queue с fallback moysklad.
      */
     public function __construct(
         private readonly int $chunk = 100,
@@ -31,6 +35,9 @@ final class BackfillNomenclatureIntegrationJob implements ShouldQueue
 
     /**
      * Возвращает middleware пакета МойСклад для circuit-breaker/rate-limit ошибок.
+     * Шаги:
+     * 1) Создать MoySkladJobMiddleware из внешнего пакета.
+     * 2) Вернуть middleware списком для Laravel queue worker.
      *
      * @return array<int, object>
      */
@@ -41,6 +48,9 @@ final class BackfillNomenclatureIntegrationJob implements ShouldQueue
 
     /**
      * Запускает backfill через application-сервис.
+     * Шаги:
+     * 1) Получить NomenclatureBackfillService из container при выполнении job.
+     * 2) Передать сохранённый chunk в execute().
      */
     public function handle(NomenclatureBackfillService $service): void
     {

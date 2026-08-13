@@ -9,6 +9,9 @@ use App\Modules\Applicability\Features\Export\Domain\Enums\ExportTypeEnum;
 
 final readonly class ExportCompletionNotificationDTO
 {
+    /**
+     * Описывает payload результата export workflow для внешнего consumer-а.
+     */
     public function __construct(
         public int $userId,
         public ExportCompletionStatusEnum $status,
@@ -19,6 +22,8 @@ final readonly class ExportCompletionNotificationDTO
     ) {}
 
     /**
+     * Преобразует notification DTO в wire payload RabbitMQ-события.
+     *
      * @return array{user_id: int, status: string, export_type: string, operation_id: ?string, disk: ?string, path: ?string}
      */
     public function toArray(): array

@@ -17,6 +17,18 @@ use Illuminate\Validation\ValidationException;
  */
 final readonly class ManufacturerDataFactory implements ManufacturerDataFactoryInterface
 {
+    /**
+     * Валидирует import-строку производителя и собирает typed `ManufacturerData`.
+     *
+     * Шаги:
+     * 1) Проверить identifier, название и provider через Laravel Validator.
+     * 2) Перевести validation errors в `ImportRowValidationException`.
+     * 3) Привести валидные значения к типам конструктора `ManufacturerData`.
+     *
+     * @param  array<string, mixed>  $row
+     *
+     * @throws ImportRowValidationException
+     */
     public function make(array $row): ManufacturerData
     {
         try {

@@ -16,6 +16,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class TieRodEndDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры наконечника рулевой тяги в nomenclature details template.
+     */
     public function __construct(
         #[MapName('thread_1')]
         public readonly string $thread1,

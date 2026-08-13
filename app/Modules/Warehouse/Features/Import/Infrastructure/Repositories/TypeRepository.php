@@ -17,6 +17,11 @@ final readonly class TypeRepository implements TypeRepositoryInterface
     /**
      * Возвращает все типы в стабильном порядке id.
      *
+     * Шаги:
+     * 1) Прочитать Type-модели с сортировкой по id.
+     * 2) Преобразовать Eloquent collection в Collection<TypeData>.
+     * 3) Вернуть коллекцию для резолва строк импорта.
+     *
      * @return Collection<int, TypeData>
      */
     public function all(): Collection

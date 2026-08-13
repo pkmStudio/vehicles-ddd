@@ -15,6 +15,10 @@ interface SearchVehiclesForCrmUseCaseInterface
     /**
      * Возвращает compact search options автомобилей.
      *
+     * Шаги:
+     * 1) Применить поисковую строку и limit.
+     * 2) Вернуть compact DTO для CRM autocomplete/select.
+     *
      * @return Collection<int, VehicleCrmSearchItemDTO>
      */
     public function execute(string $query, int $limit = 20): Collection;

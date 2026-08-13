@@ -21,7 +21,12 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationE
 final readonly class StartVehicleMutationUseCase implements StartVehicleMutationUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает use cases для трех поддерживаемых операций vehicle mutation.
+     *
+     * Шаги:
+     * 1) Принять create-сценарий автомобиля.
+     * 2) Принять update-сценарий автомобиля.
+     * 3) Принять delete-сценарий автомобиля.
      */
     public function __construct(
         private CreateVehicleUseCaseInterface $createVehicle,
@@ -90,7 +95,11 @@ final readonly class StartVehicleMutationUseCase implements StartVehicleMutation
     }
 
     /**
-     * Собирает DTO конкретной операции автомобилей из общего DTO или payload.
+     * Извлекает create request из общего DTO vehicle mutation.
+     *
+     * Шаги:
+     * 1) Прочитать typed request, уже собранный boundary factory.
+     * 2) Вернуть его как CreateVehicleRequestDTO для create use case.
      */
     private function createRequest(VehicleMutationRequestDTO $request): CreateVehicleRequestDTO
     {
@@ -98,7 +107,11 @@ final readonly class StartVehicleMutationUseCase implements StartVehicleMutation
     }
 
     /**
-     * Собирает DTO конкретной операции автомобилей из общего DTO или payload.
+     * Извлекает update request из общего DTO vehicle mutation.
+     *
+     * Шаги:
+     * 1) Прочитать typed request, уже собранный boundary factory.
+     * 2) Вернуть его как UpdateVehicleRequestDTO для update use case.
      */
     private function updateRequest(VehicleMutationRequestDTO $request): UpdateVehicleRequestDTO
     {

@@ -40,7 +40,7 @@ class Kit extends AbstractModel
     }
 
     /**
-     * Возвращает номенклатуру набора в порядке pivot-поля sort.
+     * Возвращает номенклатуру набора в порядке pivot-поля сортировку.
      */
     public function nomenclatures(): BelongsToMany
     {

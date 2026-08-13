@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Templates\Application\Services;
 
-use App\Modules\Templates\Application\Services\Presenters\AirFilterDetailsPresenter;
-use App\Modules\Templates\Application\Services\Presenters\OilFilterDetailsPresenter;
-use App\Modules\Templates\Application\Services\Presenters\SparkPlugDetailsPresenter;
-use App\Modules\Templates\Application\Services\Presenters\WiperDetailsPresenter;
+use App\Modules\Templates\Application\Services\Presenters\AbstractDetailsPresenter;
+use App\Modules\Templates\Application\Services\Presenters\Engine\AirFilterDetailsPresenter;
+use App\Modules\Templates\Application\Services\Presenters\Engine\OilFilterDetailsPresenter;
+use App\Modules\Templates\Application\Services\Presenters\Engine\SparkPlugDetailsPresenter;
+use App\Modules\Templates\Application\Services\Presenters\Vehicle\WiperDetailsPresenter;
 use App\Modules\Templates\Domain\Contracts\Services\DetailsDataPresenterInterface;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Templates\Domain\Enums\SparkPlug\ElectrodeGapEnum;
@@ -17,10 +18,6 @@ use App\Modules\Templates\Domain\Enums\SparkPlug\ThreadSizeEnum;
 use App\Modules\Templates\Domain\Enums\SparkPlug\WrenchJawWidthEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\FrontAdapterTypeEnum;
 use App\Modules\Templates\Domain\Enums\Wiper\RearAdapterTypeEnum;
-use App\Modules\Templates\Domain\ModelData\Engine\AirFilterDetailsData;
-use App\Modules\Templates\Domain\ModelData\Engine\OilFilterDetailsData;
-use App\Modules\Templates\Domain\ModelData\Engine\SparkPlugDetailsData;
-use App\Modules\Templates\Domain\ModelData\Vehicle\WiperDetailsData;
 
 /**
  * Selector: по `DetailTemplateEnum` выбирает презентер конкретного шаблона (`Presenters/*`, один
@@ -30,6 +27,13 @@ use App\Modules\Templates\Domain\ModelData\Vehicle\WiperDetailsData;
  */
 final readonly class DetailsDataPresenter implements DetailsDataPresenterInterface
 {
+    /**
+     * Этот конструктор принимает presenters автомобильных details-шаблонов.
+     * Шаги:
+     * 1) Сохраняет presenter каждого поддержанного `DetailTemplateEnum` в отдельное поле.
+     * 2) Использует дефолтные stateless-инстансы, потому что presenters вызываются только через
+     *    этот selector и не требуют контейнерной конфигурации.
+     */
     public function __construct(
         private WiperDetailsPresenter $wiper = new WiperDetailsPresenter,
         private SparkPlugDetailsPresenter $sparkPlugs = new SparkPlugDetailsPresenter,
@@ -44,17 +48,18 @@ final readonly class DetailsDataPresenter implements DetailsDataPresenterInterfa
      */
     public function headingsFor(DetailTemplateEnum $template): array
     {
-        return match ($template) {
-            DetailTemplateEnum::WIPER => $this->wiper->headings(),
-            DetailTemplateEnum::SPARK_PLUGS => $this->sparkPlugs->headings(),
-            DetailTemplateEnum::OIL_FILTER => $this->oilFilter->headings(),
-            DetailTemplateEnum::AIR_FILTER => $this->airFilter->headings(),
-        };
+        $presenter = $this->presenterFor($template);
+
+        return $presenter->headings();
     }
 
     /**
      * Возвращает справочники select-полей vehicle details в тех же labels, что используют
      * presenters шаблона.
+     * Шаги:
+     * 1) Для дворников возвращает справочники типов переднего и заднего крепления.
+     * 2) Для свечей возвращает справочники резьбы, электрода и ширины ключа.
+     * 3) Для шаблонов без select-полей возвращает пустой массив.
      *
      * @return array<string, list<string>>
      */
@@ -85,15 +90,34 @@ final readonly class DetailsDataPresenter implements DetailsDataPresenterInterfa
      */
     public function toExportCells(DetailTemplateEnum $template, array $details): array
     {
+        $presenter = $this->presenterFor($template);
+
+        return $presenter->cellsFromDetails($details);
+    }
+
+    /**
+     * Возвращает presenter конкретного vehicle-шаблона.
+     * Шаги:
+     * 1) Сопоставить enum шаблона с локальным presenter-ом.
+     * 2) Вернуть общий базовый тип, через который публичные методы получают headings и cells.
+     */
+    private function presenterFor(DetailTemplateEnum $template): AbstractDetailsPresenter
+    {
         return match ($template) {
-            DetailTemplateEnum::WIPER => $this->wiper->cells(WiperDetailsData::from($details)),
-            DetailTemplateEnum::SPARK_PLUGS => $this->sparkPlugs->cells(SparkPlugDetailsData::from($details)),
-            DetailTemplateEnum::OIL_FILTER => $this->oilFilter->cells(OilFilterDetailsData::from($details)),
-            DetailTemplateEnum::AIR_FILTER => $this->airFilter->cells(AirFilterDetailsData::from($details)),
+            DetailTemplateEnum::WIPER => $this->wiper,
+            DetailTemplateEnum::SPARK_PLUGS => $this->sparkPlugs,
+            DetailTemplateEnum::OIL_FILTER => $this->oilFilter,
+            DetailTemplateEnum::AIR_FILTER => $this->airFilter,
         };
     }
 
     /**
+     * Этот метод возвращает Excel-лейблы backed enum-справочника.
+     * Шаги:
+     * 1) Получает все cases enum-класса.
+     * 2) Берёт у каждого case его `value`, потому что именно value показывается в Excel.
+     * 3) Возвращает список labels в порядке объявления enum.
+     *
      * @param  class-string<\BackedEnum>  $enumClass
      * @return list<string>
      */

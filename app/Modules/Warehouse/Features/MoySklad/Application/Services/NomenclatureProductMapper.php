@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\MoySklad\Application\Services;
 
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductFolderMetaDTO;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductPayloadDTO;
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureData;
 
 /**
@@ -13,12 +15,11 @@ final readonly class NomenclatureProductMapper
 {
     /**
      * Формирует payload для create/update товара МойСклад.
-     *
-     * @param  array<string, mixed>  $productFolderMeta
-     * @return array<string, mixed>
      */
-    public function map(NomenclatureData $nomenclature, array $productFolderMeta = []): array
+    public function map(NomenclatureData $nomenclature, ?MoySkladProductFolderMetaDTO $productFolderMeta = null): MoySkladProductPayloadDTO
     {
+        $productFolderMeta ??= MoySkladProductFolderMetaDTO::empty();
+
         $descriptionParts = array_filter([
             "Номенклатура #{$nomenclature->id}",
             $nomenclature->country ? "Страна: {$nomenclature->country}" : null,
@@ -26,20 +27,15 @@ final readonly class NomenclatureProductMapper
             $nomenclature->brand?->name ? "Бренд: {$nomenclature->brand->name}" : null,
         ]);
 
-        $payload = [
-            'name' => $nomenclature->name,
-            'code' => $nomenclature->partNumber,
-            'article' => $nomenclature->partNumber,
-            'externalCode' => $this->externalCodeForNomenclatureId((int) $nomenclature->id),
-            'description' => implode('. ', $descriptionParts),
-            'weight' => max((float) $nomenclature->weight, 0),
-        ];
-
-        if ($productFolderMeta !== []) {
-            $payload['productFolder'] = $productFolderMeta;
-        }
-
-        return $payload;
+        return new MoySkladProductPayloadDTO(
+            name: $nomenclature->name,
+            code: $nomenclature->partNumber,
+            article: $nomenclature->partNumber,
+            externalCode: $this->externalCodeForNomenclatureId((int) $nomenclature->id),
+            description: implode('. ', $descriptionParts),
+            weight: max((float) $nomenclature->weight, 0),
+            productFolderMeta: $productFolderMeta,
+        );
     }
 
     /**

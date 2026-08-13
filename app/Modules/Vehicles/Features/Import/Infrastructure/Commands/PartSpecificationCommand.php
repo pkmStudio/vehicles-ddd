@@ -13,6 +13,14 @@ final readonly class PartSpecificationCommand implements PartSpecificationComman
 {
     private const array NON_WRITABLE_FIELDS = ['id'];
 
+    /**
+     * Создать part specification row через Eloquent.
+     *
+     * Шаги:
+     * 1) Преобразовать PartSpecificationData в массив writable fields.
+     * 2) Исключить локальный id.
+     * 3) Создать запись и вернуть PartSpecificationData snapshot.
+     */
     public function create(PartSpecificationData $data): PartSpecificationData
     {
         return PartSpecificationData::from(
@@ -20,6 +28,14 @@ final readonly class PartSpecificationCommand implements PartSpecificationComman
         );
     }
 
+    /**
+     * Обновить part specification row по локальному id.
+     *
+     * Шаги:
+     * 1) Найти specification по id из PartSpecificationData.
+     * 2) Обновить writable fields из PartSpecificationData.
+     * 3) Вернуть PartSpecificationData snapshot обновленной записи.
+     */
     public function update(PartSpecificationData $data): PartSpecificationData
     {
         $specification = PartSpecification::query()->findOrFail($data->id);
@@ -27,5 +43,4 @@ final readonly class PartSpecificationCommand implements PartSpecificationComman
 
         return PartSpecificationData::from($specification);
     }
-
 }

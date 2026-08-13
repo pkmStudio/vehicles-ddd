@@ -16,4 +16,5 @@ enum WarehouseCatalogMutationRejectReasonEnum: string
     case NomenclatureNotFound = 'nomenclature_not_found';
     case InvalidComposition = 'invalid_composition';
     case PackDimensionNotResolvable = 'pack_dimension_not_resolvable';
+    case ContractMismatch = 'contract_mismatch';
 }

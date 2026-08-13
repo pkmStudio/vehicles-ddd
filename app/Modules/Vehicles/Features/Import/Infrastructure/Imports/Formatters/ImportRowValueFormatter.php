@@ -6,8 +6,33 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters
 
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 
+/**
+ * Нормализует сырые значения ячеек Excel в пустые или типизированные значения для строк импорта.
+ */
 final readonly class ImportRowValueFormatter
 {
+    /**
+     * Нормализовать обязательную строковую ячейку Excel.
+     */
+    public function requiredString(string|int|float|null $value, string $field): string
+    {
+        $value = $this->nullableString($value);
+
+        if ($value === null) {
+            throw ImportRowValidationException::fromMessage("Поле {$field}: обязательно для заполнения.");
+        }
+
+        return $value;
+    }
+
+    /**
+     * Нормализовать значение ячейки Excel в строку или null.
+     *
+     * Шаги:
+     * 1) Вернуть null для отсутствующего значения ячейки.
+     * 2) Привести число или строку к строке и обрезать пробелы.
+     * 3) Вернуть null для пустой строки после trim.
+     */
     public function nullableString(string|int|float|null $value): ?string
     {
         if ($value === null) {
@@ -19,6 +44,28 @@ final readonly class ImportRowValueFormatter
         return $value === '' ? null : $value;
     }
 
+    /**
+     * Нормализовать обязательную целочисленную ячейку Excel.
+     */
+    public function requiredInt(string|int|float|null $value, string $field): int
+    {
+        $value = $this->nullableInt($value, $field);
+
+        if ($value === null) {
+            throw ImportRowValidationException::fromMessage("Поле {$field}: обязательно для заполнения.");
+        }
+
+        return $value;
+    }
+
+    /**
+     * Нормализовать значение ячейки Excel в целое число или null.
+     *
+     * Шаги:
+     * 1) Обработать null/empty string как null.
+     * 2) Принять целое число, вещественное число без дробной части или строку с цифрами.
+     * 3) Выбросить исключение валидации для неподходящего значения.
+     */
     public function nullableInt(string|int|float|null $value, string $field): ?int
     {
         if ($value === null) {
@@ -48,6 +95,14 @@ final readonly class ImportRowValueFormatter
         throw ImportRowValidationException::fromMessage("Поле {$field}: ожидалось целое число.");
     }
 
+    /**
+     * Нормализовать значение ячейки Excel в вещественное число или null.
+     *
+     * Шаги:
+     * 1) Обработать null/empty string как null.
+     * 2) Принять числовое значение или строку с числом.
+     * 3) Выбросить исключение валидации для неподходящего значения.
+     */
     public function nullableFloat(string|int|float|null $value, string $field): ?float
     {
         if ($value === null) {
@@ -73,12 +128,19 @@ final readonly class ImportRowValueFormatter
         throw ImportRowValidationException::fromMessage("Поле {$field}: ожидалось число.");
     }
 
-    public function nullableBoolFromYesNo(string|int|float|null $value, string $field): ?bool
+    /**
+     * Нормализовать значение ячейки Excel «Да/Нет» в булево значение.
+     *
+     * Шаги:
+     * 1) Сначала нормализовать значение ячейки как строку или null.
+     * 2) Сопоставить «Да» и «Нет» с булевыми значениями.
+     * 3) Выбросить исключение валидации для пустого или другого непустого значения.
+     */
+    public function boolFromYesNo(string|int|float|null $value, string $field): bool
     {
         $value = $this->nullableString($value);
 
         return match ($value) {
-            null => null,
             'Да' => true,
             'Нет' => false,
             default => throw ImportRowValidationException::fromMessage("Поле {$field}: ожидалось значение Да/Нет."),

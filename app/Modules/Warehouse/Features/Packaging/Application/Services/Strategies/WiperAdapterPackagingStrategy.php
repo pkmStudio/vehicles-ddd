@@ -19,6 +19,9 @@ final readonly class WiperAdapterPackagingStrategy implements PackagingStrategyI
 {
     /**
      * Проверяет, что стратегия применима к detail-шаблону адаптеров щёток.
+     * Шаги:
+     * 1) Принять resolved detail template warehouse type.
+     * 2) Сравнить template с WIPER_ADAPTER.
      */
     public function supports(?NomenclatureDetailTemplateEnum $template): bool
     {
@@ -27,6 +30,10 @@ final readonly class WiperAdapterPackagingStrategy implements PackagingStrategyI
 
     /**
      * Этот метод возвращает первую доступную коробку адаптеров.
+     * Шаги:
+     * 1) Принять тип, состав и список существующих упаковок.
+     * 2) Не выполнять расчёт габаритов, потому что адаптеры используют универсальную коробку.
+     * 3) Вернуть первую доступную упаковку для типа адаптеров.
      *
      * @param  array<int, NomenclatureData>  $nomenclatures
      * @param  Collection<int, PackDimensionData>  $packDimensions

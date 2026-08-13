@@ -14,6 +14,11 @@ interface StartBrandMutationUseCaseInterface
 {
     /**
      * Запускает сценарий мутации Warehouse-бренда.
+     *
+     * Шаги:
+     * 1) Принять общий BrandMutationRequestDTO.
+     * 2) Выбрать create/update/delete сценарий по operation.
+     * 3) Вернуть result DTO выбранного сценария или null для повтора.
      */
     public function execute(BrandMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

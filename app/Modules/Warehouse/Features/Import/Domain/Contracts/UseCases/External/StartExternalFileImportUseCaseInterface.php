@@ -13,6 +13,11 @@ interface StartExternalFileImportUseCaseInterface
 {
     /**
      * Выполняет сценарий импорта по валидированному DTO запроса.
+     *
+     * Шаги:
+     * 1) Принять внешний DTO RabbitMQ import request.
+     * 2) Проверить идемпотентность operationId.
+     * 3) Выбрать импортный adapter по типу и запустить Excel import.
      */
     public function execute(ExternalImportFileRequestDTO $request): void;
 }

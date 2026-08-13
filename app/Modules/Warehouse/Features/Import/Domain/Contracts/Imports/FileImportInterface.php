@@ -14,6 +14,11 @@ interface FileImportInterface
 {
     /**
      * Импортирует файл на $disk в рамках прогона, описанного $context.
+     *
+     * Шаги:
+     * 1) Принять путь файла, контекст запуска и optional Storage disk.
+     * 2) Подготовить adapter к конкретному прогону импорта.
+     * 3) Передать файл Laravel Excel для чтения/очереди.
      */
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void;
 }

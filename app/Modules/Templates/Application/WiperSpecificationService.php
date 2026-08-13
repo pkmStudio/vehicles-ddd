@@ -20,6 +20,10 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
 {
     /**
      * Получает optional PSR logger для предупреждений о нарушениях инвариантов.
+     * Шаги:
+     * 1) Сохраняет logger, если он передан контейнером.
+     * 2) Оставляет null допустимым значением, чтобы сервис мог работать как чистый
+     *    array-transformer без обязательной инфраструктурной зависимости.
      */
     public function __construct(
         private ?LoggerInterface $logger = null,
@@ -27,6 +31,11 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
 
     /**
      * Сторона по корневым ключам: front / back / null (нет данных либо присутствуют обе).
+     * Шаги:
+     * 1) Проверяет наличие корневых ключей `front` и `back`.
+     * 2) Возвращает `front`, если есть только передняя сторона.
+     * 3) Возвращает `back`, если есть только задняя сторона.
+     * 4) Возвращает null для пустой, неизвестной или legacy-смешанной структуры.
      *
      * @param  array<string, mixed>  $details
      */
@@ -48,6 +57,10 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
 
     /**
      * Данные одной стороны (или пустой массив).
+     * Шаги:
+     * 1) Валидирует строку стороны через `WiperSideEnum`.
+     * 2) Забирает payload выбранного корневого ключа.
+     * 3) Возвращает payload только если это массив; иначе возвращает пустой массив.
      *
      * @param  array<string, mixed>  $details
      */
@@ -65,32 +78,23 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
     }
 
     /**
-     * Нормализует значение адаптера к массиву уникальных непустых строк-кодов.
+     * Нормализует массив адаптеров к массиву уникальных непустых строк-кодов.
+     * Шаги:
+     * 1) Отбрасывает null/пустую строку.
+     * 2) Приводит значения к string и удаляет дубли.
+     * 3) Переиндексирует список.
      *
+     * @param  array<int, string|null>  $value
      * @return array<int, string>
      */
-    private function normalizeAdapters(mixed $value): array
+    private function normalizeAdapters(array $value): array
     {
-        if (is_array($value)) {
-            $isFilledAdapter = static fn ($item) => $item !== null && $item !== '';
-            $toAdapterString = static fn ($item) => (string) $item;
+        $isFilledAdapter = static fn (?string $item) => $item !== null && $item !== '';
+        $toAdapterString = static fn (string $item) => $item;
 
-            $adapters = array_filter($value, $isFilledAdapter);
+        $adapters = array_filter($value, $isFilledAdapter);
 
-            return array_values(array_unique(array_map($toAdapterString, $adapters)));
-        }
-
-        if (is_string($value)) {
-            $trimmed = trim($value);
-
-            return $trimmed === '' ? [] : [$trimmed];
-        }
-
-        if (is_int($value) || is_float($value) || is_bool($value)) {
-            return [(string) $value];
-        }
-
-        return [];
+        return array_values(array_unique(array_map($toAdapterString, $adapters)));
     }
 
     /**
@@ -101,7 +105,7 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
      * 2. Логирует предупреждение, если кодов больше одного.
      * 3. Возвращает нормализованный массив без потери данных.
      */
-    private function normalizeVehicleAdapters(?int $partSpecificationId, string $side, mixed $rawAdapters): array
+    private function normalizeVehicleAdapters(?int $partSpecificationId, string $side, array $rawAdapters): array
     {
         $adapters = $this->normalizeAdapters($rawAdapters);
 
@@ -165,6 +169,10 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
     /**
      * Оставляет в структуре деталей только выбранную сторону: `[side => sideData]`.
      * Для неизвестной стороны возвращает исходные данные без изменений.
+     * Шаги:
+     * 1) Если сторона null или неизвестна enum-у — возвращает исходный details-массив.
+     * 2) Иначе извлекает данные выбранной стороны через `sideData()`.
+     * 3) Возвращает структуру с единственным корневым ключом этой стороны.
      *
      * @param  array<string, mixed>  $details
      * @return array<string, mixed>
@@ -184,6 +192,11 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
      * Разбивает details на стороны. Для каждой присутствующей стороны с данными — нормализованные
      * детали. Если в одной стороне несколько кодов адаптера — разворачивает в несколько вариантов
      * (по одному коду на запись).
+     * Шаги:
+     * 1) Проходит по поддержанным сторонам `front`/`back`.
+     * 2) Пропускает сторону без данных.
+     * 3) Разворачивает сторону по адаптерам через `expandByAdapters()`.
+     * 4) Возвращает список структур с одним корневым ключом details на вариант.
      *
      * @param  array<string, mixed>  $details
      * @return array<int, array{side: string, details: array<string, mixed>}>
@@ -243,6 +256,11 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
 
     /**
      * Склеивает раздельные стороны обратно в `{front, back}` для экспорта (старый формат).
+     * Шаги:
+     * 1) Создаёт пустой details-массив.
+     * 2) Добавляет `front`, только если передние данные не пустые.
+     * 3) Добавляет `back`, только если задние данные не пустые.
+     * 4) Возвращает legacy-структуру для export presenter-а.
      *
      * @param  array<string, mixed>  $frontData
      * @param  array<string, mixed>  $backData
@@ -264,6 +282,13 @@ final readonly class WiperSpecificationService implements WiperSpecificationServ
     }
 
     /**
+     * Этот метод разворачивает side-details с несколькими адаптерами в варианты по одному
+     * адаптеру.
+     * Шаги:
+     * 1) Нормализует значение adapter-поля в массив кодов.
+     * 2) Если адаптеров 0 или 1 — возвращает один вариант с нормализованным массивом адаптеров.
+     * 3) Если адаптеров несколько — создаёт отдельный вариант на каждый код.
+     *
      * @param  array<string, mixed>  $sideDetails
      * @return array<int, array<string, mixed>>
      */

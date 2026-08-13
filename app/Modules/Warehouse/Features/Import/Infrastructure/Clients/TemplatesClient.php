@@ -10,10 +10,28 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\TemplatesClie
 
 final readonly class TemplatesClient implements TemplatesClientInterface
 {
+    /**
+     * Получает public Templates client для сборки details.
+     *
+     * Шаги:
+     * 1) Принять shared-kernel Templates client.
+     * 2) Сохранить его внутри adapter'а Import-фичи.
+     */
     public function __construct(
         private TemplatesPublicClientInterface $templates,
     ) {}
 
+    /**
+     * Делегирует сборку details номенклатуры в Templates.
+     *
+     * Шаги:
+     * 1) Принять локальный enum шаблона, строку Excel и стартовую колонку.
+     * 2) Передать scalar template value в public Templates client.
+     * 3) Вернуть собранный массив details для записи номенклатуры.
+     *
+     * @param  array<int, mixed>  $row
+     * @return array<string, mixed>
+     */
     public function buildNomenclatureDetails(
         NomenclatureDetailTemplateEnum $template,
         array $row,

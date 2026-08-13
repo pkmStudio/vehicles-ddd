@@ -15,6 +15,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class VehicleData extends Data
 {
+    /**
+     * Фиксирует данные vehicle после нормализации import row.
+     */
     public function __construct(
         public readonly int $msId,
         public readonly int $mfaId,
@@ -24,8 +27,8 @@ final class VehicleData extends Data
         public readonly SteeringTypeEnum $steeringType,
         public readonly CarcaseTypeEnum $typeCarcase,
         public readonly ProviderEnum $provider,
-        public readonly ?string $generation = null,
-        public readonly ?int $generationYearFrom = null,
+        public readonly string $generation,
+        public readonly int $generationYearFrom,
         public readonly ?int $generationYearTo = null,
         public readonly ?int $parentId = null,
         public readonly ?int $parentMsId = null,

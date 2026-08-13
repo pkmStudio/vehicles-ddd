@@ -1,45 +1,79 @@
 <?php
 
+use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\EngineCrmController;
+use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\ManufacturerCrmController;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\VehicleCatalogController;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\VehicleCrmController;
+use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\BrandCrmController;
+use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\KitCrmController;
 use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\NomenclatureCatalogController;
 use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\NomenclatureCrmController;
+use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\PackDimensionCrmController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
-    Route::prefix('catalog')->group(function (): void {
-        Route::get('manufacturers', [VehicleCatalogController::class, 'manufacturers']);
-        Route::get('manufacturers/{manufacturer}/vehicles', [VehicleCatalogController::class, 'vehicles'])
-            ->whereNumber('manufacturer');
-        Route::get('vehicles/{vehicle}/modifications', [VehicleCatalogController::class, 'modifications'])
-            ->whereNumber('vehicle');
-        Route::get('modifications/{modification}', [VehicleCatalogController::class, 'showModification'])
-            ->whereNumber('modification');
-        Route::get('categories', [NomenclatureCatalogController::class, 'categories']);
-        Route::get('categories/{category}/nomenclatures', [NomenclatureCatalogController::class, 'nomenclatures'])
-            ->whereNumber('category');
-        Route::get('search', [NomenclatureCatalogController::class, 'search']);
-        Route::get('nomenclatures/{partNumber}', [NomenclatureCatalogController::class, 'show'])
-            ->where('partNumber', '.*');
-    });
-
-    Route::prefix('crm')->group(function (): void {
-        Route::prefix('vehicles')->group(function (): void {
-            Route::get('options/features', [VehicleCrmController::class, 'features']);
-            Route::get('options/feature-values', [VehicleCrmController::class, 'featureValues']);
-            Route::get('options/detail-templates', [VehicleCrmController::class, 'detailTemplates']);
-            Route::get('options/manufacturers', [VehicleCrmController::class, 'manufacturers']);
-            Route::get('search', [VehicleCrmController::class, 'search']);
-            Route::get('{id}', [VehicleCrmController::class, 'show'])->whereNumber('id');
-            Route::get('/', [VehicleCrmController::class, 'index']);
+    Route::prefix('catalog')
+        ->middleware('service.key:services.dan_catalog.read_api_key')
+        ->group(function (): void {
+            Route::get('manufacturers', [VehicleCatalogController::class, 'manufacturers']);
+            Route::get('manufacturers/{manufacturer}/vehicles', [VehicleCatalogController::class, 'vehicles'])
+                ->whereNumber('manufacturer');
+            Route::get('vehicles/{vehicle}/modifications', [VehicleCatalogController::class, 'modifications'])
+                ->whereNumber('vehicle');
+            Route::get('modifications/{modification}', [VehicleCatalogController::class, 'showModification'])
+                ->whereNumber('modification');
+            Route::get('categories', [NomenclatureCatalogController::class, 'categories']);
+            Route::get('categories/{category}/nomenclatures', [NomenclatureCatalogController::class, 'nomenclatures'])
+                ->whereNumber('category');
+            Route::get('search', [NomenclatureCatalogController::class, 'search']);
+            Route::get('nomenclatures/{partNumber}', [NomenclatureCatalogController::class, 'show'])
+                ->where('partNumber', '.*');
         });
 
-        Route::prefix('warehouse/nomenclatures')->group(function (): void {
-            Route::get('options/types', [NomenclatureCrmController::class, 'types']);
-            Route::get('options/brands', [NomenclatureCrmController::class, 'brands']);
-            Route::get('search', [NomenclatureCrmController::class, 'search']);
-            Route::get('{id}', [NomenclatureCrmController::class, 'show'])->whereNumber('id');
-            Route::get('/', [NomenclatureCrmController::class, 'index']);
+    Route::prefix('crm')
+        ->middleware('service.key:services.dan_vehicles.read_api_key')
+        ->group(function (): void {
+            Route::prefix('vehicles')->group(function (): void {
+                Route::get('options/features', [VehicleCrmController::class, 'features']);
+                Route::get('options/feature-values', [VehicleCrmController::class, 'featureValues']);
+                Route::get('options/detail-templates', [VehicleCrmController::class, 'detailTemplates']);
+                Route::get('engines/{id}', [EngineCrmController::class, 'show'])->whereNumber('id');
+                Route::get('engines', [EngineCrmController::class, 'index']);
+                Route::get('manufacturers/{id}', [ManufacturerCrmController::class, 'show'])->whereNumber('id');
+                Route::get('manufacturers', [ManufacturerCrmController::class, 'index']);
+                Route::get('search', [VehicleCrmController::class, 'search']);
+                Route::get('{id}/modifications', [VehicleCrmController::class, 'modifications'])->whereNumber('id');
+                Route::get('{id}/engines', [EngineCrmController::class, 'forVehicle'])->whereNumber('id');
+                Route::get('{id}/part-specifications', [VehicleCrmController::class, 'partSpecifications'])->whereNumber('id');
+                Route::get('{id}', [VehicleCrmController::class, 'show'])->whereNumber('id');
+                Route::get('/', [VehicleCrmController::class, 'index']);
+            });
+
+            Route::prefix('warehouse/nomenclatures')->group(function (): void {
+                Route::get('options/types', [NomenclatureCrmController::class, 'types']);
+                Route::get('options/brands', [NomenclatureCrmController::class, 'brands']);
+                Route::get('search', [NomenclatureCrmController::class, 'search']);
+                Route::get('{id}', [NomenclatureCrmController::class, 'show'])->whereNumber('id');
+                Route::get('/', [NomenclatureCrmController::class, 'index']);
+            });
+
+            Route::prefix('warehouse/brands')->group(function (): void {
+                Route::get('{id}', [BrandCrmController::class, 'show'])->whereNumber('id');
+                Route::get('/', [BrandCrmController::class, 'index']);
+            });
+
+            Route::prefix('warehouse/kits')->group(function (): void {
+                Route::get('options/nomenclatures', [KitCrmController::class, 'nomenclatures']);
+                Route::get('options/pack-dimensions', [KitCrmController::class, 'packDimensions']);
+                Route::get('options/types', [KitCrmController::class, 'types']);
+                Route::get('{id}', [KitCrmController::class, 'show'])->whereNumber('id');
+                Route::get('/', [KitCrmController::class, 'index']);
+            });
+
+            Route::prefix('warehouse/pack-dimensions')->group(function (): void {
+                Route::get('options/types', [PackDimensionCrmController::class, 'types']);
+                Route::get('{id}', [PackDimensionCrmController::class, 'show'])->whereNumber('id');
+                Route::get('/', [PackDimensionCrmController::class, 'index']);
+            });
         });
-    });
 });

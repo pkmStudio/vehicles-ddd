@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\E
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogCascadeDeleteServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\DeleteEngineUseCaseInterface;
@@ -23,11 +24,17 @@ use Throwable;
 final readonly class DeleteEngineUseCase implements DeleteEngineUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты delete engine workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для поиска двигателя по eng_id.
+     * 2) Принять cascade service для удаления engine dependencies перед engine delete.
+     * 3) Принять command/cache/result сервисы для записи, идемпотентности и result event.
      */
     public function __construct(
         private EngineRepositoryInterface $engines,
         private EngineCommandInterface $command,
+        private CatalogCascadeDeleteServiceInterface $cascade,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
     ) {}
@@ -62,6 +69,7 @@ final readonly class DeleteEngineUseCase implements DeleteEngineUseCaseInterface
                 );
             }
 
+            $this->cascade->deleteEngineDependencies((int) $engine->id);
             $this->command->deleteByEngId($request->engId);
             event(new EngineDeleted(
                 userId: $request->userId,

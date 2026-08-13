@@ -19,6 +19,13 @@ final readonly class ImportFailureReporter implements ImportFailureReporterInter
      * Этот метод сохраняет failures в CSV, если они есть, и возвращает путь к файлу.
      * Имя файла содержит $type->value — чтобы по пути было сразу видно, из какого импорта отчёт.
      *
+     * Шаги:
+     * 1) Вернуть null, если failures пустые.
+     * 2) Собрать имя CSV-файла из типа импорта и текущего времени.
+     * 3) Получить disk отчётов из warehouse config.
+     * 4) Создать FailuresExport через container с failures и type.
+     * 5) Сохранить CSV через Laravel Excel и вернуть путь.
+     *
      * @param  array<int, array{row: int, attribute: string, errors: array<int, string>, values: mixed}>  $failures
      */
     public function store(array $failures, ImportTypeEnum $type): ?string

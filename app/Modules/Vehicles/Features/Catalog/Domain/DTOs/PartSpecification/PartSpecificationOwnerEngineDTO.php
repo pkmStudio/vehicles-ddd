@@ -16,15 +16,15 @@ final readonly class PartSpecificationOwnerEngineDTO
      */
     public function __construct(
         public ?string $codeEngine = null,
-        public ?int $engPowerKwStart = null,
-        public ?int $engPowerKwUpto = null,
-        public ?int $engPowerPsStart = null,
-        public ?int $engPowerPsUpto = null,
+        public ?int $powerKwStart = null,
+        public ?int $powerKwUpto = null,
+        public ?int $powerPsStart = null,
+        public ?int $powerPsUpto = null,
         public ?string $engineCapacity = null,
         public ?float $cylinderDiameter = null,
         public ?int $cylinderCount = null,
-        public ?int $engNumberOfValves = null,
-        public ?EngineFuelTypeEnum $engFuelType = null,
+        public ?int $numberOfValves = null,
+        public ?EngineFuelTypeEnum $fuelType = null,
         public ?int $groupId = null,
     ) {}
 }

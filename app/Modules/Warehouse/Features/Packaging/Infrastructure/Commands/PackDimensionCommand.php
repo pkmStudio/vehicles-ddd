@@ -16,6 +16,10 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
 {
     /**
      * Создаёт новый упаковочный размер и возвращает сохранённую запись.
+     * Шаги:
+     * 1) Преобразовать PackDimensionData в array и исключить id.
+     * 2) Создать PackDimension через Eloquent feature-local model.
+     * 3) Вернуть PackDimensionData из сохранённой модели.
      */
     public function create(PackDimensionData $data): PackDimensionData
     {

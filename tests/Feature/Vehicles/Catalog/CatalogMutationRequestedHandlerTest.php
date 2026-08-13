@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutat
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
+use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationStatusEnum;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\EngineMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\ManufacturerMutationRequestedHandler;
@@ -24,6 +25,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Results\DTO\CatalogMutationCompleted as WireCatalogMutationCompleted;
 use Tests\TestCase;
 
 final class CatalogMutationRequestedHandlerTest extends TestCase
@@ -42,6 +44,33 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
         Cache::flush();
 
         parent::tearDown();
+    }
+
+    public function test_catalog_mutation_result_matches_published_wire_contract(): void
+    {
+        $result = new CatalogMutationResultDTO(
+            userId: 42,
+            operationId: 'vehicles-result-wire-contract',
+            entity: CatalogEntityEnum::Vehicle,
+            operation: CatalogMutationOperationEnum::Create,
+            status: CatalogMutationStatusEnum::Completed,
+            externalId: 501,
+            recordId: 1001,
+            errors: [],
+        );
+
+        $wirePayload = WireCatalogMutationCompleted::fromArray($result->toArray())->toArray();
+
+        self::assertSame([
+            'user_id' => 42,
+            'operation_id' => 'vehicles-result-wire-contract',
+            'entity' => 'vehicle',
+            'operation' => 'create',
+            'status' => 'completed',
+            'external_id' => 501,
+            'record_id' => 1001,
+            'errors' => [],
+        ], $wirePayload);
     }
 
     public function test_manufacturer_create_update_and_delete_messages(): void
@@ -277,6 +306,41 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseHas('engines', ['id' => $engine->id]);
     }
 
+    public function test_modification_create_rejects_unknown_nested_engine_without_creating_it(): void
+    {
+        $manufacturer = $this->createManufacturer(105);
+        $vehicle = $this->createVehicle(605, $manufacturer);
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Modification
+                && $result->operation === CatalogMutationOperationEnum::Create
+                && $result->status === CatalogMutationStatusEnum::Rejected
+                && $result->reason === CatalogMutationRejectReasonEnum::NotFound->value));
+
+        app(ModificationMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'modification-create-unknown-engine-1',
+            'operation' => 'create',
+            'modification' => [
+                'mod_id' => 4003,
+                'ms_id' => $vehicle->ms_id,
+                'type' => VehicleTypeEnum::PC->value,
+                'description' => '1.4 TSI',
+                'engines' => [
+                    [
+                        'eng_id' => 999999,
+                        'code_engine' => 'NEW',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertDatabaseMissing('engines', ['eng_id' => 999999]);
+        $this->assertDatabaseMissing('modifications', ['mod_id' => 4003]);
+    }
+
     public function test_catalog_mutation_events_have_unique_names_and_handlers(): void
     {
         $this->assertSame([ManufacturerMutationRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.MANUFACTURER_CREATE_REQUESTED'));
@@ -307,6 +371,8 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             'mfa_id' => $manufacturer->mfa_id,
             'ms_id' => $msId,
             'name' => 'Octavia',
+            'generation' => 'III',
+            'generation_year_from' => 2013,
             'type' => VehicleTypeEnum::PC->value,
             'type_carcase' => CarcaseTypeEnum::HATCHBACK->value,
             'provider' => ProviderEnum::OD->value,

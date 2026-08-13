@@ -65,6 +65,7 @@ plans/               # Исторические и рабочие планы р�
 | AI Factory описание | `.ai-factory/DESCRIPTION.md` | Сводка проекта, стека, модулей и интеграций для AI-агентов. |
 | AI Factory архитектура | `.ai-factory/ARCHITECTURE.md` | Краткие рабочие правила архитектуры для AI Factory workflow. |
 | Базовые правила | `.ai-factory/rules/base.md` | Автоматически определенные conventions проекта. |
+| Менеджерские инструкции | `managment/` | Инструкции по работе в Filament, импортам и экспортам. |
 
 ## AI Context Files
 

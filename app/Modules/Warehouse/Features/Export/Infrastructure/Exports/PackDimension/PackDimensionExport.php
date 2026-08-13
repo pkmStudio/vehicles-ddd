@@ -18,12 +18,25 @@ use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
  */
 final readonly class PackDimensionExport implements PackDimensionExportInterface, WithMultipleSheets
 {
+    /**
+     * Получает сервис подготовки данных упаковочных размеров.
+     *
+     * Шаги:
+     * 1) Принять application-сервис с данными основного и справочного листов.
+     * 2) Сохранить сервис для сборки sheets().
+     */
     public function __construct(
         private PackDimensionExportServiceInterface $exportService,
     ) {}
 
     /**
      * Сохраняет xlsx-файл упаковок на Storage disk и возвращает путь.
+     *
+     * Шаги:
+     * 1) Определить disk из аргумента или warehouse export config.
+     * 2) Собрать путь файла с operationId из контекста запуска.
+     * 3) Сохранить текущий multi-sheet export через Laravel Excel.
+     * 4) Вернуть относительный путь созданного файла.
      */
     public function export(ExportRunContextDTO $context, ?string $disk = null): string
     {
@@ -48,6 +61,13 @@ final readonly class PackDimensionExport implements PackDimensionExportInterface
     }
 
     /**
+     * Собирает лист данных упаковок и справочный лист типов.
+     *
+     * Шаги:
+     * 1) Получить data sheet через контейнер, чтобы зависимости остались в DI.
+     * 2) Создать reference sheet с типами из application-сервиса.
+     * 3) Вернуть листы в порядке отображения в workbook.
+     *
      * @return array<int, object>
      */
     public function sheets(): array

@@ -23,25 +23,81 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
 {
     use CachesImportFailures;
 
+    private ?UpsertEngineFromSheetServiceInterface $service = null;
+
+    private ?EngineMainSheetRowMapper $rowMapper = null;
+
+    /**
+     * Получить ключи отчёта ошибок для основного листа двигателей.
+     *
+     * Шаги:
+     * 1) Принять ключ списка ошибок и ключ блокировки от многостраничного адаптера.
+     * 2) Сохранить их в trait, чтобы ошибки всех листов попадали в один отчёт запуска.
+     */
     public function __construct(
         string $cacheKey,
         string $lockKey,
-        private readonly UpsertEngineFromSheetServiceInterface $service,
-        private readonly EngineMainSheetRowMapper $rowMapper,
     ) {
         $this->cacheKey = $cacheKey;
         $this->lockKey = $lockKey;
     }
 
+    /**
+     * Подготовить сериализуемое состояние листа двигателей для очереди.
+     *
+     * Шаги:
+     * 1) Сохранить только ключ списка ошибок.
+     * 2) Сохранить только ключ блокировки списка ошибок.
+     * 3) Не сериализовать сервисы и мапперы.
+     *
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [
+            'cacheKey' => $this->cacheKey,
+            'lockKey' => $this->lockKey,
+        ];
+    }
+
+    /**
+     * Восстановить состояние листа двигателей после очереди.
+     *
+     * Шаги:
+     * 1) Вернуть ключ списка ошибок из сериализованных данных.
+     * 2) Вернуть ключ блокировки списка ошибок.
+     * 3) Сбросить runtime-зависимости для последующего резолва из контейнера.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->cacheKey = (string) $data['cacheKey'];
+        $this->lockKey = (string) $data['lockKey'];
+        $this->service = null;
+        $this->rowMapper = null;
+    }
+
+    /**
+     * Обработать пачку строк основного листа двигателей.
+     *
+     * Шаги:
+     * 1) Лениво получить маппер строки и сервис сохранения после восстановления queued job.
+     * 2) Для каждой строки собрать DTO и сохранить двигатель внутри транзакции.
+     * 3) Записать ошибку в cache-отчёт, если строка не прошла import validation.
+     */
     public function collection(Collection $collection): void
     {
+        $rowMapper = $this->rowMapper();
+        $service = $this->service();
+
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
             try {
-                DB::transaction(function () use ($rowValues): void {
-                    $engineRow = $this->rowMapper->map($rowValues);
+                DB::transaction(function () use ($rowMapper, $rowValues, $service): void {
+                    $engineRow = $rowMapper->map($rowValues);
 
-                    $this->service->upsertFromRow($engineRow);
+                    $service->upsertFromRow($engineRow);
                 });
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(
@@ -56,8 +112,39 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
         }
     }
 
+    /**
+     * Вернуть номер первой строки с данными на основном листе двигателей.
+     *
+     * Шаги:
+     * 1) Пропустить строку заголовков Excel.
+     * 2) Начать обработку со второй строки.
+     */
     public function startRow(): int
     {
         return 2;
+    }
+
+    /**
+     * Получить сервис сохранения двигателя из строки листа.
+     *
+     * Шаги:
+     * 1) Резолвить сервис из контейнера во время обработки queued job.
+     * 2) Не хранить dependency graph в сериализованном Excel-адаптере.
+     */
+    private function service(): UpsertEngineFromSheetServiceInterface
+    {
+        return $this->service ??= app(UpsertEngineFromSheetServiceInterface::class);
+    }
+
+    /**
+     * Получить маппер основного листа двигателей.
+     *
+     * Шаги:
+     * 1) Резолвить маппер из контейнера во время обработки queued job.
+     * 2) Использовать его для перевода сырых ячеек в DTO строки.
+     */
+    private function rowMapper(): EngineMainSheetRowMapper
+    {
+        return $this->rowMapper ??= app(EngineMainSheetRowMapper::class);
     }
 }

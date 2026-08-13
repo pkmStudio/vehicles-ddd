@@ -49,7 +49,13 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Собирает request DTO для создания part specification из валидированного catalog payload.
+     *
+     * Шаги:
+     * 1) Извлечь вложенный payload спецификации из сообщения.
+     * 2) Собрать owner DTO с vehicle/engine контекстом.
+     * 3) Привести template и необязательные поля спецификации к локальным типам.
+     * 4) Вернуть request DTO create-сценария с user/operation correlation.
      *
      * @param  array<string, mixed>  $payload
      */
@@ -71,7 +77,13 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Собирает request DTO для обновления существующей part specification.
+     *
+     * Шаги:
+     * 1) Извлечь вложенный payload спецификации и обязательный id записи.
+     * 2) Собрать owner DTO, потому что update может переназначать владельца.
+     * 3) Привести template/details и необязательные descriptive-поля к локальным типам.
+     * 4) Вернуть request DTO update-сценария с user/operation correlation.
      *
      * @param  array<string, mixed>  $payload
      */
@@ -93,7 +105,12 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Собирает request DTO для удаления part specification.
+     *
+     * Шаги:
+     * 1) Взять user/operation correlation из верхнего уровня payload.
+     * 2) Взять id удаляемой спецификации из вложенного part_specification payload.
+     * 3) Вернуть DTO delete-сценария без данных владельца и details.
      *
      * @param  array<string, mixed>  $payload
      */
@@ -108,6 +125,12 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
 
     /**
      * Собирает владельца спеки из payload.
+     *
+     * Шаги:
+     * 1) Извлечь owner payload и определить partable type.
+     * 2) Записать внешний id владельца в общий owner DTO.
+     * 3) Для vehicle owner собрать vehicle snapshot, если он передан и тип совпадает.
+     * 4) Для engine owner собрать engine snapshot, если он передан и тип совпадает.
      *
      * @param  array<string, mixed>  $specification
      */
@@ -129,7 +152,12 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
     }
 
     /**
-     * Собирает payload автомобиля-владельца спеки.
+     * Собирает typed snapshot автомобиля-владельца part specification.
+     *
+     * Шаги:
+     * 1) Привести обязательные поля mfa_id, name, type и type_carcase к локальным типам.
+     * 2) Подставить значения provider/steering по умолчанию, если payload их не содержит.
+     * 3) Нормализовать обязательные generation/year_from и optional excel/year_to/is_allow поля.
      *
      * @param  array<string, mixed>  $vehicle
      */
@@ -144,19 +172,25 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
             steeringType: isset($vehicle['steering_type'])
                 ? SteeringTypeEnum::from((string) $vehicle['steering_type'])
                 : SteeringTypeEnum::LEFT,
+            generation: (string) $vehicle['generation'],
+            generationYearFrom: (int) $vehicle['generation_year_from'],
             parentMsId: isset($vehicle['parent_ms_id']) ? (int) $vehicle['parent_ms_id'] : null,
-            generation: isset($vehicle['generation']) ? (string) $vehicle['generation'] : null,
             generationShort: isset($vehicle['generation_short']) ? (string) $vehicle['generation_short'] : null,
             localizedName: isset($vehicle['localized_name']) ? (string) $vehicle['localized_name'] : null,
             excelTableId: isset($vehicle['excel_table_id']) ? (string) $vehicle['excel_table_id'] : null,
-            generationYearFrom: isset($vehicle['generation_year_from']) ? (int) $vehicle['generation_year_from'] : null,
             generationYearTo: isset($vehicle['generation_year_to']) ? (int) $vehicle['generation_year_to'] : null,
             isAllow: (bool) ($vehicle['is_allow'] ?? false),
         );
     }
 
     /**
-     * Собирает payload двигателя-владельца спеки.
+     * Собирает typed snapshot двигателя-владельца part specification.
+     *
+     * Шаги:
+     * 1) Прочитать optional engine attributes из owner payload.
+     * 2) Привести числовые мощность, объем, цилиндры и group id к нужным scalar-типам.
+     * 3) Преобразовать fuel_type в enum, если он передан.
+     * 4) Вернуть DTO, пригодный для поиска или создания engine owner.
      *
      * @param  array<string, mixed>  $engine
      */
@@ -164,15 +198,15 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
     {
         return new PartSpecificationOwnerEngineDTO(
             codeEngine: isset($engine['code_engine']) ? (string) $engine['code_engine'] : null,
-            engPowerKwStart: isset($engine['eng_power_kw_start']) ? (int) $engine['eng_power_kw_start'] : null,
-            engPowerKwUpto: isset($engine['eng_power_kw_upto']) ? (int) $engine['eng_power_kw_upto'] : null,
-            engPowerPsStart: isset($engine['eng_power_ps_start']) ? (int) $engine['eng_power_ps_start'] : null,
-            engPowerPsUpto: isset($engine['eng_power_ps_upto']) ? (int) $engine['eng_power_ps_upto'] : null,
+            powerKwStart: isset($engine['power_kw_start']) ? (int) $engine['power_kw_start'] : null,
+            powerKwUpto: isset($engine['power_kw_upto']) ? (int) $engine['power_kw_upto'] : null,
+            powerPsStart: isset($engine['power_ps_start']) ? (int) $engine['power_ps_start'] : null,
+            powerPsUpto: isset($engine['power_ps_upto']) ? (int) $engine['power_ps_upto'] : null,
             engineCapacity: isset($engine['engine_capacity']) ? (string) $engine['engine_capacity'] : null,
             cylinderDiameter: isset($engine['cylinder_diameter']) ? (float) $engine['cylinder_diameter'] : null,
             cylinderCount: isset($engine['cylinder_count']) ? (int) $engine['cylinder_count'] : null,
-            engNumberOfValves: isset($engine['eng_number_of_valves']) ? (int) $engine['eng_number_of_valves'] : null,
-            engFuelType: isset($engine['eng_fuel_type']) ? EngineFuelTypeEnum::from((string) $engine['eng_fuel_type']) : null,
+            numberOfValves: isset($engine['number_of_valves']) ? (int) $engine['number_of_valves'] : null,
+            fuelType: isset($engine['fuel_type']) ? EngineFuelTypeEnum::from((string) $engine['fuel_type']) : null,
             groupId: isset($engine['group_id']) ? (int) $engine['group_id'] : null,
         );
     }

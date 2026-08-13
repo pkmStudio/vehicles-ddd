@@ -19,6 +19,14 @@ final readonly class KitApplicabilityCommand implements KitApplicabilityCommandI
 {
     /**
      * Сохраняет imported-связь набора с модификацией и публикует факт создания/изменения.
+     *
+     * Шаги:
+     * 1. Ищет существующую связь kit/modification в `kit_applicabilities`.
+     * 2. Определяет, нужно ли публиковать updated event из-за смены source/algorithm.
+     * 3. Выполняет `updateOrCreate` с source `IMPORTED` и algorithm `MANUAL_XLSX`.
+     * 4. Для существующей неизмененной связи завершает метод без события.
+     * 5. Для измененной связи публикует `KitApplicabilityUpdated`.
+     * 6. Для новой связи публикует `KitApplicabilityCreated`.
      */
     public function saveImportedModificationTarget(int $kitId, int $modificationId): void
     {

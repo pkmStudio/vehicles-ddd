@@ -11,19 +11,25 @@ use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\VehicleData;
  */
 final readonly class CatalogVehicleDTO
 {
+    /**
+     * Хранит публичные поля ТС для ответа каталога.
+     */
     public function __construct(
         public int $id,
         public int $msId,
         public int $manufacturerId,
         public string $name,
         public ?string $localizedName,
-        public ?string $generation,
+        public string $generation,
         public ?string $generationShort,
         public string $typeCarcase,
-        public ?int $yearFrom,
+        public int $yearFrom,
         public ?int $yearTo,
     ) {}
 
+    /**
+     * Собирает публичную проекцию ТС из Data-снимка.
+     */
     public static function fromData(VehicleData $vehicle): self
     {
         return new self(

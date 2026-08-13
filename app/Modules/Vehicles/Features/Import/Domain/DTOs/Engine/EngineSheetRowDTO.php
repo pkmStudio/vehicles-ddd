@@ -6,17 +6,20 @@ namespace App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine;
 
 final readonly class EngineSheetRowDTO
 {
+    /**
+     * Фиксирует нормализованную строку Excel-листа двигателей.
+     */
     public function __construct(
         public ?int $engId,
         public ?string $codeEngine,
-        public ?int $engPowerKwStart,
-        public ?int $engPowerKwUpto,
-        public ?int $engPowerPsStart,
-        public ?int $engPowerPsUpto,
+        public ?int $powerKwStart,
+        public ?int $powerKwUpto,
+        public ?int $powerPsStart,
+        public ?int $powerPsUpto,
         public ?string $engineCapacity,
         public ?float $cylinderDiameter,
         public ?int $cylinderCount,
-        public ?int $engNumberOfValves,
-        public ?string $engFuelType,
+        public ?int $numberOfValves,
+        public ?string $fuelType,
     ) {}
 }

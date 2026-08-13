@@ -93,4 +93,62 @@ final class PackDimensionImportTest extends TestCase
 
         $this->assertNotEmpty(Cache::get($cacheKey));
     }
+
+    public function test_import_accepts_legacy_numeric_type_id(): void
+    {
+        Event::fake([PackDimensionImportCompleted::class]);
+
+        $type = Type::query()->create(['name' => 'Brake Pad', 'char' => 'BP']);
+
+        $path = $this->writeCsv(
+            "id,name,weight,width,height,length,price,type\n,Legacy Type Box,150,20,30,40,500,{$type->id}\n",
+        );
+
+        app(PackDimensionImportInterface::class)->import(
+            $path,
+            new ImportRunContextDTO(userId: null, operationId: 'run-pd-legacy-type-id'),
+        );
+
+        $this->assertDatabaseHas('pack_dimensions', [
+            'name' => 'Legacy Type Box',
+            'type_id' => $type->id,
+        ]);
+    }
+
+    public function test_import_updates_existing_pack_dimension_by_id(): void
+    {
+        Event::fake([PackDimensionImportCompleted::class]);
+
+        $type = Type::query()->create(['name' => 'Brake Pad', 'char' => 'BP']);
+        $existing = PackDimension::query()->create([
+            'name' => 'Old Box',
+            'weight' => 100,
+            'width' => 10,
+            'height' => 10,
+            'length' => 10,
+            'price' => 100,
+            'type_id' => $type->id,
+        ]);
+
+        $path = $this->writeCsv(
+            "id,name,weight,width,height,length,price,type\n{$existing->id},Updated Box,150,20,30,40,500,BP\n",
+        );
+
+        app(PackDimensionImportInterface::class)->import(
+            $path,
+            new ImportRunContextDTO(userId: null, operationId: 'run-pd-update'),
+        );
+
+        $this->assertSame(1, PackDimension::query()->count());
+        $this->assertDatabaseHas('pack_dimensions', [
+            'id' => $existing->id,
+            'name' => 'Updated Box',
+            'weight' => 150,
+            'width' => 20,
+            'height' => 30,
+            'length' => 40,
+            'price' => 500,
+            'type_id' => $type->id,
+        ]);
+    }
 }

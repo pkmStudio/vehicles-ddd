@@ -13,6 +13,14 @@ final readonly class VehicleCommand implements VehicleCommandInterface
 {
     private const array NON_WRITABLE_FIELDS = ['id', 'parent_ms_id'];
 
+    /**
+     * Создать vehicle row через Eloquent.
+     *
+     * Шаги:
+     * 1) Преобразовать VehicleData в массив writable fields.
+     * 2) Исключить служебные fields id/parent_ms_id.
+     * 3) Создать запись и вернуть VehicleData snapshot.
+     */
     public function create(VehicleData $data): VehicleData
     {
         return VehicleData::from(
@@ -20,6 +28,14 @@ final readonly class VehicleCommand implements VehicleCommandInterface
         );
     }
 
+    /**
+     * Обновить vehicle row по ms_id через Eloquent.
+     *
+     * Шаги:
+     * 1) Найти vehicle по внешнему ms_id.
+     * 2) Обновить writable fields из VehicleData.
+     * 3) Refresh model и вернуть VehicleData snapshot.
+     */
     public function updateByMsId(VehicleData $data): VehicleData
     {
         $vehicle = Vehicle::query()->where('ms_id', $data->msId)->firstOrFail();

@@ -51,6 +51,8 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
             steeringType: SteeringTypeEnum::LEFT,
             typeCarcase: CarcaseTypeEnum::HATCHBACK,
             provider: ProviderEnum::TD,
+            generation: 'A7',
+            generationYearFrom: 2013,
         );
 
         $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
@@ -132,7 +134,7 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
             mfaId: 10,
             msId: 200,
             name: 'Ninja',
-            generation: null,
+            generation: 'Ninja',
             typeCarcase: null,
             generationYearFrom: 2013,
             generationYearTo: 2020,

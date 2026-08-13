@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Templates\Application\Services\Presenters\Nomenclature;
 
+use App\Modules\Templates\Application\Services\Presenters\AbstractDetailsPresenter;
 use App\Modules\Templates\Application\Traits\RendersNomenclatureMetrics;
 use App\Modules\Templates\Domain\Enums\SparkPlug\ElectrodeGapEnum;
 use App\Modules\Templates\Domain\Enums\SparkPlug\ElectrodeSideCountEnum;
@@ -11,13 +12,20 @@ use App\Modules\Templates\Domain\Enums\SparkPlug\ThreadLengthEnum;
 use App\Modules\Templates\Domain\Enums\SparkPlug\ThreadPitchEnum;
 use App\Modules\Templates\Domain\Enums\SparkPlug\ThreadSizeEnum;
 use App\Modules\Templates\Domain\Enums\SparkPlug\WrenchJawWidthEnum;
+use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
 use App\Modules\Templates\Domain\ModelData\Nomenclature\SparkPlugDetailsData;
 
 /** Рендерит форму `sparkPlugs` (Nomenclature) в плоский набор Excel-ячеек экспорта. */
-final readonly class SparkPlugDetailsPresenter
+final readonly class SparkPlugDetailsPresenter extends AbstractDetailsPresenter
 {
     use RendersNomenclatureMetrics;
 
+    /**
+     * Этот метод возвращает колонки nomenclature spark-plug шаблона.
+     * Шаги:
+     * 1) Перечисляет блоки резьбы, электрода, ширины ключа и момента затяжки.
+     * 2) Добавляет общий metrics-блок.
+     */
     public function headings(): array
     {
         return [
@@ -29,8 +37,29 @@ final readonly class SparkPlugDetailsPresenter
         ];
     }
 
-    public function cells(SparkPlugDetailsData $data): array
+    /**
+     * Этот метод указывает Data-класс nomenclature spark-plug presenter-а.
+     * Шаги:
+     * 1) Возвращает class-string `SparkPlugDetailsData`.
+     *
+     * @return class-string<SparkPlugDetailsData>
+     */
+    protected function dataClass(): string
     {
+        return SparkPlugDetailsData::class;
+    }
+
+    /**
+     * Этот метод рендерит nomenclature spark-plug details в Excel-ячейки.
+     * Шаги:
+     * 1) Проверяет тип `SparkPlugDetailsData`.
+     * 2) Переводит enum-name поля резьбы, электрода и ключа в labels.
+     * 3) Добавляет диапазон момента затяжки и metrics-блок.
+     */
+    public function cells(AbstractDetailsData $data): array
+    {
+        $data = $this->ensureData($data, SparkPlugDetailsData::class);
+
         return [
             $this->nameToLabelCell(ThreadSizeEnum::class, $data->thread->size),
             $this->nameToLabelCell(ThreadPitchEnum::class, $data->thread->pitch),

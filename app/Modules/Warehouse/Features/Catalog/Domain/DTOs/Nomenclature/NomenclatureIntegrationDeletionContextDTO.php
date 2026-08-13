@@ -20,7 +20,7 @@ final readonly class NomenclatureIntegrationDeletionContextDTO
     ) {}
 
     /**
-     * Возвращает payload для shared event без зависимости на DTO-класс Catalog.
+     * Возвращает данные сообщения для shared event без зависимости на DTO-класс Catalog.
      *
      * @return array<string, mixed>
      */

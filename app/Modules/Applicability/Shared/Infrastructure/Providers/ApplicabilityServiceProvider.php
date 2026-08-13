@@ -16,6 +16,14 @@ use Illuminate\Support\ServiceProvider;
  */
 final class ApplicabilityServiceProvider extends ServiceProvider
 {
+    /**
+     * Регистрирует provider-ы фич Applicability.
+     *
+     * Шаги:
+     * 1. Подключает calculation service и event providers.
+     * 2. Подключает import service и event providers.
+     * 3. Подключает export service provider.
+     */
     public function register(): void
     {
         $this->app->register(CalculationServiceProvider::class);
@@ -25,6 +33,13 @@ final class ApplicabilityServiceProvider extends ServiceProvider
         $this->app->register(ExportServiceProvider::class);
     }
 
+    /**
+     * Подключает module-level migrations Applicability.
+     *
+     * Шаги:
+     * 1. Указывает Laravel путь к shared migrations модуля.
+     * 2. Позволяет миграциям Applicability участвовать в общем migration flow.
+     */
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');

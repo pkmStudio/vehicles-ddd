@@ -8,5 +8,12 @@ use App\Modules\Vehicles\Features\Import\Domain\DTOs\EngineModification\EngineMo
 
 interface LinkEngineModificationFromRowServiceInterface
 {
+    /**
+     * Привязать двигатель к модификации из command row.
+     *
+     * Шаги:
+     * 1) Преобразовать row DTO в ключи engine/modification связи.
+     * 2) Делегировать idempotent sync command.
+     */
     public function linkFromRow(EngineModificationCommandRowDTO $row): void;
 }

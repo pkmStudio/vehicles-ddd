@@ -14,6 +14,10 @@ interface PartSpecificationOwnerResolverFactoryInterface
 {
     /**
      * Выбирает resolver владельца спеки по partable type.
+     *
+     * Шаги:
+     * 1) Сопоставить PartableTypeEnum с resolver-ом владельца.
+     * 2) Вернуть resolver, который умеет найти или подготовить internal owner id.
      */
     public function make(PartableTypeEnum $type): PartSpecificationOwnerResolverInterface;
 }

@@ -36,6 +36,9 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
 
     /**
      * Получает repository наборов для аудита.
+     * Шаги:
+     * 1) Сохранить repository, который отдаёт комплекты с полным составом.
+     * 2) Оставить расчёт mismatches внутри service, не в SQL adapter-е.
      */
     public function __construct(
         private WiperAdapterAuditKitRepositoryInterface $kits,
@@ -86,6 +89,12 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
 
     /**
      * Извлекает адаптеры, лежащие в наборе отдельной номенклатурой-адаптером.
+     * Шаги:
+     * 1) Пройти состав набора в порядке repository snapshot.
+     * 2) Определить template каждой позиции.
+     * 3) Оставить только позиции WIPER_ADAPTER.
+     * 4) Извлечь adapter_type_front из details адаптерной номенклатуры.
+     * 5) Вернуть count map adapter name => количество.
      *
      * @return array<string, int>
      */
@@ -112,6 +121,12 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
 
     /**
      * Извлекает адаптеры, заявленные в details щёток из состава набора.
+     * Шаги:
+     * 1) Пройти состав набора.
+     * 2) Оставить только позиции с template WIPER.
+     * 3) Извлечь adapter_type_front из details щётки.
+     * 4) Вернуть пустой список, если ни одной заявленной адаптерной позиции нет.
+     * 5) Иначе вернуть count map adapter name => количество.
      *
      * @return array<string, int>
      */
@@ -138,6 +153,12 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
 
     /**
      * Сравнивает количества адаптеров и возвращает старые тексты замечаний dan-center.
+     * Шаги:
+     * 1) Для каждого адаптера, лежащего в комплекте отдельной позицией, взять заявленное количество.
+     * 2) Рассчитать difference относительно quantityInPackage комплекта.
+     * 3) Для отрицательной разницы добавить сообщение о лишнем адаптере.
+     * 4) Для положительной разницы добавить сообщение о недостающем адаптере.
+     * 5) Вернуть список adapter names с расхождениями и человекочитаемые сообщения.
      *
      * @param  array<string, int>  $nomenclatureAdapters
      * @param  array<string, int>  $kitAdapters
@@ -170,6 +191,11 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
 
     /**
      * Определяет detail-шаблон только для двух типов, нужных аудиту адаптеров.
+     * Шаги:
+     * 1) Для отсутствующего type вернуть null.
+     * 2) Сначала попробовать сопоставить type char.
+     * 3) Затем попробовать стабильный legacy type id.
+     * 4) Последним fallback-ом сопоставить normalized type name.
      */
     private function template(?TypeData $type): ?NomenclatureDetailTemplateEnum
     {
@@ -193,6 +219,11 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
 
     /**
      * Нормализует значение details adapter_type_front к списку строковых enum names.
+     * Шаги:
+     * 1) Для non-array значения использовать пустой список.
+     * 2) Привести каждый adapter к trimmed string.
+     * 3) Отфильтровать пустые значения.
+     * 4) Вернуть плотный list<string>.
      *
      * @return list<string>
      */
@@ -215,6 +246,10 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
 
     /**
      * Возвращает состав набора строкой артикулов в порядке pivot-sort.
+     * Шаги:
+     * 1) Прочитать partNumber из загруженного состава набора.
+     * 2) Склеить артикулы через ';' для совместимости со старым отчетом.
+     * 3) Вернуть пустую строку, если состав не загружен.
      */
     private function kitPartNumbers(KitData $kit): string
     {

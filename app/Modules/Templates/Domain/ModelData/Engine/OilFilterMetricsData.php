@@ -13,6 +13,9 @@ use Spatie\LaravelData\Data;
  */
 final class OilFilterMetricsData extends Data
 {
+    /**
+     * Фиксирует габаритные диапазоны масляного фильтра.
+     */
     public function __construct(
         /** @var array<int, float> */
         public readonly array $length,

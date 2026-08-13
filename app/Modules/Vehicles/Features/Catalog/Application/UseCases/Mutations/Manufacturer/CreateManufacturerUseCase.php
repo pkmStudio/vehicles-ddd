@@ -24,7 +24,12 @@ use Throwable;
 final readonly class CreateManufacturerUseCase implements CreateManufacturerUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты create manufacturer workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для проверки дубликата по mfa_id.
+     * 2) Принять command для записи производителя.
+     * 3) Принять cache/result сервисы для идемпотентности и публикации результата.
      */
     public function __construct(
         private ManufacturerRepositoryInterface $manufacturers,

@@ -9,6 +9,15 @@ use Illuminate\Support\Collection;
 
 interface KitApplicabilityExportRepositoryInterface
 {
-    /** @return Collection<int, VehicleKitApplicabilityRowDTO> */
+    /**
+     * Читает строки применяемости комплектов к автомобилям для основного export-листа.
+     *
+     * Шаги:
+     * 1. Отбирает применяемости, где целью является vehicle part specification.
+     * 2. Подтягивает комплект, состав комплекта и автомобильные данные.
+     * 3. Возвращает строки как `VehicleKitApplicabilityRowDTO`.
+     *
+     * @return Collection<int, VehicleKitApplicabilityRowDTO>
+     */
     public function vehicleRows(): Collection;
 }

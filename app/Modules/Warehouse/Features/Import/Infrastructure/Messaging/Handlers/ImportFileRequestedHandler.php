@@ -13,12 +13,17 @@ use Illuminate\Support\Facades\Log;
 /**
  * Принимает RabbitMQ payload запроса Warehouse-импорта и передаёт его в UseCase. Один Handler на
  * оба типа (Nomenclature/PackDimension) — конкретный Excel-адаптер выбирается по data.import_type
- * (см. Application\Factories\ImportFileFactory).
+ * (см. Infrastructure\Factories\ImportFileFactory).
  */
 final readonly class ImportFileRequestedHandler
 {
     /**
      * Получает use case запуска импорта и validator входящего payload.
+     *
+     * Шаги:
+     * 1) Принять use case запуска внешнего Warehouse-импорта.
+     * 2) Принять validator RabbitMQ payload.
+     * 3) Сохранить зависимости для обработки сообщений.
      */
     public function __construct(
         private StartExternalFileImportUseCaseInterface $useCase,

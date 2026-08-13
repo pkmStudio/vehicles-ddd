@@ -11,6 +11,15 @@ use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
 final readonly class CalculationFailureReporter implements CalculationFailureReporterInterface
 {
+    /**
+     * Сохраняет CSV-отчет по ошибкам расчета применяемости.
+     *
+     * Шаги:
+     * 1. Возвращает `null`, если aggregate result не содержит ошибок.
+     * 2. Формирует имя файла по operation id и текущему времени.
+     * 3. Берет disk и directory из конфигурации calculation failures.
+     * 4. Сохраняет `CalculationFailuresExport` через Laravel Excel и возвращает path.
+     */
     public function store(KitApplicabilityCalculationResultDTO $result): ?string
     {
         if ($result->errors === []) {

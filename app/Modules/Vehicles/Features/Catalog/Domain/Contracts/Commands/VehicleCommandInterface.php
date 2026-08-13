@@ -40,6 +40,12 @@ interface VehicleCommandInterface
     public function deleteByMsId(int $msId): void;
 
     /**
+     * Удаляет автомобили по внутренним ids.
+     *
+     * Шаги:
+     * 1) Принять список внутренних ids автомобилей.
+     * 2) Выполнить bulk delete найденных записей после подготовки зависимостей cascade service.
+     *
      * @param  array<int, int>  $ids
      */
     public function deleteByIds(array $ids): void;

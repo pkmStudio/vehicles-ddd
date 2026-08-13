@@ -16,6 +16,13 @@ final readonly class StabilizerLinkDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает details стойки стабилизатора из Excel-строки.
+     * Шаги:
+     * 1) Читает две резьбы и длину.
+     * 2) Читает общий блок габаритов номенклатуры.
+     * 3) Возвращает `StabilizerLinkDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): StabilizerLinkDetailsData
     {
         return new StabilizerLinkDetailsData(

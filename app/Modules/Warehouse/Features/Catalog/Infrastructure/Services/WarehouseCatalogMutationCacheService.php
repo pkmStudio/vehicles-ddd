@@ -14,6 +14,11 @@ final readonly class WarehouseCatalogMutationCacheService implements WarehouseCa
 {
     /**
      * Атомарно принимает operationId для обработки.
+     *
+     * Шаги:
+     * 1) Сформировать cache key по operationId.
+     * 2) Попробовать атомарно записать флаг принятой операции.
+     * 3) Вернуть false для повторного сообщения с тем же operationId.
      */
     public function accept(string $operationId): bool
     {
@@ -26,6 +31,11 @@ final readonly class WarehouseCatalogMutationCacheService implements WarehouseCa
 
     /**
      * Снимает отметку operationId после технического сбоя.
+     *
+     * Шаги:
+     * 1) Сформировать cache key по operationId.
+     * 2) Удалить флаг принятой операции из cache.
+     * 3) Позволить повторную обработку после технического сбоя.
      */
     public function forgetAccepted(string $operationId): void
     {

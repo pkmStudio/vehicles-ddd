@@ -14,6 +14,8 @@ final readonly class SyncCreatedNomenclatureListener
 {
     /**
      * Получает порт постановки MoySklad-задач.
+     * Шаги:
+     * 1) Сохранить dispatcher, который скрывает конкретные queue jobs от listener-а.
      */
     public function __construct(
         private NomenclatureSyncDispatcherInterface $dispatcher,
@@ -21,6 +23,11 @@ final readonly class SyncCreatedNomenclatureListener
 
     /**
      * Ставит sync job по id созданной номенклатуры, если интеграция включена.
+     * Шаги:
+     * 1) Проверить feature flag синхронизации MoySklad.
+     * 2) Взять id созданной номенклатуры из shared event payload.
+     * 3) Если id отсутствует, завершить обработку без постановки job.
+     * 4) Передать id в dispatcher sync job.
      */
     public function handle(NomenclatureCreated $event): void
     {
@@ -28,11 +35,11 @@ final readonly class SyncCreatedNomenclatureListener
             return;
         }
 
-        $id = $event->nomenclature['id'] ?? null;
-        if (! is_numeric($id)) {
+        $id = $event->nomenclature->id;
+        if ($id === null) {
             return;
         }
 
-        $this->dispatcher->dispatchSync((int) $id);
+        $this->dispatcher->dispatchSync($id);
     }
 }

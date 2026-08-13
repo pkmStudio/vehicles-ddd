@@ -22,6 +22,10 @@ final class SyncNomenclatureJob implements ShouldQueue
 
     /**
      * Сохраняет id номенклатуры и выбирает очередь МойСклад.
+     * Шаги:
+     * 1) Сохранить id номенклатуры как serializable scalar.
+     * 2) Прочитать имя очереди из warehouse.moysklad config.
+     * 3) Назначить job queue с fallback moysklad.
      */
     public function __construct(
         private readonly int $nomenclatureId,
@@ -31,6 +35,9 @@ final class SyncNomenclatureJob implements ShouldQueue
 
     /**
      * Возвращает middleware пакета МойСклад для circuit-breaker/rate-limit ошибок.
+     * Шаги:
+     * 1) Создать MoySkladJobMiddleware из внешнего пакета.
+     * 2) Вернуть middleware списком для Laravel queue worker.
      *
      * @return array<int, object>
      */
@@ -41,6 +48,9 @@ final class SyncNomenclatureJob implements ShouldQueue
 
     /**
      * Делегирует синхронизацию application-сервису.
+     * Шаги:
+     * 1) Получить NomenclatureSyncServiceInterface из container при выполнении job.
+     * 2) Передать сохранённый nomenclatureId в sync().
      */
     public function handle(NomenclatureSyncServiceInterface $service): void
     {

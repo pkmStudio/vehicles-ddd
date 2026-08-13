@@ -16,4 +16,5 @@ enum CatalogMutationRejectReasonEnum: string
     case VehicleNotFound = 'vehicle_not_found';
     case OwnerNotFound = 'owner_not_found';
     case InvalidDetails = 'invalid_details';
+    case ContractMismatch = 'contract_mismatch';
 }

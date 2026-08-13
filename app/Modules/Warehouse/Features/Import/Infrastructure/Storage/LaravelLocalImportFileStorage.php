@@ -14,6 +14,11 @@ final readonly class LaravelLocalImportFileStorage implements LocalImportFileSto
 {
     /**
      * Проверяет наличие Storage disk в Laravel config.
+     *
+     * Шаги:
+     * 1) Прочитать список disks из filesystems config.
+     * 2) Проверить наличие имени disk.
+     * 3) Вернуть boolean для use case публикации.
      */
     public function diskExists(string $disk): bool
     {
@@ -22,6 +27,11 @@ final readonly class LaravelLocalImportFileStorage implements LocalImportFileSto
 
     /**
      * Проверяет существование файла на указанном Storage disk.
+     *
+     * Шаги:
+     * 1) Получить Laravel Storage disk.
+     * 2) Проверить exists(path).
+     * 3) Вернуть boolean для use case публикации.
      */
     public function fileExists(string $disk, string $path): bool
     {

@@ -9,6 +9,9 @@ namespace App\Modules\Warehouse\Features\Import\Domain\Exceptions;
  */
 final class ImportCompletionException extends WarehouseImportException
 {
+    /**
+     * Создаёт ошибку для неподдержанного события завершения импорта.
+     */
     public static function unknownEvent(string $eventClass): self
     {
         return new self('Неизвестное событие завершения Warehouse-импорта: '.$eventClass);

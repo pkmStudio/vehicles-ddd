@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Import;
 
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\VehicleWiperSpecificationImportService;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\PartSpecificationCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\FeatureValueRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
-use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
-use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
-use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\FeatureValueData;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
@@ -64,6 +64,8 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
             steeringType: SteeringTypeEnum::LEFT,
             typeCarcase: CarcaseTypeEnum::HATCHBACK,
             provider: ProviderEnum::TD,
+            generation: 'A7',
+            generationYearFrom: 2013,
             id: 77,
         );
     }

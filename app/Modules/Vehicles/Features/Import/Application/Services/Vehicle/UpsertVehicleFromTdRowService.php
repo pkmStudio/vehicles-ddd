@@ -16,8 +16,6 @@ use App\Modules\Vehicles\Features\Import\Domain\Enums\VehicleImportSourceEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleUpdated;
 
@@ -32,6 +30,14 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
 
     private const string OPERATION_ID = 'vehicles-vehicle-import';
 
+    /**
+     * Инициализирует порты сценария upsert автомобиля из TecDoc row.
+     *
+     * Шаги:
+     * 1) Сохранить vehicle command и factory.
+     * 2) Сохранить repositories производителя и автомобиля.
+     * 3) Сохранить write policy, которая применяет provider-aware правила обновления.
+     */
     public function __construct(
         private VehicleCommandInterface $command,
         private VehicleDataFactoryInterface $factory,
@@ -41,37 +47,34 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
     ) {}
 
     /**
+     * Создает или обновляет автомобиль из авторитетной TecDoc строки.
+     *
+     * Шаги:
+     * 1) Найти производителя по `mfa_id`; если он отсутствует — вернуть null.
+     * 2) Собрать raw row array и преобразовать его в `VehicleData`.
+     * 3) Найти существующий vehicle по `ms_id`.
+     * 4) Применить TecDoc write context через write policy.
+     * 5) Выполнить create или update через command.
+     * 6) Опубликовать catalog mutation event о создании или обновлении.
+     *
      * @return VehicleData|null null, если производитель с таким mfa_id не найден
      *
      * @throws ImportRowValidationException
      */
     public function upsertFromRow(VehicleTdRowDTO $row): ?VehicleData
     {
-        if ($row->mfaId === null) {
-            return null;
-        }
-
         $manufacturer = $this->manufacturers->findByMfaId($row->mfaId);
 
         if (! $manufacturer) {
             return null;
         }
 
-        $type = $row->type;
-        $typeCarcase = $row->typeCarcase;
-
-        // TecDoc не даёт "Тип кузова" для мотоциклов — подставляем сами, иначе
-        // NOT NULL constraint на vehicles.type_carcase падает сырым SQL-исключением.
-        if (! $typeCarcase && $type === VehicleTypeEnum::MB->value) {
-            $typeCarcase = CarcaseTypeEnum::MOTORCYCLE->value;
-        }
-
         $data = $this->factory->make([
             'ms_id' => $row->msId,
             'mfa_id' => $row->mfaId,
             'name' => $row->name,
-            'type' => $type,
-            'type_carcase' => $typeCarcase,
+            'type' => $row->type,
+            'type_carcase' => $row->typeCarcase,
             'generation' => $row->generation,
             'generation_year_from' => $row->generationYearFrom,
             'generation_year_to' => $row->generationYearTo,

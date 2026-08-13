@@ -1,0 +1,19 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand;
+
+final readonly class BrandCrmReadQueryDTO
+{
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    public function __construct(
+        public int $page = 1,
+        public int $perPage = 25,
+        public ?string $search = null,
+        public string $sort = 'id',
+        public array $filters = [],
+    ) {}
+}

@@ -7,7 +7,11 @@ namespace Tests\Feature\Vehicles\Import;
 use App\Modules\Vehicles\Features\Import\Application\Listeners\ReportImportResultListener;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Notifications\FileNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportCompletionNotificationDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Enums\ExternalImportTypeEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Enums\ImportCompletionStatusEnum;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineCrossImportCompleted;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineImportCompleted;
+use App\Modules\Vehicles\Features\Import\Domain\Events\Manufacturer\ManufacturerImportCompleted;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Vehicle\VehicleImportCompleted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -54,6 +58,7 @@ final class ReportImportResultListenerTest extends TestCase
                 Mockery::on(
                     fn (ImportCompletionNotificationDTO $payload) => $payload->userId === 42
                         && $payload->status === ImportCompletionStatusEnum::CompletedWithErrors
+                        && $payload->importType === ExternalImportTypeEnum::VehicleMultiSheet
                         && $payload->operationId === 'run-123'
                         && $payload->disk === 's3'
                         && $payload->errorsCount === 1
@@ -78,6 +83,7 @@ final class ReportImportResultListenerTest extends TestCase
         $payload = new ImportCompletionNotificationDTO(
             userId: 42,
             status: ImportCompletionStatusEnum::CompletedWithErrors,
+            importType: ExternalImportTypeEnum::VehicleMultiSheet,
             operationId: 'run-123',
             disk: 's3',
             errorsCount: 1,
@@ -88,6 +94,7 @@ final class ReportImportResultListenerTest extends TestCase
             'user_id' => 42,
             'operation_id' => 'run-123',
             'status' => 'completed_with_errors',
+            'import_type' => 'vehicle_multi_sheet',
             'disk' => 's3',
             'errors_count' => 1,
             'path' => 'dan-vehicles/import/import-failures.csv',
@@ -120,6 +127,7 @@ final class ReportImportResultListenerTest extends TestCase
                 Mockery::on(
                     fn (ImportCompletionNotificationDTO $payload) => $payload->userId === 42
                         && $payload->status === ImportCompletionStatusEnum::Completed
+                        && $payload->importType === ExternalImportTypeEnum::VehicleMultiSheet
                         && $payload->operationId === 'run-456'
                         && $payload->disk === null
                         && $payload->errorsCount === 0
@@ -131,5 +139,32 @@ final class ReportImportResultListenerTest extends TestCase
         $listener->handle(new VehicleImportCompleted(userId: 42, cacheKey: $cacheKey, operationId: 'run-456'));
 
         $this->assertFalse(Cache::has($cacheKey));
+    }
+
+    public function test_completion_event_type_is_mapped_to_import_type(): void
+    {
+        $publishedTypes = [];
+
+        $notifier = $this->mock(FileNotificationServiceInterface::class);
+        $notifier->shouldReceive('notifyImportCompleted')
+            ->times(4)
+            ->with(Mockery::on(function (ImportCompletionNotificationDTO $payload) use (&$publishedTypes): bool {
+                $publishedTypes[] = $payload->importType;
+
+                return $payload->status === ImportCompletionStatusEnum::Completed;
+            }));
+
+        $listener = app(ReportImportResultListener::class);
+        $listener->handle(new VehicleImportCompleted(userId: 42, cacheKey: 'vehicle-empty', operationId: 'vehicle-run'));
+        $listener->handle(new EngineImportCompleted(userId: 42, cacheKey: 'engine-empty', operationId: 'engine-run'));
+        $listener->handle(new EngineCrossImportCompleted(userId: 42, cacheKey: 'engine-cross-empty', operationId: 'engine-cross-run'));
+        $listener->handle(new ManufacturerImportCompleted(userId: 42, cacheKey: 'manufacturer-empty', operationId: 'manufacturer-run'));
+
+        $this->assertSame([
+            ExternalImportTypeEnum::VehicleMultiSheet,
+            ExternalImportTypeEnum::EngineMultiSheet,
+            ExternalImportTypeEnum::EngineCross,
+            ExternalImportTypeEnum::Manufacturer,
+        ], $publishedTypes);
     }
 }

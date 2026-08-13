@@ -12,11 +12,27 @@ use Illuminate\Support\Facades\Log;
 
 final readonly class ExportFileRequestedHandler
 {
+    /**
+     * Получает зависимости RabbitMQ handler-а export request.
+     *
+     * Шаги:
+     * 1. Сохраняет use case запуска export workflow.
+     * 2. Сохраняет validator raw payload из broker-сообщения.
+     */
     public function __construct(
         private StartExportUseCaseInterface $useCase,
         private ExportFileRequestedPayloadValidator $validator,
     ) {}
 
+    /**
+     * Валидирует RabbitMQ payload и запускает export применяемости.
+     *
+     * Шаги:
+     * 1. Создает validator для raw payload.
+     * 2. При ошибке validation пишет actionable error и отбрасывает сообщение без retry.
+     * 3. Собирает локальный `ExportFileRequestDTO` из validated payload и config disk.
+     * 4. Передает DTO в use case запуска export workflow.
+     */
     public function handle(array $data): void
     {
         $validator = $this->validator->make($data);

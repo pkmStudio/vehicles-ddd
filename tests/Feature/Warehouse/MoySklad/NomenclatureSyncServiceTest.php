@@ -6,6 +6,8 @@ namespace Tests\Feature\Warehouse\MoySklad;
 
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Clients\MoySkladProductClientInterface;
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Services\NomenclatureSyncServiceInterface;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductDTO;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductPayloadDTO;
 use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\Brand;
 use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\Nomenclature;
 use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\NomenclatureIntegration;
@@ -46,12 +48,12 @@ final class NomenclatureSyncServiceTest extends TestCase
         $client->shouldReceive('findByExternalCode')->once()->with("nomenclature:{$nomenclature->id}")->andReturn(null);
         $client->shouldReceive('create')
             ->once()
-            ->with(Mockery::on(fn (array $payload): bool => $payload['article'] === 'BP-1'
-                && $payload['externalCode'] === "nomenclature:{$nomenclature->id}"))
-            ->andReturn([
-                'id' => '11111111-1111-1111-1111-111111111111',
-                'externalCode' => "nomenclature:{$nomenclature->id}",
-            ]);
+            ->with(Mockery::on(fn (MoySkladProductPayloadDTO $payload): bool => $payload->article === 'BP-1'
+                && $payload->externalCode === "nomenclature:{$nomenclature->id}"))
+            ->andReturn(new MoySkladProductDTO(
+                id: '11111111-1111-1111-1111-111111111111',
+                externalCode: "nomenclature:{$nomenclature->id}",
+            ));
 
         app(NomenclatureSyncServiceInterface::class)->sync($nomenclature->id);
 

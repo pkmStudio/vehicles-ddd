@@ -22,6 +22,8 @@ final readonly class RecalculateBrakePadsKitsService
 
     /**
      * Получает сервис расчёта производных свойств набора.
+     * Шаги:
+     * 1) Сохранить локальный KitProperties client для пересчёта свойств существующих kits.
      */
     public function __construct(
         private KitPropertiesClientInterface $kitProperties,
@@ -35,6 +37,13 @@ final readonly class RecalculateBrakePadsKitsService
      * не полностью свободен от побочных эффектов даже в dry-run — стратегии подбора упаковки могут
      * создать новую запись `PackDimension`, если подходящей ещё нет (унаследовано от того же
      * поведения в dan-center `KitService::prepareProperties()`).
+     *
+     * Шаги:
+     * 1) Найти warehouse type колодок по char BP.
+     * 2) Если type отсутствует, вернуть нулевую сводку.
+     * 3) Пройти kits этого типа чанками с загруженными nomenclatures.type.
+     * 4) Для каждого kit пересчитать свойства и увеличить updated/unchanged.
+     * 5) Для ошибки одного kit записать warning и увеличить failed, не прерывая общий прогон.
      *
      * @return array{updated: int, unchanged: int, failed: int}
      */
@@ -121,5 +130,4 @@ final readonly class RecalculateBrakePadsKitsService
 
         return true;
     }
-
 }

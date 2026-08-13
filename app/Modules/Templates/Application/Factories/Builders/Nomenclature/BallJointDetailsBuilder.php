@@ -16,6 +16,13 @@ final readonly class BallJointDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает details шаровой опоры из Excel-строки.
+     * Шаги:
+     * 1) Читает две резьбы, длину, внешний диаметр, размер конуса и конусность.
+     * 2) Читает общий блок габаритов номенклатуры.
+     * 3) Возвращает `BallJointDetailsData` с текстовыми и числовыми полями в исходной схеме.
+     */
     public function build(DetailsRowCursor $cursor): BallJointDetailsData
     {
         return new BallJointDetailsData(

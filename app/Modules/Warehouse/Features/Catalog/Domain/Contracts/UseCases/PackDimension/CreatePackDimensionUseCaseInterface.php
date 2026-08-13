@@ -14,6 +14,11 @@ interface CreatePackDimensionUseCaseInterface
 {
     /**
      * Выполняет создание упаковочного размера Warehouse.
+     *
+     * Шаги:
+     * 1) Принять CreatePackDimensionRequestDTO из boundary handler.
+     * 2) Создать упаковочный размер после проверки связанного type.
+     * 3) Вернуть result DTO или null для повторного operation_id.
      */
     public function execute(CreatePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

@@ -19,9 +19,9 @@ final class ModificationData extends Data
 {
     /**
      * @param  Collection<int, EngineData>|null  $engines  двигатели модификации — заполняется
-     *                                            только Repository::findByMsIdAndModIdWithEngines()
-     *                                            (с eager load), в остальных путях null и не
-     *                                            участвует в записи через Command
+     *                                                     только Repository::findByMsIdAndModIdWithEngines()
+     *                                                     (с eager load), в остальных путях null и не
+     *                                                     участвует в записи через Command
      */
     public function __construct(
         public readonly int $modId,

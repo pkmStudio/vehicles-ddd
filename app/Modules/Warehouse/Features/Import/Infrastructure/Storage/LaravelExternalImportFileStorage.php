@@ -14,6 +14,11 @@ final readonly class LaravelExternalImportFileStorage implements ExternalImportF
 {
     /**
      * Удаляет файл на указанном disk.
+     *
+     * Шаги:
+     * 1) Получить Laravel Storage disk по имени.
+     * 2) Передать path в adapter удаления.
+     * 3) Завершить без дополнительной доменной логики.
      */
     public function delete(string $disk, string $path): void
     {

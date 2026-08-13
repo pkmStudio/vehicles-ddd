@@ -10,12 +10,16 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
 /**
- * Собирает Laravel-валидатор payload мутации Warehouse-набора.
+ * Собирает Laravel-validator данные сообщения мутации Warehouse-набора.
  */
 final readonly class KitMutationPayloadValidator
 {
     /**
-     * Инициализирует фабрику валидаторов Laravel.
+     * Получает Laravel validator factory для kit mutation payload.
+     *
+     * Шаги:
+     * 1) Принять ValidatorFactory из Laravel container.
+     * 2) Использовать factory при сборке validator для конкретного payload.
      */
     public function __construct(
         private ValidatorFactory $validator,
@@ -25,6 +29,12 @@ final readonly class KitMutationPayloadValidator
      * Создаёт validator с правилами wire-контракта Kit CRUD.
      *
      * @param  array<string, mixed>  $data
+     *
+     * Шаги:
+     * 1) Прочитать operation из входящего Rabbit payload.
+     * 2) Собрать базовые правила user_id, operation_id, operation и kit.
+     * 3) Добавить правила create/update/delete для состава комплекта.
+     * 4) Вернуть validator вызывающему handler.
      */
     public function make(array $data): Validator
     {
@@ -47,8 +57,8 @@ final readonly class KitMutationPayloadValidator
             $rules += [
                 'kit.nomenclature_ids' => ['required', 'array', 'min:1'],
                 'kit.nomenclature_ids.*' => ['required', 'integer', 'min:1', 'distinct'],
-                'kit.is_sale_separately' => ['nullable', 'boolean'],
-                'kit.is_active' => ['nullable', 'boolean'],
+                'kit.is_sale_separately' => ['sometimes', 'boolean'],
+                'kit.is_active' => ['sometimes', 'boolean'],
                 'kit.guarantee' => ['nullable', 'integer', 'min:0'],
             ];
         }

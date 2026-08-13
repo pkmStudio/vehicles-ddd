@@ -14,6 +14,11 @@ interface CreateBrandUseCaseInterface
 {
     /**
      * Выполняет создание Warehouse-бренда.
+     *
+     * Шаги:
+     * 1) Принять CreateBrandRequestDTO из boundary handler.
+     * 2) Создать бренд или отклонить операцию при конфликте имени.
+     * 3) Вернуть result DTO или null для повторного operation_id.
      */
     public function execute(CreateBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Factories\KitMutationRequestFactoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\StartKitMutationUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitMutationRequestDTO;
+use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\KitMutationPayloadValidator;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\WarehouseCatalogMutationContractMismatchReporter;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Принимает RabbitMQ-сообщение мутации Warehouse-наборов и запускает сценарий.
@@ -15,16 +18,27 @@ use Illuminate\Support\Facades\Log;
 final readonly class KitMutationRequestedHandler
 {
     /**
-     * Инициализирует use case, factory и validator.
+     * Инициализирует use case, фабрику и validator.
+     *
+     * Шаги:
+     * 1. Получает use case мутации набора.
+     * 2. Получает validator входящего RabbitMQ данные сообщения.
+     * 3. Получает reporter для contract mismatch результата.
      */
     public function __construct(
         private StartKitMutationUseCaseInterface $useCase,
-        private KitMutationRequestFactoryInterface $factory,
         private KitMutationPayloadValidator $validator,
+        private WarehouseCatalogMutationContractMismatchReporter $contractMismatchReporter,
     ) {}
 
     /**
-     * Валидирует payload, собирает DTO и запускает сценарий мутации набора.
+     * Валидирует данные сообщения, собирает DTO и запускает сценарий мутации набора.
+     *
+     * Шаги:
+     * 1. Валидирует raw данные сообщения сообщения.
+     * 2. Публикует failed-result при ошибке validation или несовместимом wire данные сообщения.
+     * 3. Собирает локальный DTO запроса из валидированных данных.
+     * 4. Передает DTO во входной use case сценария.
      *
      * @param  array<string, mixed>  $data
      */
@@ -34,18 +48,32 @@ final readonly class KitMutationRequestedHandler
         $validationFailed = $validator->fails();
 
         if ($validationFailed) {
+            $invalidKeys = array_keys($validator->errors()->toArray());
             Log::error(
                 message: 'RabbitMQ: Warehouse kit mutation payload validation failed',
                 context: [
-                    'invalid_keys' => array_keys($validator->errors()->toArray()),
+                    'invalid_keys' => $invalidKeys,
                 ],
             );
+            $this->contractMismatchReporter->report(WarehouseCatalogEntityEnum::Kit, $data, $invalidKeys);
 
             return;
         }
 
         $payload = $validator->validated();
-        $requestDto = $this->factory->make($payload);
+
+        try {
+            $requestDto = KitMutationRequestDTO::fromArray($payload);
+        } catch (Throwable $e) {
+            Log::error('RabbitMQ: Warehouse kit mutation payload contract mismatch', [
+                'operation_id' => $payload['operation_id'] ?? null,
+                'exception' => $e,
+            ]);
+            $this->contractMismatchReporter->report(WarehouseCatalogEntityEnum::Kit, $payload, ['payload']);
+
+            return;
+        }
+
         $this->useCase->execute($requestDto);
     }
 }

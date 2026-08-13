@@ -14,6 +14,10 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Read\DTO\NomenclatureCrmResource as WireNomenclatureCrmResource;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Read\DTO\NomenclatureCrmSearchItem as WireNomenclatureCrmSearchItem;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Read\DTO\PaginationMeta as WirePaginationMeta;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Read\DTO\WarehouseCrmOption as WireWarehouseCrmOption;
 use Tests\TestCase;
 
 /**
@@ -35,6 +39,15 @@ final class NomenclatureCrmReadApiTest extends TestCase
         $response
             ->assertUnauthorized()
             ->assertJsonPath('message', 'Unauthorized.');
+
+        $this->withHeader('X-Service-Key', 'wrong-key')
+            ->getJson('/api/v1/crm/warehouse/nomenclatures')
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Unauthorized.');
+
+        $this->withHeader('X-Service-Key', 'secret-key')
+            ->getJson('/api/v1/crm/warehouse/nomenclatures')
+            ->assertOk();
     }
 
     /**
@@ -60,6 +73,9 @@ final class NomenclatureCrmReadApiTest extends TestCase
             ->assertJsonPath('data.0.type_name', 'Дворники')
             ->assertJsonPath('data.0.brand_name', 'Denso')
             ->assertJsonPath('data.0.type_template', 'wiper');
+
+        self::assertSame($response->json('data.0'), WireNomenclatureCrmResource::fromArray($response->json('data.0'))->toArray());
+        self::assertSame($response->json('meta'), WirePaginationMeta::fromArray($response->json('meta'))->toArray());
     }
 
     /**
@@ -83,6 +99,8 @@ final class NomenclatureCrmReadApiTest extends TestCase
             ->assertJsonPath('data.material.0', 'Резина')
             ->assertJsonPath('data.vehicle_type.0', 'Легковые автомобили')
             ->assertJsonPath('data.details.category', 'Бескаркасная');
+
+        self::assertSame($response->json('data'), WireNomenclatureCrmResource::fromArray($response->json('data'))->toArray());
     }
 
     /**
@@ -116,6 +134,8 @@ final class NomenclatureCrmReadApiTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.label', "{$this->latestNomenclatureId()} | DUR-060L | Denso | Denso Hybrid")
             ->assertJsonPath('data.0.part_number', 'DUR-060L');
+
+        self::assertSame($response->json('data.0'), WireNomenclatureCrmSearchItem::fromArray($response->json('data.0'))->toArray());
     }
 
     /**
@@ -126,17 +146,23 @@ final class NomenclatureCrmReadApiTest extends TestCase
         $type = $this->createType(name: 'Дворники', char: 'WB');
         $brand = $this->createBrand(name: 'Denso', char: 'D');
 
-        $this->getJson('/api/v1/crm/warehouse/nomenclatures/options/types?q=Дворники')
+        $typeResponse = $this->getJson('/api/v1/crm/warehouse/nomenclatures/options/types?q=Дворники');
+        $typeResponse
             ->assertOk()
             ->assertJsonPath('data.0.id', $type->id)
             ->assertJsonPath('data.0.char', 'WB')
             ->assertJsonPath('data.0.template', 'wiper');
 
-        $this->getJson('/api/v1/crm/warehouse/nomenclatures/options/brands?q=Denso')
+        self::assertSame($typeResponse->json('data.0'), WireWarehouseCrmOption::fromArray($typeResponse->json('data.0'))->toArray());
+
+        $brandResponse = $this->getJson('/api/v1/crm/warehouse/nomenclatures/options/brands?q=Denso');
+        $brandResponse
             ->assertOk()
             ->assertJsonPath('data.0.id', $brand->id)
             ->assertJsonPath('data.0.char', 'D')
             ->assertJsonPath('data.0.label', 'Denso');
+
+        self::assertSame($brandResponse->json('data.0'), WireWarehouseCrmOption::fromArray($brandResponse->json('data.0'))->toArray());
     }
 
     /**

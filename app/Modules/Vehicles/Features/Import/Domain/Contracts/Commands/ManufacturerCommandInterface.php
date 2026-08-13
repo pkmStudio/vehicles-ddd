@@ -12,7 +12,22 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
  */
 interface ManufacturerCommandInterface
 {
+    /**
+     * Создать производителя из import data.
+     *
+     * Шаги:
+     * 1) Передать validated ManufacturerData в write adapter.
+     * 2) Вернуть snapshot созданной записи.
+     */
     public function create(ManufacturerData $data): ManufacturerData;
 
+    /**
+     * Обновить производителя по внешнему mfa_id.
+     *
+     * Шаги:
+     * 1) Найти существующую запись по mfa_id.
+     * 2) Применить значения ManufacturerData.
+     * 3) Вернуть обновленный snapshot.
+     */
     public function updateByMfaId(ManufacturerData $data): ManufacturerData;
 }

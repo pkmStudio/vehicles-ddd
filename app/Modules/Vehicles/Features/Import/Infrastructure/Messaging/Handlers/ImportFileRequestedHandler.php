@@ -15,6 +15,13 @@ use Illuminate\Support\Facades\Log;
  */
 final readonly class ImportFileRequestedHandler
 {
+    /**
+     * Получить зависимости RabbitMQ handler-а import request.
+     *
+     * Шаги:
+     * 1) Принять use case внешнего запуска импорта.
+     * 2) Принять validator inbound payload.
+     */
     public function __construct(
         private StartExternalFileImportUseCaseInterface $useCase,
         private ImportFileRequestedPayloadValidator $validator,
@@ -22,6 +29,12 @@ final readonly class ImportFileRequestedHandler
 
     /**
      * Провалидировать payload, собрать DTO и передать его в сценарий запуска импорта.
+     *
+     * Шаги:
+     * 1) Создать validator для inbound RabbitMQ payload.
+     * 2) Залогировать invalid payload и завершить обработку без retryable exception.
+     * 3) Собрать ExternalImportFileRequestDTO с disk fallback из config.
+     * 4) Передать DTO в external import use case.
      *
      * @param  array<string, mixed>  $data
      */

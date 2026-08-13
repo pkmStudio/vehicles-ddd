@@ -12,12 +12,22 @@ use App\Modules\Vehicles\Features\Import\Domain\Events\AbstractImportCompleted;
  */
 final readonly class CleanupExternalImportFileListener
 {
+    /**
+     * Инициализирует service очистки внешнего import-файла.
+     *
+     * Шаги:
+     * 1) Сохранить application service, который владеет cleanup-сценарием.
+     */
     public function __construct(
         private CleanupExternalImportFileServiceInterface $service,
     ) {}
 
     /**
      * Очистить файл только для импортов, у которых есть внешний operationId.
+     *
+     * Шаги:
+     * 1) Взять operation id из события завершения импорта.
+     * 2) Делегировать cleanup service решение, есть ли связанный внешний файл.
      */
     public function handle(AbstractImportCompleted $event): void
     {

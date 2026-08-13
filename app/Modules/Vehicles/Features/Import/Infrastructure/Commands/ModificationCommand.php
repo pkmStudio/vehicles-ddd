@@ -14,6 +14,14 @@ final readonly class ModificationCommand implements ModificationCommandInterface
     /** Служебные поля ModificationData, не участвующие в этой операции записи. */
     private const array NON_WRITABLE_FIELDS = ['id', 'engines'];
 
+    /**
+     * Создать modification row через Eloquent.
+     *
+     * Шаги:
+     * 1) Преобразовать ModificationData в массив writable fields.
+     * 2) Исключить служебные fields id/engines.
+     * 3) Создать запись и вернуть ModificationData snapshot.
+     */
     public function create(ModificationData $data): ModificationData
     {
         return ModificationData::from(
@@ -21,6 +29,14 @@ final readonly class ModificationCommand implements ModificationCommandInterface
         );
     }
 
+    /**
+     * Обновить modification row по mod_id/type через Eloquent.
+     *
+     * Шаги:
+     * 1) Найти modification по натуральному ключу mod_id/type.
+     * 2) Обновить writable fields из ModificationData.
+     * 3) Refresh model и вернуть ModificationData snapshot.
+     */
     public function updateByModIdAndType(ModificationData $data): ModificationData
     {
         $modification = Modification::query()

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Templates\Domain\Enums\SparkPlug;
 
-use App\Modules\Templates\Domain\Traits\EnumHelperTrait;
 use App\Modules\Templates\Domain\Contracts\EnumHelperInterface;
+use App\Modules\Templates\Domain\Traits\EnumHelperTrait;
 
 /** Ширина зева гаечного ключа под свечу (мм). */
 enum WrenchJawWidthEnum: string implements EnumHelperInterface

@@ -18,5 +18,15 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
  */
 interface DetailsDataFactoryInterface
 {
+    /**
+     * Этот метод должен собрать typed vehicle details из Excel-строки выбранного шаблона.
+     * Шаги:
+     * 1) Использовать `$template` для выбора конкретного builder-а.
+     * 2) Читать значения из `$row`, начиная с текущего `$index`.
+     * 3) Сдвинуть `$index` на позицию после прочитанных details-колонок.
+     * 4) Вернуть типизированный `AbstractDetailsData`.
+     *
+     * @param  array<int, string|int|float|null>  $row
+     */
     public function make(DetailTemplateEnum $template, array $row, int &$index): AbstractDetailsData;
 }

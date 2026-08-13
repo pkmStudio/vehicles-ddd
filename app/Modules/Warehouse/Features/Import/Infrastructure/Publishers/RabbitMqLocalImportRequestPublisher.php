@@ -18,6 +18,11 @@ final readonly class RabbitMqLocalImportRequestPublisher implements LocalImportR
 {
     /**
      * Получает RabbitMQ publisher и PSR logger.
+     *
+     * Шаги:
+     * 1) Принять RabbitMQ publisher.
+     * 2) Принять logger для ошибок публикации.
+     * 3) Сохранить зависимости adapter'а.
      */
     public function __construct(
         private RabbitMQPublisher $publisher,
@@ -25,7 +30,14 @@ final readonly class RabbitMqLocalImportRequestPublisher implements LocalImportR
     ) {}
 
     /**
-     * Публикует request в RabbitMQ и логирует технический результат.
+     * Публикует request в RabbitMQ и логирует только ошибки публикации.
+     *
+     * Шаги:
+     * 1) Собрать RabbitMessageDTO из LocalImportRequestDTO.
+     * 2) Опубликовать сообщение с routing key из запроса.
+     * 3) На exception записать error-log и вернуть false.
+     * 4) Если publisher вернул false, записать error-log и вернуть false.
+     * 5) Вернуть true при успешной публикации.
      */
     public function publish(LocalImportRequestDTO $request): bool
     {
@@ -68,14 +80,6 @@ final readonly class RabbitMqLocalImportRequestPublisher implements LocalImportR
 
             return false;
         }
-
-        $this->logger->info('RabbitMQ-запрос импорта Warehouse опубликован.', [
-            'event' => $request->eventName,
-            'routing_key' => $request->routingKey,
-            'operation_id' => $request->operationId,
-            'disk' => $request->disk,
-            'path' => $request->path,
-        ]);
 
         return true;
     }

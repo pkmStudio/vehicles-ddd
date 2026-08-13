@@ -18,7 +18,11 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationStatusEnum
 final readonly class CatalogMutationResultService implements CatalogMutationResultServiceInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порт публикации результатов catalog mutation.
+     *
+     * Шаги:
+     * 1) Принять notification-порт, скрывающий конкретный транспорт результата.
+     * 2) Сохранить порт для всех completed/rejected/failed фабрик результата.
      */
     public function __construct(
         private CatalogMutationNotificationServiceInterface $notifier,

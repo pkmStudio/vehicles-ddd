@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Warehouse\MoySklad;
 
 use App\Modules\Warehouse\Features\MoySklad\Application\Services\NomenclatureProductMapper;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductFolderMetaDTO;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductPayloadDTO;
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureData;
 use PHPUnit\Framework\TestCase;
@@ -42,14 +44,19 @@ final class NomenclatureProductMapperTest extends TestCase
             ],
         ];
 
-        $payload = (new NomenclatureProductMapper)->map($nomenclature, $folderMeta);
+        $payload = (new NomenclatureProductMapper)->map(
+            $nomenclature,
+            MoySkladProductFolderMetaDTO::fromArray($folderMeta),
+        );
+        $payloadArray = $payload->toArray();
 
-        $this->assertSame('Brake Pad', $payload['name']);
-        $this->assertSame('BP-15', $payload['code']);
-        $this->assertSame('BP-15', $payload['article']);
-        $this->assertSame('nomenclature:15', $payload['externalCode']);
-        $this->assertSame(250.0, $payload['weight']);
-        $this->assertSame($folderMeta, $payload['productFolder']);
-        $this->assertStringContainsString('Бренд: Bosch', (string) $payload['description']);
+        $this->assertInstanceOf(MoySkladProductPayloadDTO::class, $payload);
+        $this->assertSame('Brake Pad', $payload->name);
+        $this->assertSame('BP-15', $payload->code);
+        $this->assertSame('BP-15', $payload->article);
+        $this->assertSame('nomenclature:15', $payload->externalCode);
+        $this->assertSame(250.0, $payload->weight);
+        $this->assertSame($folderMeta, $payloadArray['productFolder']);
+        $this->assertStringContainsString('Бренд: Bosch', $payload->description);
     }
 }

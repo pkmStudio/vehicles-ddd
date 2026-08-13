@@ -21,6 +21,10 @@ final readonly class PackagingService implements PackagingServiceInterface
 {
     /**
      * Получает чтение упаковок, resolver шаблона и упорядоченный список стратегий.
+     * Шаги:
+     * 1) Сохранить repository упаковочных размеров для чтения доступных коробок типа.
+     * 2) Сохранить resolver detail template по warehouse type.
+     * 3) Сохранить упорядоченный список стратегий: первая поддержавшая template выполняет расчёт.
      *
      * @param  array<int, PackagingStrategyInterface>  $strategies
      */

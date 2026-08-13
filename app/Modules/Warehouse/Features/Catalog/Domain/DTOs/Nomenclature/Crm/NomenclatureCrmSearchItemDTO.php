@@ -9,6 +9,9 @@ namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm;
  */
 final readonly class NomenclatureCrmSearchItemDTO
 {
+    /**
+     * Фиксирует значения DTO без дополнительного поведения.
+     */
     public function __construct(
         public int $id,
         public string $label,

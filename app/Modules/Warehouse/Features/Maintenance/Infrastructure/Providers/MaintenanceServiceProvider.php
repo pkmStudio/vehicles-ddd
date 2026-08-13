@@ -14,6 +14,12 @@ final class MaintenanceServiceProvider extends ServiceProvider
         KitPropertiesClientInterface::class => KitPropertiesClient::class,
     ];
 
+    /**
+     * Регистрирует client adapters Maintenance-фичи.
+     * Шаги:
+     * 1) Пройти список локальных client contracts и concrete adapters.
+     * 2) Зарегистрировать каждую пару в Laravel container через bind().
+     */
     public function register(): void
     {
         foreach (self::CLIENT_BINDINGS as $interface => $implementation) {

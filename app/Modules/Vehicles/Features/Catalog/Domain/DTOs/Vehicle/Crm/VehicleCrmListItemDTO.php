@@ -23,9 +23,9 @@ final readonly class VehicleCrmListItemDTO
         public string $name,
         public ?string $localizedName,
         public ?string $excelTableId,
-        public ?string $generation,
+        public string $generation,
         public ?string $generationShort,
-        public ?int $generationYearFrom,
+        public int $generationYearFrom,
         public ?int $generationYearTo,
         public string $type,
         public string $typeCarcase,
@@ -33,6 +33,34 @@ final readonly class VehicleCrmListItemDTO
         public string $steeringType,
         public bool $isAllow,
     ) {}
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) $data['id'],
+            parentId: isset($data['parent_id']) ? (int) $data['parent_id'] : null,
+            parentMsId: isset($data['parent_ms_id']) ? (int) $data['parent_ms_id'] : null,
+            manufacturerId: (int) $data['manufacturer_id'],
+            manufacturerName: isset($data['manufacturer_name']) ? (string) $data['manufacturer_name'] : null,
+            mfaId: (int) $data['mfa_id'],
+            msId: (int) $data['ms_id'],
+            name: (string) $data['name'],
+            localizedName: isset($data['localized_name']) ? (string) $data['localized_name'] : null,
+            excelTableId: isset($data['excel_table_id']) ? (string) $data['excel_table_id'] : null,
+            generation: (string) $data['generation'],
+            generationShort: isset($data['generation_short']) ? (string) $data['generation_short'] : null,
+            generationYearFrom: (int) $data['generation_year_from'],
+            generationYearTo: isset($data['generation_year_to']) ? (int) $data['generation_year_to'] : null,
+            type: (string) $data['type'],
+            typeCarcase: (string) $data['type_carcase'],
+            provider: (string) $data['provider'],
+            steeringType: (string) $data['steering_type'],
+            isAllow: (bool) $data['is_allow'],
+        );
+    }
 
     /**
      * Возвращает публичный payload CRM read API.

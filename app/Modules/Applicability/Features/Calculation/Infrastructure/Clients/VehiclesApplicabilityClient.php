@@ -17,10 +17,25 @@ use Illuminate\Support\Collection;
  */
 final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilityClientInterface
 {
+    /**
+     * Получает публичный Vehicles applicability client.
+     *
+     * Шаги:
+     * 1. Сохраняет read-only Vehicles boundary.
+     * 2. Оставляет перевод публичных DTO в локальные snapshots методам чтения.
+     */
     public function __construct(
         private PublicVehiclesApplicabilityClientInterface $vehicles,
     ) {}
 
+    /**
+     * Читает front-спецификации дворников автомобилей по длинам комплекта.
+     *
+     * Шаги:
+     * 1. Передает основные размеры и количество щеток в публичный Vehicles boundary.
+     * 2. Получает публичные DTO спецификаций.
+     * 3. Мапит их в локальные `VehiclePartSpecificationData`.
+     */
     public function frontWiperSpecifications(WiperLengthDTO $length): Collection
     {
         return $this->mapSpecifications($this->vehicles->frontWiperSpecifications(
@@ -30,6 +45,14 @@ final readonly class VehiclesApplicabilityClient implements VehiclesApplicabilit
         ));
     }
 
+    /**
+     * Читает rear-спецификации дворников автомобилей по длине комплекта.
+     *
+     * Шаги:
+     * 1. Передает rear length как основной размер в публичный Vehicles boundary.
+     * 2. Получает публичные DTO спецификаций.
+     * 3. Мапит их в локальные `VehiclePartSpecificationData`.
+     */
     public function rearWiperSpecifications(WiperLengthDTO $length): Collection
     {
         return $this->mapSpecifications($this->vehicles->rearWiperSpecifications(

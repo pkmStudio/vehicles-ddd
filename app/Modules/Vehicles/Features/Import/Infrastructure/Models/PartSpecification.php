@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Models;
 
-use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -22,15 +21,15 @@ class PartSpecification extends AbstractModel
     ];
 
     // RELATIONS
+    /**
+     * Связь specification со значением справочника фичи.
+     *
+     * Шаги:
+     * 1) Описать belongsTo relation через feature_value_id.
+     * 2) Вернуть relation на import-копию FeatureValue.
+     */
     public function featureValue(): BelongsTo
     {
         return $this->belongsTo(FeatureValue::class, 'feature_value_id', 'id');
-    }
-
-    public function vehicle(): BelongsTo
-    {
-        return $this
-            ->belongsTo(Vehicle::class, 'partable_id', 'id')
-            ->where('part_specifications.partable_type', PartableTypeEnum::VEHICLE->value);
     }
 }

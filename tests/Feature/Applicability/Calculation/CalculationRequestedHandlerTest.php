@@ -7,11 +7,16 @@ namespace Tests\Feature\Applicability\Calculation;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\ExternalCalculationContextServiceInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\UseCases\CalculateKitApplicabilityUseCaseInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\KitApplicabilityCalculationResultDTO;
+use App\Modules\Applicability\Features\Calculation\Infrastructure\Jobs\CalculateKitApplicabilityChunkJob;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Jobs\CalculateKitApplicabilityJob;
+use App\Modules\Applicability\Features\Calculation\Infrastructure\Jobs\DispatchKitApplicabilityCalculationJob;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Messaging\Handlers\CalculationRequestedHandler;
+use App\Modules\Applicability\Features\Calculation\Infrastructure\Services\ApplicabilityCalculationRunProgress;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Applicability\Features\Calculation\DTO\CalculationRequested as WireCalculationRequested;
 use ReflectionClass;
 use Tests\TestCase;
 
@@ -28,9 +33,30 @@ final class CalculationRequestedHandlerTest extends TestCase
             'chunk' => 50,
         ]);
 
-        Queue::assertPushed(CalculateKitApplicabilityJob::class, function (CalculateKitApplicabilityJob $job): bool {
+        Queue::assertPushed(DispatchKitApplicabilityCalculationJob::class, function (DispatchKitApplicabilityCalculationJob $job): bool {
             return $this->jobProperty($job, 'userId') === 42
                 && $this->jobProperty($job, 'operationId') === 'operation-123'
+                && $this->jobProperty($job, 'kitId') === 7
+                && $this->jobProperty($job, 'chunk') === 50;
+        });
+    }
+
+    public function test_accepts_published_wire_calculation_request_payload(): void
+    {
+        Queue::fake();
+
+        $message = new WireCalculationRequested(
+            userId: 42,
+            operationId: 'wire-calculate-applicability',
+            kitId: 7,
+            chunk: 50,
+        );
+
+        app(CalculationRequestedHandler::class)->handle($message->toArray());
+
+        Queue::assertPushed(DispatchKitApplicabilityCalculationJob::class, function (DispatchKitApplicabilityCalculationJob $job): bool {
+            return $this->jobProperty($job, 'userId') === 42
+                && $this->jobProperty($job, 'operationId') === 'wire-calculate-applicability'
                 && $this->jobProperty($job, 'kitId') === 7
                 && $this->jobProperty($job, 'chunk') === 50;
         });
@@ -77,6 +103,54 @@ final class CalculationRequestedHandlerTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    public function test_chunk_job_aggregates_existing_use_case_results_without_intermediate_events(): void
+    {
+        Queue::fake();
+        Cache::flush();
+
+        $progress = app(ApplicabilityCalculationRunProgress::class);
+        $progress->startRun(
+            operationId: 'operation-chunk',
+            userId: 42,
+            kitId: null,
+            chunkSize: 2,
+            chunks: [[7, 8]],
+        );
+
+        $useCase = Mockery::mock(CalculateKitApplicabilityUseCaseInterface::class);
+        $useCase->shouldReceive('execute')
+            ->once()
+            ->with(7, 1, 'operation-chunk', false)
+            ->andReturn(new KitApplicabilityCalculationResultDTO(
+                operationId: 'operation-chunk',
+                processedKits: 1,
+                calculatedKits: 1,
+                affectedKitIds: [7],
+            ));
+        $useCase->shouldReceive('execute')
+            ->once()
+            ->with(8, 1, 'operation-chunk', false)
+            ->andReturn(new KitApplicabilityCalculationResultDTO(
+                operationId: 'operation-chunk',
+                processedKits: 1,
+                skippedKits: 1,
+            ));
+
+        (new CalculateKitApplicabilityChunkJob(
+            operationId: 'operation-chunk',
+            chunkIndex: 0,
+            kitIds: [7, 8],
+        ))->handle($useCase, $progress);
+
+        $result = $progress->result('operation-chunk');
+
+        $this->assertNotNull($result);
+        $this->assertSame(2, $result->processedKits);
+        $this->assertSame(1, $result->calculatedKits);
+        $this->assertSame(1, $result->skippedKits);
+        $this->assertSame([7], $result->affectedKitIds);
+    }
+
     public function test_calculation_request_event_is_registered(): void
     {
         $this->assertSame(
@@ -91,7 +165,7 @@ final class CalculationRequestedHandlerTest extends TestCase
         );
     }
 
-    private function jobProperty(CalculateKitApplicabilityJob $job, string $property): mixed
+    private function jobProperty(object $job, string $property): mixed
     {
         $reflection = new ReflectionClass($job);
 
@@ -100,6 +174,7 @@ final class CalculationRequestedHandlerTest extends TestCase
 
     protected function tearDown(): void
     {
+        Cache::flush();
         Mockery::close();
 
         parent::tearDown();

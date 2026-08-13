@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Maintenance\Infrastructure\Models;
 
-use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -22,6 +22,10 @@ class PartSpecification extends AbstractModel
     ];
 
     // RELATIONS
+
+    /**
+     * Возвращает автомобиль-владельца для vehicle part specification.
+     */
     public function vehicle(): BelongsTo
     {
         return $this

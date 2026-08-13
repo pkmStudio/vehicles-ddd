@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
@@ -17,9 +17,9 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationR
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Modules\Warehouse\Shared\Domain\Events\Kit\KitUpdated;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Shared\Domain\Events\Kit\KitUpdated;
 use InvalidArgumentException;
 use Throwable;
 use UnexpectedValueException;
@@ -31,6 +31,10 @@ final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
 {
     /**
      * Инициализирует чтение номенклатуры/наборов, расчёт свойств, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repositories номенклатуры/комплектов и KitProperties client.
+     * 2) Принять command записи, idempotency cache и result service.
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
@@ -158,7 +162,7 @@ final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
     }
 
     /**
-     * Резолвит номенклатуры по id, сохраняя порядок входящего payload.
+     * Резолвит номенклатуры по id, сохраняя порядок входящего данные сообщения.
      *
      * @param  array<int, int>  $ids
      * @return array{items: array<int, NomenclatureData>, missing_ids: array<int, int>}

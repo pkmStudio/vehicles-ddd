@@ -22,6 +22,10 @@ final class DeleteNomenclatureJob implements ShouldQueue
 
     /**
      * Сохраняет локальный и внешний контекст удаляемой номенклатуры.
+     * Шаги:
+     * 1) Сохранить local nomenclature id, part number и optional external identifiers как serializable state.
+     * 2) Прочитать имя очереди из warehouse.moysklad config.
+     * 3) Назначить job queue с fallback moysklad.
      */
     public function __construct(
         private readonly int $nomenclatureId,
@@ -34,6 +38,9 @@ final class DeleteNomenclatureJob implements ShouldQueue
 
     /**
      * Возвращает middleware пакета МойСклад для circuit-breaker/rate-limit ошибок.
+     * Шаги:
+     * 1) Создать MoySkladJobMiddleware из внешнего пакета.
+     * 2) Вернуть middleware списком для Laravel queue worker.
      *
      * @return array<int, object>
      */
@@ -44,6 +51,9 @@ final class DeleteNomenclatureJob implements ShouldQueue
 
     /**
      * Делегирует удаление товара МойСклад application-сервису.
+     * Шаги:
+     * 1) Получить NomenclatureSyncServiceInterface из container при выполнении job.
+     * 2) Передать local/external identifiers в delete().
      */
     public function handle(NomenclatureSyncServiceInterface $service): void
     {

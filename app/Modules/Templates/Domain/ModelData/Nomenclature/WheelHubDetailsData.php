@@ -17,6 +17,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class WheelHubDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры ступицы колеса в nomenclature details template.
+     */
     public function __construct(
         public readonly float $height,
         public readonly string $abs,

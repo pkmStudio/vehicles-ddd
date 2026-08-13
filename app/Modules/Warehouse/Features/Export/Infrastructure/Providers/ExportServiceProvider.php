@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Export\Infrastructure\Providers;
 
-use App\Modules\Warehouse\Features\Export\Application\Factories\ExportFileFactory;
 use App\Modules\Warehouse\Features\Export\Application\Services\KitExportService;
 use App\Modules\Warehouse\Features\Export\Application\Services\NomenclatureExportService;
 use App\Modules\Warehouse\Features\Export\Application\Services\PackDimensionExportService;
@@ -39,6 +38,7 @@ use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Kit\KitExport;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Nomenclature\NomenclatureByTypeExport;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\PackDimension\PackDimensionExport;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\WiperAdapterAudit\WiperAdapterAuditExport;
+use App\Modules\Warehouse\Features\Export\Infrastructure\Factories\ExportFileFactory;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Repositories\KitRepository;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Repositories\NomenclatureRepository;

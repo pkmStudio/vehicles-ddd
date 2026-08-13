@@ -18,6 +18,12 @@ use Psr\Log\LoggerInterface;
  */
 final readonly class KitCompositionValidator implements KitCompositionValidatorInterface
 {
+    /**
+     * Получает зависимости для определения template номенклатуры и фиксации ошибок состава.
+     * Шаги:
+     * 1) Сохранить resolver, который переводит warehouse type в detail template.
+     * 2) Сохранить logger для actionable warning перед доменным исключением.
+     */
     public function __construct(
         private TypeTemplateResolverInterface $templateResolver,
         private LoggerInterface $logger,
@@ -46,6 +52,11 @@ final readonly class KitCompositionValidator implements KitCompositionValidatorI
 
     /**
      * Проверяет, что состав не смешивает разные типы, кроме щётки с адаптером.
+     * Шаги:
+     * 1) Собрать уникальные type_id из состава комплекта.
+     * 2) Если тип один или типы отсутствуют, считать правило типов выполненным.
+     * 3) Разрешить ровно комбинацию шаблонов WIPER и WIPER_ADAPTER.
+     * 4) Для любой другой смеси типов выбросить KitCompositionException через fail().
      *
      * @param  Collection<int, NomenclatureData>  $nomenclatures
      */
@@ -68,6 +79,11 @@ final readonly class KitCompositionValidator implements KitCompositionValidatorI
 
     /**
      * Проверяет, что не-адаптерные номенклатуры принадлежат одному бренду.
+     * Шаги:
+     * 1) Исключить adapter-позиции, потому что они могут быть отдельного бренда.
+     * 2) Собрать уникальные заполненные brandId оставшихся позиций.
+     * 3) Разрешить пустой или единственный бренд.
+     * 4) Для нескольких брендов выбросить ошибку с перечислением brandId.
      *
      * @param  Collection<int, NomenclatureData>  $nomenclatures
      */
@@ -92,6 +108,12 @@ final readonly class KitCompositionValidator implements KitCompositionValidatorI
 
     /**
      * Проверяет, что все щётки имеют одну заполненную ручную категорию.
+     * Шаги:
+     * 1) Оставить только позиции с template WIPER.
+     * 2) Если щёток нет, не применять правило категорий.
+     * 3) Для каждой щётки потребовать непустой details.category.
+     * 4) Собрать уникальные category keys по щёткам.
+     * 5) Для нескольких категорий вывести человекочитаемые labels и выбросить ошибку состава.
      *
      * @param  Collection<int, NomenclatureData>  $nomenclatures
      */
@@ -132,22 +154,46 @@ final readonly class KitCompositionValidator implements KitCompositionValidatorI
         );
     }
 
+    /**
+     * Проверяет, относится ли номенклатура к template адаптера щётки.
+     * Шаги:
+     * 1) Определить template через type resolver.
+     * 2) Сравнить template с WIPER_ADAPTER.
+     */
     private function isAdapter(NomenclatureData $nomenclature): bool
     {
         return $this->template($nomenclature) === NomenclatureDetailTemplateEnum::WIPER_ADAPTER;
     }
 
+    /**
+     * Проверяет, относится ли номенклатура к template щётки.
+     * Шаги:
+     * 1) Определить template через type resolver.
+     * 2) Сравнить template с WIPER.
+     */
     private function isWiper(NomenclatureData $nomenclature): bool
     {
         return $this->template($nomenclature) === NomenclatureDetailTemplateEnum::WIPER;
     }
 
+    /**
+     * Определяет detail template номенклатуры по warehouse type.
+     * Шаги:
+     * 1) Если type отсутствует в snapshot номенклатуры, вернуть null.
+     * 2) Иначе передать type в TypeTemplateResolverInterface.
+     */
     private function template(NomenclatureData $nomenclature): ?NomenclatureDetailTemplateEnum
     {
         return $nomenclature->type === null ? null : $this->templateResolver->resolve($nomenclature->type);
     }
 
     /**
+     * Собирает уникальные templates состава комплекта.
+     * Шаги:
+     * 1) Для каждой номенклатуры определить template по type.
+     * 2) Отбросить null для неизвестных/пустых типов.
+     * 3) Вернуть уникальный ordered список templates.
+     *
      * @param  Collection<int, NomenclatureData>  $nomenclatures
      * @return Collection<int, NomenclatureDetailTemplateEnum>
      */
@@ -160,6 +206,13 @@ final readonly class KitCompositionValidator implements KitCompositionValidatorI
             ->values();
     }
 
+    /**
+     * Извлекает normalized category key из details щётки.
+     * Шаги:
+     * 1) Прочитать details.category, если ключ есть.
+     * 2) Привести значение к trimmed string.
+     * 3) Вернуть null для отсутствующей или пустой категории.
+     */
     private function categoryKey(NomenclatureData $nomenclature): ?string
     {
         $category = $nomenclature->details['category'] ?? null;
@@ -172,12 +225,25 @@ final readonly class KitCompositionValidator implements KitCompositionValidatorI
         return $category === '' ? null : $category;
     }
 
+    /**
+     * Переводит сохраненный category key в label для сообщения пользователю.
+     * Шаги:
+     * 1) Попробовать найти enum case по сохраненному name.
+     * 2) Вернуть enum value как человекочитаемый label.
+     * 3) Для неизвестного key вернуть исходную строку, чтобы не потерять диагностический контекст.
+     */
     private function categoryLabel(string $category): string
     {
         return CategoryEnum::fromName($category)?->value ?? $category;
     }
 
     /**
+     * Фиксирует недопустимый состав и выбрасывает доменное исключение.
+     * Шаги:
+     * 1) Собрать диагностический контекст: type_id, brand_id, category keys и артикулы.
+     * 2) Записать warning, потому что это actionable business validation failure.
+     * 3) Выбросить KitCompositionException с пользовательским сообщением.
+     *
      * @param  Collection<int, NomenclatureData>  $nomenclatures
      */
     private function fail(Collection $nomenclatures, string $message): never

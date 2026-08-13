@@ -35,26 +35,42 @@ class Vehicle extends AbstractModel
     }
 
     // RELATIONS
+
+    /**
+     * Возвращает модификации текущей модели автомобиля.
+     */
     public function modifications(): HasMany
     {
         return $this->hasMany(Modification::class);
     }
 
+    /**
+     * Возвращает производителя текущей модели автомобиля.
+     */
     public function manufacturer(): BelongsTo
     {
         return $this->belongsTo(Manufacturer::class);
     }
 
+    /**
+     * Возвращает родительскую модель автомобиля для иерархии поколений/кузовов.
+     */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class, 'parent_id', 'id');
     }
 
+    /**
+     * Возвращает дочерние модели автомобиля в иерархии поколений/кузовов.
+     */
     public function children(): HasMany
     {
         return $this->hasMany(Vehicle::class, 'parent_id', 'id');
     }
 
+    /**
+     * Возвращает vehicle part specifications через общий polymorphic discriminator.
+     */
     public function partSpecifications(): MorphMany
     {
         return $this->morphMany(PartSpecification::class, 'partable');

@@ -18,6 +18,11 @@ final readonly class PublishLocalImportRequestUseCase implements PublishLocalImp
 {
     /**
      * Получает порты Storage/RabbitMQ и PSR logger для workflow-событий.
+     *
+     * Шаги:
+     * 1) Принять порт проверки локального Storage.
+     * 2) Принять publisher входящего import request.
+     * 3) Принять logger для диагностических предупреждений при отказе.
      */
     public function __construct(
         private LocalImportFileStorageInterface $storage,
@@ -27,6 +32,13 @@ final readonly class PublishLocalImportRequestUseCase implements PublishLocalImp
 
     /**
      * Проверяет входные параметры, существование файла и публикует RabbitMQ-request.
+     *
+     * Шаги:
+     * 1) Проверить положительный userId и безопасный относительный путь.
+     * 2) Убедиться, что Storage disk настроен и файл существует.
+     * 3) Записать warning, если файл не найден.
+     * 4) Опубликовать request через publisher-порт.
+     * 5) Вернуть success/failure DTO с сообщением для консольной команды.
      */
     public function execute(LocalImportRequestDTO $request): LocalImportRequestResultDTO
     {

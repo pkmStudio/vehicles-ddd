@@ -21,7 +21,12 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationE
 final readonly class StartManufacturerMutationUseCase implements StartManufacturerMutationUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает use cases для трех поддерживаемых операций manufacturer mutation.
+     *
+     * Шаги:
+     * 1) Принять create-сценарий производителя.
+     * 2) Принять update-сценарий производителя.
+     * 3) Принять delete-сценарий производителя.
      */
     public function __construct(
         private CreateManufacturerUseCaseInterface $createManufacturer,
@@ -90,7 +95,11 @@ final readonly class StartManufacturerMutationUseCase implements StartManufactur
     }
 
     /**
-     * Собирает DTO конкретной операции производителей из общего DTO или payload.
+     * Извлекает create request из общего DTO manufacturer mutation.
+     *
+     * Шаги:
+     * 1) Прочитать typed request, уже собранный boundary factory.
+     * 2) Вернуть его как CreateManufacturerRequestDTO для create use case.
      */
     private function createRequest(ManufacturerMutationRequestDTO $request): CreateManufacturerRequestDTO
     {
@@ -98,7 +107,11 @@ final readonly class StartManufacturerMutationUseCase implements StartManufactur
     }
 
     /**
-     * Собирает DTO конкретной операции производителей из общего DTO или payload.
+     * Извлекает update request из общего DTO manufacturer mutation.
+     *
+     * Шаги:
+     * 1) Прочитать typed request, уже собранный boundary factory.
+     * 2) Вернуть его как UpdateManufacturerRequestDTO для update use case.
      */
     private function updateRequest(ManufacturerMutationRequestDTO $request): UpdateManufacturerRequestDTO
     {

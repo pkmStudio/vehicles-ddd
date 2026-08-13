@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Создает таблицу manufacturers для каталога марок автомобилей.
+     */
     public function up(): void
     {
         Schema::create('manufacturers', function (Blueprint $table) {
@@ -16,6 +19,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Удаляет таблицу manufacturers при откате схемы.
+     */
     public function down(): void
     {
         Schema::dropIfExists('manufacturers');

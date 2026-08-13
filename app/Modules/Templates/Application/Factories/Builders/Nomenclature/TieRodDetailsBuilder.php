@@ -18,6 +18,13 @@ final readonly class TieRodDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает details рулевой тяги из Excel-строки.
+     * Шаги:
+     * 1) Читает две резьбы, строковую длину, размер конуса и конусность.
+     * 2) Читает применение через enum-справочник.
+     * 3) Читает общий блок габаритов и возвращает `TieRodDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): TieRodDetailsData
     {
         return new TieRodDetailsData(

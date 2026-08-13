@@ -18,6 +18,10 @@ trait CachesImportFailures
 
     /**
      * Возвращает cache factory класса-хоста.
+     *
+     * Шаги:
+     * 1. Делегирует выбор cache factory concrete import adapter-у.
+     * 2. Позволяет trait-у не знать, как adapter восстанавливает зависимости после queue serialization.
      */
     abstract protected function cache(): CacheFactory;
 
@@ -25,9 +29,9 @@ trait CachesImportFailures
      * Сохраняет ошибки строки в cache под блокировкой.
      *
      * Шаги:
-     * 1) Преобразовать Failure в плоский массив.
-     * 2) Под lock прочитать накопленные записи.
-     * 3) Дописать новые записи и продлить TTL.
+     * 1. Преобразует каждый Failure в плоский массив для будущего CSV-отчета.
+     * 2. Под lock читает уже накопленные записи текущего import run.
+     * 3. Дописывает новые entries и продлевает TTL transient cache.
      */
     public function onFailure(Failure ...$failures): void
     {

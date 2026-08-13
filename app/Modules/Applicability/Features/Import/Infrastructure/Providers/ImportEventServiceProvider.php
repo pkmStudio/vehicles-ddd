@@ -12,6 +12,13 @@ use Illuminate\Support\ServiceProvider;
 
 final class ImportEventServiceProvider extends ServiceProvider
 {
+    /**
+     * Подписывает listeners на завершение импорта применяемости.
+     *
+     * Шаги:
+     * 1. Подключает listener формирования отчета и completion notification.
+     * 2. Подключает listener cleanup-а исходного файла внешнего import-а.
+     */
     public function boot(): void
     {
         Event::listen(

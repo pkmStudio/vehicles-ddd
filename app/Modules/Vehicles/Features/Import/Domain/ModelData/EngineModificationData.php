@@ -16,6 +16,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class EngineModificationData extends Data
 {
+    /**
+     * Фиксирует данные pivot-связи engine-modification для записи.
+     */
     public function __construct(
         public readonly int $engId,
         public readonly int $modId,

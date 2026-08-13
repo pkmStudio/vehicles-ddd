@@ -47,6 +47,8 @@ final class UpsertVehicleFromSheetServiceTest extends TestCase
             steeringType: SteeringTypeEnum::LEFT,
             typeCarcase: CarcaseTypeEnum::HATCHBACK,
             provider: ProviderEnum::OD,
+            generation: 'Incoming generation',
+            generationYearFrom: 2013,
         );
 
         $manufacturers = $this->manufacturersWithExisting($manufacturer);

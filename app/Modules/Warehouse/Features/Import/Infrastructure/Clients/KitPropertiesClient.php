@@ -6,25 +6,49 @@ namespace App\Modules\Warehouse\Features\Import\Infrastructure\Clients;
 
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\KitPropertiesClientInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\KitProperties\KitPropertiesDTO;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\Contracts\Services\KitPropertiesServiceInterface;
+use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\NomenclatureData as KitPropertiesNomenclatureData;
 use App\Modules\Warehouse\Features\KitProperties\Domain\ModelData\TypeData as KitPropertiesTypeData;
 
 final readonly class KitPropertiesClient implements KitPropertiesClientInterface
 {
+    /**
+     * Получает public service фичи KitProperties для расчёта состава набора.
+     *
+     * Шаги:
+     * 1) Принять сервис расчёта свойств набора из owner-фичи.
+     * 2) Сохранить его как dependency Infrastructure-adapter'а.
+     */
     public function __construct(
         private KitPropertiesServiceInterface $kitProperties,
     ) {}
 
+    /**
+     * Переводит Import DTO номенклатур в язык KitProperties и возвращает результат для импорта.
+     *
+     * Шаги:
+     * 1) Преобразовать каждую Import NomenclatureData в DTO фичи KitProperties.
+     * 2) Передать состав в KitPropertiesService.
+     * 3) Перевести ошибки состава в validation exception строки импорта.
+     * 4) Вернуть локальный KitPropertiesDTO с calculated fields и import hash.
+     *
+     * @param  array<int, NomenclatureData>  $nomenclatures
+     */
     public function build(array $nomenclatures): KitPropertiesDTO
     {
         $toKitPropertiesNomenclature = fn (NomenclatureData $nomenclature): KitPropertiesNomenclatureData => $this->toKitPropertiesNomenclature($nomenclature);
 
-        $properties = $this->kitProperties->build(array_map(
-            $toKitPropertiesNomenclature,
-            $nomenclatures,
-        ));
+        try {
+            $properties = $this->kitProperties->build(array_map(
+                $toKitPropertiesNomenclature,
+                $nomenclatures,
+            ));
+        } catch (KitCompositionException $e) {
+            throw new ImportRowValidationException($e->getMessage(), previous: $e);
+        }
 
         return new KitPropertiesDTO(
             typeId: $properties->typeId,

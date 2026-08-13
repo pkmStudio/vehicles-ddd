@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Создает таблицу part_specifications для шаблонных характеристик vehicle/engine.
+     */
     public function up(): void
     {
         Schema::create('part_specifications', function (Blueprint $table) {
@@ -20,6 +23,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Удаляет таблицу part_specifications при откате схемы.
+     */
     public function down(): void
     {
         Schema::dropIfExists('part_specifications');

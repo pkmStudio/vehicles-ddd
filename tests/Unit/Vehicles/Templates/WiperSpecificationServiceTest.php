@@ -41,14 +41,14 @@ final class WiperSpecificationServiceTest extends TestCase
 
     /**
      * Проверяет нормализацию значений адаптера (приватный normalizeAdapters()) через публичный
-     * splitDetails(): приведение сырых значений (строка/массив/null, с возможными
-     * пустыми/дублирующимися элементами) к чистому списку строк, по одному адаптеру на вариант.
+     * splitDetails(): приведение массивов adapter values с возможными пустыми/дублирующимися
+     * элементами к чистому списку строк, по одному адаптеру на вариант.
      *
      * Шаги:
      * 1. Массив с пустой строкой и дублем схлопывается в 2 уникальных варианта ('A' и 'B').
-     * 2. Одиночная строка оборачивается в один вариант с адаптером из одного элемента.
-     * 3. null даёт один вариант с пустым списком адаптеров (не падает, не размножает записи).
-     * 4. Массив из пустых/null-значений даёт тот же результат, что и null.
+     * 2. Один adapter внутри массива остаётся одним вариантом.
+     * 3. Пустой массив даёт один вариант с пустым списком адаптеров.
+     * 4. Массив из пустых/null-значений даёт тот же результат, что и пустой массив.
      */
     public function test_split_details_normalizes_adapter_values(): void
     {
@@ -57,13 +57,13 @@ final class WiperSpecificationServiceTest extends TestCase
         $this->assertSame(['A'], $duplicates[0]['details']['front']['adapter_type_front']);
         $this->assertSame(['B'], $duplicates[1]['details']['front']['adapter_type_front']);
 
-        $singleString = $this->service->splitDetails(['front' => ['adapter_type_front' => 'X']]);
-        $this->assertCount(1, $singleString);
-        $this->assertSame(['X'], $singleString[0]['details']['front']['adapter_type_front']);
+        $single = $this->service->splitDetails(['front' => ['adapter_type_front' => ['X']]]);
+        $this->assertCount(1, $single);
+        $this->assertSame(['X'], $single[0]['details']['front']['adapter_type_front']);
 
-        $null = $this->service->splitDetails(['front' => ['adapter_type_front' => null]]);
-        $this->assertCount(1, $null);
-        $this->assertSame([], $null[0]['details']['front']['adapter_type_front']);
+        $empty = $this->service->splitDetails(['front' => ['adapter_type_front' => []]]);
+        $this->assertCount(1, $empty);
+        $this->assertSame([], $empty[0]['details']['front']['adapter_type_front']);
 
         $emptyAndNull = $this->service->splitDetails(['front' => ['adapter_type_front' => ['', null]]]);
         $this->assertCount(1, $emptyAndNull);
@@ -137,7 +137,7 @@ final class WiperSpecificationServiceTest extends TestCase
      * адаптерам одновременно, плюс прикрепление part_specification_id к каждой части.
      *
      * Шаги:
-     * 1. Зовёт splitSpecification() с front (2 адаптера) и back (1 строка-адаптер, не массив).
+     * 1. Зовёт splitSpecification() с front (2 адаптера) и back (1 адаптер в массиве).
      * 2. Проверяет, что получилось 3 части (2 варианта front + 1 back).
      * 3. Проверяет, что part_specification_id=123 проставлен во всех частях.
      * 4. Проверяет side и содержимое details для каждой из трёх частей.
@@ -146,7 +146,7 @@ final class WiperSpecificationServiceTest extends TestCase
     {
         $details = [
             'front' => ['adapter_type_front' => ['A1', 'A2'], 'count_wipers' => 2],
-            'back' => ['adapter_type_rear' => 'B1'],
+            'back' => ['adapter_type_rear' => ['B1']],
         ];
 
         $parts = $this->service->splitSpecification($details, 123);

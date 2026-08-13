@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\M
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ModificationRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogCascadeDeleteServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\DeleteModificationUseCaseInterface;
@@ -23,11 +24,17 @@ use Throwable;
 final readonly class DeleteModificationUseCase implements DeleteModificationUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты delete modification workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для поиска модификации по mod_id/type.
+     * 2) Принять cascade service для удаления engine_modification dependencies.
+     * 3) Принять command/cache/result сервисы для записи, идемпотентности и result event.
      */
     public function __construct(
         private ModificationRepositoryInterface $modifications,
         private ModificationCommandInterface $command,
+        private CatalogCascadeDeleteServiceInterface $cascade,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
     ) {}
@@ -65,6 +72,7 @@ final readonly class DeleteModificationUseCase implements DeleteModificationUseC
                 );
             }
 
+            $this->cascade->deleteModificationDependencies([(int) $modification->id]);
             $this->command->deleteByModIdAndType(
                 modId: $request->modId,
                 type: $request->type->value,

@@ -9,10 +9,10 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\KitCommandIn
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\Kit\ImportKitFromRowServiceInterface;
+use App\Modules\Warehouse\Features\Import\Domain\DTOs\Kit\KitImportRowDTO;
+use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
-use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationException;
-use App\Modules\Warehouse\Features\KitProperties\Domain\Exceptions\KitCompositionException;
 
 /**
  * Резолвит состав Warehouse-набора, считает свойства через KitProperties и пишет набор.
@@ -23,6 +23,11 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
 
     /**
      * Получает чтение номенклатуры/наборов, расчёт свойств набора и команду записи Kit.
+     * Шаги:
+     * 1) Сохранить repository номенклатуры для резолва состава по артикулам.
+     * 2) Сохранить repository наборов для поиска существующей записи.
+     * 3) Сохранить KitProperties client для расчета packaging/type/importHash.
+     * 4) Сохранить command port записи Kit и pivot-состава.
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
@@ -33,25 +38,21 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
 
     /**
      * Валидирует строку и пишет набор.
-     *
-     * @param  array<int, mixed>  $row
+     * Шаги:
+     * 1) Прочитать optional id и список артикулов из Excel-строки.
+     * 2) Запретить пустой список артикулов.
+     * 3) Найти номенклатуры по артикулам в исходном порядке строки.
+     * 4) Рассчитать свойства набора через KitProperties boundary.
+     * 5) Запретить смешанный комплект, для которого не рассчиталась упаковка.
+     * 6) Собрать KitData с гарантийным сроком, флагами продажи/активности и importHash.
+     * 7) Преобразовать состав в список ids для pivot.
+     * 8) Найти существующий kit по id или importHash.
+     * 9) Создать новый kit или обновить найденный с тем же составом.
      */
-    public function importFromRow(array $row): KitData
+    public function importFromRow(KitImportRowDTO $row): KitData
     {
-        $idCell = isset($row[0]) ? trim((string) $row[0]) : '';
-        $id = $idCell !== '' ? (int) $idCell : null;
-
-        $partNumbers = $this->parsePartNumbers((string) ($row[1] ?? ''));
-        if ($partNumbers === []) {
-            throw ImportRowValidationException::withMessage('Список артикулов набора пуст');
-        }
-
-        $ordered = $this->resolveOrderedNomenclatures($partNumbers);
-        try {
-            $properties = $this->kitProperties->build($ordered);
-        } catch (KitCompositionException $e) {
-            throw new ImportRowValidationException($e->getMessage(), previous: $e);
-        }
+        $ordered = $this->resolveOrderedNomenclatures($row->partNumbers);
+        $properties = $this->kitProperties->build($ordered);
 
         if ($properties->packDimensionId === null) {
             throw ImportRowValidationException::withMessage(
@@ -69,9 +70,9 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
             packDimensionId: $properties->packDimensionId,
             typeId: $properties->typeId,
             importHash: $properties->importHash,
-            isSaleSeparately: ($row[2] ?? null) === 'Да',
-            isActive: ($row[3] ?? null) !== 'Нет',
-            id: $id,
+            isSaleSeparately: $row->isSaleSeparately,
+            isActive: $row->isActive,
+            id: $row->id,
         );
 
         $toNomenclatureId = fn (NomenclatureData $nomenclature): int => $this->nomenclatureId($nomenclature);
@@ -90,6 +91,11 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
 
     /**
      * Находит существующий набор по id или import hash.
+     * Шаги:
+     * 1) Если в Excel передан id, сначала искать kit по id.
+     * 2) Вернуть найденный kit, даже если importHash изменился.
+     * 3) Если id не дал результата и importHash отсутствует, вернуть null.
+     * 4) Иначе искать существующий kit по importHash состава.
      */
     private function findExistingKit(KitData $data): ?KitData
     {
@@ -110,6 +116,9 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
 
     /**
      * Возвращает копию data с id найденной записи.
+     * Шаги:
+     * 1) Перенести все поля KitData без пересчета свойств.
+     * 2) Заменить только id, найденный repository.
      */
     private function withId(KitData $data, ?int $id): KitData
     {
@@ -130,17 +139,13 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
     }
 
     /**
-     * Разбирает `;`-список артикулов, обрезая пробелы и отбрасывая пустые куски.
-     *
-     * @return array<int, string>
-     */
-    private function parsePartNumbers(string $rawCell): array
-    {
-        return array_values(array_filter(array_map('trim', explode(';', $rawCell))));
-    }
-
-    /**
      * Резолвит номенклатуры по артикулам, сохраняя исходный порядок строки.
+     * Шаги:
+     * 1) Загрузить найденные номенклатуры одним repository-запросом, индексированным по part number.
+     * 2) Пройти исходный список артикулов в порядке Excel-строки.
+     * 3) Собрать ordered список найденных NomenclatureData.
+     * 4) Накопить отсутствующие артикулы.
+     * 5) Если есть пропуски, выбросить ImportRowValidationException с перечислением артикулов.
      *
      * @param  array<int, string>  $partNumbers
      * @return array<int, NomenclatureData>
@@ -173,6 +178,10 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
 
     /**
      * Возвращает id сохранённой номенклатуры для записи pivot-состава набора.
+     * Шаги:
+     * 1) Проверить, что NomenclatureData содержит id.
+     * 2) Если id отсутствует, выбросить row validation exception с артикулом.
+     * 3) Вернуть id для записи kit_nomenclature pivot.
      */
     private function nomenclatureId(NomenclatureData $nomenclature): int
     {

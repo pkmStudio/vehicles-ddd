@@ -8,6 +8,9 @@ use App\Modules\Applicability\Features\Calculation\Domain\Enums\CalculationCompl
 
 final readonly class CalculationCompletionNotificationDTO
 {
+    /**
+     * Создает payload уведомления о завершении расчета применяемости.
+     */
     public function __construct(
         public CalculationCompletionStatusEnum $status,
         public string $operationId,

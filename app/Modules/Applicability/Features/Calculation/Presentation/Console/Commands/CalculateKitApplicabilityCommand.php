@@ -18,6 +18,17 @@ final class CalculateKitApplicabilityCommand extends Command
 
     protected $description = 'Рассчитать применяемость активных наборов без автослушателей событий';
 
+    /**
+     * Запускает ручной пересчет применяемости комплектов из Artisan.
+     *
+     * Шаги:
+     * 1. Читает optional kit id и нормализует chunk size из command options.
+     * 2. Создает operation id для текущего запуска.
+     * 3. Если указан `--queue`, dispatch-ит job и выводит operation id.
+     * 4. Иначе синхронно вызывает use case пересчета.
+     * 5. Печатает агрегированные счетчики и ошибки отдельных kit-ов.
+     * 6. Возвращает failure exit code только если есть failed kits.
+     */
     public function handle(CalculateKitApplicabilityUseCaseInterface $useCase): int
     {
         $kitId = $this->option('kit-id') === null ? null : (int) $this->option('kit-id');

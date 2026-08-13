@@ -19,11 +19,28 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
  */
 final readonly class AssignEngineGroupService implements AssignEngineGroupServiceInterface
 {
+    /**
+     * Инициализирует read/write порты двигателя.
+     *
+     * Шаги:
+     * 1) Сохранить repository для поиска двигателя по коду.
+     * 2) Сохранить command для записи group id.
+     */
     public function __construct(
         private EngineRepositoryInterface $engines,
         private EngineCommandInterface $command,
     ) {}
 
+    /**
+     * Назначает группу двигателю по его коду.
+     *
+     * Шаги:
+     * 1) Найти двигатель по коду.
+     * 2) Если двигатель не найден — вернуть result `found=false`.
+     * 3) Определить, будет ли непустая группа переназначена.
+     * 4) Собрать минимальный `EngineData` с новым group id и записать его через command.
+     * 5) Вернуть result с прежним group id и флагом reassigned.
+     */
     public function assignGroup(string $code, int $groupId): AssignEngineGroupResultDTO
     {
         $engine = $this->engines->findByCodeEngine($code);

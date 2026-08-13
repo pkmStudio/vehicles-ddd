@@ -14,6 +14,11 @@ interface CreateKitUseCaseInterface
 {
     /**
      * Выполняет создание Warehouse-набора.
+     *
+     * Шаги:
+     * 1) Принять CreateKitRequestDTO из boundary handler.
+     * 2) Рассчитать свойства комплекта по составу и создать kit.
+     * 3) Вернуть result DTO или null для повторного operation_id.
      */
     public function execute(CreateKitRequestDTO $request): ?WarehouseCatalogMutationResultDTO;
 }

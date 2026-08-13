@@ -17,6 +17,9 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\BrandMutationPayload as WireBrandMutationPayload;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\BrandMutationRequested as WireBrandMutationRequested;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Enums\CatalogMutationOperation as WireCatalogMutationOperation;
 use Tests\TestCase;
 
 /**
@@ -73,6 +76,39 @@ final class BrandMutationRequestedHandlerTest extends TestCase
         ]);
 
         $this->assertDatabaseMissing('brands', ['id' => $brand->id]);
+    }
+
+    public function test_brand_create_message_accepts_published_wire_contract_payload(): void
+    {
+        $notifier = $this->mock(WarehouseCatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (WarehouseCatalogMutationResultDTO $result): bool => $result->entity === WarehouseCatalogEntityEnum::Brand
+                && $result->operation === WarehouseCatalogMutationOperationEnum::Create
+                && $result->status === WarehouseCatalogMutationStatusEnum::Completed
+                && $result->operationId === 'warehouse-brand-wire-contract'
+                && $result->recordId !== null));
+
+        $message = new WireBrandMutationRequested(
+            userId: 42,
+            operationId: 'warehouse-brand-wire-contract',
+            operation: WireCatalogMutationOperation::Create->value,
+            brand: new WireBrandMutationPayload(
+                name: 'Wire Bosch',
+                numberSert: 'WIRE-CERT-1',
+                dateStart: '2026-01-01 00:00:00',
+                dateEnd: '2026-12-31 00:00:00',
+                char: 'W',
+            ),
+        );
+
+        app(BrandMutationRequestedHandler::class)->handle($message->toArray());
+
+        $this->assertDatabaseHas('brands', [
+            'name' => 'Wire Bosch',
+            'number_sert' => 'WIRE-CERT-1',
+            'char' => 'W',
+        ]);
     }
 
     public function test_brand_create_is_rejected_when_name_already_exists(): void

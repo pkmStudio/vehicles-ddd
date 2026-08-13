@@ -41,7 +41,7 @@ final class EngineMultiSheetExportTest extends TestCase
      * EngineFuelTypeEnum напрямую в строку без ->value — падало на сериализации.
      *
      * Шаги:
-     * 1. Создаёт двигатель с заполненным eng_fuel_type.
+     * 1. Создаёт двигатель с заполненным fuel_type.
      * 2. Зовёт export() и читает основной лист сгенерированного файла.
      * 3. Проверяет, что тип топлива попал в файл строкой ('бензин'), а не объектом enum.
      */
@@ -54,7 +54,7 @@ final class EngineMultiSheetExportTest extends TestCase
             'code_engine' => 'M54B30',
             'engine_capacity' => '2979',
             'cylinder_count' => 6,
-            'eng_fuel_type' => 'бензин',
+            'fuel_type' => 'бензин',
         ]);
 
         $context = new ExportRunContextDTO(userId: 1, operationId: 'engine-export-main');
@@ -80,7 +80,7 @@ final class EngineMultiSheetExportTest extends TestCase
 
     /**
      * Проверяет лист свечей зажигания: у двигателя без спецификации строка всё равно
-     * присутствует (с пустыми details-колонками) — PartSpecificationRowExpander не
+     * присутствует (с пустыми details-колонками) — EngineSparkPlugSpecificationRowExpander не
      * пропускает сущности без спецификаций, а отдаёт для них null-заполненную строку.
      *
      * Шаги:

@@ -17,6 +17,15 @@ use Psr\Log\LoggerInterface;
  */
 final readonly class ReportCalculationResultListener
 {
+    /**
+     * Получает порты отчета, notification и external context расчета.
+     *
+     * Шаги:
+     * 1. Сохраняет reporter, который создает файл ошибок расчета.
+     * 2. Сохраняет notifier результата расчета для внешнего контура.
+     * 3. Сохраняет context service, который восстанавливает user id по operation id.
+     * 4. Сохраняет logger для warning при расчетах с failures.
+     */
     public function __construct(
         private CalculationFailureReporterInterface $reporter,
         private CalculationNotificationServiceInterface $notifications,
@@ -25,7 +34,14 @@ final readonly class ReportCalculationResultListener
     ) {}
 
     /**
-     * Сохраняет CSV с ошибками расчета и логирует итог запуска.
+     * Сохраняет CSV с ошибками расчета и логирует только запуски с ошибками.
+     *
+     * Шаги:
+     * 1. Передает aggregate result reporter-у и получает path отчета ошибок или `null`.
+     * 2. Собирает notification DTO со счетчиками processed/calculated/skipped/failed.
+     * 3. Восстанавливает user id из external context по operation id.
+     * 4. Публикует completed или completed_with_failures notification.
+     * 5. Если failures есть, пишет warning с operation id, счетчиками и путем отчета.
      */
     public function handle(KitApplicabilityRecalculated $event): void
     {
@@ -47,14 +63,6 @@ final readonly class ReportCalculationResultListener
         ));
 
         if ($reportPath === null) {
-            $this->logger->info('Applicability calculation completed', [
-                'operation_id' => $event->operationId,
-                'processed_kits' => $event->result->processedKits,
-                'calculated_kits' => $event->result->calculatedKits,
-                'skipped_kits' => $event->result->skippedKits,
-                'failed_kits' => $event->result->failedKits,
-            ]);
-
             return;
         }
 

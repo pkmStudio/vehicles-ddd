@@ -19,6 +19,9 @@ use App\Modules\Templates\Domain\ModelData\AbstractDetailsData;
  */
 final class OilFilterDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры масляного фильтра в nomenclature details template.
+     */
     public function __construct(
         public readonly string $performance,
         public readonly string $form,

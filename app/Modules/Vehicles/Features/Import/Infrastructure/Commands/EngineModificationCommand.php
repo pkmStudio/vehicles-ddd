@@ -11,6 +11,14 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Modification;
 
 final readonly class EngineModificationCommand implements EngineModificationCommandInterface
 {
+    /**
+     * Идемпотентно привязать engine к modification.
+     *
+     * Шаги:
+     * 1) Найти engine по eng_id из import data.
+     * 2) Найти modification по mod_id/type из import data.
+     * 3) Добавить pivot-связь без отсоединения существующих связей.
+     */
     public function syncWithoutDetaching(EngineModificationData $data): void
     {
         $engine = Engine::query()

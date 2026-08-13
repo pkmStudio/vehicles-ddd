@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm;
 
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
 
 /**
- * Resolves CRM nomenclature details template from SQL type projection.
+ * Разрешает CRM details template номенклатуры из Catalog-модели типа.
  */
 final readonly class NomenclatureCrmTypeTemplateResolver
 {
@@ -51,25 +52,23 @@ final readonly class NomenclatureCrmTypeTemplateResolver
         17 => NomenclatureDetailTemplateEnum::POLY_V_BELT,
     ];
 
-    public function value(object $type): ?string
+    /**
+     * Возвращает строковое значение шаблона типа номенклатуры.
+     */
+    public function value(Type $type): ?string
     {
         return $this->resolve($type)?->value;
     }
 
-    public function resolve(object $type): ?NomenclatureDetailTemplateEnum
+    /**
+     * Разрешает enum шаблона деталей для типа номенклатуры.
+     */
+    public function resolve(Type $type): ?NomenclatureDetailTemplateEnum
     {
-        $char = isset($type->type_char)
-            ? (string) $type->type_char
-            : (isset($type->char) ? (string) $type->char : null);
-
-        if ($char !== null && isset(self::TEMPLATE_BY_CHAR[$char])) {
-            return self::TEMPLATE_BY_CHAR[$char];
+        if ($type->char !== null && isset(self::TEMPLATE_BY_CHAR[$type->char])) {
+            return self::TEMPLATE_BY_CHAR[$type->char];
         }
 
-        $id = isset($type->type_id)
-            ? (int) $type->type_id
-            : (int) $type->id;
-
-        return self::TEMPLATE_BY_ID[$id] ?? null;
+        return self::TEMPLATE_BY_ID[(int) $type->id] ?? null;
     }
 }

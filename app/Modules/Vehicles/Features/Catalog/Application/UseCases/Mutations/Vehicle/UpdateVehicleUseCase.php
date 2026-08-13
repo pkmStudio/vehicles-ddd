@@ -28,7 +28,12 @@ use Throwable;
 final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты, нужные для update vehicle mutation.
+     *
+     * Шаги:
+     * 1) Принять repositories для поиска существующего автомобиля, производителя и parent vehicle.
+     * 2) Принять command записи автомобиля.
+     * 3) Принять cache/result/write-policy порты для идемпотентности, result event и provider rules.
      */
     public function __construct(
         private VehicleRepositoryInterface $vehicles,
@@ -90,6 +95,11 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
 
     /**
      * Находит существующий автомобиль или возвращает rejected result.
+     *
+     * Шаги:
+     * 1) Найти текущий VehicleData по ms_id из update request.
+     * 2) Вернуть snapshot существующей записи для merge.
+     * 3) Если запись не найдена, вернуть rejected NotFound result.
      */
     private function resolveExisting(UpdateVehicleRequestDTO $request): VehicleData|CatalogMutationResultDTO
     {
@@ -106,6 +116,11 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
 
     /**
      * Возвращает manufacturer id для записи, учитывая locked поля текущего provider.
+     *
+     * Шаги:
+     * 1) Если текущий provider не разрешает catalog-managed поля, сохранить existing manufacturer id.
+     * 2) Для OD-managed записи найти производителя из входящего mfa_id.
+     * 3) Вернуть internal manufacturer id или rejected result.
      */
     private function resolveManufacturerId(
         UpdateVehicleRequestDTO $request,
@@ -125,6 +140,11 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
 
     /**
      * Находит производителя для OD-managed обновления или возвращает rejected result.
+     *
+     * Шаги:
+     * 1) Найти производителя по mfa_id из update request.
+     * 2) Вернуть ManufacturerData, если производитель существует.
+     * 3) Иначе вернуть rejected ManufacturerNotFound result.
      */
     private function resolveManufacturer(UpdateVehicleRequestDTO $request): ManufacturerData|CatalogMutationResultDTO
     {
@@ -141,6 +161,11 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
 
     /**
      * Возвращает parent id для записи, учитывая locked поля текущего provider.
+     *
+     * Шаги:
+     * 1) Если текущий provider не разрешает catalog-managed поля, сохранить existing parent id.
+     * 2) Если parent_ms_id не передан, очистить parent для OD-managed записи.
+     * 3) Найти parent vehicle по внешнему ms_id или вернуть rejected ParentVehicleNotFound.
      */
     private function resolveParentId(
         UpdateVehicleRequestDTO $request,
@@ -167,6 +192,11 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
 
     /**
      * Собирает incoming VehicleData и применяет catalog update policy перед записью.
+     *
+     * Шаги:
+     * 1) Собрать incoming VehicleData из request и уже разрешенных manufacturer/parent id.
+     * 2) Передать incoming и existing snapshots в write policy update branch.
+     * 3) Вернуть merged VehicleData с учетом provider-owned locked fields.
      */
     private function prepareVehicleData(
         UpdateVehicleRequestDTO $request,
@@ -205,6 +235,10 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
 
     /**
      * Публикует факт обновления автомобиля.
+     *
+     * Шаги:
+     * 1) Сериализовать обновленный VehicleData в payload события.
+     * 2) Опубликовать module-level факт VehicleUpdated с user/operation correlation.
      */
     private function publishUpdatedEvent(
         UpdateVehicleRequestDTO $request,
@@ -219,6 +253,11 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
 
     /**
      * Собирает completed result для update-сценария.
+     *
+     * Шаги:
+     * 1) Использовать ms_id обновленного автомобиля как externalId результата.
+     * 2) Передать внутренний id записи как recordId.
+     * 3) Делегировать публикацию completed result service.
      */
     private function completed(
         UpdateVehicleRequestDTO $request,
@@ -236,6 +275,11 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
 
     /**
      * Собирает rejected result для update-сценария.
+     *
+     * Шаги:
+     * 1) Использовать ms_id из request как externalId результата.
+     * 2) Передать причину отказа в result service.
+     * 3) Вернуть опубликованный rejected result для Vehicle Update.
      */
     private function rejected(
         UpdateVehicleRequestDTO $request,
@@ -253,6 +297,11 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
 
     /**
      * Откатывает idempotency guard и публикует failed result перед пробросом исключения.
+     *
+     * Шаги:
+     * 1) Освободить operation id в cache, чтобы broker-сообщение можно было повторить.
+     * 2) Опубликовать failed result с ms_id обновляемого автомобиля.
+     * 3) Оставить проброс исходного исключения вызывающему execute.
      */
     private function failed(UpdateVehicleRequestDTO $request): void
     {

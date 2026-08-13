@@ -15,11 +15,17 @@ class Kit extends AbstractModel
         'is_active' => 'boolean',
     ];
 
+    /**
+     * Возвращает тип складского комплекта.
+     */
     public function type(): BelongsTo
     {
         return $this->belongsTo(Type::class);
     }
 
+    /**
+     * Возвращает номенклатуры комплекта в порядке sort pivot-таблицы.
+     */
     public function nomenclatures(): BelongsToMany
     {
         return $this

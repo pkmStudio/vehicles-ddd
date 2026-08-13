@@ -21,7 +21,12 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationE
 final readonly class StartPartSpecificationMutationUseCase implements StartPartSpecificationMutationUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает use cases для трех поддерживаемых операций part specification mutation.
+     *
+     * Шаги:
+     * 1) Принять create-сценарий спецификации.
+     * 2) Принять update-сценарий спецификации.
+     * 3) Принять delete-сценарий спецификации.
      */
     public function __construct(
         private CreatePartSpecificationUseCaseInterface $createPartSpecification,
@@ -47,7 +52,11 @@ final readonly class StartPartSpecificationMutationUseCase implements StartPartS
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Делегирует create branch профильному part specification use case.
+     *
+     * Шаги:
+     * 1) Извлечь create request из общего mutation DTO.
+     * 2) Передать request в create use case и вернуть mutation result.
      */
     private function create(PartSpecificationMutationRequestDTO $request): ?CatalogMutationResultDTO
     {
@@ -57,7 +66,11 @@ final readonly class StartPartSpecificationMutationUseCase implements StartPartS
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Делегирует update branch профильному part specification use case.
+     *
+     * Шаги:
+     * 1) Извлечь update request из общего mutation DTO.
+     * 2) Передать request в update use case и вернуть mutation result.
      */
     private function update(PartSpecificationMutationRequestDTO $request): ?CatalogMutationResultDTO
     {
@@ -67,7 +80,11 @@ final readonly class StartPartSpecificationMutationUseCase implements StartPartS
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Делегирует delete branch профильному part specification use case.
+     *
+     * Шаги:
+     * 1) Извлечь delete request из общего mutation DTO.
+     * 2) Передать request в delete use case и вернуть mutation result.
      */
     private function delete(PartSpecificationMutationRequestDTO $request): ?CatalogMutationResultDTO
     {
@@ -77,7 +94,11 @@ final readonly class StartPartSpecificationMutationUseCase implements StartPartS
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Извлекает create request из общего DTO part specification mutation.
+     *
+     * Шаги:
+     * 1) Прочитать typed request, уже собранный boundary factory.
+     * 2) Вернуть его как CreatePartSpecificationRequestDTO для create use case.
      */
     private function createRequest(PartSpecificationMutationRequestDTO $request): CreatePartSpecificationRequestDTO
     {
@@ -85,7 +106,11 @@ final readonly class StartPartSpecificationMutationUseCase implements StartPartS
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Извлекает update request из общего DTO part specification mutation.
+     *
+     * Шаги:
+     * 1) Прочитать typed request, уже собранный boundary factory.
+     * 2) Вернуть его как UpdatePartSpecificationRequestDTO для update use case.
      */
     private function updateRequest(PartSpecificationMutationRequestDTO $request): UpdatePartSpecificationRequestDTO
     {
@@ -93,7 +118,11 @@ final readonly class StartPartSpecificationMutationUseCase implements StartPartS
     }
 
     /**
-     * Собирает DTO конкретной операции спецификаций деталей из общего DTO или payload.
+     * Извлекает delete request из общего DTO part specification mutation.
+     *
+     * Шаги:
+     * 1) Прочитать typed request, уже собранный boundary factory.
+     * 2) Вернуть его как DeletePartSpecificationRequestDTO для delete use case.
      */
     private function deleteRequest(PartSpecificationMutationRequestDTO $request): DeletePartSpecificationRequestDTO
     {

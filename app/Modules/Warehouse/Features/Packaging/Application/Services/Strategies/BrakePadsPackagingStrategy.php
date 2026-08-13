@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Packaging\Application\Services\Strategies;
 
 use App\Modules\Templates\Domain\Enums\NomenclatureDetailTemplateEnum;
+use App\Modules\Warehouse\Features\Packaging\Domain\Contracts\Commands\PackDimensionCommandInterface;
 use App\Modules\Warehouse\Features\Packaging\Domain\Contracts\Services\Strategies\PackagingStrategyInterface;
 use App\Modules\Warehouse\Features\Packaging\Domain\DTOs\PackagingBoxRequirementDTO;
 use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\PackDimensionData;
 use App\Modules\Warehouse\Features\Packaging\Domain\ModelData\TypeData;
-use App\Modules\Warehouse\Features\Packaging\Domain\Contracts\Commands\PackDimensionCommandInterface;
 use Illuminate\Support\Collection;
 use Psr\Log\LoggerInterface;
 

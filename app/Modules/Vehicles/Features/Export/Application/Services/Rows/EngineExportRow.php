@@ -14,6 +14,9 @@ final readonly class EngineExportRow implements EngineExportRowInterface
 {
     /**
      * Возвращает базовые заголовки двигателя.
+     *
+     * Шаги:
+     * 1) Вернуть фиксированный список колонок основного engine-листа.
      */
     public function getBaseHeadings(): array
     {
@@ -32,6 +35,10 @@ final readonly class EngineExportRow implements EngineExportRowInterface
 
     /**
      * Возвращает базовые ячейки двигателя.
+     *
+     * Шаги:
+     * 1) Прочитать scalar и enum-поля из typed `EngineData`.
+     * 2) Вернуть значения в порядке базовых заголовков engine-листа.
      */
     public function getBaseData(EngineData $engine): array
     {
@@ -39,12 +46,12 @@ final readonly class EngineExportRow implements EngineExportRowInterface
             $engine->engId,
             $engine->codeEngine,
             $engine->engineCapacity,
-            $engine->engFuelType?->value,
-            $engine->engPowerPsStart,
-            $engine->engPowerPsUpto,
+            $engine->fuelType?->value,
+            $engine->powerPsStart,
+            $engine->powerPsUpto,
             $engine->cylinderCount,
             $engine->cylinderDiameter,
-            $engine->engNumberOfValves,
+            $engine->numberOfValves,
         ];
     }
 }

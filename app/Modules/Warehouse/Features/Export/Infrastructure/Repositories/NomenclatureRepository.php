@@ -17,6 +17,11 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
     /**
      * Возвращает номенклатуру одного типа с брендом и типом для строк Excel.
      *
+     * Шаги:
+     * 1) Построить Eloquent query с загрузкой type и brand.
+     * 2) Отфильтровать записи по type_id и отсортировать по id.
+     * 3) Преобразовать Eloquent collection в NomenclatureData collection.
+     *
      * @return Collection<int, NomenclatureData>
      */
     public function forType(int $typeId): Collection

@@ -33,6 +33,10 @@ class Vehicle extends AbstractModel
      * `partable_type`/полиморфные связи должны совпадать со значением, которое пишут
      * остальные фичи и Maintenance (см. PartableTypeEnum), иначе своя копия модели по фиче
      * не находила бы чужие/уже существующие строки (см. plan.md §11, п.9).
+     *
+     * Шаги:
+     * - Вернуть enum-значение vehicle для polymorphic discriminator.
+     * - Оставить связь совместимой с rows, созданными другими Vehicles features.
      */
     public function getMorphClass(): string
     {
@@ -40,16 +44,37 @@ class Vehicle extends AbstractModel
     }
 
     // RELATIONS
+    /**
+     * Связь автомобиля с производителем для строк выгрузки.
+     *
+     * Шаги:
+     * - Описать belongsTo связь по стандартному manufacturer_id.
+     * - Вернуть query relation на export-копию Manufacturer.
+     */
     public function manufacturer(): BelongsTo
     {
         return $this->belongsTo(Manufacturer::class);
     }
 
+    /**
+     * Связь автомобиля с родительской моделью/поколением.
+     *
+     * Шаги:
+     * - Описать belongsTo связь через parent_id.
+     * - Вернуть query relation на export-копию Vehicle.
+     */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class, 'parent_id', 'id');
     }
 
+    /**
+     * Связь автомобиля с part specifications, которые выгружаются отдельными sheets.
+     *
+     * Шаги:
+     * - Описать polymorphic morphMany связь через partable.
+     * - Вернуть query relation на export-копию PartSpecification.
+     */
     public function partSpecifications(): MorphMany
     {
         return $this->morphMany(PartSpecification::class, 'partable');

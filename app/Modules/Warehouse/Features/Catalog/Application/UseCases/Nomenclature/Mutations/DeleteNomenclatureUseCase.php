@@ -24,6 +24,10 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repository поиска номенклатуры и command удаления.
+     * 2) Принять idempotency cache и result service для outbound ответа.
      */
     public function __construct(
         private NomenclatureRepositoryInterface $nomenclatures,
@@ -34,6 +38,12 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
 
     /**
      * Удаляет номенклатуру вручную вместе со связанными данными.
+     *
+     * Шаги:
+     * 1) Зафиксировать operation_id в cache для защиты от повторов.
+     * 2) Найти номенклатуру и вернуть rejected result, если записи нет.
+     * 3) Удалить запись через command и отправить NomenclatureDeleted.
+     * 4) Вернуть completed result или снять cache-флаг при техническом сбое.
      */
     public function execute(DeleteNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {

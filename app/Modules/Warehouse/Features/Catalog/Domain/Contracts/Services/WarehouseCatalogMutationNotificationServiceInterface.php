@@ -13,6 +13,11 @@ interface WarehouseCatalogMutationNotificationServiceInterface
 {
     /**
      * Публикует результат мутации во внешний транспорт.
+     *
+     * Шаги:
+     * 1) Преобразовать DTO результата в данные сообщения уведомления.
+     * 2) Опубликовать сообщение через RabbitMQ producer.
+     * 3) Завершить без дополнительного результата.
      */
     public function notify(WarehouseCatalogMutationResultDTO $result): void;
 }

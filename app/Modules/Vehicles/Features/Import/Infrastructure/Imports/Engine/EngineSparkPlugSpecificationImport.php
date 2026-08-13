@@ -43,6 +43,14 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
 
     private ?TemplatesClientInterface $templates = null;
 
+    /**
+     * Получить зависимости для импорта свечей по модификациям.
+     *
+     * Шаги:
+     * 1) Принять сервис сохранения спецификации свечей по модификации.
+     * 2) Принять клиент Templates для сборки details.
+     * 3) Сохранить зависимости до сериализации задания очереди.
+     */
     public function __construct(
         UpsertSparkPlugSpecByModificationServiceInterface $service,
         TemplatesClientInterface $templates,
@@ -52,6 +60,13 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
     }
 
     /**
+     * Подготовить import свечей к сериализации в очередь.
+     *
+     * Шаги:
+     * 1) Сохранить контекст запуска импорта.
+     * 2) Сохранить ключ списка ошибок и ключ блокировки.
+     * 3) Не сериализовать сервис и клиент Templates.
+     *
      * @return array<string, mixed>
      */
     public function __serialize(): array
@@ -64,6 +79,13 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
     }
 
     /**
+     * Восстановить import свечей после очереди.
+     *
+     * Шаги:
+     * 1) Вернуть контекст запуска, если он был сериализован.
+     * 2) Восстановить ключи отчёта ошибок.
+     * 3) Оставить сервис и клиент Templates для ленивого получения из контейнера.
+     *
      * @param  array<string, mixed>  $data
      */
     public function __unserialize(array $data): void
@@ -80,6 +102,14 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         }
     }
 
+    /**
+     * Запустить импорт свечей по модификациям.
+     *
+     * Шаги:
+     * 1) Сохранить контекст запуска и рассчитать ключи отчёта ошибок.
+     * 2) Передать текущий адаптер в Laravel Excel.
+     * 3) Прочитать файл с указанного диска или с диска по умолчанию.
+     */
     public function import(string $path, ImportRunContextDTO $context, ?string $disk = null): void
     {
         $this->context = $context;
@@ -94,6 +124,14 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         Excel::import($this, $path, $disk);
     }
 
+    /**
+     * Обработать пачку строк свечей по модификациям.
+     *
+     * Шаги:
+     * 1) Проверить, что строка содержит числовые ms_id и mod_id.
+     * 2) Собрать details свечей через Templates и сохранить спецификацию для модификации.
+     * 3) Записать failures для невалидных строк, ненайденных модификаций и пропущенных двигателей.
+     */
     public function collection(Collection $collection): void
     {
         foreach ($collection as $index => $row) {
@@ -140,11 +178,25 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         }
     }
 
+    /**
+     * Вернуть размер чанка импорта свечей по модификациям.
+     *
+     * Шаги:
+     * 1) Зафиксировать размер пачки для построчной записи спецификаций.
+     * 2) Вернуть значение, которое использует Laravel Excel.
+     */
     public function chunkSize(): int
     {
         return 100;
     }
 
+    /**
+     * Зарегистрировать событие завершения импорта свечей.
+     *
+     * Шаги:
+     * 1) Вернуть обработчик AfterImport как сериализуемую пару class/method.
+     * 2) Не использовать closure внутри queued import.
+     */
     public function registerEvents(): array
     {
         return [
@@ -152,6 +204,14 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         ];
     }
 
+    /**
+     * Опубликовать доменное событие завершения импорта двигателей.
+     *
+     * Шаги:
+     * 1) Получить import из события Laravel Excel и проверить его контекст.
+     * 2) Взять пользователя, operation_id и cache key ошибок.
+     * 3) Отправить EngineImportCompleted.
+     */
     public static function afterImport(AfterImport $event): void
     {
         /** @var EngineSparkPlugSpecificationImport $import */
@@ -165,11 +225,25 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         ));
     }
 
+    /**
+     * Вернуть номер первой строки данных импорта свечей.
+     *
+     * Шаги:
+     * 1) Пропустить строку заголовков Excel.
+     * 2) Начать чтение со второй строки.
+     */
     public function startRow(): int
     {
         return 2;
     }
 
+    /**
+     * Ограничить импорт первым листом файла свечей.
+     *
+     * Шаги:
+     * 1) Вернуть текущий объект как обработчик нулевого листа.
+     * 2) Игнорировать остальные листы книги.
+     */
     public function sheets(): array
     {
         return [
@@ -177,16 +251,37 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
         ];
     }
 
+    /**
+     * Получить сервис сохранения свечей по модификации.
+     *
+     * Шаги:
+     * 1) Вернуть уже переданный сервис, если import не проходил через очередь.
+     * 2) Иначе резолвить сервис из контейнера во время обработки.
+     */
     private function service(): UpsertSparkPlugSpecByModificationServiceInterface
     {
         return $this->service ??= app(UpsertSparkPlugSpecByModificationServiceInterface::class);
     }
 
+    /**
+     * Получить клиент Templates для сборки details.
+     *
+     * Шаги:
+     * 1) Вернуть уже переданный клиент, если import не проходил через очередь.
+     * 2) Иначе резолвить клиент из контейнера во время обработки.
+     */
     private function templates(): TemplatesClientInterface
     {
         return $this->templates ??= app(TemplatesClientInterface::class);
     }
 
+    /**
+     * Получить обязательный контекст импорта свечей.
+     *
+     * Шаги:
+     * 1) Вернуть сохранённый контекст запуска.
+     * 2) Выбросить LogicException, если import пытаются завершить без инициализации.
+     */
     private function context(): ImportRunContextDTO
     {
         return $this->context ?? throw new LogicException('Engine spark plug import context is not initialized.');

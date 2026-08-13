@@ -14,8 +14,8 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationR
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Modules\Warehouse\Shared\Domain\Events\Brand\BrandUpdated;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
+use App\Modules\Warehouse\Shared\Domain\Events\Brand\BrandUpdated;
 use Throwable;
 
 /**
@@ -25,6 +25,10 @@ final readonly class UpdateBrandUseCase implements UpdateBrandUseCaseInterface
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repository поиска бренда и проверки нового имени.
+     * 2) Принять command записи, idempotency cache и result service.
      */
     public function __construct(
         private BrandRepositoryInterface $brands,

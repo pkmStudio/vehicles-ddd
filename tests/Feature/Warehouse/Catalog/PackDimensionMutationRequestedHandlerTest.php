@@ -17,6 +17,9 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\PackDimensionMutationPayload as WirePackDimensionMutationPayload;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Catalog\Mutation\DTO\PackDimensionMutationRequested as WirePackDimensionMutationRequested;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Enums\CatalogMutationOperation as WireCatalogMutationOperation;
 use Tests\TestCase;
 
 /**
@@ -77,6 +80,44 @@ final class PackDimensionMutationRequestedHandlerTest extends TestCase
         ]);
 
         $this->assertDatabaseMissing('pack_dimensions', ['id' => $packDimension->id]);
+    }
+
+    public function test_pack_dimension_create_message_accepts_published_wire_contract_payload(): void
+    {
+        $type = Type::query()->create(['name' => 'V-Belt', 'char' => 'VB']);
+
+        $notifier = $this->mock(WarehouseCatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (WarehouseCatalogMutationResultDTO $result): bool => $result->entity === WarehouseCatalogEntityEnum::PackDimension
+                && $result->operation === WarehouseCatalogMutationOperationEnum::Create
+                && $result->status === WarehouseCatalogMutationStatusEnum::Completed
+                && $result->operationId === 'warehouse-pack-dimension-wire-contract'
+                && $result->recordId !== null));
+
+        $message = new WirePackDimensionMutationRequested(
+            userId: 42,
+            operationId: 'warehouse-pack-dimension-wire-contract',
+            operation: WireCatalogMutationOperation::Create->value,
+            packDimension: new WirePackDimensionMutationPayload(
+                name: 'Wire Box',
+                weight: 20,
+                width: 11,
+                height: 6,
+                length: 21,
+                price: 16,
+                typeId: $type->id,
+                generated: false,
+            ),
+        );
+
+        app(PackDimensionMutationRequestedHandler::class)->handle($message->toArray());
+
+        $this->assertDatabaseHas('pack_dimensions', [
+            'name' => 'Wire Box',
+            'type_id' => $type->id,
+            'generated' => false,
+        ]);
     }
 
     public function test_pack_dimension_create_is_rejected_when_type_is_missing(): void

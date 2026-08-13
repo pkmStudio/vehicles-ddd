@@ -10,6 +10,14 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 trait StylesExportWorksheet
 {
+    /**
+     * Применяет общий стиль к Excel-листу экспорта.
+     *
+     * Шаги:
+     * 1) Выделить первую строку жирным шрифтом и серой заливкой.
+     * 2) Определить последний используемый столбец листа.
+     * 3) Включить auto-size для каждой колонки с данными.
+     */
     public function styles(Worksheet $sheet): void
     {
         $sheet->getStyle('A1:'.$sheet->getHighestColumn().'1')->applyFromArray([

@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\PackDimensionCommandInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\PackDimensionData;
-use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Kit;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\PackDimension;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -17,12 +15,13 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class PackDimensionCommand implements PackDimensionCommandInterface
 {
-    public function __construct(
-        private KitCommandInterface $kits,
-    ) {}
-
     /**
      * Создаёт упаковочный размер внутри транзакции.
+     *
+     * Шаги:
+     * 1) Исключить технический id из входного Data.
+     * 2) Создать Eloquent-модель каталога внутри транзакции.
+     * 3) Вернуть обновлённый Data-снимок созданной записи.
      */
     public function create(PackDimensionData $data): PackDimensionData
     {
@@ -35,6 +34,11 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
 
     /**
      * Обновляет упаковочный размер внутри транзакции.
+     *
+     * Шаги:
+     * 1) Найти Eloquent-модель по id из Data.
+     * 2) Заполнить изменяемые поля и сохранить запись в транзакции.
+     * 3) Вернуть Data-снимок обновлённой модели.
      */
     public function update(PackDimensionData $data): PackDimensionData
     {
@@ -49,19 +53,15 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
 
     /**
      * Удаляет упаковочный размер и связанные наборы внутри транзакции.
+     *
+     * Шаги:
+     * 1) Принять идентификатор или список идентификаторов каталога.
+     * 2) Выполнить удаление Eloquent-записей внутри транзакции.
+     * 3) Завершить без возврата бизнес-данных.
      */
     public function deleteById(int $id): void
     {
         DB::transaction(function () use ($id): void {
-            $toIntegerId = fn (mixed $id): int => (int) $id;
-
-            $kitIds = Kit::query()
-                ->where('pack_dimension_id', $id)
-                ->pluck('id')
-                ->map($toIntegerId)
-                ->all();
-
-            $this->kits->deleteByIds($kitIds);
             PackDimension::query()->whereKey($id)->delete();
         });
     }

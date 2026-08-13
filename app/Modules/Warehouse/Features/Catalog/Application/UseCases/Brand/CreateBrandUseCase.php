@@ -14,8 +14,8 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationR
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
-use App\Modules\Warehouse\Shared\Domain\Events\Brand\BrandCreated;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
+use App\Modules\Warehouse\Shared\Domain\Events\Brand\BrandCreated;
 use Throwable;
 
 /**
@@ -25,6 +25,10 @@ final readonly class CreateBrandUseCase implements CreateBrandUseCaseInterface
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
+     *
+     * Шаги:
+     * 1) Принять repository проверки уникальности бренда.
+     * 2) Принять command записи, idempotency cache и result service.
      */
     public function __construct(
         private BrandRepositoryInterface $brands,

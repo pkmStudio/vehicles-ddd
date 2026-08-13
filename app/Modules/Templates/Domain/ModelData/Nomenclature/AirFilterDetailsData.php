@@ -17,6 +17,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class AirFilterDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры воздушного фильтра в nomenclature details template.
+     */
     public function __construct(
         public readonly string $performance,
         public readonly string $form,

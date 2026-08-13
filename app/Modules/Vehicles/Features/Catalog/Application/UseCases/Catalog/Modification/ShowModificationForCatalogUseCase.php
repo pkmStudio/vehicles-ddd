@@ -14,16 +14,31 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog\CatalogMod
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog\CatalogVehicleDTO;
 
 /**
- * Возвращает REST-detail модификации с её ТС и производителем.
+ * Возвращает детальную REST-форму модификации с её ТС и производителем.
  */
 final readonly class ShowModificationForCatalogUseCase implements ShowModificationForCatalogUseCaseInterface
 {
+    /**
+     * Подключает репозитории для сборки детального контекста модификации.
+     *
+     * Шаги:
+     * - Сохранить зависимости для чтения модификации, её ТС и производителя.
+     */
     public function __construct(
         private ModificationRepositoryInterface $modifications,
         private VehicleRepositoryInterface $vehicles,
         private ManufacturerRepositoryInterface $manufacturers,
     ) {}
 
+    /**
+     * Возвращает детальный контекст модификации публичного каталога.
+     *
+     * Шаги:
+     * - Найти модификацию по catalog id.
+     * - Найти связанное ТС и убедиться, что оно разрешено к показу.
+     * - Найти производителя ТС.
+     * - Собрать DTO контекста из производителя, ТС и модификации.
+     */
     public function execute(int $modificationId): ?CatalogModificationContextDTO
     {
         $modification = $this->modifications->findById($modificationId);

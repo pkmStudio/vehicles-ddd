@@ -14,6 +14,11 @@ interface DeletePartSpecificationUseCaseInterface
 {
     /**
      * Выполняет сценарий удаления спеки.
+     *
+     * Шаги:
+     * 1) Принять delete request с id specification.
+     * 2) Проверить idempotency и существование записи.
+     * 3) Удалить specification, опубликовать domain event и mutation result.
      */
     public function execute(DeletePartSpecificationRequestDTO $request): ?CatalogMutationResultDTO;
 }

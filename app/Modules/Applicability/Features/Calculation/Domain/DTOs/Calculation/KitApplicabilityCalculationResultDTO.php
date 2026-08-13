@@ -12,6 +12,9 @@ namespace App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation
  */
 final readonly class KitApplicabilityCalculationResultDTO
 {
+    /**
+     * Создает агрегированный итог запуска расчета.
+     */
     public function __construct(
         public string $operationId,
         public int $processedKits = 0,

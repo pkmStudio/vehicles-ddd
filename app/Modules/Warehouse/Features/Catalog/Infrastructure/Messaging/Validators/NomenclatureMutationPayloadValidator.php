@@ -10,12 +10,16 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
 /**
- * Собирает Laravel-валидатор payload мутации Warehouse-номенклатуры.
+ * Собирает Laravel-validator данные сообщения мутации Warehouse-номенклатуры.
  */
 final readonly class NomenclatureMutationPayloadValidator
 {
     /**
-     * Инициализирует фабрику валидаторов Laravel.
+     * Получает Laravel validator factory для nomenclature mutation payload.
+     *
+     * Шаги:
+     * 1) Принять ValidatorFactory из Laravel container.
+     * 2) Использовать factory при сборке validator для конкретного payload.
      */
     public function __construct(
         private ValidatorFactory $validator,
@@ -25,6 +29,12 @@ final readonly class NomenclatureMutationPayloadValidator
      * Создаёт validator с правилами wire-контракта Nomenclature CRUD.
      *
      * @param  array<string, mixed>  $data
+     *
+     * Шаги:
+     * 1) Прочитать operation из входящего Rabbit payload.
+     * 2) Собрать базовые правила user_id, operation_id, operation и nomenclature.
+     * 3) Добавить правила create/update/delete для полей номенклатуры.
+     * 4) Вернуть validator вызывающему handler.
      */
     public function make(array $data): Validator
     {

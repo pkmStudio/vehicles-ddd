@@ -12,6 +12,14 @@ use Illuminate\Support\Collection;
  */
 interface ListManufacturersForCatalogUseCaseInterface
 {
-    /** @return Collection<int, CatalogManufacturerDTO> */
+    /**
+     * Возвращает производителей, у которых есть разрешенные автомобили публичного каталога.
+     *
+     * Шаги:
+     * 1) Прочитать производителей через catalog read boundary.
+     * 2) Вернуть collection DTO для REST response.
+     *
+     * @return Collection<int, CatalogManufacturerDTO>
+     */
     public function execute(): Collection;
 }

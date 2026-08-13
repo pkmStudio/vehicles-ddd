@@ -21,7 +21,12 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationE
 final readonly class StartEngineMutationUseCase implements StartEngineMutationUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает use cases для трех поддерживаемых операций engine mutation.
+     *
+     * Шаги:
+     * 1) Принять create-сценарий двигателя.
+     * 2) Принять update-сценарий двигателя.
+     * 3) Принять delete-сценарий двигателя.
      */
     public function __construct(
         private CreateEngineUseCaseInterface $createEngine,
@@ -90,7 +95,11 @@ final readonly class StartEngineMutationUseCase implements StartEngineMutationUs
     }
 
     /**
-     * Собирает DTO конкретной операции двигателей из общего DTO или payload.
+     * Извлекает create request из общего DTO engine mutation.
+     *
+     * Шаги:
+     * 1) Прочитать typed request, уже собранный boundary factory.
+     * 2) Вернуть его как CreateEngineRequestDTO для create use case.
      */
     private function createRequest(EngineMutationRequestDTO $request): CreateEngineRequestDTO
     {
@@ -98,7 +107,11 @@ final readonly class StartEngineMutationUseCase implements StartEngineMutationUs
     }
 
     /**
-     * Собирает DTO конкретной операции двигателей из общего DTO или payload.
+     * Извлекает update request из общего DTO engine mutation.
+     *
+     * Шаги:
+     * 1) Прочитать typed request, уже собранный boundary factory.
+     * 2) Вернуть его как UpdateEngineRequestDTO для update use case.
      */
     private function updateRequest(EngineMutationRequestDTO $request): UpdateEngineRequestDTO
     {

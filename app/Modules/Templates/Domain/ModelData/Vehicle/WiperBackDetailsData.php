@@ -17,6 +17,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class WiperBackDetailsData extends Data
 {
+    /**
+     * Фиксирует параметры задней стороны vehicle wiper details.
+     */
     public function __construct(
         public readonly WiperLengthRangeData $lengthRear,
         /** @var array<int, string> */

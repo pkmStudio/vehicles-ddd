@@ -17,6 +17,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class StabilizerLinkDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры стойки стабилизатора в nomenclature details template.
+     */
     public function __construct(
         #[MapName('thread_1')]
         public readonly string $thread1,

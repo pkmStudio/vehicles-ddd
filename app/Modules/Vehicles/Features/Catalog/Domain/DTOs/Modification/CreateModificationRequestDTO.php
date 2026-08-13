@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\BrakeSystemTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\DriveTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\GearTypeEnum;
@@ -21,7 +22,7 @@ final readonly class CreateModificationRequestDTO
     public function __construct(
         public int $userId,
         public string $operationId,
-        public int $modId,
+        public ?int $modId,
         public int $msId,
         public VehicleTypeEnum $type,
         public ?int $yearFrom = null,
@@ -35,5 +36,10 @@ final readonly class CreateModificationRequestDTO
         public ?BrakeSystemTypeEnum $brakeSystemType = null,
         public ?int $numberOfCylinders = null,
         public ?float $capacityLt = null,
+        public ?string $localizedName = null,
+        public ProviderEnum $provider = ProviderEnum::OD,
+        public array $allowChangeFields = ['year_from', 'year_to'],
+        public array $engines = [],
+        public bool $syncEngines = false,
     ) {}
 }

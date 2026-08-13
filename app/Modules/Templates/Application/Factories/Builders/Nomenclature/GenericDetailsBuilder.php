@@ -13,6 +13,12 @@ use App\Modules\Templates\Domain\ModelData\Nomenclature\GenericDetailsData;
  */
 final readonly class GenericDetailsBuilder
 {
+    /**
+     * Этот метод строит пустой details-объект для generic-шаблона.
+     * Шаги:
+     * 1) Не читает ячейки из курсора, потому что у шаблона нет details-полей.
+     * 2) Возвращает пустой `GenericDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): GenericDetailsData
     {
         return new GenericDetailsData;

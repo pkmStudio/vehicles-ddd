@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Maintenance\Presentation\Console\Commands;
 
-use App\Modules\Vehicles\Features\Maintenance\Application\Services\PartSpecificationDeduplicationService;
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
+use App\Modules\Vehicles\Features\Maintenance\Application\Services\PartSpecificationDeduplicationService;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use Illuminate\Console\Command;
 

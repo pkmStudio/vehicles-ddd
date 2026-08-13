@@ -21,6 +21,14 @@ use App\Modules\Templates\Domain\ModelData\Vehicle\WiperLengthRangeData;
  */
 final readonly class WiperDetailsBuilder
 {
+    /**
+     * Этот метод собирает vehicle wiper details из переднего и заднего блоков Excel-строки.
+     * Шаги:
+     * 1) Пытается прочитать передний блок дворников как optional-набор из 6 ячеек.
+     * 2) Пытается прочитать задний блок как optional-набор из 4 ячеек.
+     * 3) Если обе стороны пустые — бросает ошибку обязательной минимальной длины.
+     * 4) Возвращает `WiperDetailsData` с заполненной хотя бы одной стороной.
+     */
     public function build(DetailsRowCursor $cursor): WiperDetailsData
     {
         $front = $this->buildOptionalFront($cursor);
@@ -36,6 +44,13 @@ final readonly class WiperDetailsBuilder
         );
     }
 
+    /**
+     * Этот метод читает optional-передний блок дворников, не валидируя пустой набор как ошибку.
+     * Шаги:
+     * 1) Забирает из основного курсора ровно 6 ячеек переднего блока.
+     * 2) Если все они пустые — возвращает null и оставляет решение обязательности родителю.
+     * 3) Иначе запускает строгую сборку переднего блока на отдельном курсоре по этим ячейкам.
+     */
     private function buildOptionalFront(DetailsRowCursor $cursor): ?WiperFrontDetailsData
     {
         $cells = $this->pullCells($cursor, 6);
@@ -47,6 +62,13 @@ final readonly class WiperDetailsBuilder
         return $this->buildFront(new DetailsRowCursor($cells));
     }
 
+    /**
+     * Этот метод читает optional-задний блок дворников, не валидируя пустой набор как ошибку.
+     * Шаги:
+     * 1) Забирает из основного курсора ровно 4 ячейки заднего блока.
+     * 2) Если все они пустые — возвращает null.
+     * 3) Иначе запускает строгую сборку заднего блока на отдельном курсоре по этим ячейкам.
+     */
     private function buildOptionalBack(DetailsRowCursor $cursor): ?WiperBackDetailsData
     {
         $cells = $this->pullCells($cursor, 4);
@@ -59,8 +81,12 @@ final readonly class WiperDetailsBuilder
     }
 
     /**
-     * Читает 6 ячеек подряд: диапазон length_main, диапазон length_second, тип крепления,
-     * количество щёток.
+     * Этот метод собирает передний блок дворников из 6 ячеек.
+     * Шаги:
+     * 1) Читает диапазон длины основной передней щётки.
+     * 2) Читает диапазон длины второй передней щётки.
+     * 3) Читает обязательный multi-select типов переднего крепления и переводит cases в names.
+     * 4) Читает обязательное количество передних щёток.
      */
     private function buildFront(DetailsRowCursor $cursor): WiperFrontDetailsData
     {
@@ -73,7 +99,11 @@ final readonly class WiperDetailsBuilder
     }
 
     /**
-     * Читает 4 ячейки подряд: диапазон length_rear, тип крепления, количество щёток.
+     * Этот метод собирает задний блок дворников из 4 ячеек.
+     * Шаги:
+     * 1) Читает диапазон длины задней щётки.
+     * 2) Читает обязательный multi-select типов заднего крепления и переводит cases в names.
+     * 3) Читает обязательное количество задних щёток.
      */
     private function buildBack(DetailsRowCursor $cursor): WiperBackDetailsData
     {
@@ -84,6 +114,13 @@ final readonly class WiperDetailsBuilder
         );
     }
 
+    /**
+     * Этот метод собирает диапазон длины щётки из двух integer-ячеек.
+     * Шаги:
+     * 1) Читает обязательную минимальную длину.
+     * 2) Читает обязательную максимальную длину.
+     * 3) Возвращает `WiperLengthRangeData`.
+     */
     private function buildLengthRange(DetailsRowCursor $cursor): WiperLengthRangeData
     {
         return new WiperLengthRangeData(
@@ -93,7 +130,13 @@ final readonly class WiperDetailsBuilder
     }
 
     /**
-     * @return array<int, mixed>
+     * Этот метод забирает фиксированное количество ячеек из курсора.
+     * Шаги:
+     * 1) Создаёт пустой список.
+     * 2) `count` раз читает следующую ячейку через `pullCell()`.
+     * 3) Возвращает список в исходном порядке чтения.
+     *
+     * @return array<int, string|int|float|null>
      */
     private function pullCells(DetailsRowCursor $cursor, int $count): array
     {
@@ -107,7 +150,13 @@ final readonly class WiperDetailsBuilder
     }
 
     /**
-     * @param  array<int, mixed>  $cells
+     * Этот метод проверяет, что optional-блок Excel-строки целиком пустой.
+     * Шаги:
+     * 1) Проходит по всем ячейкам блока.
+     * 2) Любое значение, отличное от null и пустой строки, считает заполнением блока.
+     * 3) Возвращает true только если заполненных ячеек не найдено.
+     *
+     * @param  array<int, string|int|float|null>  $cells
      */
     private function allBlank(array $cells): bool
     {
@@ -123,6 +172,9 @@ final readonly class WiperDetailsBuilder
     /**
      * Превращает массив резолвнутых case'ов в массив их хранимых имён (`->name`) — то, что
      * реально кладётся в поле `Data`-класса и, дальше, в details JSON.
+     * Шаги:
+     * 1) Берёт у каждого enum-case его `name`.
+     * 2) Сохраняет порядок значений из исходной multi-select ячейки.
      *
      * @param  array<int, EnumHelperInterface>  $cases
      * @return array<int, string>

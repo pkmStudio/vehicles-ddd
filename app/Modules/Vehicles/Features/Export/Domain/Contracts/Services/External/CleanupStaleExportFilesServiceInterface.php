@@ -14,6 +14,11 @@ interface CleanupStaleExportFilesServiceInterface
     /**
      * Удалить файлы экспорта старше retention-порога (vehicles.export.output.retention_hours).
      *
+     * Шаги:
+     * 1) Найти export artifacts на output-диске.
+     * 2) Удалить только файлы старше retention threshold.
+     * 3) Вернуть количество удаленных файлов.
+     *
      * @return int количество удалённых файлов
      */
     public function cleanup(): int;

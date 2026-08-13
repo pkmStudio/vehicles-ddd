@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Создает таблицу vehicles с иерархией моделей и ссылкой на производителя.
+     */
     public function up(): void
     {
         Schema::create('vehicles', function (Blueprint $table) {
@@ -20,9 +23,9 @@ return new class extends Migration
             $table->string('localized_name')->nullable();
             $table->string('excel_table_id')->nullable()->comment('ID таблицы Excel');
 
-            $table->string('generation')->nullable()->comment('Описание поколения из TecDoc');
+            $table->string('generation')->comment('Описание поколения из TecDoc');
             $table->string('generation_short')->nullable()->comment('Наше описание поколения');
-            $table->year('generation_year_from')->nullable()->comment('Год поколения от');
+            $table->year('generation_year_from')->comment('Год поколения от');
             $table->year('generation_year_to')->nullable()->comment('Год поколения до');
 
             $table->string('type')->comment('VehicleTypeEnum');
@@ -34,6 +37,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Удаляет таблицу vehicles при откате схемы.
+     */
     public function down(): void
     {
         Schema::dropIfExists('vehicles');

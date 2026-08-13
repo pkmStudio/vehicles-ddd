@@ -22,6 +22,14 @@ final readonly class AirFilterDetailsBuilder
     use BuildsNomenclatureMetrics;
     use ParsesBooleanCells;
 
+    /**
+     * Этот метод собирает nomenclature air-filter details из Excel-строки.
+     * Шаги:
+     * 1) Читает исполнение и форму фильтра через enum-справочники.
+     * 2) Читает признак корпуса как обязательный boolean label.
+     * 3) Читает тип фильтрующего материала и общий блок габаритов.
+     * 4) Возвращает `AirFilterDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): AirFilterDetailsData
     {
         return new AirFilterDetailsData(

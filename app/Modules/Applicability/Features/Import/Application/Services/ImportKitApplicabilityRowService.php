@@ -13,41 +13,39 @@ use App\Modules\Applicability\Features\Import\Domain\Exceptions\ImportRowValidat
 
 final readonly class ImportKitApplicabilityRowService implements ImportKitApplicabilityRowServiceInterface
 {
+    /**
+     * Получает порты, нужные для записи одной строки применяемости.
+     *
+     * Шаги:
+     * 1. Сохраняет client проверки существования kit в Warehouse.
+     * 2. Сохраняет client разрешения пары ms_id/mod_id в modification id Vehicles.
+     * 3. Сохраняет command, который пишет imported applicability target.
+     */
     public function __construct(
         private WarehouseKitClientInterface $kits,
         private VehiclesModificationClientInterface $modifications,
         private KitApplicabilityCommandInterface $command,
     ) {}
 
-    public function importFromRow(array $row): void
+    /**
+     * Импортирует одну строку XLSX применяемости комплекта к модификации.
+     *
+     * Шаги:
+     * 1. Проверяет, что kit существует во внешнем Warehouse boundary.
+     * 2. Разрешает vehicle modification по паре `ms_id` и `mod_id`.
+     * 3. Делегирует запись связи применяемости command-у.
+     */
+    public function importFromRow(KitApplicabilityImportRowDTO $row): void
     {
-        $dto = $this->makeRow($row);
-
-        if (! $this->kits->exists($dto->kitId)) {
-            throw new ImportRowValidationException("Кит с ID {$dto->kitId} не найден в системе.");
+        if (! $this->kits->exists($row->kitId)) {
+            throw new ImportRowValidationException("Кит с ID {$row->kitId} не найден в системе.");
         }
 
-        $modificationId = $this->modifications->resolveByMsAndModId($dto->msId, $dto->modId);
+        $modificationId = $this->modifications->resolveByMsAndModId($row->msId, $row->modId);
 
         $this->command->saveImportedModificationTarget(
-            kitId: $dto->kitId,
+            kitId: $row->kitId,
             modificationId: $modificationId,
         );
-    }
-
-    /**
-     * @param  array<int, mixed>  $row
-     */
-    private function makeRow(array $row): KitApplicabilityImportRowDTO
-    {
-        $msId = (int) ($row[0] ?? 0);
-        $modId = (int) ($row[1] ?? 0);
-        $kitId = (int) ($row[2] ?? 0);
-
-        if ($msId === 0 || $modId === 0 || $kitId === 0) {
-            throw new ImportRowValidationException('Строка применяемости должна содержать ms_id, mod_id и kit_id.');
-        }
-
-        return new KitApplicabilityImportRowDTO($msId, $modId, $kitId);
     }
 }

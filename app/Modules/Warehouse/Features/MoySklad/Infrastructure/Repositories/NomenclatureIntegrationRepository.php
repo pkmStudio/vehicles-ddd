@@ -14,7 +14,11 @@ use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Models\NomenclatureIn
 final readonly class NomenclatureIntegrationRepository implements NomenclatureIntegrationRepositoryInterface
 {
     /**
-     * Возвращает связь номенклатуры с МойСклад или null.
+     * Возвращает integration-state МойСклад по id номенклатуры или null.
+     * Шаги:
+     * 1) Построить Eloquent query по provider=moysklad.
+     * 2) Ограничить query nomenclature_id.
+     * 3) Вернуть optional Data-снимок первой найденной записи.
      */
     public function findByNomenclatureId(int $nomenclatureId): ?NomenclatureIntegrationData
     {
@@ -27,10 +31,17 @@ final readonly class NomenclatureIntegrationRepository implements NomenclatureIn
     }
 
     /**
-     * Находит связь для delete workflow по явному id, локальному id или externalCode.
+     * Возвращает integration-state для удаления по сохранённой связке или fallback external_code.
+     * Шаги:
+     * 1) Если integrationId передан, найти provider=moysklad запись по primary key.
+     * 2) Если integrationId не передан, искать provider=moysklad запись по nomenclature_id или external_code.
+     * 3) Вернуть optional Data-снимок найденной записи.
      */
-    public function findForDelete(int $nomenclatureId, string $externalCode, ?int $integrationId = null): ?NomenclatureIntegrationData
-    {
+    public function findForDeletion(
+        int $nomenclatureId,
+        string $externalCode,
+        ?int $integrationId = null,
+    ): ?NomenclatureIntegrationData {
         if ($integrationId !== null) {
             $integration = NomenclatureIntegration::query()
                 ->where('provider', NomenclatureIntegration::PROVIDER)

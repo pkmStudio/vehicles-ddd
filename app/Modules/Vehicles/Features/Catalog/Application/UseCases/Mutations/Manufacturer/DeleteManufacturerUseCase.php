@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\M
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ManufacturerCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogCascadeDeleteServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Manufacturer\DeleteManufacturerUseCaseInterface;
@@ -23,11 +24,17 @@ use Throwable;
 final readonly class DeleteManufacturerUseCase implements DeleteManufacturerUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты delete manufacturer workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для поиска производителя по mfa_id.
+     * 2) Принять cascade service для удаления автомобилей производителя перед delete.
+     * 3) Принять command/cache/result сервисы для записи, идемпотентности и result event.
      */
     public function __construct(
         private ManufacturerRepositoryInterface $manufacturers,
         private ManufacturerCommandInterface $command,
+        private CatalogCascadeDeleteServiceInterface $cascade,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
     ) {}
@@ -62,6 +69,7 @@ final readonly class DeleteManufacturerUseCase implements DeleteManufacturerUseC
                 );
             }
 
+            $this->cascade->deleteVehiclesByManufacturerId((int) $manufacturer->id);
             $this->command->deleteByMfaId($request->mfaId);
             event(new ManufacturerDeleted(
                 userId: $request->userId,

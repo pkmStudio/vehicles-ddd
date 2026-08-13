@@ -14,7 +14,12 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
 final readonly class BrandRepository implements BrandRepositoryInterface
 {
     /**
-     * Возвращает бренд по id или null.
+     * Возвращает бренд по внутреннему идентификатору или null.
+     *
+     * Шаги:
+     * 1) Собрать Eloquent query по входному признаку.
+     * 2) Получить первую подходящую запись каталога.
+     * 3) Преобразовать найденную модель в Data или вернуть null.
      */
     public function findById(int $id): ?BrandData
     {
@@ -22,7 +27,12 @@ final readonly class BrandRepository implements BrandRepositoryInterface
     }
 
     /**
-     * Возвращает первый бренд с таким именем без учёта регистра.
+     * Возвращает бренд по имени или null.
+     *
+     * Шаги:
+     * 1) Собрать Eloquent query по входному признаку.
+     * 2) Получить первую подходящую запись каталога.
+     * 3) Преобразовать найденную модель в Data или вернуть null.
      */
     public function findByName(string $name): ?BrandData
     {
@@ -32,5 +42,4 @@ final readonly class BrandRepository implements BrandRepositoryInterface
 
         return BrandData::optional($brand);
     }
-
 }

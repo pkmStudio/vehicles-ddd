@@ -10,6 +10,9 @@ class Vehicle extends AbstractModel
 {
     public $timestamps = false;
 
+    /**
+     * Возвращает родительскую модель автомобиля для импортной проекции.
+     */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');

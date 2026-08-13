@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\BrandCommandInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
-use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
@@ -17,12 +15,13 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class BrandCommand implements BrandCommandInterface
 {
-    public function __construct(
-        private NomenclatureCommandInterface $nomenclatures,
-    ) {}
-
     /**
      * Создаёт бренд внутри транзакции.
+     *
+     * Шаги:
+     * 1) Исключить технический id из входного Data.
+     * 2) Создать Eloquent-модель каталога внутри транзакции.
+     * 3) Вернуть обновлённый Data-снимок созданной записи.
      */
     public function create(BrandData $data): BrandData
     {
@@ -35,6 +34,11 @@ final readonly class BrandCommand implements BrandCommandInterface
 
     /**
      * Обновляет бренд внутри транзакции.
+     *
+     * Шаги:
+     * 1) Найти Eloquent-модель по id из Data.
+     * 2) Заполнить изменяемые поля и сохранить запись в транзакции.
+     * 3) Вернуть Data-снимок обновлённой модели.
      */
     public function update(BrandData $data): BrandData
     {
@@ -49,19 +53,15 @@ final readonly class BrandCommand implements BrandCommandInterface
 
     /**
      * Удаляет бренд и связанные номенклатуры внутри транзакции.
+     *
+     * Шаги:
+     * 1) Принять идентификатор или список идентификаторов каталога.
+     * 2) Выполнить удаление Eloquent-записей внутри транзакции.
+     * 3) Завершить без возврата бизнес-данных.
      */
     public function deleteById(int $id): void
     {
         DB::transaction(function () use ($id): void {
-            $toIntegerId = fn (mixed $id): int => (int) $id;
-
-            $nomenclatureIds = Nomenclature::query()
-                ->where('brand_id', $id)
-                ->pluck('id')
-                ->map($toIntegerId)
-                ->all();
-
-            $this->nomenclatures->deleteByIds($nomenclatureIds);
             Brand::query()->whereKey($id)->delete();
         });
     }

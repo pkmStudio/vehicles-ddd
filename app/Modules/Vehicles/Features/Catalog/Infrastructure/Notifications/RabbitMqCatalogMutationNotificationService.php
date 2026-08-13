@@ -6,6 +6,8 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Notifications;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Enums\VehiclesEventName;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Results\DTO\CatalogMutationCompleted;
 use PkmStudio\RabbitTransport\DTOs\RabbitMessageDTO;
 use PkmStudio\RabbitTransport\RabbitMQPublisher;
 
@@ -16,6 +18,9 @@ final readonly class RabbitMqCatalogMutationNotificationService implements Catal
 {
     /**
      * Инициализирует зависимости класса через контейнер.
+     *
+     * Шаги:
+     * - Сохранить publisher RabbitMQ для отправки результата мутации.
      */
     public function __construct(
         private RabbitMQPublisher $publisher,
@@ -31,8 +36,8 @@ final readonly class RabbitMqCatalogMutationNotificationService implements Catal
     public function notify(CatalogMutationResultDTO $result): void
     {
         $message = new RabbitMessageDTO(
-            name: 'VEHICLES_CATALOG_MUTATION_COMPLETED',
-            data: $result->toArray(),
+            name: VehiclesEventName::VehiclesCatalogMutationCompleted->value,
+            data: CatalogMutationCompleted::fromArray($result->toArray())->toArray(),
         );
         $this->publisher->publish($message);
     }

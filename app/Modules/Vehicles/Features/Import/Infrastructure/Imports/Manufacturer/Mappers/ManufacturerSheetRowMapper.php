@@ -8,8 +8,18 @@ use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerSh
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 
+/**
+ * Переводит строку внешнего листа производителей в DTO с обязательным провайдером.
+ */
 final readonly class ManufacturerSheetRowMapper
 {
+    /**
+     * Получить нормализатор значений ячеек Excel.
+     *
+     * Шаги:
+     * 1) Принять общий нормализатор строк импорта через DI.
+     * 2) Использовать его при чтении обязательных колонок производителя.
+     */
     public function __construct(
         private ImportRowValueFormatter $formatter,
     ) {}
@@ -17,6 +27,11 @@ final readonly class ManufacturerSheetRowMapper
     /**
      * Все три колонки обязательны — пустая/отсутствующая колонка бракует строку сразу здесь,
      * не доходя до сервиса/фабрики.
+     *
+     * Шаги:
+     * 1) Прочитать mfa_id, name и provider из первых трёх колонок.
+     * 2) Нормализовать значения и собрать ошибки по отсутствующим обязательным полям.
+     * 3) Выбросить исключение валидации или вернуть DTO строки производителя.
      *
      * @param  array<int, string|int|float|null>  $row
      *

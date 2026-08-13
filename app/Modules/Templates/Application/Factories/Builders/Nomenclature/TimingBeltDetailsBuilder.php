@@ -17,6 +17,13 @@ final readonly class TimingBeltDetailsBuilder
 {
     use BuildsNomenclatureMetrics;
 
+    /**
+     * Этот метод собирает details ремня ГРМ из Excel-строки.
+     * Шаги:
+     * 1) Читает диаметр диска сцепления как обязательное число.
+     * 2) Читает общий блок габаритов номенклатуры.
+     * 3) Возвращает `TimingBeltDetailsData`.
+     */
     public function build(DetailsRowCursor $cursor): TimingBeltDetailsData
     {
         return new TimingBeltDetailsData(

@@ -6,21 +6,32 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validat
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Contracts\Validation\Factory as ValidatorFactory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
 /**
- * Собирает Laravel-валидатор payload мутации двигателей.
+ * Собирает Laravel-валидатор сообщения мутации двигателей.
  */
 final readonly class EngineMutationPayloadValidator
 {
     /**
      * Инициализирует зависимости класса через контейнер.
+     *
+     * Шаги:
+     * - Сохранить фабрику Laravel-валидаторов для сборки правил сообщения.
      */
     public function __construct(private ValidatorFactory $validator) {}
 
     /**
+     * Создаёт валидатор сообщения мутации двигателя.
+     *
+     * Шаги:
+     * - Определить операцию из входящих данных.
+     * - Собрать базовые правила пользователя, operation id, операции и двигателя.
+     * - Добавить атрибуты двигателя только для создания и обновления.
+     *
      * @param  array<string, mixed>  $data
      */
     public function make(array $data): Validator
@@ -32,7 +43,7 @@ final readonly class EngineMutationPayloadValidator
             'operation_id' => ['required', 'string', 'max:128'],
             'operation' => ['required', 'string', Rule::in($this->operations())],
             'engine' => ['required', 'array'],
-            'engine.eng_id' => ['required', 'integer'],
+            'engine.eng_id' => [$operation === CatalogMutationOperationEnum::Create->value ? 'nullable' : 'required', 'integer'],
         ];
 
         if ($operation === CatalogMutationOperationEnum::Create->value || $operation === CatalogMutationOperationEnum::Update->value) {
@@ -41,13 +52,16 @@ final readonly class EngineMutationPayloadValidator
                 'engine.engine_capacity' => ['nullable', 'string', 'max:255'],
                 'engine.cylinder_count' => ['nullable', 'integer'],
                 'engine.cylinder_diameter' => ['nullable', 'numeric'],
-                'engine.eng_power_kw_start' => ['nullable', 'integer'],
-                'engine.eng_power_kw_upto' => ['nullable', 'integer'],
-                'engine.eng_power_ps_start' => ['nullable', 'integer'],
-                'engine.eng_power_ps_upto' => ['nullable', 'integer'],
-                'engine.eng_number_of_valves' => ['nullable', 'integer'],
-                'engine.eng_fuel_type' => ['nullable', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
+                'engine.power_kw_start' => ['nullable', 'integer'],
+                'engine.power_kw_upto' => ['nullable', 'integer'],
+                'engine.power_ps_start' => ['nullable', 'integer'],
+                'engine.power_ps_upto' => ['nullable', 'integer'],
+                'engine.number_of_valves' => ['nullable', 'integer'],
+                'engine.fuel_type' => ['nullable', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
                 'engine.group_id' => ['nullable', 'integer'],
+                'engine.provider' => ['nullable', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
+                'engine.allow_change_fields' => ['nullable', 'array'],
+                'engine.allow_change_fields.*' => ['string', 'max:64'],
             ];
         }
 
@@ -59,6 +73,10 @@ final readonly class EngineMutationPayloadValidator
 
     /**
      * Возвращает список строковых значений поддерживаемых операций.
+     *
+     * Шаги:
+     * - Пройти по cases enum операций мутации.
+     * - Вернуть их строковые значения для Rule::in().
      */
     private function operations(): array
     {
@@ -69,6 +87,10 @@ final readonly class EngineMutationPayloadValidator
 
     /**
      * Возвращает строковые значения enum cases для правил валидации.
+     *
+     * Шаги:
+     * - Пройти по cases переданного enum.
+     * - Вернуть значения cases для Rule::in().
      */
     private function enumValues(array $cases): array
     {

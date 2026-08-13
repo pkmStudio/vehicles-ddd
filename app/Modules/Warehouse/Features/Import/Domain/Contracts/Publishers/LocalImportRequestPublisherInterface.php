@@ -13,6 +13,11 @@ interface LocalImportRequestPublisherInterface
 {
     /**
      * Публикует запрос импорта.
+     *
+     * Шаги:
+     * 1) Принять DTO локального файла и routing metadata.
+     * 2) Собрать сообщение внешнего import request.
+     * 3) Опубликовать сообщение и вернуть признак успешной публикации.
      */
     public function publish(LocalImportRequestDTO $request): bool;
 }

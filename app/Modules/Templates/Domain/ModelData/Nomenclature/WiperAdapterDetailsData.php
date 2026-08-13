@@ -17,6 +17,9 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 final class WiperAdapterDetailsData extends AbstractDetailsData
 {
+    /**
+     * Фиксирует параметры адаптера дворника в nomenclature details template.
+     */
     public function __construct(
         public readonly string $position,
         /** @var array<int, string> */

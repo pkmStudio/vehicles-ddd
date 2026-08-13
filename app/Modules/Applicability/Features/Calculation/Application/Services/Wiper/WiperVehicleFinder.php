@@ -20,6 +20,14 @@ use Psr\Log\LoggerInterface;
  */
 final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
 {
+    /**
+     * Получает read clients и logger для поиска vehicle specifications.
+     *
+     * Шаги:
+     * 1. Сохраняет Vehicles client для выборки specifications по длинам дворников.
+     * 2. Сохраняет Templates client для чтения стороны и adapters из vehicle details.
+     * 3. Сохраняет logger для anomalies, когда найденная specification имеет неожиданную сторону.
+     */
     public function __construct(
         private VehiclesApplicabilityClientInterface $vehicles,
         private TemplatesClientInterface $templates,
@@ -28,6 +36,12 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
 
     /**
      * Возвращает совместимые спецификации по позиции комплекта дворников.
+     *
+     * Шаги:
+     * 1. Для front-комплекта ищет только передние specifications.
+     * 2. Для back-комплекта ищет только задние specifications.
+     * 3. Для universal-комплекта объединяет front и rear результаты.
+     * 4. Удаляет дубликаты specifications по id.
      */
     public function find(WiperLengthDTO $wipers, WiperAdaptersDTO $adapters, WiperKitPositionEnum $position): Collection
     {
@@ -36,12 +50,20 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
             WiperKitPositionEnum::BACK => $this->rear($wipers, $adapters),
             WiperKitPositionEnum::UNIVERSAL => $this->front($wipers, $adapters)
                 ->merge($this->rear($wipers, $adapters))
-                ->unique('id')
+                ->unique(static fn (VehiclePartSpecificationData $specification): int => $specification->id)
                 ->values(),
         };
     }
 
-    /** @return Collection<int, VehiclePartSpecificationData> */
+    /**
+     * Ищет передние vehicle specifications по длинам и фильтрует их по adapters.
+     *
+     * Шаги:
+     * 1. Запрашивает front specifications у Vehicles client по расчетным длинам.
+     * 2. Фильтрует candidates по front side adapters.
+     *
+     * @return Collection<int, VehiclePartSpecificationData>
+     */
     private function front(WiperLengthDTO $wipers, WiperAdaptersDTO $adapters): Collection
     {
         return $this->filterByAdapters(
@@ -51,7 +73,15 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
         );
     }
 
-    /** @return Collection<int, VehiclePartSpecificationData> */
+    /**
+     * Ищет задние vehicle specifications по длинам и фильтрует их по adapters.
+     *
+     * Шаги:
+     * 1. Запрашивает rear specifications у Vehicles client по расчетным длинам.
+     * 2. Фильтрует candidates по back side adapters.
+     *
+     * @return Collection<int, VehiclePartSpecificationData>
+     */
     private function rear(WiperLengthDTO $wipers, WiperAdaptersDTO $adapters): Collection
     {
         return $this->filterByAdapters(
@@ -62,6 +92,15 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
     }
 
     /**
+     * Отбрасывает specifications с неподходящей стороной или adapters.
+     *
+     * Шаги:
+     * 1. Для каждой specification определяет сохраненную сторону через Templates client.
+     * 2. При несовпадении стороны пишет warning и исключает specification из результата.
+     * 3. Читает typed side details для ожидаемой стороны.
+     * 4. Проверяет adapters vehicle side против adapters комплекта.
+     * 5. Возвращает переиндексированную коллекцию совместимых specifications.
+     *
      * @param  Collection<int, VehiclePartSpecificationData>  $specifications
      * @return Collection<int, VehiclePartSpecificationData>
      */
@@ -82,12 +121,20 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
 
                 $sideData = $this->templates->vehicleWiperSideData($specification->details, $side->value);
 
-                return $this->checkAdapters($this->adapterList($sideData[$side->adapterField()] ?? []), $adapters);
+                return $this->checkAdapters($sideData->adapters($side), $adapters);
             })
             ->values();
     }
 
     /**
+     * Проверяет, что adapters автомобиля покрываются adapters комплекта.
+     *
+     * Шаги:
+     * 1. Нормализует adapters автомобиля, все adapters комплекта и put adapters.
+     * 2. Если у автомобиля adapters пустые, а комплект adapters требует, возвращает `false`.
+     * 3. Проверяет, что каждый adapter автомобиля входит в adapters комплекта.
+     * 4. Если есть put adapters, требует пересечение vehicle adapters с put adapters.
+     *
      * @param  array<int, string>  $vehicleAdapters
      */
     public function checkAdapters(array $vehicleAdapters, WiperAdaptersDTO $adapters): bool
@@ -109,20 +156,17 @@ final readonly class WiperVehicleFinder implements WiperVehicleFinderInterface
         return $result;
     }
 
-    /** @return array<int, string> */
-    private function adapterList(mixed $value): array
-    {
-        $value = is_array($value) ? $value : [$value];
-        $value = array_map(static fn (mixed $adapter): string => trim((string) $adapter), $value);
-
-        return array_values(array_filter($value, static fn (string $adapter): bool => $adapter !== ''));
-    }
-
-    /** @param array<int, mixed> $values */
+    /**
+     * Приводит adapters к уникальному списку строк.
+     *
+     * Шаги:
+     * 1. Принимает уже строковые adapter-коды из DTO.
+     * 2. Убирает дубликаты с сохранением порядка первого появления.
+     *
+     * @param  array<int, string>  $values
+     */
     private function uniqueStrings(array $values): array
     {
-        $values = array_map(static fn (mixed $value): string => (string) $value, $values);
-
         return array_values(array_unique($values));
     }
 }

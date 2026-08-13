@@ -18,6 +18,10 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
 {
     /**
      * Инициализирует зависимости сценария внешнего запуска импорта.
+     *
+     * Шаги:
+     * 1) Сохранить cache service для идемпотентности и cleanup metadata.
+     * 2) Сохранить factory выбора concrete import adapter-а.
      */
     public function __construct(
         private ExternalImportCacheServiceInterface $cache,
@@ -28,12 +32,12 @@ final readonly class StartExternalFileImportUseCase implements StartExternalFile
      * Обеспечивает идемпотентность operationId и запускает выбранный импорт.
      *
      * Шаги:
-     * 1. Просит cache-сервис принять operationId; повторный запрос не запускает импорт.
-     * 2. Сохраняет cleanup-инструкцию, чтобы после завершения импорта удалить исходный файл.
-     * 3. Создаёт контекст запуска с userId/operationId и выбирает импортный адаптер через фабрику.
-     * 4. Передаёт path и disk в импортный адаптер; Laravel Excel сам читает файл из указанного disk.
-     * 5. При ошибке снимает отметку принятого operationId, чтобы запрос можно было повторить.
-     * 6. Пробрасывает ошибку дальше, чтобы RabbitMQ-обработчик не подтвердил неуспешное сообщение как обработанное.
+     * 1) Просит cache-сервис принять operationId; повторный запрос не запускает импорт.
+     * 2) Сохраняет cleanup-инструкцию, чтобы после завершения импорта удалить исходный файл.
+     * 3) Создаёт контекст запуска с userId/operationId и выбирает импортный адаптер через фабрику.
+     * 4) Передаёт path и disk в импортный адаптер; Laravel Excel сам читает файл из указанного disk.
+     * 5) При ошибке снимает отметку принятого operationId, чтобы запрос можно было повторить.
+     * 6) Пробрасывает ошибку дальше, чтобы RabbitMQ-обработчик не подтвердил неуспешное сообщение как обработанное.
      */
     public function execute(ExternalImportFileRequestDTO $request): void
     {

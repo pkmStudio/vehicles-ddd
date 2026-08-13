@@ -23,7 +23,12 @@ use Throwable;
 final readonly class DeletePartSpecificationUseCase implements DeletePartSpecificationUseCaseInterface
 {
     /**
-     * Инициализирует зависимости класса через контейнер.
+     * Получает порты delete part specification workflow.
+     *
+     * Шаги:
+     * 1) Принять repository для проверки существования specification.
+     * 2) Принять command для удаления по id.
+     * 3) Принять cache/result сервисы для идемпотентности и публикации результата.
      */
     public function __construct(
         private PartSpecificationRepositoryInterface $specifications,

@@ -9,8 +9,9 @@ use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Commands\Nomenclatu
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Repositories\NomenclatureIntegrationRepositoryInterface;
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\MoySklad\Domain\Contracts\Services\NomenclatureSyncServiceInterface;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductDTO;
+use App\Modules\Warehouse\Features\MoySklad\Domain\DTOs\MoySkladProductPayloadDTO;
 use App\Modules\Warehouse\Features\MoySklad\Domain\Enums\MoySkladIntegrationStatusEnum;
-use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\MoySklad\Domain\ModelData\NomenclatureIntegrationData;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -22,6 +23,11 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 {
     /**
      * Получает локальный клиент МойСклад и mapper payload.
+     * Шаги:
+     * 1) Сохранить client port внешних операций с товарами МойСклад.
+     * 2) Сохранить read/write ports Warehouse integration-state.
+     * 3) Сохранить mapper, resolver папок, resolver совпадений товара и hasher payload.
+     * 4) Сохранить logger для actionable ошибок sync/delete workflow.
      */
     public function __construct(
         private MoySkladProductClientInterface $client,
@@ -29,11 +35,22 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         private NomenclatureIntegrationRepositoryInterface $integrations,
         private NomenclatureIntegrationCommandInterface $integrationCommand,
         private NomenclatureProductMapper $mapper,
+        private ProductFolderResolver $productFolderResolver,
+        private ProductMatchResolver $productMatchResolver,
+        private ProductPayloadHasher $payloadHasher,
         private LoggerInterface $logger,
     ) {}
 
     /**
      * Синхронизирует одну номенклатуру: грузит модель, создаёт integration и отправляет товар.
+     * Шаги:
+     * 1) Проверить feature flag MoySklad sync и выйти без действий, если он выключен.
+     * 2) Загрузить Warehouse-номенклатуру; если её нет, записать warning и завершить сценарий.
+     * 3) Найти integration-state или создать pending-запись для номенклатуры.
+     * 4) Определить папку товара, собрать payload и посчитать hash payload.
+     * 5) Пропустить update, если последний успешный payload не изменился и externalId сохранен.
+     * 6) Создать или обновить товар через ProductMatchResolver.
+     * 7) На успехе записать synced state, на ошибке записать failed state, залогировать и пробросить exception.
      */
     public function sync(int $nomenclatureId): void
     {
@@ -56,7 +73,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         $integration = $this->integrations->findByNomenclatureId($nomenclature->id)
             ?? $this->integrationCommand->createPendingForNomenclature($nomenclature->id);
 
-        $productFolderMeta = $this->resolveProductFolderMeta($nomenclature);
+        $productFolderMeta = $this->productFolderResolver->resolve($nomenclature);
         $payload = $this->mapper->map($nomenclature, $productFolderMeta);
         $payloadHash = $this->payloadHash($payload);
         $shouldSkipUpdate = $this->shouldSkipUpdate($integration, $payloadHash);
@@ -66,7 +83,7 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         }
 
         try {
-            $product = $this->saveProduct($integration, $nomenclature, $payload, $productFolderMeta);
+            $product = $this->productMatchResolver->saveProduct($integration, $nomenclature, $payload, $productFolderMeta);
             $this->markSyncSuccess($integration, $product, $payload, $payloadHash);
         } catch (Throwable $e) {
             $this->markSyncFailure($integration, $e);
@@ -84,6 +101,14 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 
     /**
      * Удаляет товар МойСклад по сохранённой integration-связке или fallback-поиску.
+     * Шаги:
+     * 1) Проверить feature flag MoySklad sync и выйти без действий, если он выключен.
+     * 2) Построить expected externalCode по id номенклатуры.
+     * 3) Найти integration-state для удаления по id/code/integrationId.
+     * 4) Определить productId через сохраненную связь, externalId или fallback поиск по артикулу.
+     * 5) Если товар не найден, отметить integration удаленной и завершить сценарий.
+     * 6) Удалить товар во внешнем client и отметить integration deleted.
+     * 7) На ошибке отметить integration failed, залогировать контекст и пробросить exception.
      */
     public function delete(int $nomenclatureId, string $partNumber, ?string $externalId = null, ?int $integrationId = null): void
     {
@@ -94,8 +119,8 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
         }
 
         $externalCode = $this->mapper->externalCodeForNomenclatureId($nomenclatureId);
-        $integration = $this->integrations->findForDelete($nomenclatureId, $externalCode, $integrationId);
-        $productId = $this->resolveDeleteProductId($nomenclatureId, $partNumber, $externalId, $integration);
+        $integration = $this->integrations->findForDeletion($nomenclatureId, $externalCode, $integrationId);
+        $productId = $this->productMatchResolver->resolveDeleteProductId($nomenclatureId, $partNumber, $externalId, $integration);
 
         if ($productId === null) {
             $this->logger->warning('MoySklad: товар для удаления не найден, операция пропущена.', [
@@ -131,33 +156,23 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
 
     /**
      * Рассчитывает hash payload для тестов.
-     */
-    public function payloadHash(array $payload): string
-    {
-        return sha1((string) json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-    }
-
-    /**
-     * Определяет meta папки товара по типу номенклатуры.
+     * Шаги:
+     * 1) Передать array или DTO payload в ProductPayloadHasher.
+     * 2) Вернуть stable hash, который используется для idempotent skip update.
      *
-     * @return array<string, mixed>
+     * @param  array<string, mixed>|MoySkladProductPayloadDTO  $payload
      */
-    private function resolveProductFolderMeta(NomenclatureData $nomenclature): array
+    public function payloadHash(array|MoySkladProductPayloadDTO $payload): string
     {
-        if (! (bool) config('warehouse.moysklad.nomenclature_sync.product_folders.enabled', true)) {
-            return [];
-        }
-
-        $typeName = trim((string) ($nomenclature->type?->name ?? ''));
-        if ($typeName === '') {
-            return [];
-        }
-
-        return $this->client->ensureProductFolderMetaByName($typeName);
+        return $this->payloadHasher->hash($payload);
     }
 
     /**
      * Проверяет, можно ли не отправлять update, если последний успешный payload не изменился.
+     * Шаги:
+     * 1) Убедиться, что integration находится в статусе synced.
+     * 2) Сравнить сохраненный payloadHash с текущим hash.
+     * 3) Проверить, что externalId сохранен непустой строкой.
      */
     private function shouldSkipUpdate(NomenclatureIntegrationData $integration, string $payloadHash): bool
     {
@@ -168,73 +183,34 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
     }
 
     /**
-     * Создаёт или обновляет товар: сначала по сохранённому external_id, затем через поиск.
-     *
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $productFolderMeta
-     * @return array<string, mixed>
-     */
-    private function saveProduct(NomenclatureIntegrationData $integration, NomenclatureData $nomenclature, array $payload, array $productFolderMeta): array
-    {
-        if (is_string($integration->externalId) && $integration->externalId !== '') {
-            return $this->client->updateById($integration->externalId, $payload);
-        }
-
-        return $this->findOrCreateProduct($nomenclature, $payload, $productFolderMeta, updateExisting: true);
-    }
-
-    /**
-     * Находит подходящий товар по артикулу/externalCode или создаёт новый.
-     *
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $productFolderMeta
-     * @return array<string, mixed>
-     */
-    private function findOrCreateProduct(NomenclatureData $nomenclature, array $payload, array $productFolderMeta, bool $updateExisting = false): array
-    {
-        $folderId = $this->resolveFolderId($productFolderMeta);
-
-        $existing = $this->client->findByArticle($nomenclature->partNumber);
-        $existingMatchesFolder = $existing !== null && $this->matchesFolder($existing, $folderId);
-
-        if ($existingMatchesFolder) {
-            return $updateExisting
-                ? $this->client->updateById((string) $existing['id'], $payload)
-                : $existing;
-        }
-
-        $externalCode = $this->mapper->externalCodeForNomenclatureId((int) $nomenclature->id);
-        $existingByExternalCode = $this->client->findByExternalCode($externalCode);
-        if ($existingByExternalCode !== null) {
-            return $updateExisting
-                ? $this->client->updateById((string) $existingByExternalCode['id'], $payload)
-                : $existingByExternalCode;
-        }
-
-        return $this->client->create($payload);
-    }
-
-    /**
      * Записывает успешный результат синхронизации в `nomenclature_integrations`.
-     *
-     * @param  array<string, mixed>  $product
-     * @param  array<string, mixed>  $payload
+     * Шаги:
+     * 1) Взять externalId из ответа МойСклад.
+     * 2) Взять externalCode из ответа или fallback-нуться на code отправленного payload.
+     * 3) Передать integration, external identifiers и payloadHash в command port markSynced().
      */
-    private function markSyncSuccess(NomenclatureIntegrationData $integration, array $product, array $payload, string $payloadHash): void
-    {
-        $externalId = $product['id'] ?? null;
-        $externalCode = $product['externalCode'] ?? ($payload['externalCode'] ?? null);
+    private function markSyncSuccess(
+        NomenclatureIntegrationData $integration,
+        MoySkladProductDTO $product,
+        MoySkladProductPayloadDTO $payload,
+        string $payloadHash,
+    ): void {
+        $externalId = $product->id;
+        $externalCode = $product->externalCode ?? $payload->externalCode;
 
         $this->integrationCommand->markSynced(
             integration: $integration,
-            externalId: is_string($externalId) ? $externalId : null,
-            externalCode: is_string($externalCode) ? $externalCode : null,
+            externalId: $externalId,
+            externalCode: $externalCode,
             payloadHash: $payloadHash,
         );
     }
 
     /**
      * Записывает ошибку последней синхронизации в integration-state.
+     * Шаги:
+     * 1) Извлечь message исходного Throwable.
+     * 2) Передать integration и message в command port markFailed().
      */
     private function markSyncFailure(NomenclatureIntegrationData $integration, Throwable $e): void
     {
@@ -242,71 +218,10 @@ final readonly class NomenclatureSyncService implements NomenclatureSyncServiceI
     }
 
     /**
-     * Определяет id товара МойСклад для удаления по externalId, integration, externalCode или артикулу.
-     */
-    private function resolveDeleteProductId(int $nomenclatureId, string $partNumber, ?string $externalId, ?NomenclatureIntegrationData $integration): ?string
-    {
-        if (is_string($externalId) && $externalId !== '') {
-            return $externalId;
-        }
-
-        if (is_string($integration?->externalId) && $integration->externalId !== '') {
-            return $integration->externalId;
-        }
-
-        $externalCode = $this->mapper->externalCodeForNomenclatureId($nomenclatureId);
-        $foundByExternalCode = $this->client->findByExternalCode($externalCode);
-        $externalCodeId = is_array($foundByExternalCode) ? ($foundByExternalCode['id'] ?? null) : null;
-        if (is_string($externalCodeId) && $externalCodeId !== '') {
-            return $externalCodeId;
-        }
-
-        $foundByArticle = $this->client->findByArticle($partNumber);
-        $articleId = is_array($foundByArticle) ? ($foundByArticle['id'] ?? null) : null;
-
-        return is_string($articleId) && $articleId !== '' ? $articleId : null;
-    }
-
-    /**
-     * Извлекает id папки товара из meta.href.
-     *
-     * @param  array<string, mixed>  $productFolderMeta
-     */
-    private function resolveFolderId(array $productFolderMeta): ?string
-    {
-        $href = $productFolderMeta['meta']['href'] ?? null;
-        if (! is_string($href) || $href === '') {
-            return null;
-        }
-
-        $parts = parse_url($href);
-        $path = $parts['path'] ?? null;
-        if (! is_string($path) || $path === '') {
-            return null;
-        }
-
-        $segments = explode('/', trim($path, '/'));
-        $id = end($segments);
-
-        return is_string($id) && $id !== '' ? $id : null;
-    }
-
-    /**
-     * Проверяет принадлежность товара ожидаемой папке; без папки любой найденный товар подходит.
-     *
-     * @param  array<string, mixed>  $product
-     */
-    private function matchesFolder(array $product, ?string $folderId): bool
-    {
-        if ($folderId === null) {
-            return true;
-        }
-
-        return $this->client->productMatchesFolder($product, $folderId);
-    }
-
-    /**
      * Возвращает feature flag синхронизации Warehouse/MoySklad.
+     * Шаги:
+     * 1) Прочитать warehouse.moysklad.nomenclature_sync.enabled из config.
+     * 2) Вернуть false по умолчанию, чтобы интеграция была opt-in.
      */
     private function enabled(): bool
     {

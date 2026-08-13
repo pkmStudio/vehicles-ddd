@@ -17,7 +17,11 @@ use Psr\Log\LoggerInterface;
 final readonly class PartSpecificationDetailsWritePolicy implements PartSpecificationDetailsWritePolicyInterface
 {
     /**
-     * Инициализирует зависимости policy через контейнер.
+     * Получает сервис нормализации дворников и logger для отказов по details contract.
+     *
+     * Шаги:
+     * 1) Принять shared-kernel сервис, который определяет сторону и split-ит wiper details.
+     * 2) Принять logger для warning о payload, отклоненном до записи.
      */
     public function __construct(
         private WiperSpecificationServiceInterface $wipers,
@@ -26,6 +30,13 @@ final readonly class PartSpecificationDetailsWritePolicy implements PartSpecific
 
     /**
      * Проверяет и нормализует details перед записью.
+     *
+     * Шаги:
+     * 1) Пропустить без изменений все не-wiper шаблоны и specs, владельцем которых не является vehicle.
+     * 2) Удалить UI-only поля и пустые значения из details.
+     * 3) Отклонить пустой payload или payload с несколькими сторонами дворников.
+     * 4) Нормализовать details под найденную сторону и запретить несколько adapter values в одной мутации.
+     * 5) Split-ить details через shared-kernel сервис и принять только единственный непустой вариант.
      */
     public function apply(
         array $details,
@@ -105,6 +116,10 @@ final readonly class PartSpecificationDetailsWritePolicy implements PartSpecific
     /**
      * Удаляет UI-only поля, которые не являются частью сохраняемого details contract.
      *
+     * Шаги:
+     * 1) Убрать поле position, используемое формой, но не jsonb-contract спецификации.
+     * 2) Вернуть details без изменения остальных ключей.
+     *
      * @param  array<string, mixed>  $details
      * @return array<string, mixed>
      */
@@ -117,6 +132,12 @@ final readonly class PartSpecificationDetailsWritePolicy implements PartSpecific
 
     /**
      * Рекурсивно удаляет null, пустые строки и пустые массивы.
+     *
+     * Шаги:
+     * 1) Пройти по каждому ключу details.
+     * 2) Для вложенных массивов применить такую же очистку рекурсивно.
+     * 3) Пропустить null, пустые строки и массивы, которые стали пустыми после очистки.
+     * 4) Вернуть компактный массив только со значимыми значениями.
      *
      * @param  array<string, mixed>  $details
      * @return array<string, mixed>
@@ -142,6 +163,11 @@ final readonly class PartSpecificationDetailsWritePolicy implements PartSpecific
 
     /**
      * Возвращает rejected result и пишет warn-событие о нарушении details rules.
+     *
+     * Шаги:
+     * 1) Собрать error entry с field/rule/message для result DTO.
+     * 2) Записать warning с operation id, spec id, template, owner type и нарушенным правилом.
+     * 3) Вернуть invalid result без details и с единственной ошибкой.
      */
     private function reject(
         string $operationId,

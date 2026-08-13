@@ -9,6 +9,9 @@ namespace App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine;
  */
 final readonly class AssignEngineGroupResultDTO
 {
+    /**
+     * Фиксирует результат поиска и возможного переназначения engine group.
+     */
     public function __construct(
         public bool $found,
         public bool $reassigned = false,

@@ -7,6 +7,7 @@ namespace App\Modules\Warehouse\Features\Export\Infrastructure\Exports\WiperAdap
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Clients\WiperAdapterAuditClientInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\WiperAdapterAuditExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportRunContextDTO;
+use App\Modules\Warehouse\Features\Export\Domain\DTOs\WiperAdapterAudit\WiperAdapterAuditExportRowDTO;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Concerns\StylesExportWorksheet;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -26,6 +27,9 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
 
     /**
      * Получает сервис расчёта готовых строк отчёта.
+     * Шаги:
+     * 1) Сохранить client port, который отдаёт audit rows.
+     * 2) Оставить Excel adapter ответственным только за сохранение и mapping.
      */
     public function __construct(
         private WiperAdapterAuditClientInterface $audit,
@@ -33,6 +37,12 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
 
     /**
      * Сохраняет xlsx-файл отчёта на Storage disk и возвращает путь.
+     * Шаги:
+     * 1) Взять disk из аргумента или warehouse.export config.
+     * 2) Взять output directory из config.
+     * 3) Собрать имя файла с operationId export run.
+     * 4) Сохранить текущий export adapter через Laravel Excel в XLSX.
+     * 5) Вернуть Storage path сохраненного файла.
      */
     public function export(ExportRunContextDTO $context, ?string $disk = null): string
     {
@@ -58,6 +68,8 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
 
     /**
      * Возвращает название листа отчёта.
+     * Шаги:
+     * 1) Вернуть фиксированное имя листа "Адаптеры".
      */
     public function title(): string
     {
@@ -66,6 +78,11 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
 
     /**
      * Возвращает готовые строки отчёта для maatwebsite/excel.
+     * Шаги:
+     * 1) Запросить audit rows через WiperAdapterAuditClientInterface.
+     * 2) Вернуть collection DTO без дополнительного SQL в export adapter-е.
+     *
+     * @return Collection<int, WiperAdapterAuditExportRowDTO>
      */
     public function collection(): Collection
     {
@@ -74,8 +91,13 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
 
     /**
      * Мапит одну строку отчёта в плоский массив значений Excel.
+     * Шаги:
+     * 1) Взять id набора.
+     * 2) Добавить строку состава набора.
+     * 3) Добавить список несовпадающих адаптеров.
+     * 4) Добавить диагностический текст расположения/количества.
      *
-     * @param  mixed  $row
+     * @param  WiperAdapterAuditExportRowDTO  $row
      * @return array<int, mixed>
      */
     public function map($row): array
@@ -90,6 +112,8 @@ final readonly class WiperAdapterAuditExport implements FromCollection, WiperAda
 
     /**
      * Возвращает заголовки старого отчёта dan-center.
+     * Шаги:
+     * 1) Вернуть фиксированный порядок колонок, совместимый с legacy отчетом.
      *
      * @return array<int, string>
      */

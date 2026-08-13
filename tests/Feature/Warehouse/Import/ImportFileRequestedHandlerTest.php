@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Warehouse\Features\Import\DTO\ImportFileRequested as WireImportFileRequested;
 use Tests\TestCase;
 
 final class ImportFileRequestedHandlerTest extends TestCase
@@ -53,6 +54,35 @@ final class ImportFileRequestedHandlerTest extends TestCase
         ]);
 
         $this->assertTrue(Cache::has($this->cleanupCacheKey('run-123')));
+    }
+
+    public function test_accepts_published_wire_import_request_payload(): void
+    {
+        config(['filesystems.files_disk' => 's3']);
+        Storage::fake('s3');
+        Storage::disk('s3')->put('warehouse/nomenclature.xlsx', 'xlsx');
+
+        $import = $this->mock(NomenclatureImportInterface::class);
+        $import->shouldReceive('import')
+            ->once()
+            ->with(
+                'warehouse/nomenclature.xlsx',
+                Mockery::on(fn (ImportRunContextDTO $context): bool => $context->userId === 42
+                    && $context->operationId === 'wire-import-warehouse'),
+                's3',
+            );
+
+        $message = new WireImportFileRequested(
+            userId: 42,
+            operationId: 'wire-import-warehouse',
+            importType: 'nomenclature',
+            disk: 's3',
+            path: 'warehouse/nomenclature.xlsx',
+        );
+
+        app(ImportFileRequestedHandler::class)->handle($message->toArray());
+
+        $this->assertTrue(Cache::has($this->cleanupCacheKey('wire-import-warehouse')));
     }
 
     public function test_payload_disk_overrides_default_files_disk(): void

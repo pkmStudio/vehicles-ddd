@@ -5,35 +5,35 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Export\Infrastructure\Providers;
 
 use App\Modules\Vehicles\Features\Export\Application\Services\EngineExportService;
-use App\Modules\Vehicles\Features\Export\Application\Services\VehicleExportService;
-use App\Modules\Vehicles\Features\Export\Application\Services\Rows\EngineExportRow;
-use App\Modules\Vehicles\Features\Export\Application\Services\Expanders\PartSpecificationRowExpander;
-use App\Modules\Vehicles\Features\Export\Application\Services\Rows\VehicleExportRow;
+use App\Modules\Vehicles\Features\Export\Application\Services\Expanders\EngineSparkPlugSpecificationRowExpander;
 use App\Modules\Vehicles\Features\Export\Application\Services\Expanders\WiperRowExpander;
 use App\Modules\Vehicles\Features\Export\Application\Services\External\CleanupStaleExportFilesService;
-use App\Modules\Vehicles\Features\Export\Application\Factories\ExportFileFactory;
+use App\Modules\Vehicles\Features\Export\Application\Services\Rows\EngineExportRow;
+use App\Modules\Vehicles\Features\Export\Application\Services\Rows\VehicleExportRow;
+use App\Modules\Vehicles\Features\Export\Application\Services\VehicleExportService;
 use App\Modules\Vehicles\Features\Export\Application\UseCases\External\StartExportUseCase;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\EngineExportServiceInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\PartSpecificationRowExpanderInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\CleanupStaleExportFilesServiceInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Files\ExportFileStorageInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Files\ExportFileStorageInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\EngineExportServiceInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\EngineSparkPlugSpecificationRowExpanderInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\CleanupStaleExportFilesServiceInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Cache\LaravelExportRunCacheService;
-use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\EngineMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Clients\TemplatesClient;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\EngineMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\VehicleMultiSheetExport;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Factories\ExportFileFactory;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Files\LaravelExportFileStorage;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\EngineRepository;
@@ -59,7 +59,7 @@ final class ExportServiceProvider extends ServiceProvider
     ];
 
     private const array SERVICE_BINDINGS = [
-        PartSpecificationRowExpanderInterface::class => PartSpecificationRowExpander::class,
+        EngineSparkPlugSpecificationRowExpanderInterface::class => EngineSparkPlugSpecificationRowExpander::class,
         VehicleExportRowInterface::class => VehicleExportRow::class,
         EngineExportRowInterface::class => EngineExportRow::class,
         WiperRowExpanderInterface::class => WiperRowExpander::class,
@@ -85,6 +85,13 @@ final class ExportServiceProvider extends ServiceProvider
         ExportFileStorageInterface::class => LaravelExportFileStorage::class,
     ];
 
+    /**
+     * Зарегистрировать container bindings фичи Export.
+     *
+     * Шаги:
+     * - Зарегистрировать RabbitMQ notification service для события готового файла.
+     * - Последовательно привязать export, repository, service, factory, use case, client и file adapters.
+     */
     public function register(): void
     {
         // Уведомление о готовом файле экспорта уходит в RabbitMQ (VEHICLES_FILE_EXPORTED).

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Maintenance\Infrastructure\Models;
 
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\BrakeSystemTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\DriveTypeEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\GearTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,6 +29,10 @@ class Modification extends AbstractModel
     public $timestamps = false;
 
     // RELATIONS
+
+    /**
+     * Возвращает модель автомобиля, к которой относится модификация.
+     */
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);

@@ -15,6 +15,9 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
 {
     /**
      * Инициализирует файловый порт экспорта.
+     *
+     * Шаги:
+     * 1) Сохранить storage port, через который cleanup читает metadata и удаляет файлы.
      */
     public function __construct(
         private ExportFileStorageInterface $files,
@@ -26,12 +29,19 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
      * (Import кладёт отчёты об ошибках в отдельный каталог dan-vehicles/import),
      * поэтому неявная зависимость от постороннего файла в той же папке — не то, ради чего
      * стоит рисковать удалением чужого файла.
+     *
+     * Шаги:
+     * 1) Прочитать disk, directory и retention threshold из config.
+     * 2) Перебрать файлы настроенного export-каталога.
+     * 3) Пропустить файлы, не похожие на export artifacts Vehicles.
+     * 4) Пропустить файлы моложе retention threshold.
+     * 5) Удалить устаревший artifact и вернуть количество удаленных файлов.
      */
     public function cleanup(): int
     {
-        $disk = (string) config('vehicles.export.output.disk', 'local');
-        $directory = (string) config('vehicles.export.output.directory', 'dan-vehicles/export');
-        $retentionHours = (int) config('vehicles.export.output.retention_hours', 24);
+        $disk = (string) config('vehicles.export.output.disk');
+        $directory = (string) config('vehicles.export.output.directory');
+        $retentionHours = (int) config('vehicles.export.output.retention_hours');
         $threshold = now()->subHours($retentionHours)->getTimestamp();
 
         $deleted = 0;
@@ -67,6 +77,11 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
 
     /**
      * Проверяет, похож ли файл на сгенерированный экспорт Vehicles.
+     *
+     * Шаги:
+     * 1) Взять basename пути.
+     * 2) Сравнить имя файла с каждым разрешенным export pattern.
+     * 3) Вернуть true при первом совпадении.
      */
     private function matchesExportFilePattern(string $path): bool
     {
@@ -82,6 +97,12 @@ final readonly class CleanupStaleExportFilesService implements CleanupStaleExpor
     }
 
     /**
+     * Возвращает glob patterns файлов экспорта Vehicles.
+     *
+     * Шаги:
+     * 1) Преобразовать каждый `ExportTypeEnum` в файловый prefix.
+     * 2) Добавить wildcard timestamp/id части имени файла.
+     *
      * @return array<int, string>
      */
     private function filePatterns(): array

@@ -16,6 +16,11 @@ final readonly class WiperAdapterAuditKitRepository implements WiperAdapterAudit
 {
     /**
      * Возвращает наборы, подходящие под старый критерий аудита: минимум три позиции состава.
+     * Шаги:
+     * 1) Построить Eloquent query Warehouse kits с eager-load nomenclatures.type.
+     * 2) Ограничить наборы relation-count условием: nomenclatures >= 3.
+     * 3) Отсортировать kits по id для стабильного отчёта.
+     * 4) Преобразовать модели в Collection<int, KitData>.
      *
      * @return Collection<int, KitData>
      */

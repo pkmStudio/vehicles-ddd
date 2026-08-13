@@ -17,10 +17,11 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 final class VehicleData extends Data
 {
     /**
-     * @param  ManufacturerData|null  $manufacturer  заполняется Repository::forMainSheet()/forWiperSheet()
-     * @param  self|null  $parent  заполняется Repository::forMainSheet()/forWiperSheet() (один уровень, без внуков)
+     * @param  ManufacturerData|null  $manufacturer  заполняется Repository::forSheet()
+     * @param  self|null  $parent  заполняется Repository::forSheet() (один уровень, без внуков)
      * @param  Collection<int, PartSpecificationData>|null  $partSpecifications  заполняется только
-     *                                                       Repository::forWiperSheet() (шаблон wiper, с featureValue)
+     *                                                                           Repository::forSheet(VehicleExportSheetEnum::Wiper)
+     *                                                                           (шаблон wiper, с featureValue)
      */
     public function __construct(
         public readonly int $msId,
@@ -29,9 +30,9 @@ final class VehicleData extends Data
         public readonly string $name,
         public readonly VehicleTypeEnum $type,
         public readonly SteeringTypeEnum $steeringType,
-        public readonly ?string $generation = null,
+        public readonly string $generation,
+        public readonly int $generationYearFrom,
         public readonly ?CarcaseTypeEnum $typeCarcase = null,
-        public readonly ?int $generationYearFrom = null,
         public readonly ?int $generationYearTo = null,
         public readonly ProviderEnum $provider = ProviderEnum::TD,
         public readonly ?int $parentId = null,

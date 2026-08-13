@@ -6,6 +6,9 @@ namespace App\Modules\Vehicles\Features\Import\Domain\DTOs\Modification;
 
 final readonly class ModificationCommandRowDTO
 {
+    /**
+     * Фиксирует строку command-импорта модификации из TecDoc cascade.
+     */
     public function __construct(
         public ?int $msId,
         public ?int $modId,
