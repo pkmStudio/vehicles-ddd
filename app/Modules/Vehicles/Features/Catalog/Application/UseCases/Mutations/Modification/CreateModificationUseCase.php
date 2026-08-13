@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Modification;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRepositoryInterface;
@@ -42,7 +41,6 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
         private EngineRepositoryInterface $engines,
         private VehicleRepositoryInterface $vehicles,
         private ModificationCommandInterface $command,
-        private EngineCommandInterface $engineCommand,
         private EngineModificationCommandInterface $engineModifications,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
@@ -94,6 +92,21 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
                 );
             }
 
+            $engines = [];
+            if ($request->syncEngines) {
+                $engines = $this->existingEngines($request->engines);
+                if ($engines === null) {
+                    return $this->results->rejected(
+                        userId: $request->userId,
+                        operationId: $request->operationId,
+                        entity: CatalogEntityEnum::Modification,
+                        operation: CatalogMutationOperationEnum::Create,
+                        externalId: $modId,
+                        reason: CatalogMutationRejectReasonEnum::NotFound,
+                    );
+                }
+            }
+
             $modificationData = new ModificationData(
                 modId: $modId,
                 type: $request->type,
@@ -120,7 +133,7 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
             if ($request->syncEngines) {
                 $this->engineModifications->syncForModification(
                     modification: $modification,
-                    engines: $this->upsertEngines($request->engines),
+                    engines: $engines,
                 );
             }
 
@@ -153,46 +166,32 @@ final readonly class CreateModificationUseCase implements CreateModificationUseC
     }
 
     /**
-     * Создает или обновляет двигатели, перечисленные во входящей modification mutation.
+     * Возвращает только существующие двигатели, перечисленные во входящей modification mutation.
      *
      * Шаги:
-     * 1) Для каждого engine request определить eng_id: взять входящий или сгенерировать новый.
-     * 2) Найти существующий двигатель по eng_id.
-     * 3) Собрать EngineData с id существующей записи для update или без id для create.
-     * 4) Выполнить create/update через engine command и накопить актуальные EngineData.
-     * 5) Вернуть список двигателей для последующей синхронизации pivot-связей модификации.
+     * 1) Для каждого engine request требовать внешний `eng_id`.
+     * 2) Найти существующий двигатель по `eng_id`.
+     * 3) Вернуть `null`, если хотя бы один двигатель не найден.
+     * 4) Вернуть список существующих двигателей для синхронизации pivot-связей.
      *
      * @param  list<ModificationEngineRequestDTO>  $requests
-     * @return list<EngineData>
+     * @return list<EngineData>|null
      */
-    private function upsertEngines(array $requests): array
+    private function existingEngines(array $requests): ?array
     {
         $engines = [];
 
         foreach ($requests as $request) {
-            $engId = $request->engId ?? $this->engines->nextOwnEngId();
-            $existing = $this->engines->findByEngId($engId);
-            $data = new EngineData(
-                engId: $engId,
-                codeEngine: $request->codeEngine,
-                powerKwStart: $request->powerKwStart,
-                powerKwUpto: $request->powerKwUpto,
-                powerPsStart: $request->powerPsStart,
-                powerPsUpto: $request->powerPsUpto,
-                engineCapacity: $request->engineCapacity,
-                cylinderDiameter: $request->cylinderDiameter,
-                cylinderCount: $request->cylinderCount,
-                numberOfValves: $request->numberOfValves,
-                fuelType: $request->fuelType,
-                groupId: $request->groupId,
-                provider: $request->provider,
-                allowChangeFields: $request->allowChangeFields,
-                id: $existing?->id,
-            );
+            if ($request->engId === null) {
+                return null;
+            }
 
-            $engines[] = $existing === null
-                ? $this->engineCommand->create($data)
-                : $this->engineCommand->update($data);
+            $engine = $this->engines->findByEngId($request->engId);
+            if ($engine === null) {
+                return null;
+            }
+
+            $engines[] = $engine;
         }
 
         return $engines;

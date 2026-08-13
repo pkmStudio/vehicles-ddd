@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\EngineCrmController;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\ManufacturerCrmController;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\VehicleCatalogController;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\VehicleCrmController;
@@ -29,10 +30,14 @@ Route::prefix('v1')->group(function (): void {
                 Route::get('options/features', [VehicleCrmController::class, 'features']);
                 Route::get('options/feature-values', [VehicleCrmController::class, 'featureValues']);
                 Route::get('options/detail-templates', [VehicleCrmController::class, 'detailTemplates']);
-                Route::get('options/manufacturers', [VehicleCrmController::class, 'manufacturers']);
+                Route::get('engines/{id}', [EngineCrmController::class, 'show'])->whereNumber('id');
+                Route::get('engines', [EngineCrmController::class, 'index']);
                 Route::get('manufacturers/{id}', [ManufacturerCrmController::class, 'show'])->whereNumber('id');
                 Route::get('manufacturers', [ManufacturerCrmController::class, 'index']);
                 Route::get('search', [VehicleCrmController::class, 'search']);
+                Route::get('{id}/modifications', [VehicleCrmController::class, 'modifications'])->whereNumber('id');
+                Route::get('{id}/engines', [EngineCrmController::class, 'forVehicle'])->whereNumber('id');
+                Route::get('{id}/part-specifications', [VehicleCrmController::class, 'partSpecifications'])->whereNumber('id');
                 Route::get('{id}', [VehicleCrmController::class, 'show'])->whereNumber('id');
                 Route::get('/', [VehicleCrmController::class, 'index']);
             });

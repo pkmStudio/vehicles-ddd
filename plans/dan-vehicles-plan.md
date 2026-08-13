@@ -170,15 +170,20 @@
    - [x] Покрыто `NomenclatureCrmReadApiTest`: list/search/filter/sort/pagination, detail snapshot,
      options endpoints, preload limits и repository DTO boundary.
 
-3. [ ] Добавить REST read API для оставшихся вынесенных сущностей.
-   - Engines.
-   - Manufacturers.
-   - Modifications.
-   - PartSpecifications.
-   - Warehouse Brands.
-   - Warehouse Kits.
-   - Warehouse PackDimensions.
-   - Applicability read endpoints.
+3. [x] Добавить REST read API для оставшихся вынесенных сущностей.
+   - [x] Engines.
+   - [x] Manufacturers.
+   - [x] Modifications.
+   - [x] PartSpecifications.
+   - [x] Warehouse Brands.
+   - [x] Warehouse Kits.
+   - [x] Warehouse PackDimensions.
+   - [x] Vehicle detail snapshot разделен по смыслу: `/api/v1/crm/vehicles/{id}` теперь отдает
+     плоскую карточку автомобиля, а связанные коллекции читаются отдельно через
+     `/modifications`, `/engines` и `/part-specifications` с тем же `page/per_page/search/sort/filter`
+     query style. `dan-center` обновлен: `VehiclesReadClient` ходит в новые endpoints, а
+     `EditVehicleRest` собирает состояние старой формы через постраничное чтение связанных
+     коллекций и группировку engines по `modification_id`.
    - [x] Manufacturers endpoint подключен под `/api/v1/crm/vehicles/manufacturers`; добавлен
      отдельный CRM read-срез: query DTO, repository port/adapter, use cases, read-only client,
      HTTP factory/controller/presenter и feature tests на service key, list/filter/search/sort/pagination,
@@ -245,7 +250,6 @@
 
 1. Довести расчет применяемости.
    - Wiper расчет уже есть, проверить полноту и производительность.
-   - Spark plugs auto-calculation пока не реализован в factory, добавить отдельным алгоритмом.
    - Остальные типы оставить через manual/import workflow, пока нет правил.
 
 2. Довести export.
@@ -262,18 +266,13 @@
    - Vehicle/modification/engine/part specification updated/deleted.
    - На первом этапе запуск через command/Rabbit calculation request достаточен.
 
-5. Добавить REST read API для consumers.
-   - Минимум: получить применяемость по vehicle/modification/engine.
-   - Решить, отдавать только ids комплектов или отдельные enriched read DTO для CRM.
-
-6. Добавить тесты.
+5. Добавить тесты.
    - Wiper расчет.
-   - Spark plugs расчет после реализации.
    - Manual import negative `ms_id`.
    - Export rows.
    - Result events.
 
-7. [x] Убрать прямую зависимость Applicability Export от Vehicles enum.
+6. [x] Убрать прямую зависимость Applicability Export от Vehicles enum.
    - `Applicability/Features/Export/Application/Services/VehicleKitApplicabilityExportService`
      сейчас использует `Vehicles/Shared/Domain/Enums/Vehicle/CarcaseTypeEnum` для reference rows.
    - Если значения нужны как внешний справочник export-файла, получать их через локальный client

@@ -4,26 +4,33 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm;
 
+use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmEngineDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureValueOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmListItemDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmManufacturerOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmModificationDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmModificationEngineDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPartSpecificationDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmRelationPageDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmSearchItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Engine;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Feature;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\FeatureValue;
-use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Modification;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\PartSpecification;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmPageDTOFactory;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmRelationPageDTOFactory;
+use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -37,6 +44,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
      */
     public function __construct(
         private VehicleCrmPageDTOFactory $pageFactory,
+        private VehicleCrmRelationPageDTOFactory $relationPageFactory,
     ) {}
 
     /**
@@ -65,31 +73,105 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     /**
      * Читает detail-снимок автомобиля по id.
      */
-    public function findById(int $id): ?VehicleCrmDetailDTO
+    public function findById(int $id): ?VehicleCrmListItemDTO
     {
         $vehicle = $this->baseQuery()
-            ->with([
-                'modifications' => fn (Builder $query): Builder => $query
-                    ->orderBy('year_from')
-                    ->orderBy('description'),
-                'modifications.engines' => fn (Builder $query): Builder => $query->orderBy('code_engine'),
-                'partSpecifications' => fn (Builder $query): Builder => $query
-                    ->orderBy('template')
-                    ->orderBy('id'),
-                'partSpecifications.featureValue.feature',
-            ])
             ->whereKey($id)
             ->first();
 
-        if ($vehicle === null) {
-            return null;
-        }
+        return $vehicle === null ? null : $this->item($vehicle);
+    }
 
-        return new VehicleCrmDetailDTO(
-            vehicle: $this->item($vehicle),
-            modifications: $this->modifications($vehicle),
-            partSpecifications: $this->partSpecifications($vehicle),
+    /**
+     * Читает постраничные модификации автомобиля для CRM формы.
+     *
+     * Шаги:
+     * 1. Строит query модификаций по id автомобиля.
+     * 2. Применяет фильтры, поиск и сортировку relation endpoint.
+     * 3. Пагинирует результат и мапит модели в CRM DTO.
+     */
+    public function modifications(int $vehicleId, VehicleCrmReadQueryDTO $query): VehicleCrmRelationPageDTO
+    {
+        $builder = Modification::query()
+            ->where('vehicle_id', $vehicleId);
+
+        $this->applyModificationFilters($builder, $query->filters);
+        $this->applyModificationSearch($builder, $query->search);
+        $this->applyModificationSort($builder, $query->sort);
+
+        $paginator = $builder->paginate(
+            perPage: $query->perPage,
+            page: $query->page,
         );
+
+        $items = collect($paginator->items())
+            ->map(fn (Modification $modification): VehicleCrmModificationDTO => $this->modification($modification, collect()))
+            ->values();
+
+        return $this->relationPageFactory->make($items, $paginator);
+    }
+
+    /**
+     * Читает постраничные двигатели, связанные с модификациями автомобиля.
+     *
+     * Шаги:
+     * 1. Строит join query двигателей через `engine_modification` и `modifications`.
+     * 2. Применяет фильтры, поиск и сортировку relation endpoint.
+     * 3. Пагинирует результат и мапит модели в CRM DTO с `modification_id`.
+     */
+    public function engines(int $vehicleId, VehicleCrmReadQueryDTO $query): VehicleCrmRelationPageDTO
+    {
+        $builder = Engine::query()
+            ->join('engine_modification', 'engine_modification.engine_id', '=', 'engines.id')
+            ->join('modifications', 'modifications.id', '=', 'engine_modification.modification_id')
+            ->where('modifications.vehicle_id', $vehicleId)
+            ->select('engines.*', 'engine_modification.modification_id');
+
+        $this->applyEngineFilters($builder, $query->filters);
+        $this->applyEngineSearch($builder, $query->search);
+        $this->applyEngineSort($builder, $query->sort);
+
+        $paginator = $builder->paginate(
+            perPage: $query->perPage,
+            page: $query->page,
+        );
+
+        $items = collect($paginator->items())
+            ->map(fn (Engine $engine): VehicleCrmModificationEngineDTO => $this->modificationEngine($engine))
+            ->values();
+
+        return $this->relationPageFactory->make($items, $paginator);
+    }
+
+    /**
+     * Читает постраничные спецификации деталей автомобиля.
+     *
+     * Шаги:
+     * 1. Строит query part specifications по owner автомобиля.
+     * 2. Применяет фильтры, поиск и сортировку relation endpoint.
+     * 3. Пагинирует результат и мапит модели в CRM DTO.
+     */
+    public function partSpecifications(int $vehicleId, VehicleCrmReadQueryDTO $query): VehicleCrmRelationPageDTO
+    {
+        $builder = PartSpecification::query()
+            ->with(['featureValue.feature'])
+            ->where('partable_type', 'vehicle')
+            ->where('partable_id', $vehicleId);
+
+        $this->applyPartSpecificationFilters($builder, $query->filters);
+        $this->applyPartSpecificationSearch($builder, $query->search);
+        $this->applyPartSpecificationSort($builder, $query->sort);
+
+        $paginator = $builder->paginate(
+            perPage: $query->perPage,
+            page: $query->page,
+        );
+
+        $items = collect($paginator->items())
+            ->map(fn (PartSpecification $specification): VehicleCrmPartSpecificationDTO => $this->partSpecification($specification))
+            ->values();
+
+        return $this->relationPageFactory->make($items, $paginator);
     }
 
     /**
@@ -151,40 +233,6 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
                 featureId: (int) $value->feature_id,
                 label: (string) $value->name,
                 shortCode: (string) $value->short_code,
-            ))
-            ->values();
-    }
-
-    /**
-     * Читает manufacturer options для CRM forms.
-     *
-     * @return Collection<int, VehicleCrmManufacturerOptionDTO>
-     */
-    public function manufacturerOptions(?string $query = null, ?int $id = null, int $limit = 50): Collection
-    {
-        $builder = Manufacturer::query()->orderBy('name');
-
-        if ($id !== null) {
-            $builder->whereKey($id);
-        } elseif ($query !== null && trim($query) !== '') {
-            $search = trim($query);
-
-            $builder->where(function (Builder $builder) use ($search): void {
-                $builder->where('name', 'ilike', "%{$search}%");
-
-                if (is_numeric($search)) {
-                    $builder->orWhere('mfa_id', (int) $search);
-                }
-            });
-        }
-
-        return $builder
-            ->limit(min(max($limit, 1), 50))
-            ->get()
-            ->map(fn (Manufacturer $manufacturer): VehicleCrmManufacturerOptionDTO => new VehicleCrmManufacturerOptionDTO(
-                id: (int) $manufacturer->id,
-                mfaId: (int) $manufacturer->mfa_id,
-                label: (string) $manufacturer->name,
             ))
             ->values();
     }
@@ -290,6 +338,196 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         $query->orderBy($column, $direction);
     }
 
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function applyModificationFilters(Builder $query, array $filters): void
+    {
+        foreach (['type', 'provider'] as $field) {
+            if (! isset($filters[$field]) || $filters[$field] === '') {
+                continue;
+            }
+
+            $values = is_array($filters[$field]) ? $filters[$field] : [$filters[$field]];
+            $query->whereIn($field, $values);
+        }
+
+        foreach (['description', 'localized_name'] as $field) {
+            if (isset($filters[$field]) && trim((string) $filters[$field]) !== '') {
+                $query->where($field, 'ilike', '%'.trim((string) $filters[$field]).'%');
+            }
+        }
+    }
+
+    private function applyModificationSearch(Builder $query, ?string $search): void
+    {
+        $search = trim((string) $search);
+
+        if ($search === '') {
+            return;
+        }
+
+        $query->where(function (Builder $query) use ($search): void {
+            $query
+                ->where('description', 'ilike', "%{$search}%")
+                ->orWhere('localized_name', 'ilike', "%{$search}%");
+
+            if (is_numeric($search)) {
+                $query
+                    ->orWhere('id', (int) $search)
+                    ->orWhere('mod_id', (int) $search)
+                    ->orWhere('ms_id', (int) $search);
+            }
+        });
+    }
+
+    private function applyModificationSort(Builder $query, string $sort): void
+    {
+        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
+        $field = ltrim($sort, '-');
+
+        $column = match ($field) {
+            'id' => 'id',
+            'mod_id' => 'mod_id',
+            'ms_id' => 'ms_id',
+            'year_from' => 'year_from',
+            'year_to' => 'year_to',
+            'description' => 'description',
+            'provider' => 'provider',
+            default => 'year_from',
+        };
+
+        $query->orderBy($column, $direction)->orderBy('id');
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function applyEngineFilters(Builder $query, array $filters): void
+    {
+        foreach (['engine_modification.modification_id' => 'modification_id', 'engines.provider' => 'provider', 'engines.group_id' => 'group_id'] as $column => $field) {
+            if (! isset($filters[$field]) || $filters[$field] === '') {
+                continue;
+            }
+
+            $values = is_array($filters[$field]) ? $filters[$field] : [$filters[$field]];
+            $query->whereIn($column, $values);
+        }
+
+        if (isset($filters['code_engine']) && trim((string) $filters['code_engine']) !== '') {
+            $query->where('engines.code_engine', 'ilike', '%'.trim((string) $filters['code_engine']).'%');
+        }
+    }
+
+    private function applyEngineSearch(Builder $query, ?string $search): void
+    {
+        $search = trim((string) $search);
+
+        if ($search === '') {
+            return;
+        }
+
+        $query->where(function (Builder $query) use ($search): void {
+            $query
+                ->where('engines.code_engine', 'ilike', "%{$search}%")
+                ->orWhere('engines.engine_capacity', 'ilike', "%{$search}%")
+                ->orWhere('engines.fuel_type', 'ilike', "%{$search}%");
+
+            if (is_numeric($search)) {
+                $query
+                    ->orWhere('engines.id', (int) $search)
+                    ->orWhere('engines.eng_id', (int) $search)
+                    ->orWhere('engines.group_id', (int) $search);
+            }
+        });
+    }
+
+    private function applyEngineSort(Builder $query, string $sort): void
+    {
+        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
+        $field = ltrim($sort, '-');
+
+        $column = match ($field) {
+            'id' => 'engines.id',
+            'eng_id' => 'engines.eng_id',
+            'modification_id' => 'engine_modification.modification_id',
+            'code_engine' => 'engines.code_engine',
+            'engine_capacity' => 'engines.engine_capacity',
+            'provider' => 'engines.provider',
+            'group_id' => 'engines.group_id',
+            default => 'engine_modification.modification_id',
+        };
+
+        $query->orderBy($column, $direction)->orderBy('engines.id');
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function applyPartSpecificationFilters(Builder $query, array $filters): void
+    {
+        foreach (['template', 'feature_value_id'] as $field) {
+            if (! isset($filters[$field]) || $filters[$field] === '') {
+                continue;
+            }
+
+            $values = is_array($filters[$field]) ? $filters[$field] : [$filters[$field]];
+            $query->whereIn($field, $values);
+        }
+
+        if (isset($filters['feature_id']) && $filters['feature_id'] !== '') {
+            $values = is_array($filters['feature_id']) ? $filters['feature_id'] : [$filters['feature_id']];
+            $query->whereHas('featureValue', function (Builder $featureValue) use ($values): void {
+                $featureValue->whereIn('feature_id', $values);
+            });
+        }
+
+        if (isset($filters['name']) && trim((string) $filters['name']) !== '') {
+            $query->where('name', 'ilike', '%'.trim((string) $filters['name']).'%');
+        }
+    }
+
+    private function applyPartSpecificationSearch(Builder $query, ?string $search): void
+    {
+        $search = trim((string) $search);
+
+        if ($search === '') {
+            return;
+        }
+
+        $query->where(function (Builder $query) use ($search): void {
+            $query
+                ->where('name', 'ilike', "%{$search}%")
+                ->orWhere('text', 'ilike', "%{$search}%")
+                ->orWhere('template', 'ilike', "%{$search}%")
+                ->orWhereHas('featureValue', function (Builder $featureValue) use ($search): void {
+                    $featureValue->where('name', 'ilike', "%{$search}%");
+                });
+
+            if (is_numeric($search)) {
+                $query->orWhere('id', (int) $search);
+            }
+        });
+    }
+
+    private function applyPartSpecificationSort(Builder $query, string $sort): void
+    {
+        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
+        $field = ltrim($sort, '-');
+
+        $column = match ($field) {
+            'id' => 'id',
+            'template' => 'template',
+            'name' => 'name',
+            'feature_value_id' => 'feature_value_id',
+            'created_at' => 'created_at',
+            'updated_at' => 'updated_at',
+            default => 'template',
+        };
+
+        $query->orderBy($column, $direction)->orderBy('id');
+    }
+
     private function item(Vehicle $vehicle): VehicleCrmListItemDTO
     {
         return new VehicleCrmListItemDTO(
@@ -307,10 +545,10 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             generationShort: $vehicle->generation_short === null ? null : (string) $vehicle->generation_short,
             generationYearFrom: (int) $vehicle->generation_year_from,
             generationYearTo: $vehicle->generation_year_to === null ? null : (int) $vehicle->generation_year_to,
-            type: $vehicle->type->value,
-            typeCarcase: $vehicle->type_carcase->value,
-            provider: $vehicle->provider->value,
-            steeringType: $vehicle->steering_type->value,
+            type: $this->enumValue($vehicle->type, VehicleTypeEnum::PC->value),
+            typeCarcase: $this->enumValue($vehicle->type_carcase, CarcaseTypeEnum::HATCHBACK->value),
+            provider: $this->enumValue($vehicle->provider, ProviderEnum::TD->value),
+            steeringType: $this->enumValue($vehicle->steering_type, SteeringTypeEnum::LEFT->value),
             isAllow: (bool) $vehicle->is_allow,
         );
     }
@@ -334,17 +572,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         );
     }
 
-    /**
-     * @return Collection<int, VehicleCrmModificationDTO>
-     */
-    private function modifications(Vehicle $vehicle): Collection
-    {
-        return $vehicle->modifications
-            ->map(fn (Modification $modification): VehicleCrmModificationDTO => $this->modification($modification))
-            ->values();
-    }
-
-    private function modification(Modification $modification): VehicleCrmModificationDTO
+    private function modification(Modification $modification, ?Collection $engines = null): VehicleCrmModificationDTO
     {
         return new VehicleCrmModificationDTO(
             id: (int) $modification->id,
@@ -354,7 +582,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             yearFrom: $modification->year_from === null ? null : (int) $modification->year_from,
             yearTo: $modification->year_to === null ? null : (int) $modification->year_to,
             description: $modification->description === null ? null : (string) $modification->description,
-            type: $modification->type->value,
+            type: $this->enumValue($modification->type, VehicleTypeEnum::PC->value),
             brakeSystemType: $modification->brake_system_type?->value,
             powerPs: $modification->power_ps === null ? null : (int) $modification->power_ps,
             powerKw: $modification->power_kw === null ? null : (int) $modification->power_kw,
@@ -364,11 +592,33 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             localizedName: $modification->localized_name === null ? null : (string) $modification->localized_name,
             numberOfCylinders: $modification->number_of_cylinders === null ? null : (int) $modification->number_of_cylinders,
             capacityLt: $modification->capacity_lt === null ? null : (float) $modification->capacity_lt,
-            provider: $modification->provider->value,
-            allowChangeFields: $modification->allow_change_fields,
-            engines: $modification->engines
+            provider: $this->enumValue($modification->provider, ProviderEnum::TD->value),
+            allowChangeFields: $modification->allow_change_fields ?? [],
+            engines: ($engines ?? $modification->engines
                 ->map(fn (Engine $engine): VehicleCrmEngineDTO => $this->engine($engine))
-                ->values(),
+                ->values()),
+        );
+    }
+
+    private function modificationEngine(Engine $engine): VehicleCrmModificationEngineDTO
+    {
+        return new VehicleCrmModificationEngineDTO(
+            modificationId: (int) $engine->getAttribute('modification_id'),
+            id: (int) $engine->id,
+            engId: (int) $engine->eng_id,
+            codeEngine: $engine->code_engine === null ? null : (string) $engine->code_engine,
+            engineCapacity: $engine->engine_capacity === null ? null : (string) $engine->engine_capacity,
+            cylinderCount: $engine->cylinder_count === null ? null : (int) $engine->cylinder_count,
+            cylinderDiameter: $engine->cylinder_diameter === null ? null : (float) $engine->cylinder_diameter,
+            powerKwStart: $engine->power_kw_start === null ? null : (int) $engine->power_kw_start,
+            powerKwUpto: $engine->power_kw_upto === null ? null : (int) $engine->power_kw_upto,
+            powerPsStart: $engine->power_ps_start === null ? null : (int) $engine->power_ps_start,
+            powerPsUpto: $engine->power_ps_upto === null ? null : (int) $engine->power_ps_upto,
+            numberOfValves: $engine->number_of_valves === null ? null : (int) $engine->number_of_valves,
+            fuelType: $engine->fuel_type?->value,
+            groupId: $engine->group_id === null ? null : (int) $engine->group_id,
+            provider: $this->enumValue($engine->provider, ProviderEnum::TD->value),
+            allowChangeFields: $engine->allow_change_fields ?? [],
         );
     }
 
@@ -388,19 +638,9 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             numberOfValves: $engine->number_of_valves === null ? null : (int) $engine->number_of_valves,
             fuelType: $engine->fuel_type?->value,
             groupId: $engine->group_id === null ? null : (int) $engine->group_id,
-            provider: $engine->provider->value,
-            allowChangeFields: $engine->allow_change_fields,
+            provider: $this->enumValue($engine->provider, ProviderEnum::TD->value),
+            allowChangeFields: $engine->allow_change_fields ?? [],
         );
-    }
-
-    /**
-     * @return Collection<int, VehicleCrmPartSpecificationDTO>
-     */
-    private function partSpecifications(Vehicle $vehicle): Collection
-    {
-        return $vehicle->partSpecifications
-            ->map(fn (PartSpecification $specification): VehicleCrmPartSpecificationDTO => $this->partSpecification($specification))
-            ->values();
     }
 
     private function partSpecification(PartSpecification $specification): VehicleCrmPartSpecificationDTO
@@ -410,19 +650,24 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
 
         return new VehicleCrmPartSpecificationDTO(
             id: (int) $specification->id,
-            partableType: $specification->partable_type->value,
+            partableType: $this->enumValue($specification->partable_type, PartableTypeEnum::VEHICLE->value),
             partableId: (int) $specification->partable_id,
             featureId: $feature?->id === null ? null : (int) $feature->id,
             featureName: $feature?->name === null ? null : (string) $feature->name,
             featureValueId: $featureValue?->id === null ? null : (int) $featureValue->id,
             featureValueName: $featureValue?->name === null ? null : (string) $featureValue->name,
             featureValueShortCode: $featureValue?->short_code === null ? null : (string) $featureValue->short_code,
-            template: $specification->template->value,
+            template: $this->enumValue($specification->template, DetailTemplateEnum::WIPER->value),
             name: $specification->name === null ? null : (string) $specification->name,
             text: $specification->text === null ? null : (string) $specification->text,
-            details: $specification->details,
+            details: $specification->details ?? [],
             createdAt: $specification->created_at === null ? null : (string) $specification->created_at,
             updatedAt: $specification->updated_at === null ? null : (string) $specification->updated_at,
         );
+    }
+
+    private function enumValue(?BackedEnum $enum, string $fallback): string
+    {
+        return $enum?->value ?? $fallback;
     }
 }

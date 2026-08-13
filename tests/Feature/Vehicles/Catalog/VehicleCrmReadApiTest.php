@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature\Vehicles\Catalog;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmListItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmRelationPageDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmSearchItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
@@ -20,6 +21,9 @@ use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Read\DTO\PaginationMeta as WirePaginationMeta;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Read\DTO\VehicleCrmModificationEngineResource as WireVehicleCrmModificationEngineResource;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Read\DTO\VehicleCrmModificationResource as WireVehicleCrmModificationResource;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Read\DTO\VehicleCrmPartSpecificationResource as WireVehicleCrmPartSpecificationResource;
 use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Read\DTO\VehicleCrmResource as WireVehicleCrmResource;
 use PkmStudio\DanWireContracts\Vehicles\Modules\Vehicles\Features\Catalog\Read\DTO\VehicleCrmSearchItem as WireVehicleCrmSearchItem;
 use Tests\TestCase;
@@ -115,9 +119,9 @@ final class VehicleCrmReadApiTest extends TestCase
     }
 
     /**
-     * Проверяет detail endpoint с вложенными модификациями, двигателями и спецификациями.
+     * Проверяет, что detail endpoint возвращает только плоский снимок автомобиля.
      */
-    public function test_show_returns_vehicle_details_with_nested_read_data(): void
+    public function test_show_returns_flat_vehicle_details(): void
     {
         $manufacturer = $this->createManufacturer();
         $vehicle = $this->createVehicle(msId: 1101, manufacturer: $manufacturer, name: 'Octavia');
@@ -135,10 +139,125 @@ final class VehicleCrmReadApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.id', $vehicle->id)
             ->assertJsonPath('data.ms_id', 1101)
-            ->assertJsonPath('data.modifications.0.id', $modificationId)
-            ->assertJsonPath('data.modifications.0.engines.0.id', $engineId)
-            ->assertJsonPath('data.part_specifications.0.template', 'wiper')
-            ->assertJsonPath('data.part_specifications.0.details.front.adapter_type_front.0', 'A1');
+            ->assertJsonMissingPath('data.modifications')
+            ->assertJsonMissingPath('data.part_specifications');
+    }
+
+    /**
+     * Проверяет отдельный endpoint модификаций автомобиля.
+     */
+    public function test_modifications_endpoint_returns_vehicle_modifications_without_engines(): void
+    {
+        $manufacturer = $this->createManufacturer();
+        $vehicle = $this->createVehicle(msId: 1102, manufacturer: $manufacturer, name: 'Octavia');
+        $modificationId = $this->createModification(vehicleId: (int) $vehicle->id);
+
+        $response = $this->getJson("/api/v1/crm/vehicles/{$vehicle->id}/modifications?per_page=10&sort=year_from");
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $modificationId)
+            ->assertJsonPath('data.0.vehicle_id', $vehicle->id)
+            ->assertJsonPath('data.0.description', '1.4 TSI')
+            ->assertJsonPath('data.0.allow_change_fields.0', 'year_from')
+            ->assertJsonMissingPath('data.0.engines');
+
+        $wireModification = WireVehicleCrmModificationResource::fromArray($response->json('data.0'));
+        $wireMeta = WirePaginationMeta::fromArray($response->json('meta'));
+
+        self::assertSame($response->json('data.0'), $wireModification->toArray());
+        self::assertSame($response->json('meta'), $wireMeta->toArray());
+    }
+
+    /**
+     * Проверяет, что legacy nullable enum-поля в БД не ломают CRM read API.
+     */
+    public function test_modifications_endpoint_handles_legacy_nullable_enum_fields(): void
+    {
+        DB::statement('alter table modifications alter column type drop not null');
+        DB::statement('alter table modifications alter column provider drop not null');
+        DB::statement('alter table modifications alter column allow_change_fields drop not null');
+
+        $manufacturer = $this->createManufacturer();
+        $vehicle = $this->createVehicle(msId: 1105, manufacturer: $manufacturer, name: 'Octavia');
+        $modificationId = (int) DB::table('modifications')->insertGetId([
+            'vehicle_id' => $vehicle->id,
+            'ms_id' => 1105,
+            'mod_id' => 7005,
+            'type' => null,
+            'year_from' => 2013,
+            'year_to' => 2020,
+            'description' => 'Legacy 1.4 TSI',
+            'provider' => null,
+            'allow_change_fields' => null,
+        ]);
+
+        $response = $this->getJson("/api/v1/crm/vehicles/{$vehicle->id}/modifications?per_page=10");
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $modificationId)
+            ->assertJsonPath('data.0.type', VehicleTypeEnum::PC->value)
+            ->assertJsonPath('data.0.provider', ProviderEnum::TD->value)
+            ->assertJsonPath('data.0.allow_change_fields', []);
+    }
+
+    /**
+     * Проверяет отдельный endpoint двигателей автомобиля с id модификации для сборки формы CRM.
+     */
+    public function test_engines_endpoint_returns_vehicle_engines_with_modification_id(): void
+    {
+        $manufacturer = $this->createManufacturer();
+        $vehicle = $this->createVehicle(msId: 1103, manufacturer: $manufacturer, name: 'Octavia');
+        $engineId = $this->createEngine();
+        $modificationId = $this->createModification(vehicleId: (int) $vehicle->id);
+        $this->attachEngineToModification(
+            engineId: $engineId,
+            modificationId: $modificationId,
+        );
+
+        $response = $this->getJson("/api/v1/crm/vehicles/{$vehicle->id}/engines?per_page=10&sort=code_engine");
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $engineId)
+            ->assertJsonPath('data.0.modification_id', $modificationId)
+            ->assertJsonPath('data.0.code_engine', 'CZDA')
+            ->assertJsonPath('data.0.allow_change_fields', []);
+
+        $wireEngine = WireVehicleCrmModificationEngineResource::fromArray($response->json('data.0'));
+        $wireMeta = WirePaginationMeta::fromArray($response->json('meta'));
+
+        self::assertSame($response->json('data.0'), $wireEngine->toArray());
+        self::assertSame($response->json('meta'), $wireMeta->toArray());
+    }
+
+    /**
+     * Проверяет отдельный endpoint спецификаций деталей автомобиля.
+     */
+    public function test_part_specifications_endpoint_returns_vehicle_part_specifications(): void
+    {
+        $manufacturer = $this->createManufacturer();
+        $vehicle = $this->createVehicle(msId: 1104, manufacturer: $manufacturer, name: 'Octavia');
+        $this->createPartSpecification(vehicleId: (int) $vehicle->id);
+
+        $response = $this->getJson("/api/v1/crm/vehicles/{$vehicle->id}/part-specifications?per_page=10&sort=template");
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.partable_type', 'vehicle')
+            ->assertJsonPath('data.0.partable_id', $vehicle->id)
+            ->assertJsonPath('data.0.template', 'wiper')
+            ->assertJsonPath('data.0.details.front.adapter_type_front.0', 'A1');
+
+        $wireSpecification = WireVehicleCrmPartSpecificationResource::fromArray($response->json('data.0'));
+        $wireMeta = WirePaginationMeta::fromArray($response->json('meta'));
+
+        self::assertSame($response->json('data.0'), $wireSpecification->toArray());
+        self::assertSame($response->json('meta'), $wireMeta->toArray());
     }
 
     /**
@@ -195,10 +314,6 @@ final class VehicleCrmReadApiTest extends TestCase
      */
     public function test_option_endpoints_return_features_values_and_detail_templates(): void
     {
-        $manufacturer = $this->createManufacturer(
-            name: 'Skoda',
-            mfaId: 111,
-        );
         $featureId = $this->createFeature();
 
         $this->createFeatureValue($featureId);
@@ -216,11 +331,6 @@ final class VehicleCrmReadApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.0.id', 'wiper');
 
-        $this->getJson('/api/v1/crm/vehicles/options/manufacturers?q=Skoda')
-            ->assertOk()
-            ->assertJsonPath('data.0.id', $manufacturer->id)
-            ->assertJsonPath('data.0.mfa_id', 111)
-            ->assertJsonPath('data.0.label', 'Skoda');
     }
 
     /**
@@ -245,7 +355,10 @@ final class VehicleCrmReadApiTest extends TestCase
         $features = $repository->featureOptions();
 
         self::assertInstanceOf(VehicleCrmPageDTO::class, $page);
-        self::assertInstanceOf(VehicleCrmDetailDTO::class, $detail);
+        self::assertInstanceOf(VehicleCrmListItemDTO::class, $detail);
+        self::assertInstanceOf(VehicleCrmRelationPageDTO::class, $repository->modifications((int) $vehicle->id, $query));
+        self::assertInstanceOf(VehicleCrmRelationPageDTO::class, $repository->engines((int) $vehicle->id, $query));
+        self::assertInstanceOf(VehicleCrmRelationPageDTO::class, $repository->partSpecifications((int) $vehicle->id, $query));
         self::assertInstanceOf(VehicleCrmSearchItemDTO::class, $search->first());
         self::assertInstanceOf(VehicleCrmFeatureOptionDTO::class, $features->first());
     }

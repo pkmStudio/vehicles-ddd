@@ -9,7 +9,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailTemplateOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureValueOptionDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmManufacturerOptionDTO;
 use Illuminate\Support\Collection;
 
 /**
@@ -88,23 +87,5 @@ final readonly class ListVehicleCrmOptionsUseCase implements ListVehicleCrmOptio
                 label: 'Щетки стеклоочистителя',
             ),
         ]);
-    }
-
-    /**
-     * Возвращает варианты производителей для CRM-формы.
-     *
-     * Шаги:
-     * - Передать поисковую строку, выбранный id и лимит в репозиторий.
-     * - Вернуть найденных производителей в формате DTO options.
-     *
-     * Шаги:
-     * 1) Передать поисковую строку, конкретный id и limit в CRM repository.
-     * 2) Вернуть найденных производителей в формате option DTO.
-     *
-     * @return Collection<int, VehicleCrmManufacturerOptionDTO>
-     */
-    public function manufacturers(?string $query = null, ?int $id = null, int $limit = 50): Collection
-    {
-        return $this->vehicles->manufacturerOptions($query, $id, $limit);
     }
 }

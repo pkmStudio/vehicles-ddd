@@ -7,7 +7,6 @@ namespace App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Ve
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailTemplateOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureValueOptionDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmManufacturerOptionDTO;
 use Illuminate\Support\Collection;
 
 /**
@@ -47,15 +46,4 @@ interface ListVehicleCrmOptionsUseCaseInterface
      * @return Collection<int, VehicleCrmDetailTemplateOptionDTO>
      */
     public function detailTemplates(): Collection;
-
-    /**
-     * Возвращает manufacturer options.
-     *
-     * Шаги:
-     * 1) Применить optional query/id/limit к справочнику производителей.
-     * 2) Вернуть collection manufacturer option DTO.
-     *
-     * @return Collection<int, VehicleCrmManufacturerOptionDTO>
-     */
-    public function manufacturers(?string $query = null, ?int $id = null, int $limit = 50): Collection;
 }

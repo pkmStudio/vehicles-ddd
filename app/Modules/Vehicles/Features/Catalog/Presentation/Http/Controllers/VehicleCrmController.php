@@ -67,6 +67,38 @@ final readonly class VehicleCrmController
     }
 
     /**
+     * Возвращает постраничные модификации автомобиля без вложенных двигателей.
+     *
+     * Шаги:
+     * 1. Собирает read-query DTO из HTTP request.
+     * 2. Запрашивает страницу модификаций через CRM client.
+     * 3. Возвращает HTTP response shape relation endpoint.
+     */
+    public function modifications(int $id, Request $request): JsonResponse
+    {
+        $query = $this->queryFactory->make($request);
+        $page = $this->vehicles->modifications($id, $query);
+
+        return response()->json($this->presenter->modificationsPage($page));
+    }
+
+    /**
+     * Возвращает постраничные спецификации деталей автомобиля.
+     *
+     * Шаги:
+     * 1. Собирает read-query DTO из HTTP request.
+     * 2. Запрашивает страницу спецификаций деталей через CRM client.
+     * 3. Возвращает HTTP response shape relation endpoint.
+     */
+    public function partSpecifications(int $id, Request $request): JsonResponse
+    {
+        $query = $this->queryFactory->make($request);
+        $page = $this->vehicles->partSpecifications($id, $query);
+
+        return response()->json($this->presenter->relationPage($page));
+    }
+
+    /**
      * Возвращает compact options для поиска ТС.
      *
      * Шаги:
@@ -129,29 +161,5 @@ final readonly class VehicleCrmController
         $detailTemplates = $this->vehicles->detailTemplates();
 
         return response()->json(['data' => $this->arrays->collection($detailTemplates)]);
-    }
-
-    /**
-     * Возвращает manufacturer options для CRM-формы.
-     *
-     * Шаги:
-     * 1. Нормализует selected id, search query и limit из HTTP request.
-     * 2. Запрашивает manufacturer options через CRM client.
-     * 3. Возвращает collection в стандартном `data` wrapper.
-     */
-    public function manufacturers(Request $request): JsonResponse
-    {
-        $limit = min(max((int) $request->integer('limit', 50), 1), 50);
-        $id = $request->query('id') === null ? null : (int) $request->integer('id');
-        $query = trim($request->string('q')->toString());
-
-        $query = $query === '' ? null : $query;
-        $manufacturers = $this->vehicles->manufacturers(
-            query: $query,
-            id: $id,
-            limit: $limit,
-        );
-
-        return response()->json(['data' => $this->arrays->collection($manufacturers)]);
     }
 }

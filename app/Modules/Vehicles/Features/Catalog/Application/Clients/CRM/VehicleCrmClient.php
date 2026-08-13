@@ -6,11 +6,13 @@ namespace App\Modules\Vehicles\Features\Catalog\Application\Clients\CRM;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\VehicleCrmClientInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmOptionsUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmRelationsUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehiclesForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\SearchVehiclesForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ShowVehicleForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmListItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmRelationPageDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
 use Illuminate\Support\Collection;
 
@@ -26,6 +28,7 @@ final readonly class VehicleCrmClient implements VehicleCrmClientInterface
     public function __construct(
         private ListVehiclesForCrmUseCaseInterface $listVehicles,
         private ShowVehicleForCrmUseCaseInterface $showVehicle,
+        private ListVehicleCrmRelationsUseCaseInterface $vehicleRelations,
         private SearchVehiclesForCrmUseCaseInterface $searchVehicles,
         private ListVehicleCrmOptionsUseCaseInterface $vehicleOptions,
     ) {}
@@ -51,9 +54,48 @@ final readonly class VehicleCrmClient implements VehicleCrmClientInterface
      * 2. Делегирует lookup detail use case.
      * 3. Возвращает DTO или `null`, если запись не найдена.
      */
-    public function show(int $id): ?VehicleCrmDetailDTO
+    public function show(int $id): ?VehicleCrmListItemDTO
     {
         return $this->showVehicle->execute($id);
+    }
+
+    /**
+     * Возвращает постраничные модификации автомобиля для CRM.
+     *
+     * Шаги:
+     * 1. Принимает id автомобиля и read-query DTO.
+     * 2. Делегирует relation use case.
+     * 3. Возвращает page DTO без прямого доступа к БД.
+     */
+    public function modifications(int $vehicleId, VehicleCrmReadQueryDTO $query): VehicleCrmRelationPageDTO
+    {
+        return $this->vehicleRelations->modifications($vehicleId, $query);
+    }
+
+    /**
+     * Возвращает постраничные двигатели автомобиля для CRM.
+     *
+     * Шаги:
+     * 1. Принимает id автомобиля и read-query DTO.
+     * 2. Делегирует relation use case.
+     * 3. Возвращает page DTO двигателей с id модификации.
+     */
+    public function engines(int $vehicleId, VehicleCrmReadQueryDTO $query): VehicleCrmRelationPageDTO
+    {
+        return $this->vehicleRelations->engines($vehicleId, $query);
+    }
+
+    /**
+     * Возвращает постраничные спецификации деталей автомобиля для CRM.
+     *
+     * Шаги:
+     * 1. Принимает id автомобиля и read-query DTO.
+     * 2. Делегирует relation use case.
+     * 3. Возвращает page DTO спецификаций.
+     */
+    public function partSpecifications(int $vehicleId, VehicleCrmReadQueryDTO $query): VehicleCrmRelationPageDTO
+    {
+        return $this->vehicleRelations->partSpecifications($vehicleId, $query);
     }
 
     /**
@@ -107,22 +149,5 @@ final readonly class VehicleCrmClient implements VehicleCrmClientInterface
     public function detailTemplates(): Collection
     {
         return $this->vehicleOptions->detailTemplates();
-    }
-
-    /**
-     * Возвращает options производителей для CRM-формы.
-     *
-     * Шаги:
-     * 1. Принимает optional search query, selected id и limit.
-     * 2. Делегирует запрос options use case.
-     * 3. Возвращает collection DTO без дополнительного mapping.
-     */
-    public function manufacturers(?string $query = null, ?int $id = null, int $limit = 50): Collection
-    {
-        return $this->vehicleOptions->manufacturers(
-            query: $query,
-            id: $id,
-            limit: $limit,
-        );
     }
 }

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Presentation\Http\Presenters;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmModificationDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmListItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPartSpecificationDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmRelationPageDTO;
 use App\Support\Http\Presenters\HttpArrayPresenter;
 
 /**
@@ -43,23 +42,48 @@ final readonly class VehicleCrmReadPresenter
      * Возвращает HTTP-форму детального снимка ТС.
      *
      * Шаги:
-     * - Преобразовать основное ТС в массив.
-     * - Добавить массивы модификаций и спецификаций деталей.
-     * - Сбросить ключи вложенных коллекций перед возвратом.
+     * - Преобразовать плоский DTO автомобиля в массив.
      *
      * @return array<string, mixed>
      */
-    public function detail(VehicleCrmDetailDTO $detail): array
+    public function detail(VehicleCrmListItemDTO $detail): array
     {
-        return $this->arrays->item($detail->vehicle) + [
-            'modifications' => $detail->modifications
-                ->map(fn (VehicleCrmModificationDTO $modification): array => $this->arrays->item($modification))
-                ->values()
-                ->all(),
-            'part_specifications' => $detail->partSpecifications
-                ->map(fn (VehicleCrmPartSpecificationDTO $specification): array => $this->arrays->item($specification))
-                ->values()
-                ->all(),
-        ];
+        return $this->arrays->item($detail);
+    }
+
+    /**
+     * Возвращает HTTP-форму страницы relation DTO.
+     *
+     * Шаги:
+     * 1. Преобразует relation DTO items через общий presenter.
+     * 2. Сохраняет pagination meta рядом с data.
+     *
+     * @return array{data: list<array<string, mixed>>, meta: array<string, mixed>}
+     */
+    public function relationPage(VehicleCrmRelationPageDTO $page): array
+    {
+        return $this->arrays->page($page->data, $page->meta);
+    }
+
+    /**
+     * Возвращает HTTP-форму страницы модификаций без вложенных двигателей.
+     *
+     * Шаги:
+     * 1. Собирает стандартную HTTP-форму relation page.
+     * 2. Удаляет legacy-вложение `engines` из каждой модификации.
+     * 3. Возвращает плоскую страницу модификаций.
+     *
+     * @return array{data: list<array<string, mixed>>, meta: array<string, mixed>}
+     */
+    public function modificationsPage(VehicleCrmRelationPageDTO $page): array
+    {
+        $response = $this->relationPage($page);
+        $response['data'] = array_map(static function (array $modification): array {
+            unset($modification['engines']);
+
+            return $modification;
+        }, $response['data']);
+
+        return $response;
     }
 }

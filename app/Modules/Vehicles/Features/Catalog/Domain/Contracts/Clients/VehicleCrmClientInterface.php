@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailTemplateOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureValueOptionDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmManufacturerOptionDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmListItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmRelationPageDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmSearchItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
 use Illuminate\Support\Collection;
@@ -34,7 +34,13 @@ interface VehicleCrmClientInterface
      * 2) Собрать detail DTO со связанными модификациями, двигателями и specifications.
      * 3) Вернуть null, если автомобиль отсутствует.
      */
-    public function show(int $id): ?VehicleCrmDetailDTO;
+    public function show(int $id): ?VehicleCrmListItemDTO;
+
+    public function modifications(int $vehicleId, VehicleCrmReadQueryDTO $query): VehicleCrmRelationPageDTO;
+
+    public function engines(int $vehicleId, VehicleCrmReadQueryDTO $query): VehicleCrmRelationPageDTO;
+
+    public function partSpecifications(int $vehicleId, VehicleCrmReadQueryDTO $query): VehicleCrmRelationPageDTO;
 
     /**
      * Возвращает compact options для CRM поиска автомобилей.
@@ -79,15 +85,4 @@ interface VehicleCrmClientInterface
      * @return Collection<int, VehicleCrmDetailTemplateOptionDTO>
      */
     public function detailTemplates(): Collection;
-
-    /**
-     * Возвращает manufacturer options для CRM формы автомобиля.
-     *
-     * Шаги:
-     * 1) Применить query/id/limit к справочнику производителей.
-     * 2) Вернуть collection option DTO для select UI.
-     *
-     * @return Collection<int, VehicleCrmManufacturerOptionDTO>
-     */
-    public function manufacturers(?string $query = null, ?int $id = null, int $limit = 50): Collection;
 }
