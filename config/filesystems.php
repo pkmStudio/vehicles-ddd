@@ -40,6 +40,13 @@ return [
             'report' => false,
         ],
 
+        'project_storage' => [
+            'driver' => 'local',
+            'root' => storage_path(),
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

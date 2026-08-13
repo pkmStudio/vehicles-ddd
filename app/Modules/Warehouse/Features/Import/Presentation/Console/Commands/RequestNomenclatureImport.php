@@ -11,7 +11,7 @@ final class RequestNomenclatureImport extends RequestLocalImportCommand
 {
     protected $signature = 'warehouse:request-import-nomenclature
         {path : Относительный путь к файлу на Storage disk}
-        {--disk=local : Laravel Storage disk, где лежит файл}
+        {--disk=project_storage : Laravel Storage disk, где лежит файл}
         {--user-id=1 : ID инициатора для отчёта об импорте}
         {--operation-id= : Идемпотентный ID прогона; по умолчанию UUID}';
 
