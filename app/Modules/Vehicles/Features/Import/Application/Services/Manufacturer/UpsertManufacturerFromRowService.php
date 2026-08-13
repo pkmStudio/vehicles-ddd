@@ -11,7 +11,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
-use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\ManufacturerEventPayloadDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Manufacturer\ManufacturerCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\Manufacturer\ManufacturerUpdated;
 
@@ -42,7 +42,7 @@ final readonly class UpsertManufacturerFromRowService implements UpsertManufactu
      * Создает или обновляет производителя из command import row.
      *
      * Шаги:
-     * 1) Собрать raw row array из typed command DTO и provider TD.
+     * 1) Передать typed command DTO в factory.
      * 2) Валидировать и преобразовать строку в `ManufacturerData`.
      * 3) Найти существующего производителя по `mfa_id`.
      * 4) Выполнить create или update через command.
@@ -53,20 +53,22 @@ final readonly class UpsertManufacturerFromRowService implements UpsertManufactu
      */
     public function upsertFromRow(ManufacturerCommandRowDTO $row): ManufacturerData
     {
-        $data = $this->factory->make([
-            'mfa_id' => $row->mfaId,
-            'name' => $row->name,
-            'provider' => ProviderEnum::TD->value,
-        ]);
-
+        $data = $this->factory->makeFromCommandRow($row);
         $existing = $this->manufacturers->findByMfaId($data->mfaId);
         $manufacturer = $existing === null
             ? $this->command->create($data)
-            : $this->command->updateByMfaId($data);
+            : $this->command->update($data);
+
+        $payload = new ManufacturerEventPayloadDTO(
+            id: (int) $manufacturer->id,
+            mfaId: $manufacturer->mfaId,
+            name: $manufacturer->name,
+            provider: $manufacturer->provider,
+        );
 
         event($existing === null
-            ? new ManufacturerCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $manufacturer->toArray())
-            : new ManufacturerUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $manufacturer->toArray()));
+            ? new ManufacturerCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $payload)
+            : new ManufacturerUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $payload));
 
         return $manufacturer;
     }
