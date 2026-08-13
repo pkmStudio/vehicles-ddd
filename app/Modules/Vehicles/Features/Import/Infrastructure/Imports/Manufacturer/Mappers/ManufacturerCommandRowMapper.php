@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\Mappers;
 
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 
 /**
@@ -28,16 +29,18 @@ final readonly class ManufacturerCommandRowMapper
      *
      * Шаги:
      * 1) Прочитать mfa_id из первой колонки и имя из второй.
-     * 2) Нормализовать идентификатор как целое число, а имя как строку.
+     * 2) Нормализовать обязательный идентификатор как целое число, а имя как обязательную строку.
      * 3) Вернуть DTO для построчного сервиса сохранения производителя.
      *
      * @param  array<int, string|int|float|null>  $row
+     *
+     * @throws ImportRowValidationException
      */
     public function map(array $row): ManufacturerCommandRowDTO
     {
         return new ManufacturerCommandRowDTO(
-            mfaId: $this->formatter->nullableInt($row[0] ?? null, 'mfa_id'),
-            name: $this->formatter->nullableString($row[1] ?? null),
+            mfaId: $this->formatter->requiredInt($row[0] ?? null, 'mfa_id'),
+            name: $this->formatter->requiredString($row[1] ?? null, 'name'),
         );
     }
 }
