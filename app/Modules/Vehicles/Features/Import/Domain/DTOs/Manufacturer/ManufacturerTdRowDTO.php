@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer;
 
-final readonly class ManufacturerCommandRowDTO
+final readonly class ManufacturerTdRowDTO
 {
     /**
      * Фиксирует валидированную строку command-импорта производителя из TecDoc cascade.

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\ManufacturerCommandImportInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromRowServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
-use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\Mappers\ManufacturerCommandRowMapper;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\Mappers\ManufacturerTdRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -26,9 +26,9 @@ use Maatwebsite\Excel\Validators\Failure;
  */
 final class ManufacturerCommandImport implements ManufacturerCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
-    private ?UpsertManufacturerFromRowServiceInterface $service = null;
+    private ?UpsertManufacturerFromTdRowServiceInterface $service = null;
 
-    private ?ManufacturerCommandRowMapper $rowMapper = null;
+    private ?ManufacturerTdRowMapper $rowMapper = null;
 
     /**
      * Запустить командный импорт производителей.
@@ -147,20 +147,20 @@ final class ManufacturerCommandImport implements ManufacturerCommandImportInterf
      * 1) Лениво получить сервис из контейнера во время обработки.
      * 2) Закешировать resolved instance на время обработки.
      */
-    private function service(): UpsertManufacturerFromRowServiceInterface
+    private function service(): UpsertManufacturerFromTdRowServiceInterface
     {
-        return $this->service ??= app(UpsertManufacturerFromRowServiceInterface::class);
+        return $this->service ??= app(UpsertManufacturerFromTdRowServiceInterface::class);
     }
 
     /**
-     * Получить маппер командной строки производителя.
+     * Получить маппер TecDoc-строки производителя.
      *
      * Шаги:
      * 1) Лениво получить маппер из контейнера во время обработки.
      * 2) Закешировать resolved instance на время обработки.
      */
-    private function rowMapper(): ManufacturerCommandRowMapper
+    private function rowMapper(): ManufacturerTdRowMapper
     {
-        return $this->rowMapper ??= app(ManufacturerCommandRowMapper::class);
+        return $this->rowMapper ??= app(ManufacturerTdRowMapper::class);
     }
 }

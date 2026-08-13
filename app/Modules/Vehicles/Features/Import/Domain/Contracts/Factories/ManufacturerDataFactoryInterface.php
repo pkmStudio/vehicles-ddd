@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories;
 
-use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
 
@@ -28,7 +28,7 @@ interface ManufacturerDataFactoryInterface
      * 2) Применить provider TD.
      * 3) Нормализовать значения в ManufacturerData.
      */
-    public function makeFromCommandRow(ManufacturerCommandRowDTO $row): ManufacturerData;
+    public function makeFromTdRow(ManufacturerTdRowDTO $row): ManufacturerData;
 
     /**
      * Собрать ManufacturerData для производителя, созданного из строки ручного vehicle-листа.

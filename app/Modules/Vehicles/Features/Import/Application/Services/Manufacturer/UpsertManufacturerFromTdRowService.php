@@ -7,8 +7,8 @@ namespace App\Modules\Vehicles\Features\Import\Application\Services\Manufacturer
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\ManufacturerCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\ManufacturerDataFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromRowServiceInterface;
-use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromTdRowServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\ManufacturerEventPayloadDTO;
@@ -18,7 +18,7 @@ use App\Modules\Vehicles\Shared\Domain\Events\Manufacturer\ManufacturerUpdated;
 /**
  * Use-case: создать/обновить производителя из строки импорта (приведение к виду TD).
  */
-final readonly class UpsertManufacturerFromRowService implements UpsertManufacturerFromRowServiceInterface
+final readonly class UpsertManufacturerFromTdRowService implements UpsertManufacturerFromTdRowServiceInterface
 {
     private const int IMPORT_USER_ID = 0;
 
@@ -39,10 +39,10 @@ final readonly class UpsertManufacturerFromRowService implements UpsertManufactu
     ) {}
 
     /**
-     * Создает или обновляет производителя из command import row.
+     * Создает или обновляет производителя из TecDoc import row.
      *
      * Шаги:
-     * 1) Передать typed command DTO в factory.
+     * 1) Передать typed TecDoc row DTO в factory.
      * 2) Валидировать и преобразовать строку в `ManufacturerData`.
      * 3) Найти существующего производителя по `mfa_id`.
      * 4) Выполнить create или update через command.
@@ -51,9 +51,9 @@ final readonly class UpsertManufacturerFromRowService implements UpsertManufactu
      *
      * @throws ImportRowValidationException
      */
-    public function upsertFromRow(ManufacturerCommandRowDTO $row): ManufacturerData
+    public function upsertFromRow(ManufacturerTdRowDTO $row): ManufacturerData
     {
-        $data = $this->factory->makeFromCommandRow($row);
+        $data = $this->factory->makeFromTdRow($row);
         $existing = $this->manufacturers->findByMfaId($data->mfaId);
         $manufacturer = $existing === null
             ? $this->command->create($data)

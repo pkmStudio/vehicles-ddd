@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Application\Factories;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\ManufacturerDataFactoryInterface;
-use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerCommandRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
@@ -40,7 +40,7 @@ final readonly class ManufacturerDataFactory implements ManufacturerDataFactoryI
      * 2) Применить provider TD.
      * 3) Передать значения в общий builder производителя.
      */
-    public function makeFromCommandRow(ManufacturerCommandRowDTO $row): ManufacturerData
+    public function makeFromTdRow(ManufacturerTdRowDTO $row): ManufacturerData
     {
         return new ManufacturerData(
             mfaId: $row->mfaId,
