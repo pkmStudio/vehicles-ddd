@@ -159,6 +159,7 @@ final readonly class VehiclesApplicabilityRepository implements VehiclesApplicab
     private function mapSpecifications(Collection $specifications): Collection
     {
         return $specifications
+            ->toBase()
             ->map(fn (PartSpecification $specification): VehiclePartSpecificationForApplicabilityDTO => new VehiclePartSpecificationForApplicabilityDTO(
                 id: (int) $specification->id,
                 vehicleId: (int) $specification->partable_id,
