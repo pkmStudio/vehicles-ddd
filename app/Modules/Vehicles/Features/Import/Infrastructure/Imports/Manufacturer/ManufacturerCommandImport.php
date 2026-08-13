@@ -71,7 +71,6 @@ final class ManufacturerCommandImport implements ManufacturerCommandImportInterf
             $rowValues = $row->toArray();
             try {
                 $manufacturerRow = $rowMapper->map($rowValues);
-
                 $service->upsertFromRow($manufacturerRow);
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(new Failure(
