@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Applicability\Features\Catalog\Presentation\Http\Controllers\CatalogApplicabilityController;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\EngineCrmController;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\ManufacturerCrmController;
 use App\Modules\Vehicles\Features\Catalog\Presentation\Http\Controllers\VehicleCatalogController;
@@ -22,10 +23,17 @@ Route::prefix('v1')->group(function (): void {
                 ->whereNumber('vehicle');
             Route::get('modifications/{modification}', [VehicleCatalogController::class, 'showModification'])
                 ->whereNumber('modification');
+            Route::get('modifications/{modification}/categories', [CatalogApplicabilityController::class, 'categories'])
+                ->whereNumber('modification');
+            Route::get('modifications/{modification}/categories/{category}/nomenclatures', [CatalogApplicabilityController::class, 'nomenclatures'])
+                ->whereNumber('modification')
+                ->whereNumber('category');
             Route::get('categories', [NomenclatureCatalogController::class, 'categories']);
             Route::get('categories/{category}/nomenclatures', [NomenclatureCatalogController::class, 'nomenclatures'])
                 ->whereNumber('category');
             Route::get('search', [NomenclatureCatalogController::class, 'search']);
+            Route::get('nomenclatures/{partNumber}/applicability', [CatalogApplicabilityController::class, 'check'])
+                ->where('partNumber', '.*');
             Route::get('nomenclatures/{partNumber}', [NomenclatureCatalogController::class, 'show'])
                 ->where('partNumber', '.*');
         });
