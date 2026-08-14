@@ -6,8 +6,9 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\EngineModi
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EngineModificationImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\EngineModification\LinkEngineModificationFromRowServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNotFoundException;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
-use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\EngineModification\Mappers\EngineModificationCommandRowMapper;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\EngineModification\Mappers\EngineModificationTdRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -25,54 +26,7 @@ final class EngineModificationImport implements EngineModificationImportInterfac
 {
     private ?LinkEngineModificationFromRowServiceInterface $service = null;
 
-    private ?EngineModificationCommandRowMapper $rowMapper = null;
-
-    /**
-     * Получить зависимости для прямого запуска импорта связей.
-     *
-     * Шаги:
-     * 1) Принять сервис привязки двигателя к модификации.
-     * 2) Принять маппер строки командного импорта.
-     * 3) Сохранить зависимости до сериализации задания очереди.
-     */
-    public function __construct(
-        LinkEngineModificationFromRowServiceInterface $service,
-        EngineModificationCommandRowMapper $rowMapper,
-    ) {
-        $this->service = $service;
-        $this->rowMapper = $rowMapper;
-    }
-
-    /**
-     * Подготовить импорт к сериализации в очередь.
-     *
-     * Шаги:
-     * 1) Не сохранять сервис привязки.
-     * 2) Не сохранять маппер строки.
-     * 3) Оставить импорт сериализуемым без графа зависимостей.
-     *
-     * @return array<string, mixed>
-     */
-    public function __serialize(): array
-    {
-        return [];
-    }
-
-    /**
-     * Восстановить импорт после очереди.
-     *
-     * Шаги:
-     * 1) Сбросить сервис привязки.
-     * 2) Сбросить маппер строки.
-     * 3) Получить зависимости из контейнера уже во время обработки.
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function __unserialize(array $data): void
-    {
-        $this->service = null;
-        $this->rowMapper = null;
-    }
+    private ?EngineModificationTdRowMapper $rowMapper = null;
 
     /**
      * Запустить импорт файла связей двигателя и модификации.
@@ -117,9 +71,8 @@ final class EngineModificationImport implements EngineModificationImportInterfac
             $rowValues = $row->toArray();
             try {
                 $engineModificationRow = $rowMapper->map($rowValues);
-
                 $service->linkFromRow($engineModificationRow);
-            } catch (ImportRowValidationException $e) {
+            } catch (ImportRowValidationException|ImportRowReferenceNotFoundException $e) {
                 $this->onFailure(new Failure($index + $this->startRow(), 'Связь двигатель-модификация', $e->errors(), $rowValues));
             }
         }
@@ -160,8 +113,8 @@ final class EngineModificationImport implements EngineModificationImportInterfac
      * Получить сервис привязки двигателя к модификации.
      *
      * Шаги:
-     * 1) Вернуть уже переданный сервис, если импорт не проходил через очередь.
-     * 2) Иначе резолвить сервис из контейнера во время обработки.
+     * 1) Лениво получить сервис из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
     private function service(): LinkEngineModificationFromRowServiceInterface
     {
@@ -172,11 +125,11 @@ final class EngineModificationImport implements EngineModificationImportInterfac
      * Получить маппер строки связи двигателя и модификации.
      *
      * Шаги:
-     * 1) Вернуть уже переданный маппер, если импорт не проходил через очередь.
-     * 2) Иначе резолвить маппер из контейнера во время обработки.
+     * 1) Лениво получить маппер из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
-    private function rowMapper(): EngineModificationCommandRowMapper
+    private function rowMapper(): EngineModificationTdRowMapper
     {
-        return $this->rowMapper ??= app(EngineModificationCommandRowMapper::class);
+        return $this->rowMapper ??= app(EngineModificationTdRowMapper::class);
     }
 }
