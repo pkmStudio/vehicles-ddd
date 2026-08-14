@@ -8,20 +8,20 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\Manufacturer
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Manufacturer\UpdateManufacturerUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Manufacturer\UpdateManufacturerRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ManufacturerData;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\ManufacturerEventPayloadDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Manufacturer\ManufacturerUpdated;
 use Throwable;
 
 /**
  * Оркестрирует сценарий мутации производителей из внешнего сообщения.
  */
-final readonly class UpdateManufacturerUseCase implements UpdateManufacturerUseCaseInterface
+final readonly class UpdateManufacturerUseCase
 {
     /**
      * Получает порты update manufacturer workflow.
@@ -77,10 +77,17 @@ final readonly class UpdateManufacturerUseCase implements UpdateManufacturerUseC
 
             $manufacturer = $this->command->update($manufacturerData);
 
+            $payload = new ManufacturerEventPayloadDTO(
+                id: (int) $manufacturer->id,
+                mfaId: $manufacturer->mfaId,
+                name: $manufacturer->name,
+                provider: $manufacturer->provider,
+            );
+
             event(new ManufacturerUpdated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                manufacturer: $manufacturer->toArray(),
+                manufacturer: $payload,
             ));
 
             return $this->results->completed(

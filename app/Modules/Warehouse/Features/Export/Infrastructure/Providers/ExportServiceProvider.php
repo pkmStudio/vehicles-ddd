@@ -10,7 +10,6 @@ use App\Modules\Warehouse\Features\Export\Application\Services\PackDimensionExpo
 use App\Modules\Warehouse\Features\Export\Application\Services\Rows\KitExportRow;
 use App\Modules\Warehouse\Features\Export\Application\Services\Rows\NomenclatureExportRow;
 use App\Modules\Warehouse\Features\Export\Application\Services\TypeTemplateResolver;
-use App\Modules\Warehouse\Features\Export\Application\UseCases\External\StartExportUseCase;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Clients\WiperAdapterAuditClientInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\KitExportInterface;
@@ -31,7 +30,6 @@ use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\PackDimensio
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\Rows\KitExportRowInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\Rows\NomenclatureExportRowInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\TypeTemplateResolverInterface;
-use App\Modules\Warehouse\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Clients\WiperAdapterAuditClient;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Kit\KitExport;
@@ -82,10 +80,6 @@ final class ExportServiceProvider extends ServiceProvider
         ExportFileFactoryInterface::class => ExportFileFactory::class,
     ];
 
-    private const array USE_CASE_BINDINGS = [
-        StartExportUseCaseInterface::class => StartExportUseCase::class,
-    ];
-
     private const array CLIENT_BINDINGS = [
         TemplatesClientInterface::class => TemplatesClient::class,
         WiperAdapterAuditClientInterface::class => WiperAdapterAuditClient::class,
@@ -127,13 +121,6 @@ final class ExportServiceProvider extends ServiceProvider
         }
 
         foreach (self::FACTORY_BINDINGS as $interface => $implementation) {
-            $this->app->bind(
-                abstract: $interface,
-                concrete: $implementation,
-            );
-        }
-
-        foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {
             $this->app->bind(
                 abstract: $interface,
                 concrete: $implementation,

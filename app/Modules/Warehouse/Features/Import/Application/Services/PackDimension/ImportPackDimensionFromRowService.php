@@ -61,7 +61,7 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
 
         return $existing === null
             ? $this->command->create($data)
-            : $this->command->updateById($data);
+            : $this->command->update($data);
     }
 
     /**

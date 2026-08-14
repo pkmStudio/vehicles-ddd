@@ -6,10 +6,12 @@ namespace App\Modules\Vehicles\Features\Import\Application\Factories;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\ExternalFileImportFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\EngineCrossImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\EngineModificationsImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\EngineMultiSheetImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\EngineSparkPlugSpecificationImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\FileImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\ManufacturerImportInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\ModificationCatalogImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\VehicleMultiSheetImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Enums\ExternalImportTypeEnum;
 
@@ -30,6 +32,8 @@ final readonly class ExternalFileImportFactory implements ExternalFileImportFact
         private EngineCrossImportInterface $engineCrossImport,
         private EngineSparkPlugSpecificationImportInterface $engineSparkPlugSpecificationImport,
         private ManufacturerImportInterface $manufacturerImport,
+        private ModificationCatalogImportInterface $modificationCatalogImport,
+        private EngineModificationsImportInterface $engineModificationsImport,
     ) {}
 
     /**
@@ -47,6 +51,8 @@ final readonly class ExternalFileImportFactory implements ExternalFileImportFact
             ExternalImportTypeEnum::EngineCross => $this->engineCrossImport,
             ExternalImportTypeEnum::EngineSparkPlugsByModification => $this->engineSparkPlugSpecificationImport,
             ExternalImportTypeEnum::Manufacturer => $this->manufacturerImport,
+            ExternalImportTypeEnum::ModificationCatalog => $this->modificationCatalogImport,
+            ExternalImportTypeEnum::EngineModifications => $this->engineModificationsImport,
         };
     }
 }

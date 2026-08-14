@@ -6,7 +6,6 @@ namespace App\Modules\Warehouse\Features\Import\Application\UseCases\External;
 
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Factories\ImportFileFactoryInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ExternalImportFileRequestDTO;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use Throwable;
@@ -16,7 +15,7 @@ use Throwable;
  * уведомление о результате сюда не входит — импорт асинхронный (ShouldQueue), реальное завершение
  * наступает позже, на `AfterImport` (см. Listeners).
  */
-final readonly class StartExternalFileImportUseCase implements StartExternalFileImportUseCaseInterface
+final readonly class StartExternalFileImportUseCase
 {
     /**
      * Получает сервис идемпотентности и фабрику Excel-адаптеров импорта.

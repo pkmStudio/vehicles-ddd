@@ -6,7 +6,6 @@ namespace App\Modules\Vehicles\Features\Import\Application\UseCases\External;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\ExternalFileImportFactoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ExternalImportFileRequestDTO;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use Throwable;
@@ -14,7 +13,7 @@ use Throwable;
 /**
  * Принимает RabbitMQ-команду на импорт файла и запускает существующий импортный адаптер.
  */
-final readonly class StartExternalFileImportUseCase implements StartExternalFileImportUseCaseInterface
+final readonly class StartExternalFileImportUseCase
 {
     /**
      * Инициализирует зависимости сценария внешнего запуска импорта.

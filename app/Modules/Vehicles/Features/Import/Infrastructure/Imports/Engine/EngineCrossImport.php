@@ -35,22 +35,13 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
 {
     use CachesImportFailures;
 
+    private const int GROUP_ID = 0;
+
+    private const int CODES = 1;
+
     private ?ImportRunContextDTO $context = null;
 
     private ?AssignEngineGroupServiceInterface $service = null;
-
-    /**
-     * Получить сервис назначения группы двигателям.
-     *
-     * Шаги:
-     * 1) Принять сервис, который ищет двигатель по коду и назначает group_id.
-     * 2) Сохранить сервис до сериализации задания очереди.
-     */
-    public function __construct(
-        AssignEngineGroupServiceInterface $service,
-    ) {
-        $this->service = $service;
-    }
 
     /**
      * Подготовить импорт к сериализации в очередь.
@@ -58,7 +49,7 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
      * Шаги:
      * 1) Сохранить контекст запуска импорта.
      * 2) Сохранить ключ списка ошибок и ключ блокировки.
-     * 3) Не сериализовать сервис назначения группы.
+     * 3) Оставить runtime-зависимости для ленивого получения из контейнера.
      *
      * @return array<string, mixed>
      */
@@ -76,8 +67,8 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
      *
      * Шаги:
      * 1) Вернуть контекст запуска, если он был сериализован.
-     * 2) Сбросить сервис для последующего резолва из контейнера.
-     * 3) Восстановить ключи отчёта ошибок.
+     * 2) Восстановить ключ списка ошибок.
+     * 3) Восстановить ключ блокировки списка ошибок.
      *
      * @param  array<string, mixed>  $data
      */
@@ -85,7 +76,6 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
     {
         $context = $data['context'] ?? null;
         $this->context = $context instanceof ImportRunContextDTO ? $context : null;
-        $this->service = null;
 
         if (is_string($data['cacheKey'] ?? null)) {
             $this->cacheKey = $data['cacheKey'];
@@ -142,8 +132,8 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
      */
     private function processRow(int $indexRow, array $row): void
     {
-        $groupId = isset($row[0]) && $row[0] !== '' ? (int) $row[0] : null;
-        $rawCodes = isset($row[1]) ? (string) $row[1] : null;
+        $groupId = isset($row[self::GROUP_ID]) && $row[self::GROUP_ID] !== '' ? (int) $row[self::GROUP_ID] : null;
+        $rawCodes = isset($row[self::CODES]) ? (string) $row[self::CODES] : null;
 
         if (empty($groupId) || empty($rawCodes)) {
             return;
@@ -264,8 +254,8 @@ final class EngineCrossImport implements EngineCrossImportInterface, ShouldQueue
      * Получить сервис назначения группы.
      *
      * Шаги:
-     * 1) Вернуть уже переданный сервис, если импорт не проходил через очередь.
-     * 2) Иначе резолвить сервис из контейнера во время обработки.
+     * 1) Лениво получить сервис из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
     private function service(): AssignEngineGroupServiceInterface
     {

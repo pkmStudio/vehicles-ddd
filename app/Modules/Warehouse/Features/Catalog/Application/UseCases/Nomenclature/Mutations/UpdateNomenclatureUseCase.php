@@ -10,20 +10,20 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\Nomencl
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\UpdateNomenclatureUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\UpdateNomenclatureRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\NomenclatureEventPayloadDTO;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use Throwable;
 
 /**
  * Выполняет обновление Warehouse-номенклатуры из внешнего сообщения.
  */
-final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseCaseInterface
+final readonly class UpdateNomenclatureUseCase
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
@@ -117,10 +117,26 @@ final readonly class UpdateNomenclatureUseCase implements UpdateNomenclatureUseC
             $data = $this->data($request);
             $nomenclature = $this->command->update($data);
 
+            $payload = new NomenclatureEventPayloadDTO(
+                id: (int) $nomenclature->id,
+                typeId: $nomenclature->typeId,
+                brandId: $nomenclature->brandId,
+                name: $nomenclature->name,
+                country: $nomenclature->country,
+                partNumber: $nomenclature->partNumber,
+                color: $nomenclature->color,
+                weight: $nomenclature->weight,
+                material: $nomenclature->material,
+                vehicleType: $nomenclature->vehicleType,
+                quantityPak: $nomenclature->quantityPak,
+                quantityInPak: $nomenclature->quantityInPak,
+                details: $nomenclature->details,
+            );
+
             event(new NomenclatureUpdated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                nomenclature: $nomenclature->toArray(),
+                nomenclature: $payload,
             ));
 
             return $this->results->completed(

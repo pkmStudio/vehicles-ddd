@@ -13,6 +13,14 @@ use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Formatters\Impo
  */
 final readonly class KitImportRowMapper
 {
+    private const int ID = 0;
+
+    private const int PART_NUMBERS = 1;
+
+    private const int IS_SALE_SEPARATELY = 2;
+
+    private const int IS_ACTIVE = 3;
+
     private ImportRowValueFormatter $formatter;
 
     public function __construct(?ImportRowValueFormatter $formatter = null)
@@ -25,17 +33,17 @@ final readonly class KitImportRowMapper
      */
     public function map(array $row): KitImportRowDTO
     {
-        $partNumbers = $this->formatter->semicolonStringList($row[1] ?? null);
+        $partNumbers = $this->formatter->semicolonStringList($row[self::PART_NUMBERS] ?? null);
 
         if ($partNumbers === []) {
             throw ImportRowValidationException::withMessage('Список артикулов набора пуст');
         }
 
         return new KitImportRowDTO(
-            id: $this->formatter->nullableInt($row[0] ?? null, 'ID комплекта'),
+            id: $this->formatter->nullableInt($row[self::ID] ?? null, 'ID комплекта'),
             partNumbers: $partNumbers,
-            isSaleSeparately: $this->formatter->yesNo($row[2] ?? null, 'Может продаваться отдельно'),
-            isActive: $this->formatter->yesNo($row[3] ?? null, 'Активен'),
+            isSaleSeparately: $this->formatter->yesNo($row[self::IS_SALE_SEPARATELY] ?? null, 'Может продаваться отдельно'),
+            isActive: $this->formatter->yesNo($row[self::IS_ACTIVE] ?? null, 'Активен'),
         );
     }
 }

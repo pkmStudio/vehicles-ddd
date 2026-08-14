@@ -13,6 +13,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\PartSpeci
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use Illuminate\Support\Facades\Event;
 use Mockery;
@@ -35,7 +36,7 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
     {
         Event::fake([PartSpecificationCreated::class]);
 
-        $engine = new EngineData(engId: 101, id: 42);
+        $engine = new EngineData(engId: 101, provider: ProviderEnum::TD, id: 42);
         $details = ['gap' => '0.9'];
         $expected = new PartSpecificationData(
             partableType: PartableTypeEnum::ENGINE->value,

@@ -34,14 +34,14 @@ final readonly class EngineCommand implements EngineCommandInterface
     }
 
     /**
-     * Обновить engine row по eng_id через Eloquent.
+     * Обновить engine row через Eloquent.
      *
      * Шаги:
-     * 1) Найти engine по внешнему eng_id.
-     * 2) Обновить writable fields из EngineData.
-     * 3) Refresh model и вернуть EngineData snapshot.
+     * 1) Найти engine по внешнему eng_id из EngineData.
+     * 2) Обновить writable fields из уже подготовленного EngineData.
+     * 3) Обновить writable fields и вернуть refresh snapshot.
      */
-    public function updateByEngId(EngineData $data): EngineData
+    public function update(EngineData $data): EngineData
     {
         $engine = Engine::query()->where('eng_id', $data->engId)->firstOrFail();
         $engine->update(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS));

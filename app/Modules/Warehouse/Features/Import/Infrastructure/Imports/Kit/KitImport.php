@@ -43,23 +43,11 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
     private ?ImportKitFromRowServiceInterface $service = null;
 
     /**
-     * Получает построчный сервис импорта наборов.
-     * Шаги:
-     * 1) Сохранить Application-сервис, который валидирует строку набора и пишет Kit.
-     * 2) Оставить user/operation context пустым до вызова import().
-     */
-    public function __construct(
-        ImportKitFromRowServiceInterface $service,
-    ) {
-        $this->service = $service;
-    }
-
-    /**
      * Сериализует queued import adapter без service dependency graph.
      * Шаги:
      * 1) Сохранить userId и operationId текущего import run.
      * 2) Сохранить cache/lock keys failure store-а.
-     * 3) Не сериализовать ImportKitFromRowServiceInterface.
+     * 3) Оставить runtime-зависимости для ленивого получения из container.
      *
      * @return array<string, mixed>
      */
@@ -77,8 +65,8 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
      * Восстанавливает queued import adapter после Laravel queue unserialize.
      * Шаги:
      * 1) Восстановить scalar context только если значения имеют ожидаемый тип.
-     * 2) Сбросить service, чтобы он был заново получен из container внутри worker-а.
-     * 3) Вернуть cache/lock keys для накопленных row failures.
+     * 2) Вернуть cache key для накопленных row failures.
+     * 3) Вернуть lock key для накопленных row failures.
      *
      * @param  array<string, mixed>  $data
      */
@@ -86,7 +74,6 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
     {
         $this->userId = is_int($data['userId'] ?? null) ? $data['userId'] : null;
         $this->operationId = is_string($data['operationId'] ?? null) ? $data['operationId'] : null;
-        $this->service = null;
 
         if (is_string($data['cacheKey'] ?? null)) {
             $this->cacheKey = $data['cacheKey'];
@@ -231,9 +218,8 @@ final class KitImport implements KitImportInterface, ShouldQueue, SkipsEmptyRows
     /**
      * Возвращает Application-сервис импорта наборов в текущем worker-е.
      * Шаги:
-     * 1) Использовать injected service до сериализации.
-     * 2) После unserialize лениво получить ImportKitFromRowServiceInterface из container.
-     * 3) Закешировать resolved service на время обработки chunk.
+     * 1) Лениво получить ImportKitFromRowServiceInterface из container.
+     * 2) Закешировать resolved service на время обработки chunk.
      */
     private function service(): ImportKitFromRowServiceInterface
     {

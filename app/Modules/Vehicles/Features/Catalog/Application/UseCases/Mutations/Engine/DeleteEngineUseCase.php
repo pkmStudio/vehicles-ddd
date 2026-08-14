@@ -9,7 +9,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRe
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogCascadeDeleteServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\DeleteEngineUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\DeleteEngineRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
@@ -21,7 +20,7 @@ use Throwable;
 /**
  * Оркестрирует сценарий мутации двигателей из внешнего сообщения.
  */
-final readonly class DeleteEngineUseCase implements DeleteEngineUseCaseInterface
+final readonly class DeleteEngineUseCase
 {
     /**
      * Получает порты delete engine workflow.
@@ -51,7 +50,6 @@ final readonly class DeleteEngineUseCase implements DeleteEngineUseCaseInterface
     public function execute(DeleteEngineRequestDTO $request): ?CatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }

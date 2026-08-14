@@ -30,7 +30,7 @@ return new class extends Migration
             $table->integer('number_of_valves')->nullable()->comment('Количество клапанов');
             $table->string('fuel_type')->nullable()->comment('Тип топлива двигателя');
 
-            $table->string('provider')->default('TD')->comment('ProviderEnum');
+            $table->string('provider')->comment('ProviderEnum');
             $table->jsonb('allow_change_fields')->default(DB::raw("'[]'::jsonb"));
 
             $table->jsonb('details')->comment('Детальная информация')->nullable();

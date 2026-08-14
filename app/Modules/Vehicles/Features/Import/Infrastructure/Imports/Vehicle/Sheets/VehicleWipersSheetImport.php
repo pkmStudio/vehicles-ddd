@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Sh
 
 use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNotFoundException;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleWiperSheetRowMapper;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
@@ -24,6 +25,10 @@ use Maatwebsite\Excel\Validators\Failure;
 final class VehicleWipersSheetImport implements ShouldQueue, SkipsEmptyRows, SkipsOnFailure, ToCollection, WithStartRow
 {
     use CachesImportFailures;
+
+    private ?VehicleWiperSheetRowMapper $rowMapper = null;
+
+    private ?VehicleWiperSpecificationImportServiceInterface $upsertWiperSpec = null;
 
     /**
      * Получить ключи отчёта ошибок для листа дворников.
@@ -63,7 +68,7 @@ final class VehicleWipersSheetImport implements ShouldQueue, SkipsEmptyRows, Ski
                 $upsertWiperSpecCallback = fn () => $upsertWiperSpec->upsertFromRow($vehicleRow);
 
                 DB::transaction($upsertWiperSpecCallback);
-            } catch (ImportRowValidationException|DetailsDataBuildException $e) {
+            } catch (ImportRowValidationException|ImportRowReferenceNotFoundException|DetailsDataBuildException $e) {
                 $this->onFailure(
                     new Failure(
                         row: $indexRow + $this->startRow(),
@@ -97,7 +102,7 @@ final class VehicleWipersSheetImport implements ShouldQueue, SkipsEmptyRows, Ski
      */
     private function rowMapper(): VehicleWiperSheetRowMapper
     {
-        return app(VehicleWiperSheetRowMapper::class);
+        return $this->rowMapper ??= app(VehicleWiperSheetRowMapper::class);
     }
 
     /**
@@ -109,6 +114,6 @@ final class VehicleWipersSheetImport implements ShouldQueue, SkipsEmptyRows, Ski
      */
     private function upsertWiperSpec(): VehicleWiperSpecificationImportServiceInterface
     {
-        return app(VehicleWiperSpecificationImportServiceInterface::class);
+        return $this->upsertWiperSpec ??= app(VehicleWiperSpecificationImportServiceInterface::class);
     }
 }

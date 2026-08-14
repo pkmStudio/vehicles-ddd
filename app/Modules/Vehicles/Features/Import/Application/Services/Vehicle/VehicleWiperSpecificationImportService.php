@@ -12,8 +12,10 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\PartSpeci
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNotFoundException;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\PartSpecificationEventPayloadDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
@@ -69,7 +71,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
 
         $vehicle = $this->vehicles->findByMsId($row->msId);
         if ($vehicle?->id === null) {
-            throw ImportRowValidationException::fromMessage("ТС с ms_id {$row->msId} не найдено. Сначала импортируйте основной лист.");
+            throw ImportRowReferenceNotFoundException::withMessage("ТС с ms_id {$row->msId} не найдено. Сначала импортируйте основной лист.");
         }
 
         if ($row->templateSlug === null) {
@@ -81,7 +83,7 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
         if (! empty($row->featureValueName)) {
             $featureValue = $this->featureValues->findByName($row->featureValueName);
             if ($featureValue === null) {
-                throw ImportRowValidationException::fromMessage("Особенность \"{$row->featureValueName}\" не найдена. Сначала импортируйте особенности.");
+                throw ImportRowReferenceNotFoundException::withMessage("Особенность \"{$row->featureValueName}\" не найдена. Сначала импортируйте особенности.");
             }
 
             $featureValueId = $featureValue->id;
@@ -138,22 +140,46 @@ final readonly class VehicleWiperSpecificationImportService implements VehicleWi
                     id: $existing->id,
                 );
                 $specification = $this->command->update($updatedData);
+                $payload = new PartSpecificationEventPayloadDTO(
+                    id: (int) $specification->id,
+                    partableType: $specification->partableType instanceof PartableTypeEnum
+                        ? $specification->partableType
+                        : PartableTypeEnum::from((string) $specification->partableType),
+                    partableId: $specification->partableId,
+                    template: $specification->template,
+                    details: $specification->details,
+                    featureValueId: $specification->featureValueId,
+                    name: $specification->name,
+                    text: $specification->text,
+                );
 
                 event(new PartSpecificationUpdated(
                     self::IMPORT_USER_ID,
                     self::OPERATION_ID,
-                    $specification->toArray(),
+                    $payload,
                 ));
 
                 continue;
             }
 
             $specification = $this->command->create($data);
+            $payload = new PartSpecificationEventPayloadDTO(
+                id: (int) $specification->id,
+                partableType: $specification->partableType instanceof PartableTypeEnum
+                    ? $specification->partableType
+                    : PartableTypeEnum::from((string) $specification->partableType),
+                partableId: $specification->partableId,
+                template: $specification->template,
+                details: $specification->details,
+                featureValueId: $specification->featureValueId,
+                name: $specification->name,
+                text: $specification->text,
+            );
 
             event(new PartSpecificationCreated(
                 self::IMPORT_USER_ID,
                 self::OPERATION_ID,
-                $specification->toArray(),
+                $payload,
             ));
         }
     }

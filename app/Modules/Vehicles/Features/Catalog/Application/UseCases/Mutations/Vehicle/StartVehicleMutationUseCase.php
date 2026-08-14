@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\CreateVehicleUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\DeleteVehicleUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\StartVehicleMutationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\UpdateVehicleUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\CreateVehicleRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\DeleteVehicleRequestDTO;
@@ -18,7 +14,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationE
 /**
  * Оркестрирует сценарий мутации автомобилей из внешнего сообщения.
  */
-final readonly class StartVehicleMutationUseCase implements StartVehicleMutationUseCaseInterface
+final readonly class StartVehicleMutationUseCase
 {
     /**
      * Получает use cases для трех поддерживаемых операций vehicle mutation.
@@ -29,9 +25,9 @@ final readonly class StartVehicleMutationUseCase implements StartVehicleMutation
      * 3) Принять delete-сценарий автомобиля.
      */
     public function __construct(
-        private CreateVehicleUseCaseInterface $createVehicle,
-        private UpdateVehicleUseCaseInterface $updateVehicle,
-        private DeleteVehicleUseCaseInterface $deleteVehicle,
+        private CreateVehicleUseCase $createVehicle,
+        private UpdateVehicleUseCase $updateVehicle,
+        private DeleteVehicleUseCase $deleteVehicle,
     ) {}
 
     /**

@@ -52,7 +52,12 @@ final readonly class AssignEngineGroupService implements AssignEngineGroupServic
         $previousGroupId = $engine->groupId;
         $reassigned = $previousGroupId !== null && $previousGroupId !== $groupId;
 
-        $updatedEngine = new EngineData(engId: $engine->engId, id: $engine->id, groupId: $groupId);
+        $updatedEngine = new EngineData(
+            engId: $engine->engId,
+            provider: $engine->provider,
+            id: $engine->id,
+            groupId: $groupId,
+        );
         $this->command->setGroupId($updatedEngine);
 
         return new AssignEngineGroupResultDTO(

@@ -10,7 +10,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\PartSpec
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\PartSpecification\PartSpecificationDetailsWritePolicyInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\CreatePartSpecificationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\CreatePartSpecificationRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpecificationDetailsWriteResultDTO;
@@ -20,13 +19,15 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\PartSpecificationEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use Throwable;
 
 /**
  * Оркестрирует сценарий создания спецификаций деталей из внешнего сообщения.
  */
-final readonly class CreatePartSpecificationUseCase implements CreatePartSpecificationUseCaseInterface
+final readonly class CreatePartSpecificationUseCase
 {
     /**
      * Получает порты, нужные для безопасного create part specification workflow.
@@ -191,10 +192,21 @@ final readonly class CreatePartSpecificationUseCase implements CreatePartSpecifi
         CreatePartSpecificationRequestDTO $request,
         PartSpecificationData $specification,
     ): void {
+        $payload = new PartSpecificationEventPayloadDTO(
+            id: (int) $specification->id,
+            partableType: $specification->partableType instanceof PartableTypeEnum ? $specification->partableType : PartableTypeEnum::from((string) $specification->partableType),
+            partableId: $specification->partableId,
+            template: $specification->template,
+            details: $specification->details,
+            featureValueId: $specification->featureValueId,
+            name: $specification->name,
+            text: $specification->text,
+        );
+
         event(new PartSpecificationCreated(
             userId: $request->userId,
             operationId: $request->operationId,
-            specification: $specification->toArray(),
+            specification: $payload,
         ));
     }
 

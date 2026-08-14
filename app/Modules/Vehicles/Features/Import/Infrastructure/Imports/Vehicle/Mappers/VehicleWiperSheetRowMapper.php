@@ -15,6 +15,16 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\Impor
  */
 final readonly class VehicleWiperSheetRowMapper
 {
+    private const int MS_ID = 2;
+
+    private const int FEATURE_VALUE_NAME = 16;
+
+    private const int TEMPLATE_SLUG = 17;
+
+    private const int NAME = 18;
+
+    private const int TEXT = 19;
+
     private const int SPEC_START_COLUMN = 20;
 
     /**
@@ -42,7 +52,7 @@ final readonly class VehicleWiperSheetRowMapper
      */
     public function map(array $row): VehicleWiperSheetRowDTO
     {
-        $templateSlug = $this->formatter->nullableString($row[17] ?? null);
+        $templateSlug = $this->formatter->nullableString($row[self::TEMPLATE_SLUG] ?? null);
         $details = [];
 
         if ($templateSlug !== null) {
@@ -59,11 +69,11 @@ final readonly class VehicleWiperSheetRowMapper
         }
 
         return new VehicleWiperSheetRowDTO(
-            msId: $this->formatter->nullableInt($row[2] ?? null, 'ms_id'),
+            msId: $this->formatter->nullableInt($row[self::MS_ID] ?? null, 'ms_id'),
             templateSlug: $templateSlug,
-            featureValueName: $this->formatter->nullableString($row[16] ?? null),
-            name: $this->formatter->nullableString($row[18] ?? null),
-            text: $this->formatter->nullableString($row[19] ?? null),
+            featureValueName: $this->formatter->nullableString($row[self::FEATURE_VALUE_NAME] ?? null),
+            name: $this->formatter->nullableString($row[self::NAME] ?? null),
+            text: $this->formatter->nullableString($row[self::TEXT] ?? null),
             details: $details,
         );
     }

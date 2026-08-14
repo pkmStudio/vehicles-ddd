@@ -9,7 +9,6 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDim
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogCascadeDeleteServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\DeletePackDimensionUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\DeletePackDimensionRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
@@ -21,7 +20,7 @@ use Throwable;
 /**
  * Выполняет удаление упаковочного размера Warehouse из внешнего сообщения.
  */
-final readonly class DeletePackDimensionUseCase implements DeletePackDimensionUseCaseInterface
+final readonly class DeletePackDimensionUseCase
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
@@ -50,7 +49,6 @@ final readonly class DeletePackDimensionUseCase implements DeletePackDimensionUs
     public function execute(DeletePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }

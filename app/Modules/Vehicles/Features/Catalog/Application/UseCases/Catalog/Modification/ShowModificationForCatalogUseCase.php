@@ -7,7 +7,6 @@ namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Mod
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ShowModificationForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog\CatalogManufacturerDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog\CatalogModificationContextDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog\CatalogModificationDTO;
@@ -16,7 +15,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog\CatalogVeh
 /**
  * Возвращает детальную REST-форму модификации с её ТС и производителем.
  */
-final readonly class ShowModificationForCatalogUseCase implements ShowModificationForCatalogUseCaseInterface
+final readonly class ShowModificationForCatalogUseCase
 {
     /**
      * Подключает репозитории для сборки детального контекста модификации.

@@ -8,7 +8,6 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\Nomenclatur
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\DeleteNomenclatureUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\DeleteNomenclatureRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
@@ -20,7 +19,7 @@ use Throwable;
 /**
  * Выполняет удаление Warehouse-номенклатуры из внешнего сообщения.
  */
-final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseCaseInterface
+final readonly class DeleteNomenclatureUseCase
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
@@ -48,7 +47,6 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
     public function execute(DeleteNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }
@@ -66,11 +64,8 @@ final readonly class DeleteNomenclatureUseCase implements DeleteNomenclatureUseC
                 );
             }
 
-            $toContextArray = fn ($context): array => $context->toArray();
-
             $integrationContexts = $this->nomenclatures
                 ->deletionIntegrationContexts($request->id)
-                ->map($toContextArray)
                 ->values()
                 ->all();
 

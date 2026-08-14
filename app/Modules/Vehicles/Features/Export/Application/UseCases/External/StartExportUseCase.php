@@ -7,7 +7,6 @@ namespace App\Modules\Vehicles\Features\Export\Application\UseCases\External;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportCompletionNotificationDTO;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportFileRequestDTO;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportRunContextDTO;
@@ -19,7 +18,7 @@ use Throwable;
  * Excel-адаптер. Симметрично Import\Application\UseCases\External\
  * StartExternalFileImportUseCase.
  */
-final readonly class StartExportUseCase implements StartExportUseCaseInterface
+final readonly class StartExportUseCase
 {
     /**
      * Инициализирует зависимости сценария внешнего запуска экспорта.

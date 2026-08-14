@@ -8,7 +8,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\PartSpecific
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\DeletePartSpecificationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\DeletePartSpecificationRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
@@ -20,7 +19,7 @@ use Throwable;
 /**
  * Оркестрирует сценарий удаления спецификаций деталей из внешнего сообщения.
  */
-final readonly class DeletePartSpecificationUseCase implements DeletePartSpecificationUseCaseInterface
+final readonly class DeletePartSpecificationUseCase
 {
     /**
      * Получает порты delete part specification workflow.
@@ -49,14 +48,12 @@ final readonly class DeletePartSpecificationUseCase implements DeletePartSpecifi
     public function execute(DeletePartSpecificationRequestDTO $request): ?CatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }
 
         try {
             $existingSpecification = $this->specifications->findById($request->id);
-
             if ($existingSpecification === null) {
                 return $this->results->rejected(
                     userId: $request->userId,

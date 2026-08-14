@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Engine;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\CreateEngineUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\DeleteEngineUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\StartEngineMutationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\UpdateEngineUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\CreateEngineRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\DeleteEngineRequestDTO;
@@ -18,7 +14,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationE
 /**
  * Оркестрирует сценарий мутации двигателей из внешнего сообщения.
  */
-final readonly class StartEngineMutationUseCase implements StartEngineMutationUseCaseInterface
+final readonly class StartEngineMutationUseCase
 {
     /**
      * Получает use cases для трех поддерживаемых операций engine mutation.
@@ -29,9 +25,9 @@ final readonly class StartEngineMutationUseCase implements StartEngineMutationUs
      * 3) Принять delete-сценарий двигателя.
      */
     public function __construct(
-        private CreateEngineUseCaseInterface $createEngine,
-        private UpdateEngineUseCaseInterface $updateEngine,
-        private DeleteEngineUseCaseInterface $deleteEngine,
+        private CreateEngineUseCase $createEngine,
+        private UpdateEngineUseCase $updateEngine,
+        private DeleteEngineUseCase $deleteEngine,
     ) {}
 
     /**

@@ -12,7 +12,7 @@ use App\Modules\Warehouse\Features\Import\Domain\ModelData\KitData;
 interface KitCommandInterface
 {
     /**
-     * Обновляет набор и его состав по id.
+     * Обновляет набор и его состав из import data.
      *
      * Шаги:
      * 1) Найти существующий Kit по id из DTO.
@@ -23,7 +23,7 @@ interface KitCommandInterface
      * @param  array<int, int>  $nomenclatureIds  id номенклатур в порядке артикулов строки —
      *                                            порядок становится `sort` в pivot-таблице.
      */
-    public function updateById(KitData $data, array $nomenclatureIds): KitData;
+    public function update(KitData $data, array $nomenclatureIds): KitData;
 
     /**
      * Создаёт набор и его состав.

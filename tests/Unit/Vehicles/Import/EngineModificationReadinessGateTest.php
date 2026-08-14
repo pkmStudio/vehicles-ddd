@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Vehicles\Import;
 
-use App\Modules\Vehicles\Features\Import\Application\Services\EngineModificationReadinessGate;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\EngineModificationReadinessGateInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\EnginesAndModificationsReady;
-use Illuminate\Contracts\Events\Dispatcher;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Services\LaravelEngineModificationReadinessGate;
 use Illuminate\Support\Facades\Cache;
-use Mockery;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 final class EngineModificationReadinessGateTest extends TestCase
@@ -18,21 +18,20 @@ final class EngineModificationReadinessGateTest extends TestCase
      * диспатча — гейт ждёт обе.
      *
      * Шаги:
-     * 1. Мокает Dispatcher — ожидает, что dispatch() НЕ вызовется вообще.
+     * 1. Фейкает события Laravel и ожидает, что EnginesAndModificationsReady НЕ будет опубликован.
      * 2. Сбрасывает флаги гейта (reset), затем помечает только markEnginesImported().
-     * 3. Mockery сам провалит тест, если dispatch() будет вызван.
+     * 3. Проверяет отсутствие события готовности.
      */
     public function test_does_not_dispatch_until_both_imported(): void
     {
-        $events = Mockery::mock(Dispatcher::class);
-        $events->shouldNotReceive('dispatch');
+        Event::fake([EnginesAndModificationsReady::class]);
 
-        $gate = new EngineModificationReadinessGate(Cache::store(), $events);
+        $gate = new LaravelEngineModificationReadinessGate;
         $gate->reset();
 
         $gate->markEnginesImported();
 
-        $this->assertTrue(true); // диспатча не было — гейт ещё не готов
+        Event::assertNotDispatched(EnginesAndModificationsReady::class);
     }
 
     /**
@@ -41,33 +40,24 @@ final class EngineModificationReadinessGateTest extends TestCase
      * не должна залипать навсегда после первого срабатывания).
      *
      * Шаги:
-     * 1. Мокает Dispatcher — ожидает ровно один dispatch() с EnginesAndModificationsReady.
+     * 1. Фейкает события Laravel и ожидает EnginesAndModificationsReady.
      * 2. Сбрасывает флаги, затем помечает markEnginesImported() и markModificationsImported().
      * 3. Проверяет, что событие продиспатчено ровно один раз.
      * 4. Проверяет, что оба cache-флага после этого снова пусты (сброшены).
      */
     public function test_dispatches_when_both_imported_and_resets_flags(): void
     {
-        $dispatched = [];
-        $events = Mockery::mock(Dispatcher::class);
-        $events->shouldReceive('dispatch')
-            ->once()
-            ->with(Mockery::type(EnginesAndModificationsReady::class))
-            ->andReturnUsing(function ($e) use (&$dispatched) {
-                $dispatched[] = $e;
-            });
+        Event::fake([EnginesAndModificationsReady::class]);
 
-        $cache = Cache::store();
-        $gate = new EngineModificationReadinessGate($cache, $events);
+        $gate = new LaravelEngineModificationReadinessGate;
         $gate->reset();
 
         $gate->markEnginesImported();
         $gate->markModificationsImported();
 
-        $this->assertCount(1, $dispatched);
-        // флаги сброшены после готовности
-        $this->assertNull($cache->get('engines_imported'));
-        $this->assertNull($cache->get('modifications_imported'));
+        Event::assertDispatched(EnginesAndModificationsReady::class, 1);
+        $this->assertNull(Cache::get(EngineModificationReadinessGateInterface::FLAG_ENGINES));
+        $this->assertNull(Cache::get(EngineModificationReadinessGateInterface::FLAG_MODIFICATIONS));
     }
 
     /**
@@ -75,29 +65,22 @@ final class EngineModificationReadinessGateTest extends TestCase
      * модификации импортируются параллельно, порядок завершения не гарантирован.
      *
      * Шаги:
-     * 1. Мокает Dispatcher — ожидает ровно один dispatch().
+     * 1. Фейкает события Laravel и ожидает ровно одну публикацию события готовности.
      * 2. Сбрасывает флаги, затем помечает markModificationsImported() ПЕРЕД
      *    markEnginesImported() (обратный порядок относительно предыдущего теста).
-     * 3. Mockery подтверждает, что dispatch() всё равно случился один раз.
+     * 3. Проверяет, что событие всё равно опубликовано один раз.
      */
     public function test_order_independent(): void
     {
-        $events = Mockery::mock(Dispatcher::class);
-        $events->shouldReceive('dispatch')->once()->with(Mockery::type(EnginesAndModificationsReady::class));
+        Event::fake([EnginesAndModificationsReady::class]);
 
-        $gate = new EngineModificationReadinessGate(Cache::store(), $events);
+        $gate = new LaravelEngineModificationReadinessGate;
         $gate->reset();
 
         // обратный порядок — результат тот же
         $gate->markModificationsImported();
         $gate->markEnginesImported();
 
-        $this->addToAssertionCount(1);
-    }
-
-    protected function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
+        Event::assertDispatched(EnginesAndModificationsReady::class, 1);
     }
 }

@@ -8,7 +8,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleR
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogCascadeDeleteServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\DeleteVehicleUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\DeleteVehicleRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
@@ -20,7 +19,7 @@ use Throwable;
 /**
  * Оркестрирует сценарий мутации автомобилей из внешнего сообщения.
  */
-final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterface
+final readonly class DeleteVehicleUseCase
 {
     /**
      * Получает порты delete vehicle workflow.
@@ -49,7 +48,6 @@ final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterfa
     public function execute(DeleteVehicleRequestDTO $request): ?CatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }

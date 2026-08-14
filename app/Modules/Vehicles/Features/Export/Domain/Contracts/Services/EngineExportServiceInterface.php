@@ -42,7 +42,7 @@ interface EngineExportServiceInterface
      * 1) Прочитать базовые поля engine snapshot.
      * 2) Вернуть значения в порядке заголовков основного листа.
      *
-     * @return array<int, mixed>
+     * @return array<int, string|int|float|null>
      */
     public function mapMainRow(EngineData $row): array;
 
@@ -75,7 +75,7 @@ interface EngineExportServiceInterface
      * 1) Собрать базовые engine cells.
      * 2) Добавить отрендеренные spark plug details cells.
      *
-     * @return array<int, mixed>
+     * @return array<int, string|int|float|null>
      */
     public function mapSparkPlugRow(PartSpecificationExportRowDTO $row): array;
 
@@ -86,7 +86,7 @@ interface EngineExportServiceInterface
      * 1) Собрать reference columns для engine export.
      * 2) Нормализовать колонки в строки справочного листа.
      *
-     * @return Collection<int, array<int, mixed>>
+     * @return Collection<int, array<int, string|null>>
      */
     public function getReferenceRows(): Collection;
 

@@ -8,8 +8,6 @@ use App\Modules\Warehouse\Features\Import\Application\Services\Kit\ImportKitFrom
 use App\Modules\Warehouse\Features\Import\Application\Services\Nomenclature\ImportNomenclatureFromRowService;
 use App\Modules\Warehouse\Features\Import\Application\Services\PackDimension\ImportPackDimensionFromRowService;
 use App\Modules\Warehouse\Features\Import\Application\Services\TypeTemplateResolver;
-use App\Modules\Warehouse\Features\Import\Application\UseCases\External\PublishLocalImportRequestUseCase;
-use App\Modules\Warehouse\Features\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\KitPropertiesClientInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Commands\KitCommandInterface;
@@ -36,8 +34,6 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimensio
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\TypeTemplateResolverInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Storage\ExternalImportFileStorageInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Storage\LocalImportFileStorageInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\UseCases\External\PublishLocalImportRequestUseCaseInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Clients\KitPropertiesClient;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Commands\KitCommand;
@@ -101,11 +97,6 @@ final class ImportServiceProvider extends ServiceProvider
         ImportFileFactoryInterface::class => ImportFileFactory::class,
     ];
 
-    private const array USE_CASE_BINDINGS = [
-        StartExternalFileImportUseCaseInterface::class => StartExternalFileImportUseCase::class,
-        PublishLocalImportRequestUseCaseInterface::class => PublishLocalImportRequestUseCase::class,
-    ];
-
     private const array REPORTING_BINDINGS = [
         ImportFailureReporterInterface::class => ImportFailureReporter::class,
         ImportFailureStoreInterface::class => CacheImportFailureStore::class,
@@ -164,13 +155,6 @@ final class ImportServiceProvider extends ServiceProvider
         }
 
         foreach (self::FACTORY_BINDINGS as $interface => $implementation) {
-            $this->app->bind(
-                abstract: $interface,
-                concrete: $implementation,
-            );
-        }
-
-        foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {
             $this->app->bind(
                 abstract: $interface,
                 concrete: $implementation,

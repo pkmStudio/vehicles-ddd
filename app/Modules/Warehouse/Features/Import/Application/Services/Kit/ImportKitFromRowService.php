@@ -86,7 +86,7 @@ final readonly class ImportKitFromRowService implements ImportKitFromRowServiceI
             return $this->command->create($data, $nomenclatureIds);
         }
 
-        return $this->command->updateById($this->withId($data, $existing->id), $nomenclatureIds);
+        return $this->command->update($this->withId($data, $existing->id), $nomenclatureIds);
     }
 
     /**

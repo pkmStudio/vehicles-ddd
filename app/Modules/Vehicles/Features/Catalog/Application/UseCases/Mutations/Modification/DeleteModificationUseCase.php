@@ -9,7 +9,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\Modifica
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogCascadeDeleteServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\DeleteModificationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\DeleteModificationRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
@@ -21,7 +20,7 @@ use Throwable;
 /**
  * Оркестрирует сценарий мутации модификаций из внешнего сообщения.
  */
-final readonly class DeleteModificationUseCase implements DeleteModificationUseCaseInterface
+final readonly class DeleteModificationUseCase
 {
     /**
      * Получает порты delete modification workflow.
@@ -51,7 +50,6 @@ final readonly class DeleteModificationUseCase implements DeleteModificationUseC
     public function execute(DeleteModificationRequestDTO $request): ?CatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }

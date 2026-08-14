@@ -157,6 +157,7 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
                 'eng_id' => 200,
                 'code_engine' => 'ABC',
                 'engine_capacity' => '1.8',
+                'allow_change_fields' => [],
             ],
         ]);
 
@@ -168,6 +169,7 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
                 'eng_id' => 200,
                 'code_engine' => 'ABC2',
                 'engine_capacity' => '2.0',
+                'allow_change_fields' => [],
             ],
         ]);
 
@@ -328,10 +330,12 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
                 'ms_id' => $vehicle->ms_id,
                 'type' => VehicleTypeEnum::PC->value,
                 'description' => '1.4 TSI',
+                'allow_change_fields' => [],
                 'engines' => [
                     [
                         'eng_id' => 999999,
                         'code_engine' => 'NEW',
+                        'allow_change_fields' => [],
                     ],
                 ],
             ],
@@ -400,6 +404,7 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
                 'ms_id' => $msId,
                 'type' => VehicleTypeEnum::PC->value,
                 'description' => $description,
+                'allow_change_fields' => [],
             ],
         ];
     }

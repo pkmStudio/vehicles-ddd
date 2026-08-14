@@ -38,7 +38,7 @@ return new class extends Migration
             $table->smallInteger('number_of_cylinders')->nullable()->comment('Количество цилиндров');
             $table->float('capacity_lt')->nullable()->comment('Объем двигателя (л.)');
 
-            $table->string('provider')->default('TD')->comment('ProviderEnum');
+            $table->string('provider')->comment('ProviderEnum');
             $table->jsonb('allow_change_fields')->default(DB::raw("'[\"year_from\", \"year_to\"]'::jsonb"));
 
             $table->unique(['mod_id', 'type']);

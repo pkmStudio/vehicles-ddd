@@ -28,7 +28,7 @@ final readonly class KitCommand implements KitCommandInterface
      *
      * @param  array<int, int>  $nomenclatureIds
      */
-    public function updateById(KitData $data, array $nomenclatureIds): KitData
+    public function update(KitData $data, array $nomenclatureIds): KitData
     {
         return DB::transaction(function () use ($data, $nomenclatureIds): KitData {
             $values = Arr::except($data->toArray(), ['id']);

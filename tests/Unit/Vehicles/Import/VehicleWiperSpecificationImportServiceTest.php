@@ -12,7 +12,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\FeatureVa
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
-use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNotFoundException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\FeatureValueData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
@@ -264,7 +264,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
      * 1. Мокает FeatureValueRepositoryInterface::findByName — возвращает null для
      *    несуществующего имени.
      * 2. Зовёт upsertFromRow() со строкой с featureValueName='Неизвестная особенность'.
-     * 3. Ожидает ImportRowValidationException с точным текстом «Особенность не найдена...».
+     * 3. Ожидает ImportRowReferenceNotFoundException с точным текстом «Особенность не найдена...».
      */
     public function test_throws_when_feature_value_name_not_found(): void
     {
@@ -274,7 +274,7 @@ final class VehicleWiperSpecificationImportServiceTest extends TestCase
         $specs = Mockery::mock(PartSpecificationRepositoryInterface::class);
         $command = Mockery::mock(PartSpecificationCommandInterface::class);
 
-        $this->expectException(ImportRowValidationException::class);
+        $this->expectException(ImportRowReferenceNotFoundException::class);
         $this->expectExceptionMessage('Особенность "Неизвестная особенность" не найдена. Сначала импортируйте особенности.');
 
         $details = ['front' => ['adapter_type_front' => ['A1']]];

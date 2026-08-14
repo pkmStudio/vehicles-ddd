@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Manufacturer;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Manufacturer\CreateManufacturerUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Manufacturer\DeleteManufacturerUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Manufacturer\StartManufacturerMutationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Manufacturer\UpdateManufacturerUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Manufacturer\CreateManufacturerRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Manufacturer\DeleteManufacturerRequestDTO;
@@ -18,7 +14,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationE
 /**
  * Оркестрирует сценарий мутации производителей из внешнего сообщения.
  */
-final readonly class StartManufacturerMutationUseCase implements StartManufacturerMutationUseCaseInterface
+final readonly class StartManufacturerMutationUseCase
 {
     /**
      * Получает use cases для трех поддерживаемых операций manufacturer mutation.
@@ -29,9 +25,9 @@ final readonly class StartManufacturerMutationUseCase implements StartManufactur
      * 3) Принять delete-сценарий производителя.
      */
     public function __construct(
-        private CreateManufacturerUseCaseInterface $createManufacturer,
-        private UpdateManufacturerUseCaseInterface $updateManufacturer,
-        private DeleteManufacturerUseCaseInterface $deleteManufacturer,
+        private CreateManufacturerUseCase $createManufacturer,
+        private UpdateManufacturerUseCase $updateManufacturer,
+        private DeleteManufacturerUseCase $deleteManufacturer,
     ) {}
 
     /**

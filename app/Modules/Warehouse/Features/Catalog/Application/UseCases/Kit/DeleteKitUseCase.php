@@ -8,7 +8,6 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandI
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\DeleteKitUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\DeleteKitRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
@@ -20,7 +19,7 @@ use Throwable;
 /**
  * Выполняет удаление Warehouse-набора из внешнего сообщения.
  */
-final readonly class DeleteKitUseCase implements DeleteKitUseCaseInterface
+final readonly class DeleteKitUseCase
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
@@ -48,7 +47,6 @@ final readonly class DeleteKitUseCase implements DeleteKitUseCaseInterface
     public function execute(DeleteKitRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }
