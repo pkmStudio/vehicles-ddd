@@ -6,7 +6,6 @@ namespace Tests\Unit\Vehicles\Import;
 
 use App\Modules\Vehicles\Features\Import\Application\Factories\VehicleDataFactory;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleFromTdRowService;
-use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\VehicleImportWritePolicy;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
@@ -20,6 +19,8 @@ use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\ProviderOwnershipPolicy;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\VehicleWritePolicy;
 use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
@@ -78,7 +79,7 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
             new VehicleDataFactory,
             $manufacturers,
             $vehicles,
-            new VehicleImportWritePolicy,
+            new VehicleWritePolicy(new ProviderOwnershipPolicy),
         );
 
         $this->assertSame($expected, $service->upsertFromRow($this->validRow()));
@@ -111,7 +112,7 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
             new VehicleDataFactory,
             $manufacturers,
             $vehicles,
-            new VehicleImportWritePolicy,
+            new VehicleWritePolicy(new ProviderOwnershipPolicy),
         );
 
         $this->expectException(ImportRowReferenceNotFoundException::class);
@@ -162,7 +163,7 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
             new VehicleDataFactory,
             $manufacturers,
             $vehicles,
-            new VehicleImportWritePolicy,
+            new VehicleWritePolicy(new ProviderOwnershipPolicy),
         );
 
         $data = $service->upsertFromRow($row);
@@ -203,7 +204,7 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
             new VehicleDataFactory,
             $manufacturers,
             $vehicles,
-            new VehicleImportWritePolicy,
+            new VehicleWritePolicy(new ProviderOwnershipPolicy),
         );
 
         $this->expectException(ImportRowValidationException::class);
