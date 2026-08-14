@@ -13,7 +13,6 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Nomenclature
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
-use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\Factories\NomenclatureCrmPageDTOFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -309,11 +308,11 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
         return new NomenclatureCrmListItemDTO(
             id: (int) $nomenclature->id,
             typeId: (int) $nomenclature->type_id,
-            typeName: $nomenclature->type?->name === null ? null : (string) $nomenclature->type->name,
+            typeName: (string) $nomenclature->type->name,
             typeChar: $nomenclature->type?->char === null ? null : (string) $nomenclature->type->char,
             typeTemplate: $nomenclature->type === null ? null : $this->templateResolver->value($nomenclature->type),
             brandId: (int) $nomenclature->brand_id,
-            brandName: $nomenclature->brand?->name === null ? null : (string) $nomenclature->brand->name,
+            brandName: (string) $nomenclature->brand->name,
             brandChar: $nomenclature->brand?->char === null ? null : (string) $nomenclature->brand->char,
             name: (string) $nomenclature->name,
             country: (string) $nomenclature->country,

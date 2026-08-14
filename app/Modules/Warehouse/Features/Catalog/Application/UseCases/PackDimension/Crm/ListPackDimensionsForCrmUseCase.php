@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\Crm;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionCrmRepositoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\Crm\ListPackDimensionsForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmOptionDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\Crm\PackDimensionCrmPageDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\PackDimensionCrmReadQueryDTO;
@@ -14,7 +13,7 @@ use Illuminate\Support\Collection;
 /**
  * Оркестрирует CRM read-сценарии списка и options упаковочных размеров.
  */
-final readonly class ListPackDimensionsForCrmUseCase implements ListPackDimensionsForCrmUseCaseInterface
+final readonly class ListPackDimensionsForCrmUseCase
 {
     /**
      * Инициализирует порт репозитория упаковочных размеров для CRM read-сценариев.

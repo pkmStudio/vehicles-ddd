@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Templates\Application\Services;
 
-use App\Modules\Templates\Application\Services\Presenters\AbstractDetailsPresenter;
 use App\Modules\Templates\Application\Services\Presenters\Nomenclature\AirFilterDetailsPresenter;
 use App\Modules\Templates\Application\Services\Presenters\Nomenclature\BallJointDetailsPresenter;
 use App\Modules\Templates\Application\Services\Presenters\Nomenclature\BrakePadDetailsPresenter;

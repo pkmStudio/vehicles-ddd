@@ -16,7 +16,7 @@ use Illuminate\Support\Arr;
 final readonly class PackDimensionCommand implements PackDimensionCommandInterface
 {
     /**
-     * Обновляет упаковочный размер по id.
+     * Обновляет упаковочный размер из import data.
      *
      * Шаги:
      * 1) Подготовить значения DTO без id.
@@ -24,7 +24,7 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
      * 3) Выбросить import exception, если запись отсутствует.
      * 4) Обновить запись и вернуть refreshed PackDimensionData.
      */
-    public function updateById(PackDimensionData $data): PackDimensionData
+    public function update(PackDimensionData $data): PackDimensionData
     {
         $values = Arr::except($data->toArray(), ['id']);
         $packDimension = $data->id === null ? null : PackDimension::query()->find($data->id);

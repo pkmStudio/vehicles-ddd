@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Export\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Warehouse\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
+use App\Modules\Warehouse\Features\Export\Application\UseCases\External\StartExportUseCase;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportFileRequestDTO;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\KitExportFiltersDTO;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\KitExportSortDTO;
@@ -24,7 +24,7 @@ final readonly class ExportFileRequestedHandler
      * 2) Сохранить payload validator для входящего RabbitMQ сообщения.
      */
     public function __construct(
-        private StartExportUseCaseInterface $useCase,
+        private StartExportUseCase $useCase,
         private ExportFileRequestedPayloadValidator $validator,
     ) {}
 

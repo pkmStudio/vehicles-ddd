@@ -59,8 +59,8 @@ final readonly class WiperLengthExtractor implements WiperLengthExtractorInterfa
         }
 
         return new WiperLengthDTO(
-            lengthMain: (int) $lengthMain,
-            lengthSecond: (int) $lengthSecond,
+            lengthMain: $this->requiredLength($lengthMain, 'length_main'),
+            lengthSecond: $this->requiredLength($lengthSecond, 'length_second'),
             countWipers: 2,
         );
     }
@@ -80,7 +80,7 @@ final readonly class WiperLengthExtractor implements WiperLengthExtractorInterfa
         $details = $this->wiperDetails($wiper);
 
         return new WiperLengthDTO(
-            lengthMain: (int) $this->lengthForPosition($details, $position),
+            lengthMain: $this->requiredLength($this->lengthForPosition($details, $position), 'length_main'),
             lengthSecond: null,
             countWipers: 1,
         );
@@ -101,8 +101,8 @@ final readonly class WiperLengthExtractor implements WiperLengthExtractorInterfa
         $second = $this->wiperBySort($kit, 2);
 
         return new WiperLengthDTO(
-            lengthMain: (int) $this->wiperDetails($main)->lengthMain(),
-            lengthSecond: (int) $this->wiperDetails($second)->lengthMain(),
+            lengthMain: $this->requiredLength($this->wiperDetails($main)->lengthMain(), 'length_main'),
+            lengthSecond: $this->requiredLength($this->wiperDetails($second)->lengthMain(), 'length_main'),
             countWipers: 3,
         );
     }
@@ -148,5 +148,17 @@ final readonly class WiperLengthExtractor implements WiperLengthExtractorInterfa
     private function lengthForPosition(WiperNomenclatureDetailsDTO $details, WiperKitPositionEnum $position): ?int
     {
         return $position === WiperKitPositionEnum::BACK ? $details->lengthRear() : $details->lengthMain();
+    }
+
+    /**
+     * Возвращает обязательную длину или выбрасывает понятную domain error.
+     */
+    private function requiredLength(?int $length, string $field): int
+    {
+        if ($length === null) {
+            throw InvalidWiperKitDataException::missingWiperLength($field);
+        }
+
+        return $length;
     }
 }

@@ -20,7 +20,7 @@ final readonly class KitApplicabilityDeleted
         public int $kitId,
         public ApplicabilityTargetTypeEnum $targetType,
         public int $targetId,
-        public ?ApplicabilitySourceEnum $source = null,
+        public ApplicabilitySourceEnum $source,
         public ?KitApplicabilityAlgorithmEnum $algorithm = null,
     ) {}
 }

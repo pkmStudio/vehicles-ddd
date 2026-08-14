@@ -9,7 +9,6 @@ use App\Modules\Warehouse\Features\Import\Domain\Contracts\Services\PackDimensio
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Domain\Events\PackDimensionImportCompleted;
 use App\Modules\Warehouse\Features\Import\Domain\Exceptions\WarehouseImportException;
-use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\PackDimension\Mappers\PackDimensionImportRowMapper;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Traits\CachesImportFailures;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
@@ -43,23 +42,11 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
     private ?ImportPackDimensionFromRowServiceInterface $service = null;
 
     /**
-     * Получает построчный сервис импорта упаковочных размеров.
-     * Шаги:
-     * 1) Сохранить Application-сервис, который валидирует строку и пишет PackDimension.
-     * 2) Оставить user/operation context пустым до вызова import().
-     */
-    public function __construct(
-        ImportPackDimensionFromRowServiceInterface $service,
-    ) {
-        $this->service = $service;
-    }
-
-    /**
      * Сериализует queued import adapter без service dependency graph.
      * Шаги:
      * 1) Сохранить userId и operationId текущего import run.
      * 2) Сохранить cache/lock keys failure store-а.
-     * 3) Не сериализовать ImportPackDimensionFromRowServiceInterface.
+     * 3) Оставить runtime-зависимости для ленивого получения из container.
      *
      * @return array<string, mixed>
      */
@@ -77,8 +64,8 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
      * Восстанавливает queued import adapter после Laravel queue unserialize.
      * Шаги:
      * 1) Восстановить scalar context только если значения имеют ожидаемый тип.
-     * 2) Сбросить service, чтобы он был заново получен из container внутри worker-а.
-     * 3) Вернуть cache/lock keys для накопленных row failures.
+     * 2) Вернуть cache key для накопленных row failures.
+     * 3) Вернуть lock key для накопленных row failures.
      *
      * @param  array<string, mixed>  $data
      */
@@ -86,7 +73,6 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
     {
         $this->userId = is_int($data['userId'] ?? null) ? $data['userId'] : null;
         $this->operationId = is_string($data['operationId'] ?? null) ? $data['operationId'] : null;
-        $this->service = null;
 
         if (is_string($data['cacheKey'] ?? null)) {
             $this->cacheKey = $data['cacheKey'];
@@ -231,9 +217,8 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
     /**
      * Возвращает Application-сервис импорта упаковочных размеров в текущем worker-е.
      * Шаги:
-     * 1) Использовать injected service до сериализации.
-     * 2) После unserialize лениво получить ImportPackDimensionFromRowServiceInterface из container.
-     * 3) Закешировать resolved service на время обработки chunk.
+     * 1) Лениво получить ImportPackDimensionFromRowServiceInterface из container.
+     * 2) Закешировать resolved service на время обработки chunk.
      */
     private function service(): ImportPackDimensionFromRowServiceInterface
     {

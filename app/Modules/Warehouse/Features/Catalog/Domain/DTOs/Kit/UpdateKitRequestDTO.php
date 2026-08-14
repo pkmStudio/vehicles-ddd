@@ -17,8 +17,8 @@ final readonly class UpdateKitRequestDTO
         public string $operationId,
         public int $id,
         public array $nomenclatureIds,
+        public int $guarantee,
         public bool $isSaleSeparately = false,
         public bool $isActive = true,
-        public int $guarantee = 12,
     ) {}
 }

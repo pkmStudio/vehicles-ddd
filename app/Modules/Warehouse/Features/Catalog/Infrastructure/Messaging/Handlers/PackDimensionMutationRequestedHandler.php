@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\StartPackDimensionMutationUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\StartPackDimensionMutationUseCase;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\PackDimensionMutationRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\PackDimensionMutationPayloadValidator;
@@ -26,7 +26,7 @@ final readonly class PackDimensionMutationRequestedHandler
      * 3. Получает reporter для contract mismatch результата.
      */
     public function __construct(
-        private StartPackDimensionMutationUseCaseInterface $useCase,
+        private StartPackDimensionMutationUseCase $useCase,
         private PackDimensionMutationPayloadValidator $validator,
         private WarehouseCatalogMutationContractMismatchReporter $contractMismatchReporter,
     ) {}

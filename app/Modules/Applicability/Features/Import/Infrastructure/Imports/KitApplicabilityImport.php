@@ -38,28 +38,12 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
     private ?CacheFactory $cache = null;
 
     /**
-     * Создает serializable queued Excel import adapter.
-     *
-     * Шаги:
-     * 1. Принимает row service для синхронного запуска в текущем процессе.
-     * 2. Принимает cache factory для накопления row failures.
-     * 3. Сохраняет зависимости nullable, чтобы после queue serialization они могли быть резолвлены заново.
-     */
-    public function __construct(
-        ImportKitApplicabilityRowServiceInterface $service,
-        CacheFactory $cache,
-    ) {
-        $this->service = $service;
-        $this->cache = $cache;
-    }
-
-    /**
      * Сериализует только scalar state queued import-а.
      *
      * Шаги:
      * 1. Сохраняет user id и operation id текущего import run.
      * 2. Сохраняет cache keys накопленных failures и lock.
-     * 3. Не сериализует service/cache dependency graph.
+     * 3. Оставляет runtime-зависимости для ленивого получения из container.
      *
      * @return array<string, mixed>
      */
@@ -78,8 +62,8 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
      *
      * Шаги:
      * 1. Восстанавливает user id и operation id только если типы корректны.
-     * 2. Сбрасывает service/cache зависимости, чтобы резолвить их в worker-time.
-     * 3. Восстанавливает cache keys накопленных failures, если они были сериализованы.
+     * 2. Восстанавливает cache key накопленных failures, если он был сериализован.
+     * 3. Восстанавливает lock key накопленных failures, если он был сериализован.
      *
      * @param  array<string, mixed>  $data
      */
@@ -87,8 +71,6 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
     {
         $this->userId = is_int($data['userId'] ?? null) ? $data['userId'] : null;
         $this->operationId = is_string($data['operationId'] ?? null) ? $data['operationId'] : null;
-        $this->service = null;
-        $this->cache = null;
 
         if (is_string($data['cacheKey'] ?? null)) {
             $this->cacheKey = $data['cacheKey'];
@@ -257,8 +239,8 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
      * Возвращает cache factory для trait CachesImportFailures.
      *
      * Шаги:
-     * 1. Возвращает уже сохраненный cache factory, если import создан в текущем процессе.
-     * 2. После queue unserialize резолвит cache factory из container.
+     * 1. Лениво получает cache factory из container.
+     * 2. Закеширует resolved instance на время обработки.
      */
     protected function cache(): CacheFactory
     {
@@ -269,8 +251,8 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
      * Возвращает row import service для worker-time обработки строк.
      *
      * Шаги:
-     * 1. Возвращает constructor-injected service при синхронном запуске.
-     * 2. После queue unserialize резолвит service из container.
+     * 1. Лениво получает service из container.
+     * 2. Закеширует resolved instance на время обработки.
      */
     private function service(): ImportKitApplicabilityRowServiceInterface
     {

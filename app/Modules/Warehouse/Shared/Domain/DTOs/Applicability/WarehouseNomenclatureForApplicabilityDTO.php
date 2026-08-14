@@ -16,7 +16,7 @@ final class WarehouseNomenclatureForApplicabilityDTO extends Data
         public readonly int $typeId,
         public readonly int $quantityInPak,
         public readonly array $details,
+        public readonly WarehouseTypeForApplicabilityDTO $type,
         public readonly int $sort = 0,
-        public readonly ?WarehouseTypeForApplicabilityDTO $type = null,
     ) {}
 }

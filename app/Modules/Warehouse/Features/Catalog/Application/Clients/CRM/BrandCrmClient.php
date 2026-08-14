@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM;
 
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\Crm\ListBrandsForCrmUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\Crm\ShowBrandForCrmUseCase;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\BrandCrmClientInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\Crm\ListBrandsForCrmUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\Crm\ShowBrandForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandCrmReadQueryDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\Crm\BrandCrmListItemDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\Crm\BrandCrmPageDTO;
@@ -17,8 +17,8 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\Crm\BrandCrmPageDTO
 final readonly class BrandCrmClient implements BrandCrmClientInterface
 {
     public function __construct(
-        private ListBrandsForCrmUseCaseInterface $list,
-        private ShowBrandForCrmUseCaseInterface $show,
+        private ListBrandsForCrmUseCase $list,
+        private ShowBrandForCrmUseCase $show,
     ) {}
 
     public function paginate(BrandCrmReadQueryDTO $query): BrandCrmPageDTO

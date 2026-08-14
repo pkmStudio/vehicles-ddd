@@ -17,11 +17,11 @@ final readonly class NomenclatureCrmListItemDTO
     public function __construct(
         public int $id,
         public int $typeId,
-        public ?string $typeName,
+        public string $typeName,
         public ?string $typeChar,
         public ?string $typeTemplate,
         public int $brandId,
-        public ?string $brandName,
+        public string $brandName,
         public ?string $brandChar,
         public string $name,
         public string $country,

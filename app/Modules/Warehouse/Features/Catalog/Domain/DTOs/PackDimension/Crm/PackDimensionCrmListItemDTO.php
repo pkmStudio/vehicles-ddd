@@ -18,7 +18,7 @@ final readonly class PackDimensionCrmListItemDTO
         public int $length,
         public int $price,
         public int $typeId,
-        public ?string $typeName,
+        public string $typeName,
         public ?string $typeChar,
         public bool $generated,
         public int $kitsCount = 0,

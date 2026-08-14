@@ -18,8 +18,8 @@ final readonly class ImportCompletionNotificationDTO
     public function __construct(
         public ImportCompletionStatusEnum $status,
         public ImportTypeEnum $importType,
-        public ?int $userId = null,
-        public ?string $operationId = null,
+        public int $userId,
+        public string $operationId,
         public ?string $failuresReportPath = null,
         public ?string $failuresReportDisk = null,
     ) {}
@@ -27,7 +27,7 @@ final readonly class ImportCompletionNotificationDTO
     /**
      * Преобразует DTO в snake_case payload для rabbit-transport.
      *
-     * @return array{status: string, import_type: string, user_id: ?int, operation_id: ?string, failures_report_path: ?string, failures_report_disk: ?string}
+     * @return array{status: string, import_type: string, user_id: int, operation_id: string, failures_report_path: ?string, failures_report_disk: ?string}
      */
     public function toArray(): array
     {

@@ -20,7 +20,6 @@ interface ImportPackDimensionFromRowServiceInterface
      * 2) Нормализовать и провалидировать значения.
      * 3) Найти существующую запись по id.
      * 4) Обновить найденную запись или создать новую.
-     *
      */
     public function importFromRow(PackDimensionImportRowDTO $row): PackDimensionData;
 }

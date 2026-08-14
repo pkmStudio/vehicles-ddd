@@ -274,10 +274,10 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
     /**
      * Переводит `;`-джойн русских лейблов в массив внутренних ключей.
      * Шаги:
-     * 1) Для пустой ячейки вернуть пустой список.
+     * 1) Требовать непустую ячейку.
      * 2) Разбить ячейку по ';'.
      * 3) Нормализовать каждый label в upper-case trimmed string.
-     * 4) Добавить только labels, присутствующие в переданном словаре.
+     * 4) Ошибаться на пустых или неизвестных labels вместо молчаливого пропуска.
      *
      * @param  array<string, string>  $keysByLabel
      * @return array<int, string>
@@ -285,15 +285,26 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
     private function labelsToKeys(string $value, array $keysByLabel): array
     {
         if (trim($value) === '') {
-            return [];
+            throw ImportRowValidationException::fromMessages([
+                'labels' => ['Список значений обязателен.'],
+            ]);
         }
 
         $result = [];
         foreach (explode(';', $value) as $label) {
             $label = mb_strtoupper(trim($label));
-            if ($label === '' || ! isset($keysByLabel[$label])) {
-                continue;
+            if ($label === '') {
+                throw ImportRowValidationException::fromMessages([
+                    'labels' => ['Пустое значение в списке недопустимо.'],
+                ]);
             }
+
+            if (! isset($keysByLabel[$label])) {
+                throw ImportRowValidationException::fromMessages([
+                    'labels' => ["Неизвестное значение: {$label}."],
+                ]);
+            }
+
             $result[] = $keysByLabel[$label];
         }
 

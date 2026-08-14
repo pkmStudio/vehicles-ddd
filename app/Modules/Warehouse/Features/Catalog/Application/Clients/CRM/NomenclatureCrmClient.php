@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM;
 
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Crm\ListNomenclaturesForCrmUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Crm\SearchNomenclaturesForCrmUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Crm\ShowNomenclatureForCrmUseCase;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\NomenclatureCrmClientInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\ListNomenclaturesForCrmUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\SearchNomenclaturesForCrmUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\ShowNomenclatureForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmListItemDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmPageDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureCrmReadQueryDTO;
@@ -26,9 +26,9 @@ final readonly class NomenclatureCrmClient implements NomenclatureCrmClientInter
      * 2. Сохраняет зависимости как thin facade CRM read API.
      */
     public function __construct(
-        private ListNomenclaturesForCrmUseCaseInterface $listNomenclatures,
-        private ShowNomenclatureForCrmUseCaseInterface $showNomenclature,
-        private SearchNomenclaturesForCrmUseCaseInterface $searchNomenclatures,
+        private ListNomenclaturesForCrmUseCase $listNomenclatures,
+        private ShowNomenclatureForCrmUseCase $showNomenclature,
+        private SearchNomenclaturesForCrmUseCase $searchNomenclatures,
     ) {}
 
     /**
