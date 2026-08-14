@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\Clients;
 
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Manufacturer\ListManufacturersForCatalogUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Modification\ListVehicleModificationsForCatalogUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Modification\ShowModificationForCatalogUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Vehicle\ListManufacturerVehiclesForCatalogUseCase;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\VehicleCatalogClientInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Manufacturer\ListManufacturersForCatalogUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ListVehicleModificationsForCatalogUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ShowModificationForCatalogUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Vehicle\ListManufacturerVehiclesForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog\CatalogModificationContextDTO;
 use Illuminate\Support\Collection;
 
@@ -22,10 +22,10 @@ final readonly class VehicleCatalogClient implements VehicleCatalogClientInterfa
      * 2. Сохраняет зависимости как read-only фасад catalog сценариев.
      */
     public function __construct(
-        private ListManufacturersForCatalogUseCaseInterface $listManufacturers,
-        private ListManufacturerVehiclesForCatalogUseCaseInterface $listVehicles,
-        private ListVehicleModificationsForCatalogUseCaseInterface $listModifications,
-        private ShowModificationForCatalogUseCaseInterface $showModification,
+        private ListManufacturersForCatalogUseCase $listManufacturers,
+        private ListManufacturerVehiclesForCatalogUseCase $listVehicles,
+        private ListVehicleModificationsForCatalogUseCase $listModifications,
+        private ShowModificationForCatalogUseCase $showModification,
     ) {}
 
     /**

@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,22 +15,22 @@ return new class extends Migration
             $table->id();
             $table->integer('eng_id')->unique()->comment('Внешний ID двигателя');
 
-            $table->string('code_engine')->comment('Код двигателя')->nullable();
+            $table->string('code_engine')->comment('Код двигателя');
             $table->string('engine_capacity')->comment('Объем двигателя')->nullable();
             $table->integer('cylinder_count')->comment('Кол-во цилиндров')->nullable();
             $table->float('cylinder_diameter')->comment('Диаметр цилиндра мм')->nullable();
 
-            $table->smallInteger('power_kw_start')->nullable()->comment('Мощность (kw) от');
+            $table->smallInteger('power_kw_start')->comment('Мощность (kw) от');
             $table->smallInteger('power_kw_upto')->nullable()->comment('Мощность (kw) до');
 
-            $table->smallInteger('power_ps_start')->nullable()->comment('Мощность (л.с.) от');
+            $table->smallInteger('power_ps_start')->comment('Мощность (л.с.) от');
             $table->smallInteger('power_ps_upto')->nullable()->comment('Мощность (л.с.) до');
 
             $table->integer('number_of_valves')->nullable()->comment('Количество клапанов');
-            $table->string('fuel_type')->nullable()->comment('Тип топлива двигателя');
+            $table->string('fuel_type')->comment('Тип топлива двигателя');
 
             $table->string('provider')->comment('ProviderEnum');
-            $table->jsonb('allow_change_fields')->default(DB::raw("'[]'::jsonb"));
+            $table->jsonb('allow_change_fields');
 
             $table->jsonb('details')->comment('Детальная информация')->nullable();
             $table->unsignedBigInteger('group_id')->nullable()->index()->comment('Номер группы двигателя');

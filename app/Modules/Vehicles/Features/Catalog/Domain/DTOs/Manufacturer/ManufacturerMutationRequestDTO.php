@@ -49,7 +49,7 @@ final readonly class ManufacturerMutationRequestDTO
             operationId: (string) $payload['operation_id'],
             mfaId: (int) $manufacturer['mfa_id'],
             name: (string) $manufacturer['name'],
-            provider: isset($manufacturer['provider']) ? ProviderEnum::from((string) $manufacturer['provider']) : ProviderEnum::OD,
+            provider: ProviderEnum::from((string) $manufacturer['provider']),
         );
     }
 
@@ -65,7 +65,7 @@ final readonly class ManufacturerMutationRequestDTO
             operationId: (string) $payload['operation_id'],
             mfaId: (int) $manufacturer['mfa_id'],
             name: (string) $manufacturer['name'],
-            provider: isset($manufacturer['provider']) ? ProviderEnum::from((string) $manufacturer['provider']) : ProviderEnum::OD,
+            provider: ProviderEnum::from((string) $manufacturer['provider']),
         );
     }
 

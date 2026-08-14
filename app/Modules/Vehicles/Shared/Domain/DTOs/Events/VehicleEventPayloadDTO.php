@@ -26,12 +26,12 @@ final readonly class VehicleEventPayloadDTO
         public ProviderEnum $provider,
         public string $generation,
         public int $generationYearFrom,
+        public bool $isAllow,
         public ?int $generationYearTo = null,
         public ?int $parentId = null,
         public ?int $parentMsId = null,
         public ?string $excelTableId = null,
         public ?string $localizedName = null,
         public ?string $generationShort = null,
-        public bool $isAllow = false,
     ) {}
 }

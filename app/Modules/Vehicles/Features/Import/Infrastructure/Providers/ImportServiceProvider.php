@@ -19,12 +19,12 @@ use App\Modules\Vehicles\Features\Import\Application\Services\EngineModification
 use App\Modules\Vehicles\Features\Import\Application\Services\External\CleanupExternalImportFileService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Manufacturer\UpsertManufacturerFromSheetService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Manufacturer\UpsertManufacturerFromTdRowService;
-use App\Modules\Vehicles\Features\Import\Application\Services\Modification\UpsertModificationFromManagerSheetService;
-use App\Modules\Vehicles\Features\Import\Application\Services\Modification\UpsertModificationFromRowService;
+use App\Modules\Vehicles\Features\Import\Application\Services\Modification\UpsertModificationFromSheetService;
+use App\Modules\Vehicles\Features\Import\Application\Services\Modification\UpsertModificationFromTdRowService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Reporting\ReportImportResultService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleFromRowService;
 use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleFromTdRowService;
-use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\VehicleWiperSpecificationImportService;
+use App\Modules\Vehicles\Features\Import\Application\Services\Vehicle\UpsertVehicleWiperSpecificationFromRowService;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
@@ -75,12 +75,12 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\External\Clea
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromSheetServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromTdRowServiceInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromManagerSheetServiceInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromRowServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromSheetServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Reporting\ReportImportResultServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleWiperSpecificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Cache\LaravelExternalImportCacheService;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Cache\LaravelImportFailureStore;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Clients\TemplatesClient;
@@ -189,11 +189,11 @@ final class ImportServiceProvider extends ServiceProvider
         AssignEngineGroupServiceInterface::class => AssignEngineGroupService::class,
         UpsertManufacturerFromTdRowServiceInterface::class => UpsertManufacturerFromTdRowService::class,
         UpsertManufacturerFromSheetServiceInterface::class => UpsertManufacturerFromSheetService::class,
-        UpsertModificationFromManagerSheetServiceInterface::class => UpsertModificationFromManagerSheetService::class,
-        UpsertModificationFromRowServiceInterface::class => UpsertModificationFromRowService::class,
+        UpsertModificationFromSheetServiceInterface::class => UpsertModificationFromSheetService::class,
+        UpsertModificationFromTdRowServiceInterface::class => UpsertModificationFromTdRowService::class,
         UpsertVehicleFromRowServiceInterface::class => UpsertVehicleFromRowService::class,
         UpsertVehicleFromTdRowServiceInterface::class => UpsertVehicleFromTdRowService::class,
-        VehicleWiperSpecificationImportServiceInterface::class => VehicleWiperSpecificationImportService::class,
+        UpsertVehicleWiperSpecificationFromRowServiceInterface::class => UpsertVehicleWiperSpecificationFromRowService::class,
         LinkEngineModificationFromRowServiceInterface::class => LinkEngineModificationFromRowService::class,
     ];
 

@@ -34,6 +34,7 @@ final class ModificationData extends Data
         public readonly int $powerPs,
         public readonly int $powerKw,
         public readonly EngineTypeEnum $engineType,
+        public readonly array $allowChangeFields,
         public readonly ?int $yearTo = null,
         public readonly ?string $descriptionShort = null,
         public readonly ?string $localizedName = null,
@@ -42,7 +43,6 @@ final class ModificationData extends Data
         public readonly ?BrakeSystemTypeEnum $brakeSystemType = null,
         public readonly ?int $numberOfCylinders = null,
         public readonly ?float $capacityLt = null,
-        public readonly array $allowChangeFields = ['year_from', 'year_to'],
         public readonly ?int $id = null,
     ) {}
 }

@@ -49,6 +49,7 @@ final class UpsertVehicleFromRowServiceTest extends TestCase
             provider: ProviderEnum::OD,
             generation: 'Incoming generation',
             generationYearFrom: 2013,
+            isAllow: false,
         );
 
         $manufacturers = $this->manufacturersWithExisting($manufacturer);
@@ -94,6 +95,7 @@ final class UpsertVehicleFromRowServiceTest extends TestCase
             provider: ProviderEnum::TD,
             generation: 'TD generation',
             generationYearFrom: 2010,
+            isAllow: false,
             generationYearTo: 2012,
             parentId: 77,
             id: 5,

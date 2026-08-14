@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\External\Engin
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineCrossImportCompleted;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Engine;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -36,7 +37,15 @@ final class EngineCrossImportTest extends TestCase
     {
         Event::fake([EngineCrossImportCompleted::class]);
 
-        $engine = Engine::query()->create(['eng_id' => 500, 'code_engine' => 'M54B30']);
+        $engine = Engine::query()->create([
+            'eng_id' => 500,
+            'code_engine' => 'M54B30',
+            'power_kw_start' => 170,
+            'power_ps_start' => 231,
+            'fuel_type' => 'бензин',
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => [],
+        ]);
 
         $context = new ImportRunContextDTO(userId: 42, operationId: 'test-run-cross');
         $path = base_path('tests/Fixtures/engine_groups_sample.csv');

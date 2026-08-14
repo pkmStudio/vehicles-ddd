@@ -9,7 +9,6 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\EngineExportS
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\AbstractMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\Sheets\EngineMainSheetExport;
-use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\Sheets\EngineSparkPlugsSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\ReferenceSheetExport;
 
 /**
@@ -34,8 +33,7 @@ final readonly class EngineMultiSheetExport extends AbstractMultiSheetExport imp
      * Шаги:
      * 1) Получить export service из контейнера для справочного листа.
      * 2) Добавить основной лист двигателей.
-     * 3) Добавить лист спецификаций свечей.
-     * 4) Добавить reference sheet с headings/rows из export service.
+     * 3) Добавить reference sheet с headings/rows из export service.
      *
      * @return array<int, object>
      */
@@ -45,7 +43,7 @@ final readonly class EngineMultiSheetExport extends AbstractMultiSheetExport imp
 
         return [
             app(EngineMainSheetExport::class),
-            app(EngineSparkPlugsSheetExport::class),
+            // app(EngineSparkPlugsSheetExport::class),
             new ReferenceSheetExport(
                 headings: $exportService->getReferenceHeadings(),
                 rows: $exportService->getReferenceRows(),

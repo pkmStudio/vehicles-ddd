@@ -14,6 +14,8 @@ use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNot
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ManufacturerData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleTdRowMapper;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
@@ -54,6 +56,7 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
             provider: ProviderEnum::TD,
             generation: 'A7',
             generationYearFrom: 2013,
+            isAllow: false,
         );
 
         $manufacturers = Mockery::mock(ManufacturerRepositoryInterface::class);
@@ -133,17 +136,16 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
      */
     public function test_defaults_type_carcase_to_motorcycle_when_missing_for_mb_type(): void
     {
-        /** [mfa_id, ms_id, name, generation, type_carcase, year_from, year_to, type] */
-        $row = new VehicleTdRowDTO(
-            mfaId: 10,
-            msId: 200,
-            name: 'Ninja',
-            generation: 'Ninja',
-            typeCarcase: null,
-            generationYearFrom: 2013,
-            generationYearTo: 2020,
-            type: 'MB',
-        );
+        $row = (new VehicleTdRowMapper(new ImportRowValueFormatter))->map([
+            10,
+            200,
+            'Ninja',
+            'Ninja',
+            null,
+            2013,
+            2020,
+            'MB',
+        ]);
 
         $manufacturer = new ManufacturerData(mfaId: 10, name: 'Kawasaki', provider: ProviderEnum::TD, id: 3);
 
@@ -186,6 +188,7 @@ final class UpsertVehicleFromTdRowServiceTest extends TestCase
             provider: ProviderEnum::OD,
             generation: 'OD generation',
             generationYearFrom: 2010,
+            isAllow: false,
             generationYearTo: 2012,
             parentId: 77,
             id: 5,

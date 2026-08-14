@@ -40,4 +40,37 @@ final readonly class EngineModificationCommand implements EngineModificationComm
             ]);
         }
     }
+
+    /**
+     * Заменить набор связей одной модификации на желаемый список двигателей.
+     *
+     * Шаги:
+     * 1) Найти modification по natural key `mod_id + type`.
+     * 2) Найти engines по внешним eng_id.
+     * 3) Собрать sync payload с pivot fields и выполнить belongsToMany sync.
+     *
+     * @param  array<int, int>  $engIds
+     */
+    public function syncDesiredStateByModIdAndType(int $modId, string $type, array $engIds): void
+    {
+        $modification = Modification::query()
+            ->where('mod_id', $modId)
+            ->where('type', $type)
+            ->firstOrFail();
+
+        $engines = Engine::query()
+            ->whereIn('eng_id', $engIds)
+            ->get(['id', 'eng_id']);
+
+        $payload = [];
+        foreach ($engines as $engine) {
+            $payload[$engine->id] = [
+                'eng_id' => $engine->eng_id,
+                'mod_id' => $modId,
+                'type' => $type,
+            ];
+        }
+
+        $modification->engines()->sync($payload);
+    }
 }

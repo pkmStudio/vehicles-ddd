@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\Clients\CRM;
 
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\ListVehicleCrmOptionsUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\ListVehicleCrmRelationsUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\ListVehiclesForCrmUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\SearchVehiclesForCrmUseCase;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\ShowVehicleForCrmUseCase;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\VehicleCrmClientInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmOptionsUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmRelationsUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehiclesForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\SearchVehiclesForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ShowVehicleForCrmUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmListItemDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmPageDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmRelationPageDTO;
@@ -26,11 +26,11 @@ final readonly class VehicleCrmClient implements VehicleCrmClientInterface
      * 2. Сохраняет зависимости как read-only фасад CRM сценариев.
      */
     public function __construct(
-        private ListVehiclesForCrmUseCaseInterface $listVehicles,
-        private ShowVehicleForCrmUseCaseInterface $showVehicle,
-        private ListVehicleCrmRelationsUseCaseInterface $vehicleRelations,
-        private SearchVehiclesForCrmUseCaseInterface $searchVehicles,
-        private ListVehicleCrmOptionsUseCaseInterface $vehicleOptions,
+        private ListVehiclesForCrmUseCase $listVehicles,
+        private ShowVehicleForCrmUseCase $showVehicle,
+        private ListVehicleCrmRelationsUseCase $vehicleRelations,
+        private SearchVehiclesForCrmUseCase $searchVehicles,
+        private ListVehicleCrmOptionsUseCase $vehicleOptions,
     ) {}
 
     /**

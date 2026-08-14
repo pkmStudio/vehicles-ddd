@@ -107,10 +107,13 @@ final class VehicleWipersSheetImportTest extends TestCase
             'mfa_id' => 10,
             'ms_id' => 300,
             'name' => 'Octavia',
+            'generation' => 'III',
+            'generation_year_from' => 2013,
             'type' => 'PC',
             'type_carcase' => 'Hatchback',
             'provider' => 'OD',
             'steering_type' => 'Левый руль',
+            'is_allow' => false,
         ]);
 
         $row = $this->wiperRow('Changed from wipers sheet');

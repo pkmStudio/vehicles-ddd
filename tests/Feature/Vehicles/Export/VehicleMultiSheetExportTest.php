@@ -11,6 +11,7 @@ use App\Modules\Vehicles\Features\Export\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Models\PartSpecification;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Models\Vehicle;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -34,8 +35,11 @@ final class VehicleMultiSheetExportTest extends TestCase
             'mfa_id' => $manufacturer->mfa_id,
             'ms_id' => $msId,
             'name' => $name,
+            'generation' => 'III',
+            'generation_year_from' => 2013,
             'type' => 'PC',
             'type_carcase' => 'Hatchback',
+            'provider' => ProviderEnum::TD->value,
             'steering_type' => 'Левый руль',
             'is_allow' => $isAllow,
         ]);

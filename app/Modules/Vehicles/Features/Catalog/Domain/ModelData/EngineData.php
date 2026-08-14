@@ -22,18 +22,18 @@ final class EngineData extends Data
     public function __construct(
         public readonly int $engId,
         public readonly ProviderEnum $provider,
-        public readonly ?string $codeEngine = null,
-        public readonly ?int $powerKwStart = null,
+        public readonly string $codeEngine,
+        public readonly int $powerKwStart,
+        public readonly int $powerPsStart,
+        public readonly EngineFuelTypeEnum $fuelType,
+        public readonly array $allowChangeFields,
         public readonly ?int $powerKwUpto = null,
-        public readonly ?int $powerPsStart = null,
         public readonly ?int $powerPsUpto = null,
         public readonly ?string $engineCapacity = null,
         public readonly ?float $cylinderDiameter = null,
         public readonly ?int $cylinderCount = null,
         public readonly ?int $numberOfValves = null,
-        public readonly ?EngineFuelTypeEnum $fuelType = null,
         public readonly ?int $groupId = null,
-        public readonly array $allowChangeFields = [],
         public readonly ?int $id = null,
     ) {}
 }

@@ -30,10 +30,10 @@ return new class extends Migration
 
             $table->string('type')->comment('VehicleTypeEnum');
             $table->string('type_carcase')->comment('CarcaseTypeEnum');
-            $table->string('provider')->default('OD')->comment('ProviderEnum');
+            $table->string('provider')->comment('ProviderEnum');
 
-            $table->string('steering_type')->default('Левый руль')->comment('SteeringTypeEnum');
-            $table->boolean('is_allow')->default(false)->comment('Разрешено для работы');
+            $table->string('steering_type')->comment('SteeringTypeEnum');
+            $table->boolean('is_allow')->comment('Разрешено для работы');
         });
     }
 

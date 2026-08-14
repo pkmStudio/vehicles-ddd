@@ -46,6 +46,7 @@ final class ModificationTdRowMapperTest extends TestCase
         $this->assertSame('Бензиновый двигатель', $row->engineType);
         $this->assertNull($row->gearType);
         $this->assertSame('PC', $row->type);
+        $this->assertSame(['year_from', 'year_to'], $row->toArray()['allow_change_fields']);
     }
 
     #[DataProvider('requiredColumnProvider')]

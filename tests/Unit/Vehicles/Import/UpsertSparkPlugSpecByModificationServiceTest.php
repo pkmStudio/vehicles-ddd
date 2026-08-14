@@ -16,6 +16,7 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\ModificationData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
@@ -29,15 +30,37 @@ use Tests\TestCase;
 
 final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
 {
-    private function engine(int $id, string $code, ?EngineFuelTypeEnum $fuel): EngineData
+    private function engine(int $id, string $code, EngineFuelTypeEnum $fuel): EngineData
     {
-        return new EngineData(engId: $id * 1000, codeEngine: $code, fuelType: $fuel, id: $id);
+        return new EngineData(
+            engId: $id * 1000,
+            provider: ProviderEnum::TD,
+            codeEngine: $code,
+            powerKwStart: 100,
+            powerPsStart: 136,
+            fuelType: $fuel,
+            allowChangeFields: [],
+            id: $id,
+        );
     }
 
     /** @param  array<EngineData>  $engines */
     private function modification(array $engines): ModificationData
     {
-        return new ModificationData(modId: 50, type: VehicleTypeEnum::PC, vehicleId: 9, msId: 200, engines: new Collection($engines));
+        return new ModificationData(
+            modId: 50,
+            type: VehicleTypeEnum::PC,
+            vehicleId: 9,
+            msId: 200,
+            provider: ProviderEnum::TD,
+            yearFrom: 2013,
+            description: '1.8 TSI',
+            powerPs: 180,
+            powerKw: 132,
+            engineType: EngineTypeEnum::PETROL,
+            allowChangeFields: ['year_from', 'year_to'],
+            engines: new Collection($engines),
+        );
     }
 
     /**
@@ -155,6 +178,7 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
             provider: ProviderEnum::TD,
             generation: 'A7',
             generationYearFrom: 2013,
+            isAllow: false,
             parentMsId: 200,
         );
 

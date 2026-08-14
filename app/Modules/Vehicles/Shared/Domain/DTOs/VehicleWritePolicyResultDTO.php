@@ -28,13 +28,13 @@ final readonly class VehicleWritePolicyResultDTO
         public ProviderEnum $provider,
         public string $generation,
         public int $generationYearFrom,
+        public bool $isAllow,
         public ?int $generationYearTo = null,
         public ?int $parentId = null,
         public ?int $parentMsId = null,
         public ?string $excelTableId = null,
         public ?string $localizedName = null,
         public ?string $generationShort = null,
-        public bool $isAllow = false,
         public ?int $id = null,
     ) {}
 
@@ -64,13 +64,13 @@ final readonly class VehicleWritePolicyResultDTO
                 : ProviderEnum::from((string) $payload['provider']),
             generation: (string) $payload['generation'],
             generationYearFrom: (int) $payload['generation_year_from'],
+            isAllow: (bool) $payload['is_allow'],
             generationYearTo: isset($payload['generation_year_to']) ? (int) $payload['generation_year_to'] : null,
             parentId: isset($payload['parent_id']) ? (int) $payload['parent_id'] : null,
             parentMsId: isset($payload['parent_ms_id']) ? (int) $payload['parent_ms_id'] : null,
             excelTableId: isset($payload['excel_table_id']) ? (string) $payload['excel_table_id'] : null,
             localizedName: isset($payload['localized_name']) ? (string) $payload['localized_name'] : null,
             generationShort: isset($payload['generation_short']) ? (string) $payload['generation_short'] : null,
-            isAllow: (bool) ($payload['is_allow'] ?? false),
             id: isset($payload['id']) ? (int) $payload['id'] : null,
         );
     }

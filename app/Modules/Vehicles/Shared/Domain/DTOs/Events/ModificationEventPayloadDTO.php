@@ -28,6 +28,7 @@ final readonly class ModificationEventPayloadDTO
         public int $powerPs,
         public int $powerKw,
         public EngineTypeEnum $engineType,
+        public array $allowChangeFields,
         public ?int $yearTo = null,
         public ?string $descriptionShort = null,
         public ?string $localizedName = null,
@@ -36,6 +37,5 @@ final readonly class ModificationEventPayloadDTO
         public ?BrakeSystemTypeEnum $brakeSystemType = null,
         public ?int $numberOfCylinders = null,
         public ?float $capacityLt = null,
-        public array $allowChangeFields = [],
     ) {}
 }

@@ -15,6 +15,7 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\Part
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\PartSpecification;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
@@ -302,7 +303,11 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
                     'external_id' => 7101,
                     'engine' => [
                         'code_engine' => 'ABC',
+                        'power_kw_start' => 100,
+                        'power_ps_start' => 136,
+                        'fuel_type' => EngineFuelTypeEnum::PETROL->value,
                         'engine_capacity' => '2.0',
+                        'provider' => ProviderEnum::TD->value,
                     ],
                 ],
                 'template' => DetailTemplateEnum::SPARK_PLUGS->value,
@@ -519,7 +524,7 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
         ?int $parentId = null,
         string $name = 'Octavia',
         ProviderEnum $provider = ProviderEnum::OD,
-        ?string $generation = null,
+        string $generation = 'III',
         CarcaseTypeEnum $typeCarcase = CarcaseTypeEnum::HATCHBACK,
     ): Vehicle {
         return Vehicle::query()->create([

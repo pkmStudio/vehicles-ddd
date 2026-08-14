@@ -67,9 +67,9 @@ final readonly class VehicleMutationPayloadValidator
                 'vehicle.generation_year_to' => ['nullable', 'integer', 'min:1900', 'max:2155'],
                 'vehicle.type' => ['required', 'string', Rule::in($this->enumValues(VehicleTypeEnum::cases()))],
                 'vehicle.type_carcase' => ['required', 'string', Rule::in($this->enumValues(CarcaseTypeEnum::cases()))],
-                'vehicle.provider' => ['nullable', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
-                'vehicle.steering_type' => ['nullable', 'string', Rule::in($this->enumValues(SteeringTypeEnum::cases()))],
-                'vehicle.is_allow' => ['sometimes', 'boolean'],
+                'vehicle.provider' => ['required', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
+                'vehicle.steering_type' => ['required', 'string', Rule::in($this->enumValues(SteeringTypeEnum::cases()))],
+                'vehicle.is_allow' => ['required', 'boolean'],
             ];
         }
 

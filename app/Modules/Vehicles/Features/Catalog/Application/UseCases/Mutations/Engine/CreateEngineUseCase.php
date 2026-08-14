@@ -77,18 +77,18 @@ final readonly class CreateEngineUseCase
 
             $engineData = new EngineData(
                 engId: $engId,
+                provider: $request->provider,
                 codeEngine: $request->codeEngine,
                 powerKwStart: $request->powerKwStart,
-                powerKwUpto: $request->powerKwUpto,
                 powerPsStart: $request->powerPsStart,
+                fuelType: $request->fuelType,
+                powerKwUpto: $request->powerKwUpto,
                 powerPsUpto: $request->powerPsUpto,
                 engineCapacity: $request->engineCapacity,
                 cylinderDiameter: $request->cylinderDiameter,
                 cylinderCount: $request->cylinderCount,
                 numberOfValves: $request->numberOfValves,
-                fuelType: $request->fuelType,
                 groupId: $request->groupId,
-                provider: $request->provider,
                 allowChangeFields: $request->allowChangeFields,
             );
 
@@ -105,14 +105,14 @@ final readonly class CreateEngineUseCase
                 provider: $engine->provider,
                 codeEngine: $engine->codeEngine,
                 powerKwStart: $engine->powerKwStart,
-                powerKwUpto: $engine->powerKwUpto,
                 powerPsStart: $engine->powerPsStart,
+                fuelType: $engine->fuelType,
+                powerKwUpto: $engine->powerKwUpto,
                 powerPsUpto: $engine->powerPsUpto,
                 engineCapacity: $engine->engineCapacity,
                 cylinderDiameter: $engine->cylinderDiameter,
                 cylinderCount: $engine->cylinderCount,
                 numberOfValves: $engine->numberOfValves,
-                fuelType: $engine->fuelType,
                 groupId: $engine->groupId,
                 allowChangeFields: $engine->allowChangeFields,
             );

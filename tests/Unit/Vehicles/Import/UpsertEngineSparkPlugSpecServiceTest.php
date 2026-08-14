@@ -12,6 +12,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRep
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
@@ -36,7 +37,16 @@ final class UpsertEngineSparkPlugSpecServiceTest extends TestCase
     {
         Event::fake([PartSpecificationCreated::class]);
 
-        $engine = new EngineData(engId: 101, provider: ProviderEnum::TD, id: 42);
+        $engine = new EngineData(
+            engId: 101,
+            provider: ProviderEnum::TD,
+            codeEngine: 'M54B30',
+            powerKwStart: 170,
+            powerPsStart: 231,
+            fuelType: EngineFuelTypeEnum::PETROL,
+            allowChangeFields: [],
+            id: 42,
+        );
         $details = ['gap' => '0.9'];
         $expected = new PartSpecificationData(
             partableType: PartableTypeEnum::ENGINE->value,

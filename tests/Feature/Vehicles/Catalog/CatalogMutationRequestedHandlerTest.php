@@ -17,6 +17,8 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Engine;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Modification;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
@@ -156,7 +158,11 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             'engine' => [
                 'eng_id' => 200,
                 'code_engine' => 'ABC',
+                'power_kw_start' => 100,
+                'power_ps_start' => 136,
+                'fuel_type' => EngineFuelTypeEnum::PETROL->value,
                 'engine_capacity' => '1.8',
+                'provider' => ProviderEnum::TD->value,
                 'allow_change_fields' => [],
             ],
         ]);
@@ -168,7 +174,11 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             'engine' => [
                 'eng_id' => 200,
                 'code_engine' => 'ABC2',
+                'power_kw_start' => 110,
+                'power_ps_start' => 150,
+                'fuel_type' => EngineFuelTypeEnum::PETROL->value,
                 'engine_capacity' => '2.0',
+                'provider' => ProviderEnum::TD->value,
                 'allow_change_fields' => [],
             ],
         ]);
@@ -189,12 +199,27 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
     {
         $manufacturer = $this->createManufacturer(102);
         $vehicle = $this->createVehicle(602, $manufacturer);
-        $engine = Engine::query()->create(['eng_id' => 201, 'code_engine' => 'ABC']);
+        $engine = Engine::query()->create([
+            'eng_id' => 201,
+            'code_engine' => 'ABC',
+            'power_kw_start' => 100,
+            'power_ps_start' => 136,
+            'fuel_type' => EngineFuelTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => [],
+        ]);
         $modificationId = DB::table('modifications')->insertGetId([
             'vehicle_id' => $vehicle->id,
             'ms_id' => $vehicle->ms_id,
             'mod_id' => 3001,
             'type' => VehicleTypeEnum::PC->value,
+            'year_from' => 2013,
+            'description' => '1.4 TSI',
+            'power_ps' => 150,
+            'power_kw' => 110,
+            'engine_type' => EngineTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => json_encode(['year_from', 'year_to']),
         ]);
         DB::table('engine_modification')->insert([
             'engine_id' => $engine->id,
@@ -270,12 +295,27 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
     {
         $manufacturer = $this->createManufacturer(104);
         $vehicle = $this->createVehicle(604, $manufacturer);
-        $engine = Engine::query()->create(['eng_id' => 202, 'code_engine' => 'DEF']);
+        $engine = Engine::query()->create([
+            'eng_id' => 202,
+            'code_engine' => 'DEF',
+            'power_kw_start' => 100,
+            'power_ps_start' => 136,
+            'fuel_type' => EngineFuelTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => [],
+        ]);
         $modification = Modification::query()->create([
             'vehicle_id' => $vehicle->id,
             'ms_id' => $vehicle->ms_id,
             'mod_id' => 4002,
             'type' => VehicleTypeEnum::PC->value,
+            'year_from' => 2013,
+            'description' => '1.4 TSI',
+            'power_ps' => 150,
+            'power_kw' => 110,
+            'engine_type' => EngineTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => ['year_from', 'year_to'],
         ]);
         DB::table('engine_modification')->insert([
             'engine_id' => $engine->id,

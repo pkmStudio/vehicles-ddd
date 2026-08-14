@@ -10,6 +10,8 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRep
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\PartSpecificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineSparkPlugSpecServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\PartSpecificationEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
 
@@ -72,9 +74,22 @@ final readonly class UpsertEngineSparkPlugSpecService implements UpsertEngineSpa
             ? $this->partSpecs->create($specification)
             : $this->partSpecs->update($this->factory->make((int) $engine->id, $details, $existing->id));
 
+        $payload = new PartSpecificationEventPayloadDTO(
+            id: (int) $specification->id,
+            partableType: $specification->partableType instanceof PartableTypeEnum
+                ? $specification->partableType
+                : PartableTypeEnum::from((string) $specification->partableType),
+            partableId: $specification->partableId,
+            template: $specification->template,
+            details: $specification->details,
+            featureValueId: $specification->featureValueId,
+            name: $specification->name,
+            text: $specification->text,
+        );
+
         event($existing === null
-            ? new PartSpecificationCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray())
-            : new PartSpecificationUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $specification->toArray()));
+            ? new PartSpecificationCreated(self::IMPORT_USER_ID, self::OPERATION_ID, $payload)
+            : new PartSpecificationUpdated(self::IMPORT_USER_ID, self::OPERATION_ID, $payload));
 
         return $specification;
     }

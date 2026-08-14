@@ -30,6 +30,7 @@ final readonly class ModificationWritePolicyResultDTO
         public int $powerPs,
         public int $powerKw,
         public EngineTypeEnum $engineType,
+        public array $allowChangeFields,
         public ?int $yearTo = null,
         public ?string $descriptionShort = null,
         public ?string $localizedName = null,
@@ -38,7 +39,6 @@ final readonly class ModificationWritePolicyResultDTO
         public ?BrakeSystemTypeEnum $brakeSystemType = null,
         public ?int $numberOfCylinders = null,
         public ?float $capacityLt = null,
-        public array $allowChangeFields = ['year_from', 'year_to'],
         public ?int $id = null,
     ) {}
 
@@ -67,12 +67,12 @@ final readonly class ModificationWritePolicyResultDTO
             powerPs: (int) $payload['power_ps'],
             powerKw: (int) $payload['power_kw'],
             engineType: self::engineType($payload['engine_type']),
+            allowChangeFields: array_values($payload['allow_change_fields']),
             gearType: self::nullableGearType($payload['gear_type'] ?? null),
             driveType: self::nullableDriveType($payload['drive_type'] ?? null),
             brakeSystemType: self::nullableBrakeSystemType($payload['brake_system_type'] ?? null),
             numberOfCylinders: isset($payload['number_of_cylinders']) ? (int) $payload['number_of_cylinders'] : null,
             capacityLt: isset($payload['capacity_lt']) ? (float) $payload['capacity_lt'] : null,
-            allowChangeFields: array_values($payload['allow_change_fields'] ?? ['year_from', 'year_to']),
             id: isset($payload['id']) ? (int) $payload['id'] : null,
         );
     }

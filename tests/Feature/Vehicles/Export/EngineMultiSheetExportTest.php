@@ -10,6 +10,7 @@ use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Models\Engine;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Models\PartSpecification;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -52,9 +53,13 @@ final class EngineMultiSheetExportTest extends TestCase
         Engine::query()->create([
             'eng_id' => 500,
             'code_engine' => 'M54B30',
+            'power_kw_start' => 170,
+            'power_ps_start' => 231,
             'engine_capacity' => '2979',
             'cylinder_count' => 6,
             'fuel_type' => 'бензин',
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => [],
         ]);
 
         $context = new ExportRunContextDTO(userId: 1, operationId: 'engine-export-main');
@@ -93,8 +98,24 @@ final class EngineMultiSheetExportTest extends TestCase
     {
         Storage::fake('local');
 
-        $withSpec = Engine::query()->create(['eng_id' => 500, 'code_engine' => 'M54B30']);
-        Engine::query()->create(['eng_id' => 600, 'code_engine' => 'N20B20']);
+        $withSpec = Engine::query()->create([
+            'eng_id' => 500,
+            'code_engine' => 'M54B30',
+            'power_kw_start' => 170,
+            'power_ps_start' => 231,
+            'fuel_type' => 'бензин',
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => [],
+        ]);
+        Engine::query()->create([
+            'eng_id' => 600,
+            'code_engine' => 'N20B20',
+            'power_kw_start' => 135,
+            'power_ps_start' => 184,
+            'fuel_type' => 'бензин',
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => [],
+        ]);
 
         PartSpecification::query()->create([
             'partable_type' => PartableTypeEnum::ENGINE->value,

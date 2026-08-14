@@ -76,6 +76,8 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
             'generation_year_to' => $row->generationYearTo,
             'manufacturer_id' => $manufacturerId,
             'provider' => ProviderEnum::TD->value,
+            'steering_type' => SteeringTypeEnum::LEFT->value,
+            'is_allow' => false,
         ]);
     }
 
@@ -93,8 +95,6 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
      */
     private function makeFromValues(array $row): VehicleData
     {
-        $row = $this->normalizeRow($row);
-
         try {
             $valid = Validator::make($row, [
                 'ms_id' => ['required', 'integer'],
@@ -104,7 +104,7 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
                 'name' => ['required'],
                 'type' => ['required', Rule::enum(VehicleTypeEnum::class)],
                 'type_carcase' => ['required', Rule::enum(CarcaseTypeEnum::class)],
-                'steering_type' => ['nullable', Rule::enum(SteeringTypeEnum::class)],
+                'steering_type' => ['required', Rule::enum(SteeringTypeEnum::class)],
                 'generation' => ['required', 'string'],
                 'generation_short' => ['nullable'],
                 'localized_name' => ['nullable'],
@@ -112,7 +112,7 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
                 'provider' => ['required', Rule::enum(ProviderEnum::class)],
                 'generation_year_from' => ['required', 'integer'],
                 'generation_year_to' => ['nullable', 'integer'],
-                'is_allow' => ['sometimes', 'boolean'],
+                'is_allow' => ['required', 'boolean'],
                 'id' => ['nullable', 'integer'],
             ])->validate();
         } catch (ValidationException $e) {
@@ -125,7 +125,7 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
             manufacturerId: (int) $valid['manufacturer_id'],
             name: (string) $valid['name'],
             type: VehicleTypeEnum::from($valid['type']),
-            steeringType: isset($valid['steering_type']) ? SteeringTypeEnum::from($valid['steering_type']) : SteeringTypeEnum::LEFT,
+            steeringType: SteeringTypeEnum::from($valid['steering_type']),
             typeCarcase: CarcaseTypeEnum::from($valid['type_carcase']),
             provider: ProviderEnum::from($valid['provider']),
             generation: (string) $valid['generation'],
@@ -135,51 +135,8 @@ final readonly class VehicleDataFactory implements VehicleDataFactoryInterface
             excelTableId: isset($valid['excel_table_id']) ? (string) $valid['excel_table_id'] : null,
             localizedName: isset($valid['localized_name']) ? (string) $valid['localized_name'] : null,
             generationShort: isset($valid['generation_short']) ? (string) $valid['generation_short'] : null,
-            isAllow: (bool) ($valid['is_allow'] ?? false),
+            isAllow: (bool) $valid['is_allow'],
             id: isset($valid['id']) ? (int) $valid['id'] : null,
         );
-    }
-
-    /**
-     * Этот метод применяет import-level defaults перед общей validation-схемой `VehicleData`.
-     * Шаги:
-     * 1) Скопировать входную строку без мутации аргумента вызывающего кода.
-     * 2) Подставить type_carcase для мотоциклов, если источник не прислал тип кузова.
-     * 3) Вернуть строку, готовую к валидации и сборке `VehicleData`.
-     *
-     * @param  array<string, mixed>  $row
-     * @return array<string, mixed>
-     */
-    private function normalizeRow(array $row): array
-    {
-        $type = $row['type'] ?? null;
-        $typeCarcase = $row['type_carcase'] ?? null;
-
-        $row['type_carcase'] = $this->defaultTypeCarcase(
-            type: $type instanceof VehicleTypeEnum ? $type->value : ($type === null ? null : (string) $type),
-            typeCarcase: $typeCarcase instanceof CarcaseTypeEnum ? $typeCarcase->value : ($typeCarcase === null ? null : (string) $typeCarcase),
-        );
-
-        return $row;
-    }
-
-    /**
-     * Этот метод возвращает безопасный тип кузова для TecDoc-мотоциклов без исходного значения.
-     * Шаги:
-     * 1) Если `type_carcase` уже заполнен — вернуть его без изменений.
-     * 2) Если тип ТС равен `MB` — вернуть `MOTORCYCLE`.
-     * 3) Для остальных типов оставить исходное пустое значение, чтобы validator сообщил ошибку.
-     */
-    private function defaultTypeCarcase(?string $type, ?string $typeCarcase): ?string
-    {
-        if ($typeCarcase !== null && $typeCarcase !== '') {
-            return $typeCarcase;
-        }
-
-        if ($type === VehicleTypeEnum::MB->value) {
-            return CarcaseTypeEnum::MOTORCYCLE->value;
-        }
-
-        return $typeCarcase;
     }
 }

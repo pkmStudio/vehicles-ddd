@@ -41,28 +41,12 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
     private ?ManufacturerSheetRowMapper $rowMapper = null;
 
     /**
-     * Получить зависимости для внешнего импорта производителей.
-     *
-     * Шаги:
-     * 1) Принять сервис сохранения производителя из внешнего листа.
-     * 2) Принять маппер строки с mfa_id, name и provider.
-     * 3) Сохранить зависимости до сериализации задания очереди.
-     */
-    public function __construct(
-        UpsertManufacturerFromSheetServiceInterface $service,
-        ManufacturerSheetRowMapper $rowMapper,
-    ) {
-        $this->service = $service;
-        $this->rowMapper = $rowMapper;
-    }
-
-    /**
      * Подготовить import производителей к сериализации в очередь.
      *
      * Шаги:
      * 1) Сохранить контекст запуска импорта.
      * 2) Сохранить ключ списка ошибок и ключ блокировки.
-     * 3) Не сериализовать сервис и маппер строки.
+     * 3) Оставить runtime-зависимости для ленивого получения из контейнера.
      *
      * @return array<string, mixed>
      */
@@ -80,8 +64,8 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
      *
      * Шаги:
      * 1) Вернуть контекст запуска, если он был сериализован.
-     * 2) Сбросить сервис и маппер для последующего резолва из контейнера.
-     * 3) Восстановить ключи отчёта ошибок.
+     * 2) Восстановить ключ списка ошибок.
+     * 3) Восстановить ключ блокировки списка ошибок.
      *
      * @param  array<string, mixed>  $data
      */
@@ -89,8 +73,6 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
     {
         $context = $data['context'] ?? null;
         $this->context = $context instanceof ImportRunContextDTO ? $context : null;
-        $this->service = null;
-        $this->rowMapper = null;
 
         if (is_string($data['cacheKey'] ?? null)) {
             $this->cacheKey = $data['cacheKey'];
@@ -229,8 +211,8 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
      * Получить сервис сохранения производителя.
      *
      * Шаги:
-     * 1) Вернуть уже переданный сервис, если import не проходил через очередь.
-     * 2) Иначе резолвить сервис из контейнера во время обработки.
+     * 1) Лениво получить сервис из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
     private function service(): UpsertManufacturerFromSheetServiceInterface
     {
@@ -241,8 +223,8 @@ final class ManufacturerImport implements ManufacturerImportInterface, ShouldQue
      * Получить маппер внешней строки производителя.
      *
      * Шаги:
-     * 1) Вернуть уже переданный маппер, если import не проходил через очередь.
-     * 2) Иначе резолвить маппер из контейнера во время обработки.
+     * 1) Лениво получить маппер из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
     private function rowMapper(): ManufacturerSheetRowMapper
     {

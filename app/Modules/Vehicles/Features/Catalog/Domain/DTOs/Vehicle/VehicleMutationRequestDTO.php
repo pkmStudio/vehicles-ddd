@@ -55,18 +55,16 @@ final readonly class VehicleMutationRequestDTO
             name: (string) $vehicle['name'],
             type: VehicleTypeEnum::from((string) $vehicle['type']),
             typeCarcase: CarcaseTypeEnum::from((string) $vehicle['type_carcase']),
-            provider: isset($vehicle['provider']) ? ProviderEnum::from((string) $vehicle['provider']) : ProviderEnum::OD,
-            steeringType: isset($vehicle['steering_type'])
-                ? SteeringTypeEnum::from((string) $vehicle['steering_type'])
-                : SteeringTypeEnum::LEFT,
-            parentMsId: isset($vehicle['parent_ms_id']) ? (int) $vehicle['parent_ms_id'] : null,
+            provider: ProviderEnum::from((string) $vehicle['provider']),
+            steeringType: SteeringTypeEnum::from((string) $vehicle['steering_type']),
             generation: (string) $vehicle['generation'],
+            generationYearFrom: (int) $vehicle['generation_year_from'],
+            isAllow: (bool) $vehicle['is_allow'],
+            parentMsId: isset($vehicle['parent_ms_id']) ? (int) $vehicle['parent_ms_id'] : null,
             generationShort: isset($vehicle['generation_short']) ? (string) $vehicle['generation_short'] : null,
             localizedName: isset($vehicle['localized_name']) ? (string) $vehicle['localized_name'] : null,
             excelTableId: isset($vehicle['excel_table_id']) ? (string) $vehicle['excel_table_id'] : null,
-            generationYearFrom: (int) $vehicle['generation_year_from'],
             generationYearTo: isset($vehicle['generation_year_to']) ? (int) $vehicle['generation_year_to'] : null,
-            isAllow: (bool) ($vehicle['is_allow'] ?? false),
         );
     }
 
@@ -85,18 +83,16 @@ final readonly class VehicleMutationRequestDTO
             name: (string) $vehicle['name'],
             type: VehicleTypeEnum::from((string) $vehicle['type']),
             typeCarcase: CarcaseTypeEnum::from((string) $vehicle['type_carcase']),
-            provider: isset($vehicle['provider']) ? ProviderEnum::from((string) $vehicle['provider']) : ProviderEnum::OD,
-            steeringType: isset($vehicle['steering_type'])
-                ? SteeringTypeEnum::from((string) $vehicle['steering_type'])
-                : SteeringTypeEnum::LEFT,
-            parentMsId: isset($vehicle['parent_ms_id']) ? (int) $vehicle['parent_ms_id'] : null,
+            provider: ProviderEnum::from((string) $vehicle['provider']),
+            steeringType: SteeringTypeEnum::from((string) $vehicle['steering_type']),
             generation: (string) $vehicle['generation'],
+            generationYearFrom: (int) $vehicle['generation_year_from'],
+            isAllow: (bool) $vehicle['is_allow'],
+            parentMsId: isset($vehicle['parent_ms_id']) ? (int) $vehicle['parent_ms_id'] : null,
             generationShort: isset($vehicle['generation_short']) ? (string) $vehicle['generation_short'] : null,
             localizedName: isset($vehicle['localized_name']) ? (string) $vehicle['localized_name'] : null,
             excelTableId: isset($vehicle['excel_table_id']) ? (string) $vehicle['excel_table_id'] : null,
-            generationYearFrom: (int) $vehicle['generation_year_from'],
             generationYearTo: isset($vehicle['generation_year_to']) ? (int) $vehicle['generation_year_to'] : null,
-            isAllow: (bool) ($vehicle['is_allow'] ?? false),
         );
     }
 

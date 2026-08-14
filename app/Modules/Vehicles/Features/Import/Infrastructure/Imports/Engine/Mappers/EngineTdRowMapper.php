@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Mappers;
 
-use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
-use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 
 /**
  * Маппит строку командного Excel-импорта двигателей в DTO с явными индексами колонок.
@@ -47,7 +46,7 @@ final readonly class EngineTdRowMapper
     ) {}
 
     /**
-     * Этот метод переводит одну строку командного engine-листа в `EngineSheetRowDTO`.
+     * Этот метод переводит одну строку командного engine-листа в `EngineTdRowDTO`.
      *
      * Шаги:
      * 1) Прочитать значения по именованным индексам колонок командного листа.
@@ -56,24 +55,20 @@ final readonly class EngineTdRowMapper
      *
      * @param  array<int, string|int|float|null>  $row
      */
-    public function map(array $row): EngineSheetRowDTO
+    public function map(array $row): EngineTdRowDTO
     {
-        return new EngineSheetRowDTO(
+        return new EngineTdRowDTO(
             engId: $this->formatter->requiredInt($row[self::ENG_ID] ?? null, 'eng_id'),
-            codeEngine: $this->formatter->nullableString($row[self::CODE_ENGINE] ?? null),
-            powerKwStart: $this->formatter->nullableInt($row[self::POWER_KW_START] ?? null, 'power_kw_start'),
+            codeEngine: $this->formatter->requiredString($row[self::CODE_ENGINE] ?? null, 'code_engine'),
+            powerKwStart: $this->formatter->requiredInt($row[self::POWER_KW_START] ?? null, 'power_kw_start'),
+            powerPsStart: $this->formatter->requiredInt($row[self::POWER_PS_START] ?? null, 'power_ps_start'),
+            fuelType: $this->formatter->requiredString($row[self::FUEL_TYPE] ?? null, 'fuel_type'),
             powerKwUpto: $this->formatter->nullableInt($row[self::POWER_KW_UPTO] ?? null, 'power_kw_upto'),
-            powerPsStart: $this->formatter->nullableInt($row[self::POWER_PS_START] ?? null, 'power_ps_start'),
             powerPsUpto: $this->formatter->nullableInt($row[self::POWER_PS_UPTO] ?? null, 'power_ps_upto'),
             engineCapacity: $this->formatter->nullableString($row[self::ENGINE_CAPACITY] ?? null),
             cylinderDiameter: $this->formatter->nullableFloat($row[self::CYLINDER_DIAMETER] ?? null, 'cylinder_diameter'),
             cylinderCount: $this->formatter->nullableInt($row[self::CYLINDER_COUNT] ?? null, 'cylinder_count'),
             numberOfValves: $this->formatter->nullableInt($row[self::NUMBER_OF_VALVES] ?? null, 'number_of_valves'),
-            fuelType: $this->formatter->nullableString($row[self::FUEL_TYPE] ?? null),
-            provider: ProviderEnum::TD,
-            allowChangeFields: [],
-            operationId: 'vehicles-engine-import',
-            generateNegativeEngIdWhenMissing: false,
         );
     }
 }

@@ -6,6 +6,7 @@ namespace Tests\Feature\Vehicles\Catalog;
 
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
@@ -181,7 +182,10 @@ final class VehicleCatalogRestApiTest extends TestCase
             'description' => $description,
             'power_ps' => 150,
             'power_kw' => 110,
+            'engine_type' => EngineTypeEnum::PETROL->value,
             'capacity_lt' => 2.0,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => json_encode(['year_from', 'year_to']),
         ]);
     }
 }

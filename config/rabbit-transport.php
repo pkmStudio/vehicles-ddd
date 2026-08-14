@@ -51,6 +51,8 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\Nom
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\PackDimensionMutationRequestedHandler as WarehousePackDimensionMutationRequestedHandler;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as WarehouseExportFileRequestedHandler;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler as WarehouseImportFileRequestedHandler;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Enums\VehiclesEventName;
+use PkmStudio\DanWireContracts\Vehicles\Shared\Enums\VehiclesRoutingKey;
 
 return [
 
@@ -126,27 +128,32 @@ return [
     |   'AUDIT_RECORDED' => [\App\Services\Audit\AuditInboxService::class, 'upsert'],
     */
     'inbound' => [
-        'VEHICLES_IMPORT_FILE_REQUESTED' => [
+        VehiclesEventName::VehiclesImportFileRequested->value => [
             ImportFileRequestedHandler::class,
             'handle',
         ],
-        'ENGINES_IMPORT_FILE_REQUESTED' => [
+        VehiclesEventName::EnginesImportFileRequested->value => [
             ImportFileRequestedHandler::class,
             'handle',
         ],
-        'MODIFICATIONS_IMPORT_FILE_REQUESTED' => [
+        VehiclesEventName::ModificationsImportFileRequested->value => [
             ImportFileRequestedHandler::class,
             'handle',
         ],
-        'ENGINE_GROUPS_IMPORT_FILE_REQUESTED' => [
+        // TODO: заменить на VehiclesEventName после обновления dan-wire-contracts в этом приложении.
+        'ENGINE_MODIFICATIONS_IMPORT_FILE_REQUESTED' => [
             ImportFileRequestedHandler::class,
             'handle',
         ],
-        'SPARK_PLUGS_IMPORT_FILE_REQUESTED' => [
+        VehiclesEventName::EngineGroupsImportFileRequested->value => [
             ImportFileRequestedHandler::class,
             'handle',
         ],
-        'MANUFACTURERS_IMPORT_FILE_REQUESTED' => [
+        VehiclesEventName::SparkPlugsImportFileRequested->value => [
+            ImportFileRequestedHandler::class,
+            'handle',
+        ],
+        VehiclesEventName::ManufacturersImportFileRequested->value => [
             ImportFileRequestedHandler::class,
             'handle',
         ],
@@ -157,27 +164,36 @@ return [
         | (см. Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler
         | и Export\Application\Factories\ExportFileFactory).
         */
-        'VEHICLES_EXPORT_FILE_REQUESTED' => [
+        VehiclesEventName::VehiclesExportFileRequested->value => [
             ExportFileRequestedHandler::class,
             'handle',
         ],
-        'ENGINES_EXPORT_FILE_REQUESTED' => [
+        VehiclesEventName::EnginesExportFileRequested->value => [
             ExportFileRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_NOMENCLATURE_EXPORT_FILE_REQUESTED' => [
+        // TODO: заменить на VehiclesEventName после обновления dan-wire-contracts в этом приложении.
+        'MODIFICATIONS_EXPORT_FILE_REQUESTED' => [
+            ExportFileRequestedHandler::class,
+            'handle',
+        ],
+        'ENGINE_MODIFICATIONS_EXPORT_FILE_REQUESTED' => [
+            ExportFileRequestedHandler::class,
+            'handle',
+        ],
+        VehiclesEventName::WarehouseNomenclatureExportFileRequested->value => [
             WarehouseExportFileRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_PACK_DIMENSION_EXPORT_FILE_REQUESTED' => [
+        VehiclesEventName::WarehousePackDimensionExportFileRequested->value => [
             WarehouseExportFileRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_KIT_EXPORT_FILE_REQUESTED' => [
+        VehiclesEventName::WarehouseKitExportFileRequested->value => [
             WarehouseExportFileRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_WIPER_ADAPTER_AUDIT_EXPORT_FILE_REQUESTED' => [
+        VehiclesEventName::WarehouseWiperAdapterAuditExportFileRequested->value => [
             WarehouseExportFileRequestedHandler::class,
             'handle',
         ],
@@ -188,137 +204,137 @@ return [
         | (см. Warehouse\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler
         | и Warehouse\Import\Application\Factories\ImportFileFactory).
         */
-        'WAREHOUSE_NOMENCLATURE_IMPORT_FILE_REQUESTED' => [
+        VehiclesEventName::WarehouseNomenclatureImportFileRequested->value => [
             WarehouseImportFileRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_PACK_DIMENSION_IMPORT_FILE_REQUESTED' => [
+        VehiclesEventName::WarehousePackDimensionImportFileRequested->value => [
             WarehouseImportFileRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_KIT_IMPORT_FILE_REQUESTED' => [
+        VehiclesEventName::WarehouseKitImportFileRequested->value => [
             WarehouseImportFileRequestedHandler::class,
             'handle',
         ],
-        'APPLICABILITY_IMPORT_FILE_REQUESTED' => [
+        VehiclesEventName::ApplicabilityImportFileRequested->value => [
             ApplicabilityImportFileRequestedHandler::class,
             'handle',
         ],
-        'APPLICABILITY_EXPORT_FILE_REQUESTED' => [
+        VehiclesEventName::ApplicabilityExportFileRequested->value => [
             ApplicabilityExportFileRequestedHandler::class,
             'handle',
         ],
-        'APPLICABILITY_CALCULATION_REQUESTED' => [
+        VehiclesEventName::ApplicabilityCalculationRequested->value => [
             ApplicabilityCalculationRequestedHandler::class,
             'handle',
         ],
 
-        'WAREHOUSE_BRAND_CREATE_REQUESTED' => [
+        VehiclesEventName::WarehouseBrandCreateRequested->value => [
             WarehouseBrandMutationRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_BRAND_UPDATE_REQUESTED' => [
+        VehiclesEventName::WarehouseBrandUpdateRequested->value => [
             WarehouseBrandMutationRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_BRAND_DELETE_REQUESTED' => [
+        VehiclesEventName::WarehouseBrandDeleteRequested->value => [
             WarehouseBrandMutationRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_NOMENCLATURE_CREATE_REQUESTED' => [
+        VehiclesEventName::WarehouseNomenclatureCreateRequested->value => [
             WarehouseNomenclatureMutationRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_NOMENCLATURE_UPDATE_REQUESTED' => [
+        VehiclesEventName::WarehouseNomenclatureUpdateRequested->value => [
             WarehouseNomenclatureMutationRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_NOMENCLATURE_DELETE_REQUESTED' => [
+        VehiclesEventName::WarehouseNomenclatureDeleteRequested->value => [
             WarehouseNomenclatureMutationRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_PACK_DIMENSION_CREATE_REQUESTED' => [
+        VehiclesEventName::WarehousePackDimensionCreateRequested->value => [
             WarehousePackDimensionMutationRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_PACK_DIMENSION_UPDATE_REQUESTED' => [
+        VehiclesEventName::WarehousePackDimensionUpdateRequested->value => [
             WarehousePackDimensionMutationRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_PACK_DIMENSION_DELETE_REQUESTED' => [
+        VehiclesEventName::WarehousePackDimensionDeleteRequested->value => [
             WarehousePackDimensionMutationRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_KIT_CREATE_REQUESTED' => [
+        VehiclesEventName::WarehouseKitCreateRequested->value => [
             WarehouseKitMutationRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_KIT_UPDATE_REQUESTED' => [
+        VehiclesEventName::WarehouseKitUpdateRequested->value => [
             WarehouseKitMutationRequestedHandler::class,
             'handle',
         ],
-        'WAREHOUSE_KIT_DELETE_REQUESTED' => [
+        VehiclesEventName::WarehouseKitDeleteRequested->value => [
             WarehouseKitMutationRequestedHandler::class,
             'handle',
         ],
 
-        'VEHICLE_CREATE_REQUESTED' => [
+        VehiclesEventName::VehicleCreateRequested->value => [
             VehicleMutationRequestedHandler::class,
             'handle',
         ],
-        'VEHICLE_UPDATE_REQUESTED' => [
+        VehiclesEventName::VehicleUpdateRequested->value => [
             VehicleMutationRequestedHandler::class,
             'handle',
         ],
-        'VEHICLE_DELETE_REQUESTED' => [
+        VehiclesEventName::VehicleDeleteRequested->value => [
             VehicleMutationRequestedHandler::class,
             'handle',
         ],
-        'MANUFACTURER_CREATE_REQUESTED' => [
+        VehiclesEventName::ManufacturerCreateRequested->value => [
             ManufacturerMutationRequestedHandler::class,
             'handle',
         ],
-        'MANUFACTURER_UPDATE_REQUESTED' => [
+        VehiclesEventName::ManufacturerUpdateRequested->value => [
             ManufacturerMutationRequestedHandler::class,
             'handle',
         ],
-        'MANUFACTURER_DELETE_REQUESTED' => [
+        VehiclesEventName::ManufacturerDeleteRequested->value => [
             ManufacturerMutationRequestedHandler::class,
             'handle',
         ],
-        'ENGINE_CREATE_REQUESTED' => [
+        VehiclesEventName::EngineCreateRequested->value => [
             EngineMutationRequestedHandler::class,
             'handle',
         ],
-        'ENGINE_UPDATE_REQUESTED' => [
+        VehiclesEventName::EngineUpdateRequested->value => [
             EngineMutationRequestedHandler::class,
             'handle',
         ],
-        'ENGINE_DELETE_REQUESTED' => [
+        VehiclesEventName::EngineDeleteRequested->value => [
             EngineMutationRequestedHandler::class,
             'handle',
         ],
-        'MODIFICATION_CREATE_REQUESTED' => [
+        VehiclesEventName::ModificationCreateRequested->value => [
             ModificationMutationRequestedHandler::class,
             'handle',
         ],
-        'MODIFICATION_UPDATE_REQUESTED' => [
+        VehiclesEventName::ModificationUpdateRequested->value => [
             ModificationMutationRequestedHandler::class,
             'handle',
         ],
-        'MODIFICATION_DELETE_REQUESTED' => [
+        VehiclesEventName::ModificationDeleteRequested->value => [
             ModificationMutationRequestedHandler::class,
             'handle',
         ],
-        'PART_SPECIFICATION_CREATE_REQUESTED' => [
+        VehiclesEventName::PartSpecificationCreateRequested->value => [
             PartSpecificationMutationRequestedHandler::class,
             'handle',
         ],
-        'PART_SPECIFICATION_UPDATE_REQUESTED' => [
+        VehiclesEventName::PartSpecificationUpdateRequested->value => [
             PartSpecificationMutationRequestedHandler::class,
             'handle',
         ],
-        'PART_SPECIFICATION_DELETE_REQUESTED' => [
+        VehiclesEventName::PartSpecificationDeleteRequested->value => [
             PartSpecificationMutationRequestedHandler::class,
             'handle',
         ],
@@ -336,15 +352,15 @@ return [
     | Публикуется из Export\Infrastructure\Notifications\RabbitMqExportNotificationService.
     */
     'outbound' => [
-        'VEHICLES_FILE_EXPORTED' => 'vehicles.file.exported',
-        'WAREHOUSE_FILE_EXPORTED' => 'warehouse.file.exported',
-        'VEHICLES_IMPORT_COMPLETED' => 'vehicles.import.completed',
-        'WAREHOUSE_IMPORT_COMPLETED' => 'warehouse.import.completed',
-        'APPLICABILITY_IMPORT_COMPLETED' => 'applicability.import.completed',
-        'APPLICABILITY_FILE_EXPORTED' => 'applicability.file.exported',
-        'APPLICABILITY_CALCULATION_COMPLETED' => 'applicability.calculation.completed',
-        'VEHICLES_CATALOG_MUTATION_COMPLETED' => 'vehicles.catalog.mutation.completed',
-        'WAREHOUSE_CATALOG_MUTATION_COMPLETED' => 'warehouse.catalog.mutation.completed',
+        VehiclesEventName::VehiclesFileExported->value => 'vehicles.file.exported',
+        VehiclesEventName::WarehouseFileExported->value => 'warehouse.file.exported',
+        VehiclesEventName::VehiclesImportCompleted->value => 'vehicles.import.completed',
+        VehiclesEventName::WarehouseImportCompleted->value => 'warehouse.import.completed',
+        VehiclesEventName::ApplicabilityImportCompleted->value => 'applicability.import.completed',
+        VehiclesEventName::ApplicabilityFileExported->value => 'applicability.file.exported',
+        VehiclesEventName::ApplicabilityCalculationCompleted->value => 'applicability.calculation.completed',
+        VehiclesEventName::VehiclesCatalogMutationCompleted->value => 'vehicles.catalog.mutation.completed',
+        VehiclesEventName::WarehouseCatalogMutationCompleted->value => 'warehouse.catalog.mutation.completed',
     ],
 
     /*
@@ -374,51 +390,56 @@ return [
         | (импорт) или data.export_type (экспорт).
         */
         'bindings' => [
-            'crm.vehicles.import',
-            'crm.engines.import',
-            'crm.modifications.import',
-            'crm.engine-groups.import',
-            'crm.spark-plugs.import',
-            'crm.manufacturers.import',
-            'crm.vehicles.export',
-            'crm.engines.export',
-            'crm.warehouse.nomenclatures.export',
-            'crm.warehouse.pack-dimensions.export',
-            'crm.warehouse.kits.export',
-            'crm.warehouse.wiper-adapter-audit.export',
-            'crm.warehouse.nomenclatures.import',
-            'crm.warehouse.pack-dimensions.import',
-            'crm.warehouse.kits.import',
-            'crm.applicability.import',
-            'crm.applicability.export',
-            'crm.applicability.calculate',
-            'crm.warehouse.brands.create',
-            'crm.warehouse.brands.update',
-            'crm.warehouse.brands.delete',
-            'crm.warehouse.nomenclatures.create',
-            'crm.warehouse.nomenclatures.update',
-            'crm.warehouse.nomenclatures.delete',
-            'crm.warehouse.pack-dimensions.create',
-            'crm.warehouse.pack-dimensions.update',
-            'crm.warehouse.pack-dimensions.delete',
-            'crm.warehouse.kits.create',
-            'crm.warehouse.kits.update',
-            'crm.warehouse.kits.delete',
-            'crm.vehicles.create',
-            'crm.vehicles.update',
-            'crm.vehicles.delete',
-            'crm.manufacturers.create',
-            'crm.manufacturers.update',
-            'crm.manufacturers.delete',
-            'crm.engines.create',
-            'crm.engines.update',
-            'crm.engines.delete',
-            'crm.modifications.create',
-            'crm.modifications.update',
-            'crm.modifications.delete',
-            'crm.part-specifications.create',
-            'crm.part-specifications.update',
-            'crm.part-specifications.delete',
+            VehiclesRoutingKey::VehiclesImport->value,
+            VehiclesRoutingKey::EnginesImport->value,
+            VehiclesRoutingKey::ModificationsImport->value,
+            // TODO: заменить на VehiclesRoutingKey после обновления dan-wire-contracts в этом приложении.
+            'crm.engine-modifications.import',
+            VehiclesRoutingKey::EngineGroupsImport->value,
+            VehiclesRoutingKey::SparkPlugsImport->value,
+            VehiclesRoutingKey::ManufacturersImport->value,
+            VehiclesRoutingKey::VehiclesExport->value,
+            VehiclesRoutingKey::EnginesExport->value,
+            // TODO: заменить на VehiclesRoutingKey после обновления dan-wire-contracts в этом приложении.
+            'crm.modifications.export',
+            'crm.engine-modifications.export',
+            VehiclesRoutingKey::WarehouseNomenclatureExport->value,
+            VehiclesRoutingKey::WarehousePackDimensionExport->value,
+            VehiclesRoutingKey::WarehouseKitExport->value,
+            VehiclesRoutingKey::WarehouseWiperAdapterAuditExport->value,
+            VehiclesRoutingKey::WarehouseNomenclatureImport->value,
+            VehiclesRoutingKey::WarehousePackDimensionImport->value,
+            VehiclesRoutingKey::WarehouseKitImport->value,
+            VehiclesRoutingKey::ApplicabilityImport->value,
+            VehiclesRoutingKey::ApplicabilityExport->value,
+            VehiclesRoutingKey::ApplicabilityCalculate->value,
+            VehiclesRoutingKey::WarehouseBrandCreate->value,
+            VehiclesRoutingKey::WarehouseBrandUpdate->value,
+            VehiclesRoutingKey::WarehouseBrandDelete->value,
+            VehiclesRoutingKey::WarehouseNomenclatureCreate->value,
+            VehiclesRoutingKey::WarehouseNomenclatureUpdate->value,
+            VehiclesRoutingKey::WarehouseNomenclatureDelete->value,
+            VehiclesRoutingKey::WarehousePackDimensionCreate->value,
+            VehiclesRoutingKey::WarehousePackDimensionUpdate->value,
+            VehiclesRoutingKey::WarehousePackDimensionDelete->value,
+            VehiclesRoutingKey::WarehouseKitCreate->value,
+            VehiclesRoutingKey::WarehouseKitUpdate->value,
+            VehiclesRoutingKey::WarehouseKitDelete->value,
+            VehiclesRoutingKey::VehicleCreate->value,
+            VehiclesRoutingKey::VehicleUpdate->value,
+            VehiclesRoutingKey::VehicleDelete->value,
+            VehiclesRoutingKey::ManufacturerCreate->value,
+            VehiclesRoutingKey::ManufacturerUpdate->value,
+            VehiclesRoutingKey::ManufacturerDelete->value,
+            VehiclesRoutingKey::EngineCreate->value,
+            VehiclesRoutingKey::EngineUpdate->value,
+            VehiclesRoutingKey::EngineDelete->value,
+            VehiclesRoutingKey::ModificationCreate->value,
+            VehiclesRoutingKey::ModificationUpdate->value,
+            VehiclesRoutingKey::ModificationDelete->value,
+            VehiclesRoutingKey::PartSpecificationCreate->value,
+            VehiclesRoutingKey::PartSpecificationUpdate->value,
+            VehiclesRoutingKey::PartSpecificationDelete->value,
         ],
 
         'dead_letter' => [

@@ -9,8 +9,6 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\VehicleExport
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\AbstractMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\ReferenceSheetExport;
-use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\Sheets\VehicleMainSheetExport;
-use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\Sheets\VehicleWipersSheetExport;
 
 /**
  * Laravel Excel adapter multi-sheet export-а автомобилей.

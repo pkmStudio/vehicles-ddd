@@ -14,13 +14,13 @@ final class FeatureValueData extends Data
     /**
      * @param  int  $featureId  идентификатор справочной фичи
      * @param  string  $name  display name значения
-     * @param  string|null  $shortCode  короткий код значения для export details
+     * @param  string  $shortCode  короткий код значения для export details
      * @param  int|null  $id  локальный database id
      */
     public function __construct(
         public readonly int $featureId,
         public readonly string $name,
-        public readonly ?string $shortCode = null,
+        public readonly string $shortCode,
         public readonly ?int $id = null,
     ) {}
 }

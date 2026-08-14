@@ -8,15 +8,16 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\VehicleComma
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\PartSpecification\VehiclePartSpecificationOwnerResolverInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\Vehicle\VehicleMutationWritePolicyInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpecificationOwnerDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpecificationOwnerResolutionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpecificationOwnerVehicleDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\ResolvedPartSpecificationOwnerDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleMutationWriteContextDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\VehicleData;
+use App\Modules\Vehicles\Shared\Domain\DTOs\VehicleWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\VehicleWritePolicy;
 
 /**
  * Разрешает автомобиль-владелец PartSpecification, создавая или обновляя его при наличии payload.
@@ -35,7 +36,7 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
         private VehicleRepositoryInterface $vehicles,
         private ManufacturerRepositoryInterface $manufacturers,
         private VehicleCommandInterface $command,
-        private VehicleMutationWritePolicyInterface $writePolicy,
+        private VehicleWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -74,14 +75,19 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
             );
         }
 
-        $writeContext = new VehicleMutationWriteContextDTO(
-            ownerExternalId: $owner->externalId,
-        );
-        $vehicleData = $this->writePolicy->applyForUpdate(
-            incoming: $incomingData,
-            existing: $existing,
-            context: $writeContext,
-        );
+        try {
+            $writeResult = $this->writePolicy->apply(
+                incoming: VehicleWritePolicyResultDTO::fromArray($incomingData->toArray()),
+                existing: VehicleWritePolicyResultDTO::fromArray($existing->toArray()),
+                sourceProvider: $incomingData->provider,
+            );
+        } catch (ProviderOwnershipException) {
+            return new PartSpecificationOwnerResolutionDTO(
+                owner: null,
+                rejectReason: CatalogMutationRejectReasonEnum::ProviderOwnershipConflict,
+            );
+        }
+        $vehicleData = VehicleData::from($writeResult->toArray());
 
         $vehicle = $this->command->update($vehicleData);
 
@@ -120,13 +126,12 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
             );
         }
 
-        $writeContext = new VehicleMutationWriteContextDTO(
-            ownerExternalId: $owner->externalId,
+        $writeResult = $this->writePolicy->apply(
+            incoming: VehicleWritePolicyResultDTO::fromArray($incomingData->toArray()),
+            existing: null,
+            sourceProvider: $incomingData->provider,
         );
-        $vehicleData = $this->writePolicy->applyForCreate(
-            incoming: $incomingData,
-            context: $writeContext,
-        );
+        $vehicleData = VehicleData::from($writeResult->toArray());
 
         $vehicle = $this->command->create($vehicleData);
 
@@ -150,7 +155,7 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
         ?VehicleData $existing = null,
     ): VehicleData|CatalogMutationRejectReasonEnum {
         $writesCatalogManagedFields = $existing === null
-            || $this->writePolicy->allowsCatalogManagedFields($existing);
+            || $this->writePolicy->allowsCatalogManagedFields(VehicleWritePolicyResultDTO::fromArray($existing->toArray()));
         $manufacturerId = $existing?->manufacturerId;
 
         if ($writesCatalogManagedFields) {
@@ -186,6 +191,7 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
             generationYearFrom: $payload->generationYearFrom,
             generationYearTo: $payload->generationYearTo,
             parentId: $parentId,
+            parentMsId: $payload->parentMsId,
             excelTableId: $payload->excelTableId,
             localizedName: $payload->localizedName,
             generationShort: $payload->generationShort,

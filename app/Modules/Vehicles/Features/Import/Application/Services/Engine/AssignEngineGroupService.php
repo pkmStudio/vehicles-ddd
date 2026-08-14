@@ -55,6 +55,11 @@ final readonly class AssignEngineGroupService implements AssignEngineGroupServic
         $updatedEngine = new EngineData(
             engId: $engine->engId,
             provider: $engine->provider,
+            codeEngine: $engine->codeEngine,
+            powerKwStart: $engine->powerKwStart,
+            powerPsStart: $engine->powerPsStart,
+            fuelType: $engine->fuelType,
+            allowChangeFields: $engine->allowChangeFields,
             id: $engine->id,
             groupId: $groupId,
         );

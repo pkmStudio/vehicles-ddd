@@ -148,7 +148,7 @@ final readonly class UpsertVehicleFromRowService implements UpsertVehicleFromRow
     private function resolveManufacturer(int &$minMfaId, VehicleSheetRowDTO $row): array
     {
         $manufacturer = $row->mfaId === null
-            ? $this->manufacturers->findByName((string) $row->manufacturerName)
+            ? $this->manufacturers->findByName($row->manufacturerName)
             : $this->manufacturers->findByMfaId($row->mfaId);
 
         if (! $manufacturer) {

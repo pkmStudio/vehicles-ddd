@@ -129,9 +129,9 @@ final readonly class PartSpecificationMutationPayloadValidator
             'part_specification.owner.vehicle.generation_year_to' => ['nullable', 'integer', 'min:1900', 'max:2155'],
             'part_specification.owner.vehicle.type' => ['required_with:part_specification.owner.vehicle', 'string', Rule::in($this->enumValues(VehicleTypeEnum::cases()))],
             'part_specification.owner.vehicle.type_carcase' => ['required_with:part_specification.owner.vehicle', 'string', Rule::in($this->enumValues(CarcaseTypeEnum::cases()))],
-            'part_specification.owner.vehicle.provider' => ['nullable', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
-            'part_specification.owner.vehicle.steering_type' => ['nullable', 'string', Rule::in($this->enumValues(SteeringTypeEnum::cases()))],
-            'part_specification.owner.vehicle.is_allow' => ['sometimes', 'boolean'],
+            'part_specification.owner.vehicle.provider' => ['required_with:part_specification.owner.vehicle', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
+            'part_specification.owner.vehicle.steering_type' => ['required_with:part_specification.owner.vehicle', 'string', Rule::in($this->enumValues(SteeringTypeEnum::cases()))],
+            'part_specification.owner.vehicle.is_allow' => ['required_with:part_specification.owner.vehicle', 'boolean'],
         ];
     }
 
@@ -149,17 +149,18 @@ final readonly class PartSpecificationMutationPayloadValidator
     {
         return [
             'part_specification.owner.engine' => ['nullable', 'array'],
-            'part_specification.owner.engine.code_engine' => ['nullable', 'string', 'max:255'],
-            'part_specification.owner.engine.power_kw_start' => ['nullable', 'integer'],
+            'part_specification.owner.engine.code_engine' => ['required_with:part_specification.owner.engine', 'string', 'max:255'],
+            'part_specification.owner.engine.power_kw_start' => ['required_with:part_specification.owner.engine', 'integer'],
             'part_specification.owner.engine.power_kw_upto' => ['nullable', 'integer'],
-            'part_specification.owner.engine.power_ps_start' => ['nullable', 'integer'],
+            'part_specification.owner.engine.power_ps_start' => ['required_with:part_specification.owner.engine', 'integer'],
             'part_specification.owner.engine.power_ps_upto' => ['nullable', 'integer'],
             'part_specification.owner.engine.engine_capacity' => ['nullable', 'string', 'max:255'],
             'part_specification.owner.engine.cylinder_diameter' => ['nullable', 'numeric'],
             'part_specification.owner.engine.cylinder_count' => ['nullable', 'integer'],
             'part_specification.owner.engine.number_of_valves' => ['nullable', 'integer'],
-            'part_specification.owner.engine.fuel_type' => ['nullable', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
+            'part_specification.owner.engine.fuel_type' => ['required_with:part_specification.owner.engine', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
             'part_specification.owner.engine.group_id' => ['nullable', 'integer'],
+            'part_specification.owner.engine.provider' => ['required_with:part_specification.owner.engine', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
         ];
     }
 

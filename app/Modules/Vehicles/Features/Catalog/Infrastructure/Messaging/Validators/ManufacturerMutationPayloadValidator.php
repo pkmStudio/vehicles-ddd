@@ -48,7 +48,7 @@ final readonly class ManufacturerMutationPayloadValidator
         if ($operation === CatalogMutationOperationEnum::Create->value || $operation === CatalogMutationOperationEnum::Update->value) {
             $rules += [
                 'manufacturer.name' => ['required', 'string', 'max:255'],
-                'manufacturer.provider' => ['nullable', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
+                'manufacturer.provider' => ['required', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
             ];
         }
 

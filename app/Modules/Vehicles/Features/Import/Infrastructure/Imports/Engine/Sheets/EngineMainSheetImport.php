@@ -94,7 +94,6 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
             try {
                 DB::transaction(function () use ($rowMapper, $rowValues, $service): void {
                     $engineRow = $rowMapper->map($rowValues);
-
                     $service->upsertFromRow($engineRow);
                 });
             } catch (ImportRowValidationException $e) {

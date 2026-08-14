@@ -212,10 +212,6 @@ final readonly class CreateModificationUseCase
         $engines = [];
 
         foreach ($requests as $request) {
-            if ($request->engId === null) {
-                return null;
-            }
-
             $engine = $this->engines->findByEngId($request->engId);
             if ($engine === null) {
                 return null;

@@ -7,6 +7,8 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Ma
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 
 /**
  * Переводит строку командного импорта ТС в DTO TecDoc-формата.
@@ -54,15 +56,46 @@ final readonly class VehicleTdRowMapper
      */
     public function map(array $row): VehicleTdRowDTO
     {
+        $type = $this->formatter->requiredString($row[self::TYPE] ?? null, 'type');
+        $typeCarcase = $this->typeCarcase(
+            type: $type,
+            value: $this->formatter->nullableString($row[self::TYPE_CARCASE] ?? null),
+        );
+
         return new VehicleTdRowDTO(
             mfaId: $this->formatter->requiredInt($row[self::MFA_ID] ?? null, 'mfa_id'),
             msId: $this->formatter->requiredInt($row[self::MS_ID] ?? null, 'ms_id'),
             name: $this->formatter->requiredString($row[self::NAME] ?? null, 'name'),
             generation: $this->formatter->requiredString($row[self::GENERATION] ?? null, 'generation'),
-            typeCarcase: $this->formatter->nullableString($row[self::TYPE_CARCASE] ?? null),
+            typeCarcase: $typeCarcase,
             generationYearFrom: $this->formatter->requiredInt($row[self::GENERATION_YEAR_FROM] ?? null, 'generation_year_from'),
             generationYearTo: $this->formatter->nullableInt($row[self::GENERATION_YEAR_TO] ?? null, 'generation_year_to'),
-            type: $this->formatter->requiredString($row[self::TYPE] ?? null, 'type'),
+            type: $type,
         );
+    }
+
+    /**
+     * Возвращает обязательный type_carcase для TecDoc vehicle row.
+     *
+     * Шаги:
+     * 1) Если колонка заполнена — использовать значение TecDoc как есть.
+     * 2) Если TecDoc не передал кузов для мототехники — явно проставить Motorcycle.
+     * 3) Для остальных типов выбросить import validation error.
+     *
+     * @throws ImportRowValidationException
+     */
+    private function typeCarcase(string $type, ?string $value): string
+    {
+        if ($value !== null && $value !== '') {
+            return $value;
+        }
+
+        if ($type === VehicleTypeEnum::MB->value) {
+            return CarcaseTypeEnum::MOTORCYCLE->value;
+        }
+
+        throw ImportRowValidationException::fromMessages([
+            'type_carcase' => ['Поле type_carcase обязательно.'],
+        ]);
     }
 }

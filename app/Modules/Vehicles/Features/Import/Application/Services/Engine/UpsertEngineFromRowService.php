@@ -9,6 +9,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\EngineDataFa
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Shared\Domain\DTOs\EngineWritePolicyResultDTO;
@@ -44,17 +45,20 @@ final readonly class UpsertEngineFromRowService implements UpsertEngineFromRowSe
      * Создает или обновляет двигатель из import row DTO.
      *
      * Шаги:
-     * 1) Разрешить eng_id через DTO: использовать переданный или сгенерировать отрицательный.
-     * 2) Собрать EngineData через factory.
+     * 1) Разрешить eng_id для sheet DTO: использовать переданный или сгенерировать отрицательный.
+     * 2) Собрать EngineData через factory-метод конкретного row DTO.
      * 3) Найти существующий двигатель по eng_id.
      * 4) Выполнить create/update через command.
      * 5) Опубликовать catalog mutation event с operation id из DTO.
      *
      * @throws ImportRowValidationException
      */
-    public function upsertFromRow(EngineSheetRowDTO $row): EngineData
+    public function upsertFromRow(EngineSheetRowDTO|EngineTdRowDTO $row): EngineData
     {
-        $data = $this->factory->make($this->resolveEngId($row));
+        $row = $this->resolveEngId($row);
+        $data = $row instanceof EngineTdRowDTO
+            ? $this->factory->makeFromTdRow($row)
+            : $this->factory->makeFromSheetRow($row);
         $existing = $this->engines->findByEngId($data->engId);
         try {
             $writeResult = $this->writePolicy->apply(
@@ -77,14 +81,14 @@ final readonly class UpsertEngineFromRowService implements UpsertEngineFromRowSe
             provider: $engine->provider,
             codeEngine: $engine->codeEngine,
             powerKwStart: $engine->powerKwStart,
-            powerKwUpto: $engine->powerKwUpto,
             powerPsStart: $engine->powerPsStart,
+            fuelType: $engine->fuelType,
+            powerKwUpto: $engine->powerKwUpto,
             powerPsUpto: $engine->powerPsUpto,
             engineCapacity: $engine->engineCapacity,
             cylinderDiameter: $engine->cylinderDiameter,
             cylinderCount: $engine->cylinderCount,
             numberOfValves: $engine->numberOfValves,
-            fuelType: $engine->fuelType,
             groupId: $engine->groupId,
             allowChangeFields: $engine->allowChangeFields,
         );
@@ -104,8 +108,12 @@ final readonly class UpsertEngineFromRowService implements UpsertEngineFromRowSe
      * 2) Если DTO запрещает generated id — вернуть DTO без изменений, чтобы factory отдала validation error.
      * 3) Иначе взять минимальный eng_id и назначить следующий отрицательный.
      */
-    private function resolveEngId(EngineSheetRowDTO $row): EngineSheetRowDTO
+    private function resolveEngId(EngineSheetRowDTO|EngineTdRowDTO $row): EngineSheetRowDTO|EngineTdRowDTO
     {
+        if ($row instanceof EngineTdRowDTO) {
+            return $row;
+        }
+
         if ($row->engId !== null || ! $row->generateNegativeEngIdWhenMissing) {
             return $row;
         }

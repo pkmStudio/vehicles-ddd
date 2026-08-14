@@ -35,6 +35,10 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
 {
     use CachesImportFailures;
 
+    private const int MS_ID = 0;
+
+    private const int MOD_ID = 1;
+
     private const int SPEC_START_COLUMN = 2;
 
     private ?ImportRunContextDTO $context = null;
@@ -44,28 +48,12 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
     private ?TemplatesClientInterface $templates = null;
 
     /**
-     * Получить зависимости для импорта свечей по модификациям.
-     *
-     * Шаги:
-     * 1) Принять сервис сохранения спецификации свечей по модификации.
-     * 2) Принять клиент Templates для сборки details.
-     * 3) Сохранить зависимости до сериализации задания очереди.
-     */
-    public function __construct(
-        UpsertSparkPlugSpecByModificationServiceInterface $service,
-        TemplatesClientInterface $templates,
-    ) {
-        $this->service = $service;
-        $this->templates = $templates;
-    }
-
-    /**
      * Подготовить import свечей к сериализации в очередь.
      *
      * Шаги:
      * 1) Сохранить контекст запуска импорта.
      * 2) Сохранить ключ списка ошибок и ключ блокировки.
-     * 3) Не сериализовать сервис и клиент Templates.
+     * 3) Оставить runtime-зависимости для ленивого получения из контейнера.
      *
      * @return array<string, mixed>
      */
@@ -136,8 +124,8 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
     {
         foreach ($collection as $index => $row) {
             $rowNumber = $index + $this->startRow();
-            $msId = $row[0] ?? null;
-            $modId = $row[1] ?? null;
+            $msId = $row[self::MS_ID] ?? null;
+            $modId = $row[self::MOD_ID] ?? null;
 
             if (! is_numeric($msId) || ! is_numeric($modId)) {
                 $this->onFailure(new Failure(
@@ -255,8 +243,8 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
      * Получить сервис сохранения свечей по модификации.
      *
      * Шаги:
-     * 1) Вернуть уже переданный сервис, если import не проходил через очередь.
-     * 2) Иначе резолвить сервис из контейнера во время обработки.
+     * 1) Лениво получить сервис из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
     private function service(): UpsertSparkPlugSpecByModificationServiceInterface
     {
@@ -267,8 +255,8 @@ final class EngineSparkPlugSpecificationImport implements EngineSparkPlugSpecifi
      * Получить клиент Templates для сборки details.
      *
      * Шаги:
-     * 1) Вернуть уже переданный клиент, если import не проходил через очередь.
-     * 2) Иначе резолвить клиент из контейнера во время обработки.
+     * 1) Лениво получить клиент из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
     private function templates(): TemplatesClientInterface
     {
