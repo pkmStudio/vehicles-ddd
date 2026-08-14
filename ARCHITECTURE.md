@@ -18,6 +18,36 @@
 
 > Здесь фиксируется **целевое состояние конвенций**, а не история перехода.
 
+## Как читать этот документ
+
+`ARCHITECTURE.md` — основной источник правды по архитектуре проекта. Он отвечает на вопросы:
+**как выбрать модуль и фичу, куда положить файл, как назвать класс, кто за что отвечает и какие
+правила нельзя нарушать**. `.ai-factory/ARCHITECTURE.md` — короткая выжимка этих же правил для
+AI Factory workflow и быстрого напоминания; если между документами появляется расхождение,
+приоритет у этого файла.
+
+При добавлении нового функционала двигаемся сверху вниз:
+
+1. **Определи владельца возможности.** Сначала выбираем bounded context/module (`Vehicles`,
+   `Warehouse`, `Applicability`, `Templates`), затем feature (`Catalog`, `Import`, `Export`,
+   `Calculation`, `Maintenance`, ...). Владельцем считается модуль, который хранит состояние и
+   бизнес-словарь сущности.
+2. **Определи тип сценария.** Это внешний command/request, read API, импорт/экспорт, доменное
+   правило записи, межфичевое чтение, реакция на событие или разовый maintenance fix.
+3. **Проведи границу.** Если сценарий читает чужие данные — нужен public read client/contract
+   владельца. Если сообщает факт — domain event. Если пишет состояние — use case/service своей
+   фичи через `Command`; не через чужой client.
+4. **Собери вертикальный срез.** Entry point в `Presentation` или `Infrastructure/Messaging`,
+   orchestration в `Application`, contracts/data/events в `Domain`, IO/DB/framework adapters в
+   `Infrastructure`.
+5. **Проверь naming и строгость.** Имена должны говорить о бизнес-действии и источнике данных
+   (`FromTdRow`, `FromSheetRow`, `CrmController`, `NotificationService`). DTO/Data должны быть
+   строгими: обязательные поля обязательны, provider/source задаётся явно, raw arrays не проходят
+   дальше mapper/presenter boundary.
+
+Если непонятно, куда положить класс, сначала ответь: **это декларация контракта, сценарий,
+правило, адаптер внешнего мира или точка входа?** Ответ определяет слой.
+
 Правило зависимостей (Dependency Rule) действует **внутри каждой фичи**: стрелки внутрь.
 
 ```
@@ -34,6 +64,25 @@ Presentation ──▶ Application ──▶ Domain
 - **Infrastructure** реализует порты фичи: Eloquent-**Models**, Repositories, Commands,
   Excel-Imports/Exports, Notifications, Providers. Тащит фреймворк/внешний мир.
 - **Presentation** — точки входа фичи (console, http), максимально тонкие, дёргают Application.
+
+### Быстрая карта ответственности
+
+| Тип класса | Слой | Ответственность | Чего не делает |
+|---|---|---|---|
+| `*UseCase` | `Application/UseCases` | Внешний сценарий целиком: принять typed input, вызвать services/ports, вернуть result/запустить workflow. | Не имеет интерфейса в Domain, не читает raw HTTP/Rabbit/Excel payload, не работает с Eloquent/Excel/Rabbit напрямую. |
+| `*Service` | `Application/Services` | Прикладное правило или шаг сценария, который переиспользуется несколькими entrypoint'ами/use cases. | Не парсит сырой внешний формат и не выбирает concrete infrastructure adapter. |
+| `*WritePolicy` / `*Policy` | `Application/Services/Policy` или feature-local `Application/Services/<Entity>` | Чистое правило записи/ownership/allow-change, которое определяет итоговые поля перед `Command`. | Не сохраняет в БД, не логирует successful path, не знает Excel/Rabbit/HTTP. |
+| `*Factory` в `Application` | `Application/Factories` | Валидирует typed DTO и собирает `Data`/domain value/result DTO. | Не принимает raw row array и не выбирает concrete import/export adapter. |
+| `*Repository` | `Infrastructure/Repositories` + port в `Domain/Contracts/Repositories` | Читает БД и возвращает `Data`/`Collection<Data>`/`Generator<Data>`/узкие scalar reads. | Не пишет состояние и не отдаёт Eloquent наружу. |
+| `*Command` | `Infrastructure/Commands` + port в `Domain/Contracts/Commands` | Пишет БД из `Data`/DTO: `create`, `update`, `delete`, `upsert`. | Не принимает сырые массивы внешнего формата и не содержит бизнес-оркестрацию. |
+| `*RowMapper` | `Infrastructure/Imports/*/Mappers` | Единственное место, где читается raw Excel/CSV row и индексы колонок. Возвращает typed row DTO. | Не пишет БД и не вызывает use case. |
+| `*Import` / `*Export` adapter | `Infrastructure/Imports` / `Infrastructure/Exports` | Адаптер `maatwebsite/excel`, хранит только scalar/DTO/value state, резолвит зависимости worker-time. | Не хранит service/repository graph в queued state. |
+| `*Handler` | `Infrastructure/Messaging/Handlers` | Rabbit inbound adapter: validate payload, собрать DTO, вызвать use case. | Не содержит бизнес-логику и не интерфейсится. |
+| `*Controller` / Artisan command | `Presentation` | Тонкий entry point: parse/validate entrypoint parameters, вызвать use case/service, вернуть response/output. | Не работает напрямую с Eloquent и не реализует доменные правила. |
+| `*Presenter` / response DTO | `Presentation` или boundary-adapter рядом с read API | Собирает HTTP/API shape: envelope, snake_case, pagination meta/options. | Не живет в Domain `ModelData`. |
+| Domain `DTO` | `Domain/DTOs` | Typed transport/context/result собственного сценария. Механический `toArray()`/`fromArray()` допустим. | Не чинит чужой wire shape, не делает validation/defaults/config/Eloquent mapping. |
+| `*Data` | `Domain/ModelData` | Typed snapshot сущности/строки для read/write портов. | Не содержит import/export/create/update behavior и не подставляет ownership defaults. |
+| `*Event`/domain fact | `Domain/Events` или `<Module>/Shared/Domain/Events` | Факт в прошедшем времени без return value. | Не является request/response контрактом брокера и не содержит raw entity arrays. |
 
 Нарушение, за которым следим: Domain/Application фичи **не импортируют** `Maatwebsite\Excel`,
 конкретные пакеты брокера, фасады записи и т.п. — только через порты в `Domain/Contracts`.
@@ -327,7 +376,7 @@ imports/exports, notifications, public clients и других boundary-зави
 
 | Папка | Что лежит | Толщина / правила |
 |---|---|---|
-| `Services/<Entity>/` и `Services/<Group>/` | **Основной строительный блок.** Прикладные правила и координация портов | `Upsert*FromRowService`, `AssignEngineGroupService`, `ReportImportResultService`, `EngineModificationReadinessGate` (gate-логика) и т.п. Порт обязателен (`Contracts/Services/<Entity>/`). |
+| `Services/<Entity>/` и `Services/<Group>/` | **Основной строительный блок.** Прикладные правила и координация портов | `Upsert*FromRowService`, `AssignEngineGroupService`, `ReportImportResultService`, `EngineModificationReadinessGate` (gate-логика) и т.п. Если сервис является самостоятельной DI-зависимостью сценария, ему нужен порт в `Contracts/Services/<Entity>/`; мелкая внутренняя функция не превращается в отдельный service/interface только ради формы. |
 | `UseCases/<Group>/` | **Точка входа сценария**, вызываемая внешним триггером | `execute(...)`. Concrete orchestrator, который дёргают Presentation/Listener/consumer (напр. `External/StartExternalFileImportUseCase` — старт импорта по внешнему запросу). Интерфейс в `Domain/Contracts/UseCases` не заводим. Use case сам зависит от domain ports; для внутренних правил хватает `Service`. |
 | `Factories/` (плоско) | **Application-фабрики без concrete adapter selection**: (1) валидация + сборка `<Entity>Data` из typed row DTO; (2) сборка/рендер типизированной формы по enum (пара Factory+Presenter) | (1) Публичных методов может быть несколько, если у сущности несколько разных typed row DTO/источников: например `makeFromTdRow(<Entity>TdRowDTO $row)` и `makeFromSheetRow(<Entity>SheetRowDTO $row)`. Каждый метод принимает конкретный DTO своего формата; сырой Excel/CSV row (`array<int, mixed>`) заканчивается в `Infrastructure/Imports/*/Mappers`: adapter/mapper читает колонки, нормализует scalar-значения, явно проставляет контекст источника (`provider`, `allow_change_fields`, `operation_id`, generated IDs, если они являются частью формата) и возвращает typed row DTO. UseCase/Application service не принимает сырой row array и не решает, какой provider поставить. Application factory валидирует значения из DTO через Laravel Validator/`Rule::enum(...)`, приводит типы до `strict_types` конструктора `Data` и возвращает `<Entity>Data`. Factory не выбирает adapter по строковому режиму/названию файла; различие сценариев выражается типом DTO и именем метода. (2) **Factory+Presenter пара**: `DetailsDataFactory::buildFromRow(TypeEnum, array $row, int &$index): AbstractDetailsData` (сборка из строки, `match` по enum вызывает приватный сборщик на каждую ветку — это реальная построчная сборка) + симметричный `DetailsDataPresenter::toExportCells()/headingsFor()` (обратное направление, рендер в Excel-ячейки). Общий механический хелпер чтения строки (сдвиг индекса, перевод label↔name, `;`-джойн) — не в самих формах `Data`, а в отдельном стейтфул-классе (`DetailsRowCursor`), т.к. это поведение, не декларация (см. §0). Выбор конкретных import/export adapters по enum/типу запроса реализуется в `Infrastructure/Factories` или provider closure за портом `Contracts/Factories/`. |
 | `Listeners/` | Слушатели доменных событий | **ТОНКИЕ.** Делегируют в Service/UseCase. **Порт НЕ нужен** (см. ниже). |
@@ -632,6 +681,28 @@ Application-сервис напрямую, если этот сервис не �
   `readonly`, и это повод задуматься, не тянет ли класс на другое.
 
 ### Naming
+
+Нейминг должен отвечать на три вопроса: **какая сущность, какое действие, какой источник/граница**.
+Если по имени класса не понятно, это TecDoc строка, manager sheet, Rabbit command, read API или
+общее правило записи — имя слишком слабое.
+
+| Роль | Шаблон имени | Пример |
+|---|---|---|
+| Use case внешнего сценария | `<Action><Subject>UseCase` | `StartExternalFileImportUseCase`, `CalculateKitApplicabilityUseCase` |
+| Application service построчной записи | `Upsert<Entity>From<RowSource>Service` | `UpsertVehicleFromTdRowService`, `UpsertModificationFromSheetService` |
+| Общее прикладное правило | `<Entity><Rule>Service` или `<Entity><Rule>Policy` | `EngineModificationReadinessGate`, `VehicleWritePolicy` |
+| Write policy result | `<Entity>WritePolicyResultDTO` | `VehicleWritePolicyResultDTO` |
+| Row DTO из источника | `<Entity><Source>RowDTO` | `VehicleTdRowDTO`, `ManufacturerTdRowDTO`, `ModificationSheetRowDTO` |
+| Mapper строки | `<Entity><Source>RowMapper` | `VehicleTdRowMapper`, `EngineTdRowMapper` |
+| Repository port/adapter | `<Entity>RepositoryInterface` / `<Entity>Repository` | `VehicleRepositoryInterface`, `VehicleRepository` |
+| Command port/adapter | `<Entity>CommandInterface` / `<Entity>Command` | `EngineCommandInterface`, `EngineCommand` |
+| Rabbit handler/validator | `<Message>Handler` / `<Message>PayloadValidator` | `ImportFileRequestedHandler`, `CatalogMutationPayloadValidator` |
+| Notification port/adapter | `<Subject>NotificationServiceInterface` / `<Transport><Subject>NotificationService` | `FileNotificationServiceInterface`, `RabbitMqFileNotificationService` |
+| REST CRM controller | `<Entity>CrmController` | `VehicleCrmController`, `EngineCrmController` |
+| HTTP presenter/response DTO | `<Entity><Purpose>Presenter` / `<Entity><Purpose>ResponseDTO` | `VehicleCrmPresenter`, `VehicleCrmListItemDTO` |
+| CRUD event payload | `<Entity>EventPayloadDTO` | `ManufacturerEventPayloadDTO`, `VehicleEventPayloadDTO` |
+| Domain fact | `<Subject><PastTense>` без суффикса `Event` | `VehicleImportCompleted`, `EnginesAndModificationsReady` |
+
 - Сущности: `Vehicle`, `Engine`, `Modification`, `Manufacturer`, `EngineModification`,
   `PartSpecification`, `Feature`, `FeatureValue`.
 - Группировка по сущности — где на сущность несколько файлов (`Imports/<Entity>/`,
@@ -793,25 +864,48 @@ $this->service->execute(
 
 ## 6. Куда класть новое — шпаргалка
 
-Сначала выбери **фичу** (`Import`/`Export`/`Maintenance`/`Templates`), потом слой.
+Сначала выбери **модуль**, потом **фичу**, потом **слой**. Новый функционал почти всегда должен
+выглядеть как вертикальный срез, а не как один класс в случайной общей папке:
+
+```text
+Domain         -> declares contracts/data/dto/events/enums/exceptions
+Application    -> owns scenario orchestration and business rules
+Infrastructure -> implements IO/DB/framework/external adapters
+Presentation   -> exposes console/http entrypoints
+```
+
+Минимальный алгоритм:
+
+1. Назови бизнес-возможность языком домена: что пользователь/интеграция хочет сделать.
+2. Найди владельца состояния: модуль и фичу, которые уже владеют этой сущностью или workflow.
+3. Выбери вход: HTTP/controller, Artisan command, Rabbit handler, listener, scheduled job или
+   внутренний service call.
+4. Опиши typed input/output: `DTO`, `Data`, result DTO, event payload; raw внешний формат держи на
+   boundary.
+5. Добавь ports только там, где Application вызывает заменяемую boundary-зависимость.
+6. Проверь, что запись идет через `Command`, чтение через `Repository`/read client, внешний мир —
+   через `Infrastructure`.
 
 | Хочу добавить… | Кладу в… |
 |---|---|
+| Новую бизнес-возможность целиком | Новый вертикальный срез внутри существующей фичи или новая `Features/<Feature>/`, если появилась самостоятельная способность с отдельными entrypoint'ами/rules/adapters |
 | Общий enum-словарь значений (cast колонки) | `Shared/Domain/Enums/` (не дублировать по фичам) |
 | Новый шаблон/поле формы `details` (`PartSpecification`) | `Data`-класс (`extends AbstractDetailsData`, только поля) → `Templates/Domain/ModelData/<Entity>/<X>DetailsData.php` (+ enum-словарь поля в `Templates/Domain/Enums/`, если select); сборку из строки — в `DetailsDataFactory`, рендер в ячейки — в `DetailsDataPresenter` (`Templates/Application/Factories/`), не в самом `Data`-классе |
-| Новый сценарий с внешним триггером (старт импорта по запросу) | `<Feature>/Application/UseCases/<Group>/` concrete class; без `Domain/Contracts/UseCases` |
-| Новое прикладное правило/координацию | `<Feature>/Application/Services/<Entity>/` + порт `Domain/Contracts/Services/<Entity>/` |
+| Новый сценарий с внешним триггером | `<Feature>/Application/UseCases/<Group>/` concrete class; без `Domain/Contracts/UseCases`; entrypoint только передает typed DTO/parameters |
+| Новое прикладное правило/координацию | `<Feature>/Application/Services/<Entity>/` + порт `Domain/Contracts/Services/<Entity>/`, если сервис вызывается как самостоятельная DI-зависимость сценария; мелкий helper без самостоятельного контракта остается private-методом/локальным классом рядом с владельцем |
+| Общее правило записи/ownership/allow-change | `<Feature>/Application/Services/Policy/<Entity>WritePolicy.php`; результат — typed result DTO, который feature-specific service переводит в свой `<Entity>Data` |
 | Валидацию + сборку `<Entity>Data` | `<Feature>/Application/Factories/` (плоско, один публичный метод на конкретный typed row DTO: `makeFromTdRow(...)`, `makeFromSheetRow(...)` и т.п.) + порт `Contracts/Factories/`; raw row array остается в `Infrastructure/Imports/*/Mappers` |
 | Выбор import/export adapter-а по enum/типу входящего запроса | порт `Contracts/Factories/` + реализация в `<Feature>/Infrastructure/Factories/` или provider closure |
 | Реакцию на доменное событие | `<Feature>/Application/Listeners/` (тонко, **без порта**) |
 | Новый запрос к БД | порт → `Domain/Contracts/Repositories/`, адаптер → `Infrastructure/Repositories/` (отдаёт `Data`, `Collection<Data>` или `Generator<Data>` для потокового чтения) |
+| Новый read-сценарий без прямого внешнего entrypoint'а | `<Feature>/Application/Services/Queries/` или entity-local read service, если нужна orchestration поверх нескольких repositories/clients; простое чтение остается методом repository port |
 | Новую запись в БД | если запись является ответственностью фичи: порт → `Domain/Contracts/Commands/`, адаптер → `Infrastructure/Commands/` (вход `Data`); в read-only фичах `Command` не заводим |
 | Снимок строки / транспорт | `Domain/ModelData/` (`extends Data`) или `Domain/DTOs/` (транспорт сценария) |
 | Доменное событие | `Domain/Events/` (обычно плоский `final readonly`, факт в прошедшем времени); для CRUD-наборов допустимо `Domain/Events/<Entity>/` |
 | Импорт из Excel (консольный, без внешнего инициатора) | адаптер → `Import/Infrastructure/Imports/<Entity>/` + построчный Service; порт → `Contracts/Imports/Command/` |
 | Импорт из Excel по внешнему запросу (`userId`/`operationId`/`disk` снаружи) | адаптер implements `Contracts/Imports/External/FileImportInterface`; DTO-контекст → `ImportRunContextDTO` |
 | Входящую команду от брокера (RabbitMQ) | `Import/Infrastructure/Messaging/Handlers/` (+ `Messaging/Validators/`) → зовёт `UseCase` |
-| REST CRM read API | `Catalog/Presentation/Http/Controllers/<Entity>CrmController` → read use case/query service → presenter/response DTO; read-only, под service-key middleware |
+| REST CRM read API | `Catalog/Presentation/Http/Controllers/<Entity>CrmController` → read use case/query service → presenter/response DTO; read-only, под service-key middleware; HTTP shape не в Domain `ModelData` |
 | Экспорт в Excel | адаптер → `Export/Infrastructure/Exports/<Entity>/`; порт → `Contracts/Exports/`; сборка строк → `Export/Application/Services/Rows|Expanders/` |
 | Queued Excel import | adapter остаётся в `Infrastructure/Imports`; constructor/saved state только scalar/DTO/value state; services/repositories/clients/loggers резолвятся во время job; listeners без closures |
 | Внешнее уведомление/интеграцию | порт → `Domain/Contracts/Notifications/`, реализация → `Infrastructure/Notifications/` (внутри — пакет rabbit-transport) |
