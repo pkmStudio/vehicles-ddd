@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Export\Domain\ModelData;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
@@ -20,6 +21,7 @@ final class EngineData extends Data
      */
     public function __construct(
         public readonly int $engId,
+        public readonly ProviderEnum $provider,
         public readonly ?string $codeEngine = null,
         public readonly ?int $powerKwStart = null,
         public readonly ?int $powerKwUpto = null,
@@ -31,6 +33,7 @@ final class EngineData extends Data
         public readonly ?int $numberOfValves = null,
         public readonly ?EngineFuelTypeEnum $fuelType = null,
         public readonly ?int $groupId = null,
+        public readonly array $allowChangeFields = [],
         public readonly ?int $id = null,
         public readonly ?Collection $partSpecifications = null,
     ) {}

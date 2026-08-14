@@ -19,6 +19,7 @@ final readonly class CreateEngineRequestDTO
         public int $userId,
         public string $operationId,
         public ?int $engId,
+        public array $allowChangeFields,
         public ?string $codeEngine = null,
         public ?int $powerKwStart = null,
         public ?int $powerKwUpto = null,
@@ -31,6 +32,5 @@ final readonly class CreateEngineRequestDTO
         public ?EngineFuelTypeEnum $fuelType = null,
         public ?int $groupId = null,
         public ProviderEnum $provider = ProviderEnum::OD,
-        public array $allowChangeFields = [],
     ) {}
 }

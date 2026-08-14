@@ -8,20 +8,22 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineComman
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\CreateEngineUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\CreateEngineRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
+use App\Modules\Vehicles\Shared\Domain\DTOs\EngineWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\EngineEventPayloadDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Engine\EngineCreated;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\EngineWritePolicy;
 use Throwable;
 
 /**
  * Оркестрирует сценарий мутации двигателей из внешнего сообщения.
  */
-final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
+final readonly class CreateEngineUseCase
 {
     /**
      * Получает порты create engine workflow.
@@ -36,6 +38,7 @@ final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
         private EngineCommandInterface $command,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
+        private EngineWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -89,12 +92,35 @@ final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
                 allowChangeFields: $request->allowChangeFields,
             );
 
-            $engine = $this->command->create($engineData);
+            $writeResult = $this->writePolicy->apply(
+                incoming: EngineWritePolicyResultDTO::fromArray($engineData->toArray()),
+                existing: null,
+                sourceProvider: $request->provider,
+            );
+            $engine = $this->command->create(EngineData::from($writeResult->toArray()));
+
+            $payload = new EngineEventPayloadDTO(
+                id: (int) $engine->id,
+                engId: $engine->engId,
+                provider: $engine->provider,
+                codeEngine: $engine->codeEngine,
+                powerKwStart: $engine->powerKwStart,
+                powerKwUpto: $engine->powerKwUpto,
+                powerPsStart: $engine->powerPsStart,
+                powerPsUpto: $engine->powerPsUpto,
+                engineCapacity: $engine->engineCapacity,
+                cylinderDiameter: $engine->cylinderDiameter,
+                cylinderCount: $engine->cylinderCount,
+                numberOfValves: $engine->numberOfValves,
+                fuelType: $engine->fuelType,
+                groupId: $engine->groupId,
+                allowChangeFields: $engine->allowChangeFields,
+            );
 
             event(new EngineCreated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                engine: $engine->toArray(),
+                engine: $payload,
             ));
 
             return $this->results->completed(

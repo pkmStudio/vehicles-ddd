@@ -25,4 +25,13 @@ interface EngineRepositoryInterface
      * 2) Вернуть EngineData или null.
      */
     public function findByCodeEngine(string $code): ?EngineData;
+
+    /**
+     * Двигатель с минимальным eng_id для генерации отрицательных OD identifiers.
+     *
+     * Шаги:
+     * 1) Отсортировать двигатели по eng_id.
+     * 2) Вернуть snapshot минимальной записи или null.
+     */
+    public function findMinEngId(): ?EngineData;
 }

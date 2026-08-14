@@ -8,20 +8,23 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineComman
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\UpdateEngineUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\UpdateEngineRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
+use App\Modules\Vehicles\Shared\Domain\DTOs\EngineWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\EngineEventPayloadDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Engine\EngineUpdated;
+use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\EngineWritePolicy;
 use Throwable;
 
 /**
  * Оркестрирует сценарий мутации двигателей из внешнего сообщения.
  */
-final readonly class UpdateEngineUseCase implements UpdateEngineUseCaseInterface
+final readonly class UpdateEngineUseCase
 {
     /**
      * Получает порты update engine workflow.
@@ -36,6 +39,7 @@ final readonly class UpdateEngineUseCase implements UpdateEngineUseCaseInterface
         private EngineCommandInterface $command,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
+        private EngineWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -70,6 +74,7 @@ final readonly class UpdateEngineUseCase implements UpdateEngineUseCaseInterface
 
             $engineData = new EngineData(
                 engId: $request->engId,
+                provider: $request->provider,
                 codeEngine: $request->codeEngine,
                 powerKwStart: $request->powerKwStart,
                 powerKwUpto: $request->powerKwUpto,
@@ -81,17 +86,40 @@ final readonly class UpdateEngineUseCase implements UpdateEngineUseCaseInterface
                 numberOfValves: $request->numberOfValves,
                 fuelType: $request->fuelType,
                 groupId: $request->groupId,
-                provider: $request->provider,
                 allowChangeFields: $request->allowChangeFields,
                 id: $existing->id,
             );
 
-            $engine = $this->command->update($engineData);
+            $writeResult = $this->writePolicy->apply(
+                incoming: EngineWritePolicyResultDTO::fromArray($engineData->toArray()),
+                existing: EngineWritePolicyResultDTO::fromArray($existing->toArray()),
+                sourceProvider: $request->provider,
+            );
+
+            $engine = $this->command->update(EngineData::from($writeResult->toArray()));
+
+            $payload = new EngineEventPayloadDTO(
+                id: (int) $engine->id,
+                engId: $engine->engId,
+                provider: $engine->provider,
+                codeEngine: $engine->codeEngine,
+                powerKwStart: $engine->powerKwStart,
+                powerKwUpto: $engine->powerKwUpto,
+                powerPsStart: $engine->powerPsStart,
+                powerPsUpto: $engine->powerPsUpto,
+                engineCapacity: $engine->engineCapacity,
+                cylinderDiameter: $engine->cylinderDiameter,
+                cylinderCount: $engine->cylinderCount,
+                numberOfValves: $engine->numberOfValves,
+                fuelType: $engine->fuelType,
+                groupId: $engine->groupId,
+                allowChangeFields: $engine->allowChangeFields,
+            );
 
             event(new EngineUpdated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                engine: $engine->toArray(),
+                engine: $payload,
             ));
 
             return $this->results->completed(
@@ -101,6 +129,16 @@ final readonly class UpdateEngineUseCase implements UpdateEngineUseCaseInterface
                 operation: CatalogMutationOperationEnum::Update,
                 externalId: $engine->engId,
                 recordId: $engine->id,
+            );
+        } catch (ProviderOwnershipException $e) {
+            return $this->results->rejected(
+                userId: $request->userId,
+                operationId: $request->operationId,
+                entity: CatalogEntityEnum::Engine,
+                operation: CatalogMutationOperationEnum::Update,
+                externalId: $request->engId,
+                reason: CatalogMutationRejectReasonEnum::ProviderOwnershipConflict,
+                errors: $e->errors(),
             );
         } catch (Throwable $e) {
             $this->cache->forgetAccepted($request->operationId);

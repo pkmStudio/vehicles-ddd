@@ -21,6 +21,7 @@ final class EngineData extends Data
      */
     public function __construct(
         public readonly int $engId,
+        public readonly ProviderEnum $provider,
         public readonly ?string $codeEngine = null,
         public readonly ?int $powerKwStart = null,
         public readonly ?int $powerKwUpto = null,
@@ -32,7 +33,6 @@ final class EngineData extends Data
         public readonly ?int $numberOfValves = null,
         public readonly ?EngineFuelTypeEnum $fuelType = null,
         public readonly ?int $groupId = null,
-        public readonly ProviderEnum $provider = ProviderEnum::TD,
         public readonly array $allowChangeFields = [],
         public readonly ?int $id = null,
     ) {}

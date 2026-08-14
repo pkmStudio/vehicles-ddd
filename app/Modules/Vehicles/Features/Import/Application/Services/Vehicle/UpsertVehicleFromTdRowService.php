@@ -9,16 +9,16 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\VehicleDataF
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleImportWritePolicyInterface;
-use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleImportWriteContextDTO;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleTdRowDTO;
-use App\Modules\Vehicles\Features\Import\Domain\Enums\VehicleImportSourceEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNotFoundException;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\VehicleEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\VehicleWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleUpdated;
+use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\VehicleWritePolicy;
 
 /**
  * Use-case: создать/обновить ТС из строки авторитетного импорта (приведение к виду TD).
@@ -44,7 +44,7 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
         private VehicleDataFactoryInterface $factory,
         private ManufacturerRepositoryInterface $manufacturers,
         private VehicleRepositoryInterface $vehicles,
-        private VehicleImportWritePolicyInterface $writePolicy,
+        private VehicleWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -70,18 +70,16 @@ final readonly class UpsertVehicleFromTdRowService implements UpsertVehicleFromT
 
         $data = $this->factory->makeFromTdRow($row, (int) $manufacturer->id);
         $existing = $this->vehicles->findByMsId($data->msId);
-        $writeContext = new VehicleImportWriteContextDTO(
-            source: VehicleImportSourceEnum::TecDocCommand,
-            sourceProvider: $data->provider,
-            operationId: self::OPERATION_ID,
-            msId: $data->msId,
-            rowIdentifier: (string) $row->msId,
-        );
-        $writeData = $this->writePolicy->apply(
-            incoming: $data,
-            existing: $existing,
-            context: $writeContext,
-        );
+        try {
+            $writeResult = $this->writePolicy->apply(
+                incoming: VehicleWritePolicyResultDTO::fromArray($data->toArray()),
+                existing: $existing === null ? null : VehicleWritePolicyResultDTO::fromArray($existing->toArray()),
+                sourceProvider: $data->provider,
+            );
+        } catch (ProviderOwnershipException $e) {
+            throw ImportRowValidationException::fromMessages($e->errors());
+        }
+        $writeData = VehicleData::from($writeResult->toArray());
 
         $vehicle = $existing === null
             ? $this->command->create($writeData)

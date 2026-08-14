@@ -2,24 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine;
+namespace App\Modules\Vehicles\Shared\Domain\DTOs\Events;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 
-/**
- * Передает параметры сценария или результат мутации двигателей.
- */
-final readonly class UpdateEngineRequestDTO
+final readonly class EngineEventPayloadDTO
 {
     /**
-     * Инициализирует immutable-снимок данных двигателей.
+     * @param  array<int, string>  $allowChangeFields
      */
     public function __construct(
-        public int $userId,
-        public string $operationId,
+        public int $id,
         public int $engId,
-        public array $allowChangeFields,
+        public ProviderEnum $provider,
         public ?string $codeEngine = null,
         public ?int $powerKwStart = null,
         public ?int $powerKwUpto = null,
@@ -31,6 +27,6 @@ final readonly class UpdateEngineRequestDTO
         public ?int $numberOfValves = null,
         public ?EngineFuelTypeEnum $fuelType = null,
         public ?int $groupId = null,
-        public ProviderEnum $provider = ProviderEnum::OD,
+        public array $allowChangeFields = [],
     ) {}
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\StartEngineMutationUseCaseInterface;
+use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Engine\StartEngineMutationUseCase;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\EngineMutationRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\CatalogMutationContractMismatchReporter;
@@ -26,7 +26,7 @@ final readonly class EngineMutationRequestedHandler
      * 3. Получает reporter для contract mismatch результата.
      */
     public function __construct(
-        private StartEngineMutationUseCaseInterface $useCase,
+        private StartEngineMutationUseCase $useCase,
         private EngineMutationPayloadValidator $validator,
         private CatalogMutationContractMismatchReporter $contractMismatchReporter,
     ) {}

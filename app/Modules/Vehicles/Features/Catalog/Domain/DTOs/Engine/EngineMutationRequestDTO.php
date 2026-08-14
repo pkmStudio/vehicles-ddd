@@ -81,6 +81,7 @@ final readonly class EngineMutationRequestDTO
             userId: (int) $payload['user_id'],
             operationId: (string) $payload['operation_id'],
             engId: isset($engine['eng_id']) ? (int) $engine['eng_id'] : null,
+            allowChangeFields: array_values($engine['allow_change_fields']),
             codeEngine: isset($engine['code_engine']) ? (string) $engine['code_engine'] : null,
             powerKwStart: isset($engine['power_kw_start']) ? (int) $engine['power_kw_start'] : null,
             powerKwUpto: isset($engine['power_kw_upto']) ? (int) $engine['power_kw_upto'] : null,
@@ -93,7 +94,6 @@ final readonly class EngineMutationRequestDTO
             fuelType: isset($engine['fuel_type']) ? EngineFuelTypeEnum::from((string) $engine['fuel_type']) : null,
             groupId: isset($engine['group_id']) ? (int) $engine['group_id'] : null,
             provider: isset($engine['provider']) ? ProviderEnum::from((string) $engine['provider']) : ProviderEnum::OD,
-            allowChangeFields: $engine['allow_change_fields'] ?? [],
         );
     }
 }

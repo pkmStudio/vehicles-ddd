@@ -9,48 +9,48 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\Impor
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 
 /**
- * Маппит строку основного Excel-листа двигателей в DTO с явными индексами колонок.
+ * Маппит строку командного Excel-импорта двигателей в DTO с явными индексами колонок.
  */
-final readonly class EngineMainSheetRowMapper
+final readonly class EngineTdRowMapper
 {
     private const int ENG_ID = 0;
 
     private const int CODE_ENGINE = 1;
 
-    private const int ENGINE_CAPACITY = 2;
+    private const int POWER_KW_START = 2;
 
-    private const int FUEL_TYPE = 3;
+    private const int POWER_KW_UPTO = 3;
 
-    private const int POWER_KW_START = 4;
+    private const int POWER_PS_START = 4;
 
-    private const int POWER_KW_UPTO = 5;
+    private const int POWER_PS_UPTO = 5;
 
-    private const int POWER_PS_START = 6;
+    private const int ENGINE_CAPACITY = 6;
 
-    private const int POWER_PS_UPTO = 7;
+    private const int CYLINDER_DIAMETER = 7;
 
     private const int CYLINDER_COUNT = 8;
 
-    private const int CYLINDER_DIAMETER = 9;
+    private const int NUMBER_OF_VALVES = 9;
 
-    private const int NUMBER_OF_VALVES = 10;
+    private const int FUEL_TYPE = 10;
 
     /**
-     * Получить нормализатор значений основного листа двигателей.
+     * Получить нормализатор значений командного листа двигателей.
      *
      * Шаги:
      * 1) Принять общий нормализатор строк импорта через DI.
-     * 2) Использовать его при чтении идентификатора, мощности, объёма и геометрии двигателя.
+     * 2) Использовать его при чтении мощности, объёма, цилиндров, клапанов и типа топлива.
      */
     public function __construct(
         private ImportRowValueFormatter $formatter,
     ) {}
 
     /**
-     * Этот метод переводит одну строку основного листа двигателей в `EngineSheetRowDTO`.
+     * Этот метод переводит одну строку командного engine-листа в `EngineSheetRowDTO`.
      *
      * Шаги:
-     * 1) Прочитать значения по именованным индексам колонок основного листа.
+     * 1) Прочитать значения по именованным индексам колонок командного листа.
      * 2) Нормализовать строки, целые и вещественные числа через `ImportRowValueFormatter`.
      * 3) Вернуть DTO, совместимый с общим сервисом сохранения двигателя.
      *
@@ -59,7 +59,7 @@ final readonly class EngineMainSheetRowMapper
     public function map(array $row): EngineSheetRowDTO
     {
         return new EngineSheetRowDTO(
-            engId: $this->formatter->nullableInt($row[self::ENG_ID] ?? null, 'eng_id'),
+            engId: $this->formatter->requiredInt($row[self::ENG_ID] ?? null, 'eng_id'),
             codeEngine: $this->formatter->nullableString($row[self::CODE_ENGINE] ?? null),
             powerKwStart: $this->formatter->nullableInt($row[self::POWER_KW_START] ?? null, 'power_kw_start'),
             powerKwUpto: $this->formatter->nullableInt($row[self::POWER_KW_UPTO] ?? null, 'power_kw_upto'),
@@ -70,10 +70,10 @@ final readonly class EngineMainSheetRowMapper
             cylinderCount: $this->formatter->nullableInt($row[self::CYLINDER_COUNT] ?? null, 'cylinder_count'),
             numberOfValves: $this->formatter->nullableInt($row[self::NUMBER_OF_VALVES] ?? null, 'number_of_valves'),
             fuelType: $this->formatter->nullableString($row[self::FUEL_TYPE] ?? null),
-            provider: ProviderEnum::OD,
+            provider: ProviderEnum::TD,
             allowChangeFields: [],
-            operationId: 'vehicles-engine-manager-import',
-            generateNegativeEngIdWhenMissing: true,
+            operationId: 'vehicles-engine-import',
+            generateNegativeEngIdWhenMissing: false,
         );
     }
 }

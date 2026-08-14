@@ -38,6 +38,22 @@ final readonly class EngineRepository implements EngineRepositoryInterface
     }
 
     /**
+     * Возвращает двигатель с минимальным `eng_id`.
+     *
+     * Шаги:
+     * 1) Отсортировать engines по `eng_id`.
+     * 2) Сконвертировать найденную Eloquent-модель в optional `EngineData`.
+     */
+    public function findMinEngId(): ?EngineData
+    {
+        return EngineData::optional(
+            Engine::query()
+                ->orderBy('eng_id')
+                ->first(),
+        );
+    }
+
+    /**
      * Выполняет общий точечный lookup двигателя по колонке.
      *
      * Шаги:
