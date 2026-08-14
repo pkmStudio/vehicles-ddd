@@ -166,6 +166,22 @@ type
 
 ## План реализации
 
+## Статус выполнения на 2026-08-13
+
+- [x] Wire contracts расширены новыми event names/routing keys для экспорта модификаций и import/export связей модификаций с двигателями.
+- [x] В `dan-vehicles` очищен `engine_multi_sheet`: основной файл двигателей больше не включает лист свечей/применяемости.
+- [x] В `dan-vehicles` добавлены export types `modification_catalog` и `engine_modifications`.
+- [x] В `dan-vehicles` добавлен manager import двигателей с policy `provider/allow_change_fields`; TecDoc import оставлен без этой защиты.
+- [x] В `dan-vehicles` добавлен manager import модификаций с `description_short`, расчетом `type` по машине и генерацией отрицательного `mod_id`.
+- [x] В `dan-vehicles` добавлен import/export связей `mod_id + eng_id + type`; import работает как синхронизация групп, присутствующих в файле.
+- [x] В `dan-vehicles` добавлены completion events/cache keys/reporting wiring для новых import flows.
+- [x] В `dan-center` добавлены кнопки import/export модификаций и связей, а export/import двигателей переведен на чистый catalog flow через Rabbit.
+- [x] `description_short` прокинут через mutation DTO/payload, REST DTO и Filament форму.
+- [x] Обновлен `plans/proverka.md` ручными сценариями для двигателей, модификаций и связей.
+- [ ] Выполнить `rabbit-transport:setup` в `dan-vehicles` и `dan-center` на нужном окружении.
+- [ ] Пройти ручной сценарий из `plans/proverka.md` через Filament.
+- [ ] Автотесты из фаз 5.16-5.17 не добавлялись: по текущему решению это остается отдельной задачей после ручной стабилизации flow.
+
 ### Фаза 1. Wire contracts
 
 1. Расширить `pkmstudio/dan-wire-contracts`.
