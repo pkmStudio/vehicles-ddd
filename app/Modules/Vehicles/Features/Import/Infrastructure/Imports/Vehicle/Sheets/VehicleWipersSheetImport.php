@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Sheets;
 
 use App\Modules\Templates\Domain\Exceptions\DetailsDataBuildException;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleWiperSpecificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNotFoundException;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleWiperSheetRowMapper;
@@ -28,7 +28,7 @@ final class VehicleWipersSheetImport implements ShouldQueue, SkipsEmptyRows, Ski
 
     private ?VehicleWiperSheetRowMapper $rowMapper = null;
 
-    private ?VehicleWiperSpecificationImportServiceInterface $upsertWiperSpec = null;
+    private ?UpsertVehicleWiperSpecificationFromRowServiceInterface $service = null;
 
     /**
      * Получить ключи отчёта ошибок для листа дворников.
@@ -56,7 +56,7 @@ final class VehicleWipersSheetImport implements ShouldQueue, SkipsEmptyRows, Ski
     public function collection(Collection $collection): void
     {
         $rowMapper = $this->rowMapper();
-        $upsertWiperSpec = $this->upsertWiperSpec();
+        $service = $this->service();
         $trimString = fn ($value) => is_string($value) ? trim($value) : $value;
 
         foreach ($collection as $indexRow => $row) {
@@ -64,10 +64,8 @@ final class VehicleWipersSheetImport implements ShouldQueue, SkipsEmptyRows, Ski
             $rowValues = $row->toArray();
             try {
                 $vehicleRow = $rowMapper->map($rowValues);
-
-                $upsertWiperSpecCallback = fn () => $upsertWiperSpec->upsertFromRow($vehicleRow);
-
-                DB::transaction($upsertWiperSpecCallback);
+                $serviceCallback = fn () => $service->upsertFromRow($vehicleRow);
+                DB::transaction($serviceCallback);
             } catch (ImportRowValidationException|ImportRowReferenceNotFoundException|DetailsDataBuildException $e) {
                 $this->onFailure(
                     new Failure(
@@ -112,8 +110,8 @@ final class VehicleWipersSheetImport implements ShouldQueue, SkipsEmptyRows, Ski
      * 1) Резолвить сервис из контейнера во время обработки queued job.
      * 2) Не хранить dependency graph в сериализованном Excel-адаптере.
      */
-    private function upsertWiperSpec(): VehicleWiperSpecificationImportServiceInterface
+    private function service(): UpsertVehicleWiperSpecificationFromRowServiceInterface
     {
-        return $this->upsertWiperSpec ??= app(VehicleWiperSpecificationImportServiceInterface::class);
+        return $this->service ??= app(UpsertVehicleWiperSpecificationFromRowServiceInterface::class);
     }
 }
