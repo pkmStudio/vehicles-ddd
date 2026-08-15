@@ -15,6 +15,6 @@ final readonly class BrandEventPayloadDTO
         public string $numberSert,
         public string $dateStart,
         public string $dateEnd,
-        public ?string $char = null,
+        public string $char,
     ) {}
 }

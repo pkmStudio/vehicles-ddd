@@ -21,7 +21,7 @@ final readonly class KitCrmListItemDTO
         public string $packDimensionName,
         public int $typeId,
         public string $typeName,
-        public ?string $typeChar,
+        public string $typeChar,
         public ?string $importHash,
         public bool $isSaleSeparately,
         public bool $isActive,

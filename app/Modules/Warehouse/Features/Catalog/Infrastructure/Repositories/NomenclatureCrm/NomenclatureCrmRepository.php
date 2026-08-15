@@ -309,11 +309,11 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
             id: (int) $nomenclature->id,
             typeId: (int) $nomenclature->type_id,
             typeName: (string) $nomenclature->type->name,
-            typeChar: $nomenclature->type?->char === null ? null : (string) $nomenclature->type->char,
+            typeChar: (string) $nomenclature->type->char,
             typeTemplate: $nomenclature->type === null ? null : $this->templateResolver->value($nomenclature->type),
             brandId: (int) $nomenclature->brand_id,
             brandName: (string) $nomenclature->brand->name,
-            brandChar: $nomenclature->brand?->char === null ? null : (string) $nomenclature->brand->char,
+            brandChar: (string) $nomenclature->brand->char,
             name: (string) $nomenclature->name,
             country: (string) $nomenclature->country,
             partNumber: (string) $nomenclature->part_number,
@@ -362,7 +362,7 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
             id: (int) $brand->id,
             label: (string) $brand->name,
             meta: [
-                'char' => $brand->char === null ? null : (string) $brand->char,
+                'char' => (string) $brand->char,
             ],
         );
     }

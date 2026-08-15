@@ -12,7 +12,7 @@ final readonly class BrandCrmListItemDTO
         public string $numberSert,
         public string $dateStart,
         public string $dateEnd,
-        public ?string $char,
+        public string $char,
         public int $nomenclaturesCount = 0,
         public ?string $createdAt = null,
         public ?string $updatedAt = null,

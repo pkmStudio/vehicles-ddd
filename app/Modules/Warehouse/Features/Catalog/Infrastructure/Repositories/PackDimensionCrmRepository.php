@@ -237,7 +237,7 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
             price: (int) $packDimension->price,
             typeId: (int) $packDimension->type_id,
             typeName: (string) $packDimension->type->name,
-            typeChar: $packDimension->type?->char === null ? null : (string) $packDimension->type->char,
+            typeChar: (string) $packDimension->type->char,
             generated: (bool) $packDimension->generated,
             kitsCount: (int) $packDimension->kits_count,
             createdAt: $packDimension->created_at === null ? null : (string) $packDimension->created_at,

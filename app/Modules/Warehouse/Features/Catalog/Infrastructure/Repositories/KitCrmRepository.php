@@ -303,7 +303,7 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
             packDimensionName: (string) $kit->packDimension->name,
             typeId: (int) $kit->type_id,
             typeName: (string) $kit->type->name,
-            typeChar: $kit->type?->char === null ? null : (string) $kit->type->char,
+            typeChar: (string) $kit->type->char,
             importHash: $kit->import_hash === null ? null : (string) $kit->import_hash,
             isSaleSeparately: (bool) $kit->is_sale_separately,
             isActive: (bool) $kit->is_active,
