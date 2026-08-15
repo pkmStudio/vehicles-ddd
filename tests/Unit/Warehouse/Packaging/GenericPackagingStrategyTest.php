@@ -39,7 +39,7 @@ final class GenericPackagingStrategyTest extends TestCase
         $strategy = new GenericPackagingStrategy($command);
 
         $nomenclature = new NomenclatureData(partNumber: 'VB-1', quantityInPak: 1, details: []);
-        $result = $strategy->calculate(new TypeData(name: 'Ремень клиновой', id: 9), [$nomenclature], new Collection);
+        $result = $strategy->calculate(new TypeData(name: 'Ремень клиновой', char: 'VB', id: 9), [$nomenclature], new Collection);
 
         $this->assertSame($created, $result);
     }
@@ -59,7 +59,7 @@ final class GenericPackagingStrategyTest extends TestCase
         $box = new PackDimensionData(name: 'Close-fit', weight: 5, width: 44, height: 14, length: 54, price: 5, typeId: 13, id: 8);
         $boxes = new Collection([$box]);
 
-        $result = $strategy->calculate(new TypeData(name: 'Рулевая тяга', id: 13), [$nomenclature], $boxes);
+        $result = $strategy->calculate(new TypeData(name: 'Рулевая тяга', char: 'TR', id: 13), [$nomenclature], $boxes);
 
         $this->assertSame($box, $result);
     }

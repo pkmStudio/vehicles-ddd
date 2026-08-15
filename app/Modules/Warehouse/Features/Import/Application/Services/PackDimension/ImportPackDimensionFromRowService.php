@@ -72,7 +72,7 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
      * 2) Отклонить пустую ячейку как обязательное поле.
      * 3) Сравнить raw value с id типа для legacy-файлов.
      * 4) Сравнить normalized value с name типа.
-     * 5) Сравнить normalized value с char-кодом типа, если он есть.
+     * 5) Сравнить normalized value с обязательным char-кодом типа.
      * 6) Если совпадений нет, выбросить validation error со ссылкой на лист справочников.
      */
     private function resolveType(string $raw): TypeData
@@ -94,7 +94,7 @@ final readonly class ImportPackDimensionFromRowService implements ImportPackDime
                 return $type;
             }
 
-            if ($type->char !== null && mb_strtoupper(trim($type->char)) === $normalized) {
+            if (mb_strtoupper(trim($type->char)) === $normalized) {
                 return $type;
             }
         }

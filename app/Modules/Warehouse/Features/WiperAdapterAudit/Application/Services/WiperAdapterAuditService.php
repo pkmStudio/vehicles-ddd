@@ -203,8 +203,8 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
             return null;
         }
 
-        $char = $type->char === null ? null : mb_strtoupper(trim($type->char));
-        if ($char !== null && isset(self::TEMPLATE_BY_CHAR[$char])) {
+        $char = mb_strtoupper(trim($type->char));
+        if (isset(self::TEMPLATE_BY_CHAR[$char])) {
             return self::TEMPLATE_BY_CHAR[$char];
         }
 

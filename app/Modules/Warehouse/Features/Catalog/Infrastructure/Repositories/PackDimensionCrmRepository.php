@@ -108,7 +108,7 @@ final readonly class PackDimensionCrmRepository implements PackDimensionCrmRepos
             ->map(fn (Type $type): NomenclatureCrmOptionDTO => new NomenclatureCrmOptionDTO(
                 id: (int) $type->id,
                 label: (string) $type->name,
-                meta: ['char' => $type->char === null ? null : (string) $type->char],
+                meta: ['char' => (string) $type->char],
             ))
             ->values();
     }

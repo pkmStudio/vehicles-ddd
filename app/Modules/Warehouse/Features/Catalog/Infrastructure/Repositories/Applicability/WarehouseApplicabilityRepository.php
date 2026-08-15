@@ -117,7 +117,7 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
         return new WarehouseTypeForApplicabilityDTO(
             id: (int) $type->id,
             name: (string) $type->name,
-            char: $type->char === null ? null : (string) $type->char,
+            char: (string) $type->char,
             template: $this->templateResolver->resolve($type),
         );
     }

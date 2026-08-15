@@ -65,7 +65,7 @@ final readonly class NomenclatureCrmTypeTemplateResolver
      */
     public function resolve(Type $type): ?NomenclatureDetailTemplateEnum
     {
-        if ($type->char !== null && isset(self::TEMPLATE_BY_CHAR[$type->char])) {
+        if (isset(self::TEMPLATE_BY_CHAR[$type->char])) {
             return self::TEMPLATE_BY_CHAR[$type->char];
         }
 

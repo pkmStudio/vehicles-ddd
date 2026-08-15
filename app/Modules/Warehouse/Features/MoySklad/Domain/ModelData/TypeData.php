@@ -20,6 +20,6 @@ final class TypeData extends Data
     public function __construct(
         public readonly int $id,
         public readonly string $name,
-        public readonly ?string $char = null,
+        public readonly string $char,
     ) {}
 }

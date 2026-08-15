@@ -8,6 +8,7 @@ use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\BrandCrmClien
 use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\KitCrmClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\NomenclatureCrmClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\PackDimensionCrmClient;
+use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\TypeCrmClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogCascadeDeleteService;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogMutationResultService;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\BrandCrmClientInterface;
@@ -15,6 +16,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitCrmClient
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\NomenclatureCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\PackDimensionCrmClientInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\TypeCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\BrandCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\NomenclatureCommandInterface;
@@ -28,6 +30,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\Nomencl
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogCascadeDeleteServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
@@ -48,6 +51,7 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\Nomenclat
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\PackDimensionCrmRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\PackDimensionRepository;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\TypeCrmRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\TypeRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Services\WarehouseCatalogMutationCacheService;
 use Illuminate\Support\ServiceProvider;
@@ -68,6 +72,7 @@ final class CatalogServiceProvider extends ServiceProvider
         BrandRepositoryInterface::class => BrandRepository::class,
         BrandCrmRepositoryInterface::class => BrandCrmRepository::class,
         TypeRepositoryInterface::class => TypeRepository::class,
+        TypeCrmRepositoryInterface::class => TypeCrmRepository::class,
         NomenclatureRepositoryInterface::class => NomenclatureRepository::class,
         NomenclatureCrmRepositoryInterface::class => NomenclatureCrmRepository::class,
         KitCrmRepositoryInterface::class => KitCrmRepository::class,
@@ -90,6 +95,7 @@ final class CatalogServiceProvider extends ServiceProvider
         NomenclatureCrmClientInterface::class => NomenclatureCrmClient::class,
         KitCrmClientInterface::class => KitCrmClient::class,
         PackDimensionCrmClientInterface::class => PackDimensionCrmClient::class,
+        TypeCrmClientInterface::class => TypeCrmClient::class,
     ];
 
     /**

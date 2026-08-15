@@ -86,8 +86,8 @@ final readonly class TypeTemplateResolver implements TypeTemplateResolverInterfa
      */
     public function resolve(TypeData $type): ?NomenclatureDetailTemplateEnum
     {
-        $char = $type->char === null ? null : mb_strtoupper(trim($type->char));
-        if ($char !== null && isset(self::BY_CHAR[$char])) {
+        $char = mb_strtoupper(trim($type->char));
+        if (isset(self::BY_CHAR[$char])) {
             return self::BY_CHAR[$char];
         }
 

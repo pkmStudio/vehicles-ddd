@@ -15,7 +15,7 @@ final class WarehouseTypeForApplicabilityDTO extends Data
     public function __construct(
         public readonly int $id,
         public readonly string $name,
-        public readonly ?string $char = null,
+        public readonly string $char,
         public readonly ?NomenclatureDetailTemplateEnum $template = null,
     ) {}
 }

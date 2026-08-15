@@ -180,7 +180,7 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
             ->map(fn (Type $type): KitCrmOptionDTO => new KitCrmOptionDTO(
                 id: (int) $type->id,
                 label: (string) $type->name,
-                meta: ['char' => $type->char === null ? null : (string) $type->char],
+                meta: ['char' => (string) $type->char],
             ))
             ->values();
     }

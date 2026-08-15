@@ -27,7 +27,7 @@ final class BrakePadsPackagingStrategyTest extends TestCase
         $matchingBox = new PackDimensionData(name: 'BP-001', weight: 5, width: 100, height: 30, length: 200, price: 5, typeId: 1, id: 9);
         $packDims = new Collection([$matchingBox]);
 
-        $result = $strategy->calculate(new TypeData(name: 'Колодки', id: 1), [$nomenclature], $packDims);
+        $result = $strategy->calculate(new TypeData(name: 'Колодки', char: 'BP', id: 1), [$nomenclature], $packDims);
 
         $this->assertSame($matchingBox, $result);
     }
@@ -49,7 +49,7 @@ final class BrakePadsPackagingStrategyTest extends TestCase
         $box = new PackDimensionData(name: 'Close-fit box', weight: 5, width: 44, height: 14, length: 54, price: 5, typeId: 1, id: 3);
         $packDims = new Collection([$box]);
 
-        $result = $strategy->calculate(new TypeData(name: 'Колодки', id: 1), [$nomenclature], $packDims);
+        $result = $strategy->calculate(new TypeData(name: 'Колодки', char: 'BP', id: 1), [$nomenclature], $packDims);
 
         $this->assertSame($box, $result);
     }

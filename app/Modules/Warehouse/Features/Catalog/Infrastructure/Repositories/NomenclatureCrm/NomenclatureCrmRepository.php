@@ -350,7 +350,7 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
             id: (int) $type->id,
             label: (string) $type->name,
             meta: [
-                'char' => $type->char === null ? null : (string) $type->char,
+                'char' => (string) $type->char,
                 'template' => $this->templateResolver->value($type),
             ],
         );
