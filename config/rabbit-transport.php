@@ -140,8 +140,7 @@ return [
             ImportFileRequestedHandler::class,
             'handle',
         ],
-        // TODO: заменить на VehiclesEventName после обновления dan-wire-contracts в этом приложении.
-        'ENGINE_MODIFICATIONS_IMPORT_FILE_REQUESTED' => [
+        VehiclesEventName::EngineModificationsImportFileRequested->value => [
             ImportFileRequestedHandler::class,
             'handle',
         ],
@@ -172,12 +171,11 @@ return [
             ExportFileRequestedHandler::class,
             'handle',
         ],
-        // TODO: заменить на VehiclesEventName после обновления dan-wire-contracts в этом приложении.
-        'MODIFICATIONS_EXPORT_FILE_REQUESTED' => [
+        VehiclesEventName::ModificationsExportFileRequested->value => [
             ExportFileRequestedHandler::class,
             'handle',
         ],
-        'ENGINE_MODIFICATIONS_EXPORT_FILE_REQUESTED' => [
+        VehiclesEventName::EngineModificationsExportFileRequested->value => [
             ExportFileRequestedHandler::class,
             'handle',
         ],
@@ -393,16 +391,14 @@ return [
             VehiclesRoutingKey::VehiclesImport->value,
             VehiclesRoutingKey::EnginesImport->value,
             VehiclesRoutingKey::ModificationsImport->value,
-            // TODO: заменить на VehiclesRoutingKey после обновления dan-wire-contracts в этом приложении.
-            'crm.engine-modifications.import',
+            VehiclesRoutingKey::EngineModificationsImport->value,
             VehiclesRoutingKey::EngineGroupsImport->value,
             VehiclesRoutingKey::SparkPlugsImport->value,
             VehiclesRoutingKey::ManufacturersImport->value,
             VehiclesRoutingKey::VehiclesExport->value,
             VehiclesRoutingKey::EnginesExport->value,
-            // TODO: заменить на VehiclesRoutingKey после обновления dan-wire-contracts в этом приложении.
-            'crm.modifications.export',
-            'crm.engine-modifications.export',
+            VehiclesRoutingKey::ModificationsExport->value,
+            VehiclesRoutingKey::EngineModificationsExport->value,
             VehiclesRoutingKey::WarehouseNomenclatureExport->value,
             VehiclesRoutingKey::WarehousePackDimensionExport->value,
             VehiclesRoutingKey::WarehouseKitExport->value,
