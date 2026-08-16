@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Vehicles\Shared\Domain\DTOs;
+namespace App\Modules\Vehicles\Shared\Domain\DTOs\Policy;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
@@ -50,18 +50,10 @@ final readonly class VehicleWritePolicyResultDTO
             mfaId: (int) $payload['mfa_id'],
             manufacturerId: (int) $payload['manufacturer_id'],
             name: (string) $payload['name'],
-            type: $payload['type'] instanceof VehicleTypeEnum
-                ? $payload['type']
-                : VehicleTypeEnum::from((string) $payload['type']),
-            steeringType: $payload['steering_type'] instanceof SteeringTypeEnum
-                ? $payload['steering_type']
-                : SteeringTypeEnum::from((string) $payload['steering_type']),
-            typeCarcase: $payload['type_carcase'] instanceof CarcaseTypeEnum
-                ? $payload['type_carcase']
-                : CarcaseTypeEnum::from((string) $payload['type_carcase']),
-            provider: $payload['provider'] instanceof ProviderEnum
-                ? $payload['provider']
-                : ProviderEnum::from((string) $payload['provider']),
+            type: VehicleTypeEnum::from($payload['type']),
+            steeringType: SteeringTypeEnum::from($payload['steering_type']),
+            typeCarcase: CarcaseTypeEnum::from($payload['type_carcase']),
+            provider: ProviderEnum::from($payload['provider']),
             generation: (string) $payload['generation'],
             generationYearFrom: (int) $payload['generation_year_from'],
             isAllow: (bool) $payload['is_allow'],

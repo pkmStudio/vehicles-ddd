@@ -16,7 +16,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationEx
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\ManufacturerEventPayloadDTO;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\VehicleEventPayloadDTO;
-use App\Modules\Vehicles\Shared\Domain\DTOs\VehicleWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\VehicleWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Manufacturer\ManufacturerCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleUpdated;
@@ -116,13 +116,13 @@ final readonly class UpsertVehicleFromRowService implements UpsertVehicleFromRow
             provider: $vehicle->provider,
             generation: $vehicle->generation,
             generationYearFrom: $vehicle->generationYearFrom,
+            isAllow: $vehicle->isAllow,
             generationYearTo: $vehicle->generationYearTo,
             parentId: $vehicle->parentId,
             parentMsId: $vehicle->parentMsId ?? null,
             excelTableId: $vehicle->excelTableId,
             localizedName: $vehicle->localizedName,
             generationShort: $vehicle->generationShort,
-            isAllow: $vehicle->isAllow,
         );
 
         event($existing === null

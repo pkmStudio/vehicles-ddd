@@ -17,7 +17,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReas
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ManufacturerData;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\VehicleData;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\VehicleEventPayloadDTO;
-use App\Modules\Vehicles\Shared\Domain\DTOs\VehicleWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\VehicleWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
 use App\Modules\Vehicles\Shared\Domain\Services\Policy\VehicleWritePolicy;
 use Throwable;
@@ -209,13 +209,13 @@ final readonly class CreateVehicleUseCase
             provider: $request->provider,
             generation: $request->generation,
             generationYearFrom: $request->generationYearFrom,
+            isAllow: $request->isAllow,
             generationYearTo: $request->generationYearTo,
             parentId: $parentId,
             parentMsId: $request->parentMsId,
             excelTableId: $request->excelTableId,
             localizedName: $request->localizedName,
             generationShort: $request->generationShort,
-            isAllow: $request->isAllow,
         );
 
         $writeResult = $this->writePolicy->apply(
@@ -250,13 +250,13 @@ final readonly class CreateVehicleUseCase
             provider: $vehicle->provider,
             generation: $vehicle->generation,
             generationYearFrom: $vehicle->generationYearFrom,
+            isAllow: $vehicle->isAllow,
             generationYearTo: $vehicle->generationYearTo,
             parentId: $vehicle->parentId,
             parentMsId: $vehicle->parentMsId ?? null,
             excelTableId: $vehicle->excelTableId,
             localizedName: $vehicle->localizedName,
             generationShort: $vehicle->generationShort,
-            isAllow: $vehicle->isAllow,
         );
 
         event(new VehicleCreated(

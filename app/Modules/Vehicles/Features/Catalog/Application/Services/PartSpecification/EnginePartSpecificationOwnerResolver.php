@@ -13,7 +13,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpec
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\ResolvedPartSpecificationOwnerDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
-use App\Modules\Vehicles\Shared\Domain\DTOs\EngineWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\EngineWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
 use App\Modules\Vehicles\Shared\Domain\Services\Policy\EngineWritePolicy;

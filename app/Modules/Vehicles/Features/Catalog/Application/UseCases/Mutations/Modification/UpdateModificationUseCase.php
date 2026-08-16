@@ -20,7 +20,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReas
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\ModificationEventPayloadDTO;
-use App\Modules\Vehicles\Shared\Domain\DTOs\ModificationWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\ModificationWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Modification\ModificationUpdated;
 use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
 use App\Modules\Vehicles\Shared\Domain\Services\Policy\ModificationWritePolicy;
@@ -115,21 +115,21 @@ final readonly class UpdateModificationUseCase
                 type: $request->type,
                 vehicleId: (int) $vehicle->id,
                 msId: $request->msId,
+                provider: $request->provider,
                 yearFrom: $request->yearFrom,
-                yearTo: $request->yearTo,
                 description: $request->description,
-                descriptionShort: $request->descriptionShort,
-                localizedName: $request->localizedName,
                 powerPs: $request->powerPs,
                 powerKw: $request->powerKw,
                 engineType: $request->engineType,
+                allowChangeFields: $request->allowChangeFields,
+                yearTo: $request->yearTo,
+                descriptionShort: $request->descriptionShort,
+                localizedName: $request->localizedName,
                 gearType: $request->gearType,
                 driveType: $request->driveType,
                 brakeSystemType: $request->brakeSystemType,
                 numberOfCylinders: $request->numberOfCylinders,
                 capacityLt: $request->capacityLt,
-                provider: $request->provider,
-                allowChangeFields: $request->allowChangeFields,
                 id: $existing->id,
             );
 
@@ -156,19 +156,19 @@ final readonly class UpdateModificationUseCase
                 msId: $modification->msId,
                 provider: $modification->provider,
                 yearFrom: $modification->yearFrom,
-                yearTo: $modification->yearTo,
                 description: $modification->description,
-                descriptionShort: $modification->descriptionShort,
-                localizedName: $modification->localizedName,
                 powerPs: $modification->powerPs,
                 powerKw: $modification->powerKw,
                 engineType: $modification->engineType,
+                allowChangeFields: $modification->allowChangeFields,
+                yearTo: $modification->yearTo,
+                descriptionShort: $modification->descriptionShort,
+                localizedName: $modification->localizedName,
                 gearType: $modification->gearType,
                 driveType: $modification->driveType,
                 brakeSystemType: $modification->brakeSystemType,
                 numberOfCylinders: $modification->numberOfCylinders,
                 capacityLt: $modification->capacityLt,
-                allowChangeFields: $modification->allowChangeFields,
             );
 
             event(new ModificationUpdated(

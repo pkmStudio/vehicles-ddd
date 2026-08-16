@@ -68,7 +68,7 @@ final readonly class ModificationMutationPayloadValidator
                 'modification.capacity_lt' => ['nullable', 'numeric'],
                 'modification.localized_name' => ['nullable', 'string', 'max:255'],
                 'modification.provider' => ['required', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
-                'modification.allow_change_fields' => ['required', 'array'],
+                'modification.allow_change_fields' => ['present', 'array'],
                 'modification.allow_change_fields.*' => ['string', 'max:64'],
                 'modification.engines' => ['nullable', 'array'],
                 'modification.engines.*' => ['array'],

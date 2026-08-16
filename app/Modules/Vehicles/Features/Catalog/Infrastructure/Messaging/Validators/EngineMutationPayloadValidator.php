@@ -60,7 +60,7 @@ final readonly class EngineMutationPayloadValidator
                 'engine.fuel_type' => ['required', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
                 'engine.group_id' => ['nullable', 'integer'],
                 'engine.provider' => ['required', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
-                'engine.allow_change_fields' => ['required', 'array'],
+                'engine.allow_change_fields' => ['present', 'array'],
                 'engine.allow_change_fields.*' => ['string', 'max:64'],
             ];
         }

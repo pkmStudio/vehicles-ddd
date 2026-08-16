@@ -107,7 +107,7 @@ final readonly class EngineDataFactory implements EngineDataFactoryInterface
             'number_of_valves' => ['nullable', 'integer'],
             'fuel_type' => ['required', Rule::enum(EngineFuelTypeEnum::class)],
             'provider' => ['required', Rule::enum(ProviderEnum::class)],
-            'allow_change_fields' => ['required', 'array'],
+            'allow_change_fields' => ['present', 'array'],
             'allow_change_fields.*' => ['string', 'max:64'],
             'id' => ['nullable', 'integer'],
             'group_id' => ['nullable', 'integer'],

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Vehicles\Shared\Domain\DTOs;
+namespace App\Modules\Vehicles\Shared\Domain\DTOs\Policy;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
@@ -51,26 +51,22 @@ final readonly class ModificationWritePolicyResultDTO
     {
         return new self(
             modId: (int) $payload['mod_id'],
-            type: $payload['type'] instanceof VehicleTypeEnum
-                ? $payload['type']
-                : VehicleTypeEnum::from((string) $payload['type']),
+            type: VehicleTypeEnum::from($payload['type']),
             vehicleId: (int) $payload['vehicle_id'],
             msId: (int) $payload['ms_id'],
-            provider: $payload['provider'] instanceof ProviderEnum
-                ? $payload['provider']
-                : ProviderEnum::from((string) $payload['provider']),
+            provider: ProviderEnum::from($payload['provider']),
             yearFrom: (int) $payload['year_from'],
-            yearTo: isset($payload['year_to']) ? (int) $payload['year_to'] : null,
             description: (string) $payload['description'],
-            descriptionShort: isset($payload['description_short']) ? (string) $payload['description_short'] : null,
-            localizedName: isset($payload['localized_name']) ? (string) $payload['localized_name'] : null,
             powerPs: (int) $payload['power_ps'],
             powerKw: (int) $payload['power_kw'],
-            engineType: self::engineType($payload['engine_type']),
+            engineType: EngineTypeEnum::from($payload['engine_type']),
             allowChangeFields: array_values($payload['allow_change_fields']),
-            gearType: self::nullableGearType($payload['gear_type'] ?? null),
-            driveType: self::nullableDriveType($payload['drive_type'] ?? null),
-            brakeSystemType: self::nullableBrakeSystemType($payload['brake_system_type'] ?? null),
+            yearTo: isset($payload['year_to']) ? (int) $payload['year_to'] : null,
+            descriptionShort: isset($payload['description_short']) ? (string) $payload['description_short'] : null,
+            localizedName: isset($payload['localized_name']) ? (string) $payload['localized_name'] : null,
+            gearType: isset($payload['gear_type']) ? GearTypeEnum::from($payload['gear_type']) : null,
+            driveType: isset($payload['drive_type']) ? DriveTypeEnum::from($payload['drive_type']) : null,
+            brakeSystemType: isset($payload['brake_system_type']) ? BrakeSystemTypeEnum::from($payload['brake_system_type']) : null,
             numberOfCylinders: isset($payload['number_of_cylinders']) ? (int) $payload['number_of_cylinders'] : null,
             capacityLt: isset($payload['capacity_lt']) ? (float) $payload['capacity_lt'] : null,
             id: isset($payload['id']) ? (int) $payload['id'] : null,
@@ -106,65 +102,5 @@ final readonly class ModificationWritePolicyResultDTO
             'allow_change_fields' => $this->allowChangeFields,
             'id' => $this->id,
         ];
-    }
-
-    /**
-     * Возвращает nullable engine type enum из enum/string значения.
-     */
-    private static function engineType(mixed $value): EngineTypeEnum
-    {
-        if ($value instanceof EngineTypeEnum) {
-            return $value;
-        }
-
-        return EngineTypeEnum::from((string) $value);
-    }
-
-    /**
-     * Возвращает nullable gear type enum из enum/string значения.
-     */
-    private static function nullableGearType(mixed $value): ?GearTypeEnum
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        if ($value instanceof GearTypeEnum) {
-            return $value;
-        }
-
-        return GearTypeEnum::from((string) $value);
-    }
-
-    /**
-     * Возвращает nullable drive type enum из enum/string значения.
-     */
-    private static function nullableDriveType(mixed $value): ?DriveTypeEnum
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        if ($value instanceof DriveTypeEnum) {
-            return $value;
-        }
-
-        return DriveTypeEnum::from((string) $value);
-    }
-
-    /**
-     * Возвращает nullable brake system type enum из enum/string значения.
-     */
-    private static function nullableBrakeSystemType(mixed $value): ?BrakeSystemTypeEnum
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        if ($value instanceof BrakeSystemTypeEnum) {
-            return $value;
-        }
-
-        return BrakeSystemTypeEnum::from((string) $value);
     }
 }

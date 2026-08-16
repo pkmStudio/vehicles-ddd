@@ -14,7 +14,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpec
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\ResolvedPartSpecificationOwnerDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\VehicleData;
-use App\Modules\Vehicles\Shared\Domain\DTOs\VehicleWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\VehicleWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
 use App\Modules\Vehicles\Shared\Domain\Services\Policy\VehicleWritePolicy;
@@ -189,13 +189,13 @@ final readonly class VehiclePartSpecificationOwnerResolver implements VehiclePar
             provider: $payload->provider,
             generation: $payload->generation,
             generationYearFrom: $payload->generationYearFrom,
+            isAllow: $payload->isAllow,
             generationYearTo: $payload->generationYearTo,
             parentId: $parentId,
             parentMsId: $payload->parentMsId,
             excelTableId: $payload->excelTableId,
             localizedName: $payload->localizedName,
             generationShort: $payload->generationShort,
-            isAllow: $payload->isAllow,
             id: $existing?->id,
         );
     }

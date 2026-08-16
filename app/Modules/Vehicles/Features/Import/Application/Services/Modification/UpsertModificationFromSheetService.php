@@ -14,7 +14,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNot
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ModificationData;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\ModificationEventPayloadDTO;
-use App\Modules\Vehicles\Shared\Domain\DTOs\ModificationWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\ModificationWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Modification\ModificationCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\Modification\ModificationUpdated;
 use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
@@ -104,6 +104,7 @@ final readonly class UpsertModificationFromSheetService implements UpsertModific
             powerPs: $modification->powerPs,
             powerKw: $modification->powerKw,
             engineType: $modification->engineType,
+            allowChangeFields: $modification->allowChangeFields,
             yearTo: $modification->yearTo,
             descriptionShort: $modification->descriptionShort,
             localizedName: $modification->localizedName,
@@ -112,7 +113,6 @@ final readonly class UpsertModificationFromSheetService implements UpsertModific
             brakeSystemType: $modification->brakeSystemType,
             numberOfCylinders: $modification->numberOfCylinders,
             capacityLt: $modification->capacityLt,
-            allowChangeFields: $modification->allowChangeFields,
         );
 
         event($existing === null

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Shared\Domain\Services\Policy;
 
-use App\Modules\Vehicles\Shared\Domain\DTOs\EngineWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\EngineWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 
 /**

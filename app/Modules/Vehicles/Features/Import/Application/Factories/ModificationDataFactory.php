@@ -108,7 +108,7 @@ final readonly class ModificationDataFactory implements ModificationDataFactoryI
                 'number_of_cylinders' => ['nullable', 'integer'],
                 'capacity_lt' => ['nullable', 'numeric'],
                 'provider' => ['required', Rule::enum(ProviderEnum::class)],
-                'allow_change_fields' => ['required', 'array'],
+                'allow_change_fields' => ['present', 'array'],
                 'allow_change_fields.*' => ['string', 'max:64'],
                 'id' => ['nullable', 'integer'],
             ])->validate();
@@ -127,6 +127,7 @@ final readonly class ModificationDataFactory implements ModificationDataFactoryI
             powerPs: (int) $valid['power_ps'],
             powerKw: (int) $valid['power_kw'],
             engineType: EngineTypeEnum::from($valid['engine_type']),
+            allowChangeFields: $valid['allow_change_fields'],
             yearTo: isset($valid['year_to']) ? (int) $valid['year_to'] : null,
             descriptionShort: isset($valid['description_short']) ? (string) $valid['description_short'] : null,
             localizedName: isset($valid['localized_name']) ? (string) $valid['localized_name'] : null,
@@ -135,7 +136,6 @@ final readonly class ModificationDataFactory implements ModificationDataFactoryI
             brakeSystemType: isset($valid['brake_system_type']) ? BrakeSystemTypeEnum::from($valid['brake_system_type']) : null,
             numberOfCylinders: isset($valid['number_of_cylinders']) ? (int) $valid['number_of_cylinders'] : null,
             capacityLt: isset($valid['capacity_lt']) ? (float) $valid['capacity_lt'] : null,
-            allowChangeFields: $valid['allow_change_fields'],
             id: isset($valid['id']) ? (int) $valid['id'] : null,
         );
     }

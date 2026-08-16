@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Vehicles\Shared\Domain\DTOs;
+namespace App\Modules\Vehicles\Shared\Domain\DTOs\Policy;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
@@ -42,13 +42,11 @@ final readonly class EngineWritePolicyResultDTO
     {
         return new self(
             engId: (int) $payload['eng_id'],
-            provider: $payload['provider'] instanceof ProviderEnum
-                ? $payload['provider']
-                : ProviderEnum::from((string) $payload['provider']),
+            provider: ProviderEnum::from($payload['provider']),
             codeEngine: (string) $payload['code_engine'],
             powerKwStart: (int) $payload['power_kw_start'],
             powerPsStart: (int) $payload['power_ps_start'],
-            fuelType: self::fuelType($payload['fuel_type']),
+            fuelType: EngineFuelTypeEnum::from($payload['fuel_type']),
             allowChangeFields: array_values($payload['allow_change_fields']),
             powerKwUpto: isset($payload['power_kw_upto']) ? (int) $payload['power_kw_upto'] : null,
             powerPsUpto: isset($payload['power_ps_upto']) ? (int) $payload['power_ps_upto'] : null,
@@ -85,17 +83,5 @@ final readonly class EngineWritePolicyResultDTO
             'allow_change_fields' => $this->allowChangeFields,
             'id' => $this->id,
         ];
-    }
-
-    /**
-     * Возвращает nullable fuel type enum из enum/string значения.
-     */
-    private static function fuelType(mixed $value): EngineFuelTypeEnum
-    {
-        if ($value instanceof EngineFuelTypeEnum) {
-            return $value;
-        }
-
-        return EngineFuelTypeEnum::from((string) $value);
     }
 }

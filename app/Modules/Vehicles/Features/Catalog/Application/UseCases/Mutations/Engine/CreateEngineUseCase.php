@@ -14,8 +14,8 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
-use App\Modules\Vehicles\Shared\Domain\DTOs\EngineWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\EngineEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\EngineWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Engine\EngineCreated;
 use App\Modules\Vehicles\Shared\Domain\Services\Policy\EngineWritePolicy;
 use Throwable;
@@ -82,6 +82,7 @@ final readonly class CreateEngineUseCase
                 powerKwStart: $request->powerKwStart,
                 powerPsStart: $request->powerPsStart,
                 fuelType: $request->fuelType,
+                allowChangeFields: $request->allowChangeFields,
                 powerKwUpto: $request->powerKwUpto,
                 powerPsUpto: $request->powerPsUpto,
                 engineCapacity: $request->engineCapacity,
@@ -89,7 +90,6 @@ final readonly class CreateEngineUseCase
                 cylinderCount: $request->cylinderCount,
                 numberOfValves: $request->numberOfValves,
                 groupId: $request->groupId,
-                allowChangeFields: $request->allowChangeFields,
             );
 
             $writeResult = $this->writePolicy->apply(
@@ -107,6 +107,7 @@ final readonly class CreateEngineUseCase
                 powerKwStart: $engine->powerKwStart,
                 powerPsStart: $engine->powerPsStart,
                 fuelType: $engine->fuelType,
+                allowChangeFields: $engine->allowChangeFields,
                 powerKwUpto: $engine->powerKwUpto,
                 powerPsUpto: $engine->powerPsUpto,
                 engineCapacity: $engine->engineCapacity,
@@ -114,7 +115,6 @@ final readonly class CreateEngineUseCase
                 cylinderCount: $engine->cylinderCount,
                 numberOfValves: $engine->numberOfValves,
                 groupId: $engine->groupId,
-                allowChangeFields: $engine->allowChangeFields,
             );
 
             event(new EngineCreated(

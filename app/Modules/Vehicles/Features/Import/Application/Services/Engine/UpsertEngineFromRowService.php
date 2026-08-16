@@ -12,8 +12,8 @@ use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineTdRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
-use App\Modules\Vehicles\Shared\Domain\DTOs\EngineWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\EngineEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\EngineWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Engine\EngineCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\Engine\EngineUpdated;
 use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
@@ -25,6 +25,8 @@ use App\Modules\Vehicles\Shared\Domain\Services\Policy\EngineWritePolicy;
 final readonly class UpsertEngineFromRowService implements UpsertEngineFromRowServiceInterface
 {
     private const int IMPORT_USER_ID = 0;
+
+    private const string OPERATION_ID = 'vehicles-engine-import';
 
     /**
      * Инициализирует порты сценария upsert двигателя.
@@ -83,6 +85,7 @@ final readonly class UpsertEngineFromRowService implements UpsertEngineFromRowSe
             powerKwStart: $engine->powerKwStart,
             powerPsStart: $engine->powerPsStart,
             fuelType: $engine->fuelType,
+            allowChangeFields: $engine->allowChangeFields,
             powerKwUpto: $engine->powerKwUpto,
             powerPsUpto: $engine->powerPsUpto,
             engineCapacity: $engine->engineCapacity,
@@ -90,12 +93,13 @@ final readonly class UpsertEngineFromRowService implements UpsertEngineFromRowSe
             cylinderCount: $engine->cylinderCount,
             numberOfValves: $engine->numberOfValves,
             groupId: $engine->groupId,
-            allowChangeFields: $engine->allowChangeFields,
         );
 
+        $operationId = $row instanceof EngineTdRowDTO ? self::OPERATION_ID : $row->operationId;
+
         event($existing === null
-            ? new EngineCreated(self::IMPORT_USER_ID, $row->operationId, $payload)
-            : new EngineUpdated(self::IMPORT_USER_ID, $row->operationId, $payload));
+            ? new EngineCreated(self::IMPORT_USER_ID, $operationId, $payload)
+            : new EngineUpdated(self::IMPORT_USER_ID, $operationId, $payload));
 
         return $engine;
     }
