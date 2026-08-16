@@ -56,4 +56,14 @@ interface KitCommandInterface
      * 3) Завершить без возврата бизнес-данных.
      */
     public function deleteByIds(array $ids): void;
+
+    /**
+     * Полностью сбрасывает каталог наборов вместе с зависимыми данными по cascade-связям.
+     *
+     * Шаги:
+     * 1) Выполнить bulk-очистку таблицы kits.
+     * 2) Сбросить identity-счётчик id.
+     * 3) Позволить PostgreSQL cascade удалить зависимые строки.
+     */
+    public function reset(): void;
 }

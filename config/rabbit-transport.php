@@ -47,6 +47,7 @@ use App\Modules\Vehicles\Features\Export\Infrastructure\Messaging\Handlers\Expor
 use App\Modules\Vehicles\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\BrandMutationRequestedHandler as WarehouseBrandMutationRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\KitMutationRequestedHandler as WarehouseKitMutationRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\KitResetRequestedHandler as WarehouseKitResetRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\NomenclatureMutationRequestedHandler as WarehouseNomenclatureMutationRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\PackDimensionMutationRequestedHandler as WarehousePackDimensionMutationRequestedHandler;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as WarehouseExportFileRequestedHandler;
@@ -275,6 +276,10 @@ return [
             WarehouseKitMutationRequestedHandler::class,
             'handle',
         ],
+        VehiclesEventName::WarehouseKitResetRequested->value => [
+            WarehouseKitResetRequestedHandler::class,
+            'handle',
+        ],
 
         VehiclesEventName::VehicleCreateRequested->value => [
             VehicleMutationRequestedHandler::class,
@@ -421,6 +426,7 @@ return [
             VehiclesRoutingKey::WarehouseKitCreate->value,
             VehiclesRoutingKey::WarehouseKitUpdate->value,
             VehiclesRoutingKey::WarehouseKitDelete->value,
+            VehiclesRoutingKey::WarehouseKitReset->value,
             VehiclesRoutingKey::VehicleCreate->value,
             VehiclesRoutingKey::VehicleUpdate->value,
             VehiclesRoutingKey::VehicleDelete->value,

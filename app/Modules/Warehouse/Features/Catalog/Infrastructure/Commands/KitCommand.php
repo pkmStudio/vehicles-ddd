@@ -93,6 +93,21 @@ final readonly class KitCommand implements KitCommandInterface
     }
 
     /**
+     * Полностью очищает наборы через PostgreSQL TRUNCATE с cascade-связями.
+     *
+     * Шаги:
+     * 1) Открыть транзакцию, чтобы операция была атомарной.
+     * 2) Очистить kits и зависимые таблицы через FK cascade.
+     * 3) Сбросить sequence id для последующих импортов наборов.
+     */
+    public function reset(): void
+    {
+        DB::transaction(static function (): void {
+            DB::statement('TRUNCATE TABLE kits RESTART IDENTITY CASCADE');
+        });
+    }
+
+    /**
      * Полностью переписывает состав набора в порядке входящего массива id.
      *
      * @param  array<int, int>  $nomenclatureIds

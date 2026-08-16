@@ -21,6 +21,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\BrandComman
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\PackDimensionCommandInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Notifications\KitResetNotificationServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\Applicability\WarehouseApplicabilityRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
@@ -41,6 +42,7 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands\BrandCommand;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands\KitCommand;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands\NomenclatureCommand;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands\PackDimensionCommand;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Notifications\RabbitMqKitResetNotificationService;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Notifications\RabbitMqWarehouseCatalogMutationNotificationService;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\Applicability\WarehouseApplicabilityRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\BrandCrmRepository;
@@ -87,6 +89,7 @@ final class CatalogServiceProvider extends ServiceProvider
         WarehouseCatalogMutationCacheServiceInterface::class => WarehouseCatalogMutationCacheService::class,
         WarehouseCatalogMutationNotificationServiceInterface::class => RabbitMqWarehouseCatalogMutationNotificationService::class,
         WarehouseCatalogMutationResultServiceInterface::class => WarehouseCatalogMutationResultService::class,
+        KitResetNotificationServiceInterface::class => RabbitMqKitResetNotificationService::class,
     ];
 
     private const array CLIENT_BINDINGS = [

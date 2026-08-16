@@ -15,15 +15,6 @@
 2. Убедиться, что оба сервиса смотрят в один RabbitMQ.
 3. Убедиться, что `dan-center` настроен на REST URL `dan-vehicles`.
 4. Убедиться, что S3-доступ настроен в обоих сервисах, потому что импорты/экспорты и отчеты ошибок используют файлы.
-5. После изменений миграций выполнить в `dan-vehicles`:
-
-```bash
-php artisan migrate:refresh
-php artisan rabbit-transport:setup
-php artisan app:tecDoc-import-cars
-```
-
-6. Дождаться, пока Horizon в `dan-vehicles` обработает TecDoc import jobs.
 7. В `dan-center` выполнить setup RabbitMQ bindings, если окружение пересоздавалось:
 
 ```bash
