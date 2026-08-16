@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Type\Crm;
 
-final readonly class TypeCrmListItemDTO
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
+final readonly class TypeCrmListItemDTO implements HttpArraySerializableInterface
 {
     public function __construct(
         public int $id,

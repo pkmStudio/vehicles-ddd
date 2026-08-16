@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Сценарный снимок двигателя внутри CRM detail projection автомобиля.
  */
-final readonly class VehicleCrmEngineDTO
+final readonly class VehicleCrmEngineDTO implements HttpArraySerializableInterface
 {
     /**
      * Хранит поля двигателя, показываемые во вложенном CRM detail ответе.

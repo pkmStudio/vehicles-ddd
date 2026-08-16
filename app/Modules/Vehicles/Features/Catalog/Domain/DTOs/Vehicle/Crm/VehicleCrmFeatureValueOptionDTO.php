@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Feature value option для CRM-форм Vehicles.
  */
-final readonly class VehicleCrmFeatureValueOptionDTO
+final readonly class VehicleCrmFeatureValueOptionDTO implements HttpArraySerializableInterface
 {
     /**
      * Хранит id, feature id, label и short code feature value option.

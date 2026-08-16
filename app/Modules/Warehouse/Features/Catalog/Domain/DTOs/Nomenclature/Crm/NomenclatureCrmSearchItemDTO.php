@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Compact projection Warehouse-номенклатуры для CRM autocomplete.
  */
-final readonly class NomenclatureCrmSearchItemDTO
+final readonly class NomenclatureCrmSearchItemDTO implements HttpArraySerializableInterface
 {
     /**
      * Фиксирует значения DTO без дополнительного поведения.

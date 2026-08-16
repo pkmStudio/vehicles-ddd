@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Read-only снимок двигателя для CRM каталога.
  */
-final readonly class EngineCrmListItemDTO
+final readonly class EngineCrmListItemDTO implements HttpArraySerializableInterface
 {
     /**
      * @param  list<string>  $allowChangeFields
@@ -40,15 +42,15 @@ final readonly class EngineCrmListItemDTO
             'id' => $this->id,
             'eng_id' => $this->engId,
             'code_engine' => $this->codeEngine,
-            'power_kw_start' => $this->powerKwStart,
-            'power_ps_start' => $this->powerPsStart,
-            'fuel_type' => $this->fuelType,
             'engine_capacity' => $this->engineCapacity,
             'cylinder_count' => $this->cylinderCount,
             'cylinder_diameter' => $this->cylinderDiameter,
+            'power_kw_start' => $this->powerKwStart,
             'power_kw_upto' => $this->powerKwUpto,
+            'power_ps_start' => $this->powerPsStart,
             'power_ps_upto' => $this->powerPsUpto,
             'number_of_valves' => $this->numberOfValves,
+            'fuel_type' => $this->fuelType,
             'group_id' => $this->groupId,
             'provider' => $this->provider,
             'allow_change_fields' => $this->allowChangeFields,

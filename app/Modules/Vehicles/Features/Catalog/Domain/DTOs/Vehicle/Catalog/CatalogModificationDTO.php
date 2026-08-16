@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
 
 /**
  * Публичная REST-проекция модификации ТС для каталога.
  */
-final readonly class CatalogModificationDTO
+final readonly class CatalogModificationDTO implements HttpArraySerializableInterface
 {
     /**
      * Хранит публичные поля модификации для ответа каталога.

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Сценарный снимок Warehouse-номенклатуры для CRM read API.
  */
-final readonly class NomenclatureCrmListItemDTO
+final readonly class NomenclatureCrmListItemDTO implements HttpArraySerializableInterface
 {
     /**
      * @param  array<int, string>  $material

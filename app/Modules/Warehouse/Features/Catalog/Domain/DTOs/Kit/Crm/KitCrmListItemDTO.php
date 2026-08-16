@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm;
 
-final readonly class KitCrmListItemDTO
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
+final readonly class KitCrmListItemDTO implements HttpArraySerializableInterface
 {
     /**
      * @param  list<array{id: int, label: string, part_number: string}>  $nomenclatures

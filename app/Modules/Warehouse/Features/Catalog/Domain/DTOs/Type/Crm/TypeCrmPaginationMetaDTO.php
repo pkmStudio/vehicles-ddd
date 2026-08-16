@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Type\Crm;
 
-final readonly class TypeCrmPaginationMetaDTO
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
+final readonly class TypeCrmPaginationMetaDTO implements HttpArraySerializableInterface
 {
     public function __construct(
         public int $currentPage,
