@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Export\Infrastructure\Exports;
 
+use App\Modules\Applicability\Features\Export\Infrastructure\Exports\Concerns\StylesExportWorksheet;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;

@@ -13,6 +13,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Nomenclature
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\Factories\NomenclatureCrmPageDTOFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 

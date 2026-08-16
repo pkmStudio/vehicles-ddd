@@ -7,6 +7,8 @@ namespace App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Modificati
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\ModificationCatalogExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\AbstractMultiSheetExport;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Modification\Sheets\ModificationSheetExport;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
 /**
  * Laravel Excel adapter export-а каталога модификаций.
@@ -30,7 +32,7 @@ final readonly class ModificationCatalogExport extends AbstractMultiSheetExport 
      * Шаги:
      * 1) Добавить единственный лист каталога модификаций.
      *
-     * @return array<int, object>
+     * @return array<int, WithTitle>
      */
     public function sheets(): array
     {

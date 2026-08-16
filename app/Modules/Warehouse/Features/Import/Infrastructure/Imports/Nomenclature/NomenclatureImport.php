@@ -201,10 +201,10 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     /**
      * Регистрирует serializable Laravel Excel events для queued import.
      * Шаги:
-     * 1) Привязать AfterImport к static callable без closure.
+     * 1) Привязать AfterImport к static handler без closure.
      * 2) Оставить dispatch завершения до окончания всех queued chunks.
      *
-     * @return array<class-string, callable>
+     * @return array<class-string, array{class-string<self>, string}>
      */
     public function registerEvents(): array
     {

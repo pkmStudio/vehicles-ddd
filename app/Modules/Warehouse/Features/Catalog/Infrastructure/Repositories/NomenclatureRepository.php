@@ -10,6 +10,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 /**
  * Читает Warehouse-номенклатуру для Catalog-мутаций.
@@ -88,7 +89,7 @@ final readonly class NomenclatureRepository implements NomenclatureRepositoryInt
      */
     public function deletionIntegrationContexts(int $id): Collection
     {
-        $toDeletionContext = fn (object $row): NomenclatureIntegrationDeletionContextDTO => new NomenclatureIntegrationDeletionContextDTO(
+        $toDeletionContext = fn (stdClass $row): NomenclatureIntegrationDeletionContextDTO => new NomenclatureIntegrationDeletionContextDTO(
             id: (int) $row->id,
             provider: (string) $row->provider,
             externalId: is_string($row->external_id) ? $row->external_id : null,

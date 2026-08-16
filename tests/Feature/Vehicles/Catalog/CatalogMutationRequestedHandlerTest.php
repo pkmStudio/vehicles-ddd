@@ -448,7 +448,12 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
                 'mod_id' => 4003,
                 'ms_id' => $vehicle->ms_id,
                 'type' => VehicleTypeEnum::PC->value,
+                'year_from' => 2019,
                 'description' => '1.4 TSI',
+                'power_ps' => 150,
+                'power_kw' => 110,
+                'engine_type' => EngineTypeEnum::PETROL->value,
+                'provider' => ProviderEnum::OD->value,
                 'allow_change_fields' => [],
                 'engines' => [
                     [
@@ -522,7 +527,12 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
                 'mod_id' => $modId,
                 'ms_id' => $msId,
                 'type' => VehicleTypeEnum::PC->value,
+                'year_from' => 2019,
                 'description' => $description,
+                'power_ps' => 150,
+                'power_kw' => 110,
+                'engine_type' => EngineTypeEnum::PETROL->value,
+                'provider' => ProviderEnum::OD->value,
                 'allow_change_fields' => [],
             ],
         ];

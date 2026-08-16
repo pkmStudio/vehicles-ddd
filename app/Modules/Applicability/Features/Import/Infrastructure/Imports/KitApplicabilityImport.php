@@ -188,7 +188,7 @@ final class KitApplicabilityImport implements KitApplicabilityImportInterface, S
      * Регистрирует сериализуемые Excel events для queued import.
      *
      * Шаги:
-     * 1. Подписывает `AfterImport` на статический callable, а не closure.
+     * 1. Подписывает `AfterImport` на статический handler, а не closure.
      * 2. Возвращает mapping events для Laravel Excel.
      */
     public function registerEvents(): array

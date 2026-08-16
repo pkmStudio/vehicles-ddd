@@ -9,6 +9,7 @@ use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Nomenclature\Sheets\NomenclatureDataSheetExport;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Nomenclature\Sheets\NomenclatureReferenceSheetExport;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
@@ -52,7 +53,7 @@ final readonly class NomenclatureByTypeExport implements NomenclatureByTypeExpor
     /**
      * Создаёт лист данных и лист справочников через контейнер.
      *
-     * @return array<int, object>
+     * @return array<int, WithTitle>
      */
     public function sheets(): array
     {

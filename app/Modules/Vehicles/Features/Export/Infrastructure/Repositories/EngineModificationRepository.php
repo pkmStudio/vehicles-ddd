@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineMod
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\EngineModificationExportRowDTO;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 /**
  * Читает pivot engine_modification для Excel export.
@@ -31,7 +32,7 @@ final readonly class EngineModificationRepository implements EngineModificationR
             ->orderBy('type')
             ->orderBy('eng_id')
             ->get()
-            ->map(static fn (object $row): EngineModificationExportRowDTO => new EngineModificationExportRowDTO(
+            ->map(static fn (stdClass $row): EngineModificationExportRowDTO => new EngineModificationExportRowDTO(
                 modId: (int) $row->mod_id,
                 engId: (int) $row->eng_id,
                 type: (string) $row->type,

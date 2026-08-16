@@ -193,7 +193,7 @@ final class CalculationRequestedHandlerTest extends TestCase
         );
     }
 
-    private function jobProperty(object $job, string $property): mixed
+    private function jobProperty(DispatchKitApplicabilityCalculationJob $job, string $property): string|int|null
     {
         $reflection = new ReflectionClass($job);
 

@@ -9,6 +9,9 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\VehicleExport
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\AbstractMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\ReferenceSheetExport;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\Sheets\VehicleMainSheetExport;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\Sheets\VehicleWipersSheetExport;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
 /**
  * Laravel Excel adapter multi-sheet export-а автомобилей.
@@ -45,7 +48,7 @@ final readonly class VehicleMultiSheetExport extends AbstractMultiSheetExport im
      * 3) Добавить лист дворников с флагом `isAllow`.
      * 4) Добавить reference sheet с headings/rows из export service.
      *
-     * @return array<int, object>
+     * @return array<int, WithTitle>
      */
     public function sheets(): array
     {

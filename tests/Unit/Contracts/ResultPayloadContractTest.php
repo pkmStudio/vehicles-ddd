@@ -13,6 +13,7 @@ use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportCompletionNotificatio
 use App\Modules\Vehicles\Features\Import\Domain\Enums\ExternalImportTypeEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Enums\ImportCompletionStatusEnum;
 use App\Modules\Warehouse\Features\Import\Domain\Enums\ImportTypeEnum;
+use Closure;
 use PHPUnit\Framework\TestCase;
 use PkmStudio\DanWireContracts\Vehicles\Modules\Applicability\Features\Calculation\DTO\CalculationCompleted as WireCalculationCompleted;
 use PkmStudio\DanWireContracts\Vehicles\Shared\Results\DTO\FileExported as WireFileExported;
@@ -32,7 +33,10 @@ final class ResultPayloadContractTest extends TestCase
             path: 'dan-vehicles/import/failures.xlsx',
         );
 
-        $this->assertWirePayloadMatches($payload->toArray(), WireImportCompleted::fromArray(...));
+        $this->assertWirePayloadMatches(
+            $payload->toArray(),
+            static fn (array $wirePayload): array => WireImportCompleted::fromArray($wirePayload)->toArray(),
+        );
     }
 
     public function test_vehicles_export_result_payload_matches_wire_contract(): void
@@ -46,7 +50,10 @@ final class ResultPayloadContractTest extends TestCase
             path: 'exports/vehicles.xlsx',
         );
 
-        $this->assertWirePayloadMatches($payload->toArray(), WireFileExported::fromArray(...));
+        $this->assertWirePayloadMatches(
+            $payload->toArray(),
+            static fn (array $wirePayload): array => WireFileExported::fromArray($wirePayload)->toArray(),
+        );
     }
 
     public function test_warehouse_import_result_payload_matches_wire_contract(): void
@@ -60,7 +67,10 @@ final class ResultPayloadContractTest extends TestCase
             failuresReportDisk: 's3',
         );
 
-        $this->assertWirePayloadMatches($payload->toArray(), WireImportCompleted::fromArray(...));
+        $this->assertWirePayloadMatches(
+            $payload->toArray(),
+            static fn (array $wirePayload): array => WireImportCompleted::fromArray($wirePayload)->toArray(),
+        );
     }
 
     public function test_warehouse_export_result_payload_matches_wire_contract(): void
@@ -75,7 +85,10 @@ final class ResultPayloadContractTest extends TestCase
             typeId: 7,
         );
 
-        $this->assertWirePayloadMatches($payload->toArray(), WireFileExported::fromArray(...));
+        $this->assertWirePayloadMatches(
+            $payload->toArray(),
+            static fn (array $wirePayload): array => WireFileExported::fromArray($wirePayload)->toArray(),
+        );
     }
 
     public function test_applicability_import_result_payload_matches_wire_contract(): void
@@ -89,7 +102,10 @@ final class ResultPayloadContractTest extends TestCase
             failuresReportDisk: 's3',
         );
 
-        $this->assertWirePayloadMatches($payload->toArray(), WireImportCompleted::fromArray(...));
+        $this->assertWirePayloadMatches(
+            $payload->toArray(),
+            static fn (array $wirePayload): array => WireImportCompleted::fromArray($wirePayload)->toArray(),
+        );
     }
 
     public function test_applicability_export_result_payload_matches_wire_contract(): void
@@ -103,7 +119,10 @@ final class ResultPayloadContractTest extends TestCase
             path: 'exports/applicability.xlsx',
         );
 
-        $this->assertWirePayloadMatches($payload->toArray(), WireFileExported::fromArray(...));
+        $this->assertWirePayloadMatches(
+            $payload->toArray(),
+            static fn (array $wirePayload): array => WireFileExported::fromArray($wirePayload)->toArray(),
+        );
     }
 
     public function test_applicability_calculation_result_payload_matches_wire_contract(): void
@@ -120,16 +139,20 @@ final class ResultPayloadContractTest extends TestCase
             userId: 42,
         );
 
-        $this->assertWirePayloadMatches($payload->toArray(), WireCalculationCompleted::fromArray(...));
+        $this->assertWirePayloadMatches(
+            $payload->toArray(),
+            static fn (array $wirePayload): array => WireCalculationCompleted::fromArray($wirePayload)->toArray(),
+        );
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, string|int|null>  $payload
+     * @param  Closure(array<string, string|int|null>): array<string, string|int|null>  $normalizePayload
      */
-    private function assertWirePayloadMatches(array $payload, callable $fromArray): void
+    private function assertWirePayloadMatches(array $payload, Closure $normalizePayload): void
     {
-        $expected = array_filter($payload, static fn (mixed $value): bool => $value !== null);
-        $actual = $fromArray($payload)->toArray();
+        $expected = array_filter($payload, static fn (string|int|null $value): bool => $value !== null);
+        $actual = $normalizePayload($payload);
 
         foreach ($expected as $key => $value) {
             self::assertArrayHasKey($key, $actual);

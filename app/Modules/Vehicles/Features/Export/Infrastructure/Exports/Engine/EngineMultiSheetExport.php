@@ -10,6 +10,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\AbstractMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\Sheets\EngineMainSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\ReferenceSheetExport;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
 /**
  * Laravel Excel adapter multi-sheet export-а двигателей.
@@ -35,7 +36,7 @@ final readonly class EngineMultiSheetExport extends AbstractMultiSheetExport imp
      * 2) Добавить основной лист двигателей.
      * 3) Добавить reference sheet с headings/rows из export service.
      *
-     * @return array<int, object>
+     * @return array<int, WithTitle>
      */
     public function sheets(): array
     {

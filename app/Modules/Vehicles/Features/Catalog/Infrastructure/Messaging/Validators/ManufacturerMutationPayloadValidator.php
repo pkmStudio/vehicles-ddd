@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validat
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use BackedEnum;
 use Illuminate\Contracts\Validation\Factory as ValidatorFactory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
@@ -78,10 +79,13 @@ final readonly class ManufacturerMutationPayloadValidator
      * Шаги:
      * - Пройти по cases переданного enum.
      * - Вернуть значения cases для Rule::in().
+     *
+     * @param  array<int, BackedEnum>  $cases
+     * @return list<string>
      */
     private function enumValues(array $cases): array
     {
-        $toEnumValue = fn (object $case): string => $case->value;
+        $toEnumValue = fn (BackedEnum $case): string => (string) $case->value;
 
         return array_map($toEnumValue, $cases);
     }

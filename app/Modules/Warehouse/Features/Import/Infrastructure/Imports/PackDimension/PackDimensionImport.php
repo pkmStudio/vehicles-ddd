@@ -183,10 +183,10 @@ final class PackDimensionImport implements PackDimensionImportInterface, ShouldQ
     /**
      * Регистрирует serializable Laravel Excel event handlers.
      * Шаги:
-     * 1) Привязать AfterImport к static callable.
+     * 1) Привязать AfterImport к static handler.
      * 2) Избежать closure, чтобы queued import оставался сериализуемым.
      *
-     * @return array<class-string, callable>
+     * @return array<class-string, array{class-string<self>, string}>
      */
     public function registerEvents(): array
     {

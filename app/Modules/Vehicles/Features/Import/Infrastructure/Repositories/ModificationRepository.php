@@ -11,6 +11,7 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\ModificationData;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Modification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 /**
  * Читает modification snapshots для import-сценариев Vehicles.
@@ -97,7 +98,7 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
             ->groupBy('mod_id', 'type')
             ->havingRaw('count(*) > 1')
             ->get()
-            ->map(static fn (object $row): DuplicateModificationNaturalKeyDTO => new DuplicateModificationNaturalKeyDTO(
+            ->map(static fn (stdClass $row): DuplicateModificationNaturalKeyDTO => new DuplicateModificationNaturalKeyDTO(
                 modId: (int) $row->mod_id,
                 type: (string) $row->type,
                 count: (int) $row->aggregate,
