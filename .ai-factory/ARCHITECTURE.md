@@ -43,6 +43,11 @@ HTTP/Rabbit/Excel payload, описывает точный array-shape или un
 PHPDoc и сразу переводит вход в typed DTO/Data. Если shape невозможно описать честно, данные
 остаются строкой/stream внешнего формата до validator/mapper boundary.
 
+Исключение: внутри одного Infrastructure repository/adapter метода допустим локальный
+`object`/`stdClass` от Laravel Query Builder, если он сразу мапится в typed DTO/Data/scalar result
+и не выходит в Domain/Application/портовые сигнатуры. Если такой row передается дальше или требует
+нескольких шагов обработки, нужно завести локальный projection DTO либо перейти на Eloquent/casts.
+
 ## Обоснование решения
 
 - **Тип проекта:** backend-сервис каталога и интеграционных workflow с насыщенными бизнес-правилами.

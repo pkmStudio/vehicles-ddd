@@ -68,7 +68,7 @@ final readonly class EngineWritePolicy
                     incoming: $incomingBusiness,
                     existingAllowChangeFields: $existing->allowChangeFields,
                     incomingAllowChangeFields: $incoming->allowChangeFields,
-                    currentValue: static fn (string $field): mixed => $payload[$field] ?? null,
+                    currentValue: static fn (string $field): string|int|float|null => $payload[$field] ?? null,
                     entityLabel: 'TD-двигателя',
                 ),
             ];

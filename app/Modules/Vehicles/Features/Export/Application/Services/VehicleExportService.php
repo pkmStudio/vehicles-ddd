@@ -169,7 +169,7 @@ final readonly class VehicleExportService implements VehicleExportServiceInterfa
 
         for ($i = 0; $i < $max; $i++) {
             $rows[] = array_map(
-                static fn (array $values): mixed => $values[$i] ?? null,
+                static fn (array $values): string|int|float|bool|null => $values[$i] ?? null,
                 $columns,
             );
         }

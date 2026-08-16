@@ -6,7 +6,7 @@ namespace App\Modules\Vehicles\Shared\Domain\Services\Policy;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
-use BackedEnum;
+use Closure;
 
 /**
  * Общее правило provider ownership для записей Vehicles catalog.
@@ -47,11 +47,14 @@ final readonly class ProviderOwnershipPolicy
      * 3) Разрешить менять только пустые или явно открытые поля.
      * 4) Для закрытых измененных полей выбросить domain exception.
      *
-     * @param  array<string, mixed>  $incoming
+     * @param  ProviderEnum  $existingProvider
+     * @param  ProviderEnum  $incomingProvider
+     * @param  array<string, string|int|float|null>  $incoming
      * @param  array<int, string>  $existingAllowChangeFields
      * @param  array<int, string>  $incomingAllowChangeFields
-     * @param  callable(string): mixed  $currentValue
-     * @return array<string, mixed>
+     * @param  Closure  $currentValue
+     * @param  string  $entityLabel
+     * @return array<string, string|int|float|array<int, string>|null>
      */
     public function payload(
         ProviderEnum $existingProvider,
@@ -59,7 +62,7 @@ final readonly class ProviderOwnershipPolicy
         array $incoming,
         array $existingAllowChangeFields,
         array $incomingAllowChangeFields,
-        callable $currentValue,
+        Closure $currentValue,
         string $entityLabel,
     ): array {
         if ($existingProvider === $incomingProvider) {
@@ -101,13 +104,10 @@ final readonly class ProviderOwnershipPolicy
     }
 
     /**
-     * Проверяет отличие двух scalar/enum значений.
+     * Проверяет отличие двух scalar значений.
      */
-    private function changed(string|int|float|BackedEnum|null $current, string|int|float|BackedEnum|null $incoming): bool
+    private function changed(string|int|float|null $current, string|int|float|null $incoming): bool
     {
-        $currentValue = $current instanceof BackedEnum ? (string) $current->value : (string) $current;
-        $incomingValue = $incoming instanceof BackedEnum ? (string) $incoming->value : (string) $incoming;
-
-        return $currentValue !== $incomingValue;
+        return (string) $current !== (string) $incoming;
     }
 }
