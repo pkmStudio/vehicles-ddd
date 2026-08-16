@@ -57,8 +57,17 @@ final class QueuedExcelImportSerializationTest extends TestCase
         ];
     }
 
-    private function assertSerializableImport(object $import): void
-    {
+    private function assertSerializableImport(
+        ManufacturerImportInterface
+        |EngineCrossImportInterface
+        |ManufacturerCommandImportInterface
+        |EngineCommandImportInterface
+        |ModificationCommandImportInterface
+        |EngineModificationImportInterface
+        |VehicleCommandImportInterface
+        |VehicleMultiSheetImport
+        |EngineMultiSheetImport $import,
+    ): void {
         $this->assertIsString(serialize($import));
 
         if (! $import instanceof WithEvents) {
