@@ -15,6 +15,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Eloquent adapter CRM read API двигателей.
+ *
+ * @phpstan-type EngineCrmFilters array<string, string|int|float|bool|array<int, string|int|float|bool|null>|null>
  */
 final readonly class EngineCrmRepository implements EngineCrmRepositoryInterface
 {
@@ -72,6 +74,14 @@ final readonly class EngineCrmRepository implements EngineCrmRepositoryInterface
         if (isset($filters['code_engine']) && trim((string) $filters['code_engine']) !== '') {
             $query->where('engines.code_engine', 'ilike', '%'.trim((string) $filters['code_engine']).'%');
         }
+
+        $this->applyIntegerFilter($query, $filters, 'cylinder_count');
+        $this->applyIntegerFilter($query, $filters, 'number_of_valves');
+        $this->applyNumericFilter($query, $filters, 'cylinder_diameter');
+        $this->applyPowerRangeFilter($query, $filters, 'power_ps');
+        $this->applyPowerRangeFilter($query, $filters, 'power_kw');
+        $this->applyEngineCapacityRangeFilter($query, $filters);
+        $this->applyHasModificationsFilter($query, $filters);
     }
 
     private function applySearch(Builder $query, ?string $search): void
@@ -83,18 +93,104 @@ final readonly class EngineCrmRepository implements EngineCrmRepositoryInterface
         }
 
         $query->where(function (Builder $query) use ($search): void {
-            $query
-                ->where('engines.code_engine', 'ilike', "%{$search}%")
-                ->orWhere('engines.engine_capacity', 'ilike', "%{$search}%")
-                ->orWhere('engines.fuel_type', 'ilike', "%{$search}%");
+            $query->where('engines.code_engine', 'ilike', "%{$search}%");
 
             if (is_numeric($search)) {
                 $query
                     ->orWhere('engines.id', (int) $search)
-                    ->orWhere('engines.eng_id', (int) $search)
-                    ->orWhere('engines.group_id', (int) $search);
+                    ->orWhere('engines.eng_id', (int) $search);
             }
         });
+    }
+
+    /**
+     * @param  EngineCrmFilters  $filters
+     */
+    private function applyIntegerFilter(Builder $query, array $filters, string $field): void
+    {
+        $value = $filters[$field] ?? null;
+
+        if (! is_numeric($value)) {
+            return;
+        }
+
+        $query->where("engines.{$field}", (int) $value);
+    }
+
+    /**
+     * @param  EngineCrmFilters  $filters
+     */
+    private function applyNumericFilter(Builder $query, array $filters, string $field): void
+    {
+        $value = $filters[$field] ?? null;
+
+        if (! is_numeric($value)) {
+            return;
+        }
+
+        $query->where("engines.{$field}", (float) $value);
+    }
+
+    /**
+     * @param  EngineCrmFilters  $filters
+     */
+    private function applyPowerRangeFilter(Builder $query, array $filters, string $prefix): void
+    {
+        $from = $filters["{$prefix}_from"] ?? null;
+        $to = $filters["{$prefix}_to"] ?? null;
+        $startColumn = "engines.{$prefix}_start";
+        $uptoColumn = "engines.{$prefix}_upto";
+
+        if (is_numeric($from)) {
+            $query->where($startColumn, '>=', (int) $from);
+        }
+
+        if (is_numeric($to)) {
+            $query->whereRaw("COALESCE({$uptoColumn}, {$startColumn}) <= ?", [(int) $to]);
+        }
+    }
+
+    /**
+     * @param  EngineCrmFilters  $filters
+     */
+    private function applyEngineCapacityRangeFilter(Builder $query, array $filters): void
+    {
+        $from = $filters['engine_capacity_from'] ?? null;
+        $to = $filters['engine_capacity_to'] ?? null;
+
+        if (! is_numeric($from) && ! is_numeric($to)) {
+            return;
+        }
+
+        $query->whereRaw("engines.engine_capacity ~ '^[0-9]+(\\.[0-9]+)?$'");
+
+        if (is_numeric($from)) {
+            $query->whereRaw('engines.engine_capacity::numeric >= ?', [(float) $from]);
+        }
+
+        if (is_numeric($to)) {
+            $query->whereRaw('engines.engine_capacity::numeric <= ?', [(float) $to]);
+        }
+    }
+
+    /**
+     * @param  EngineCrmFilters  $filters
+     */
+    private function applyHasModificationsFilter(Builder $query, array $filters): void
+    {
+        $value = $filters['has_modifications'] ?? null;
+
+        if ($value === null || $value === '') {
+            return;
+        }
+
+        if (filter_var($value, FILTER_VALIDATE_BOOL)) {
+            $query->has('modifications');
+
+            return;
+        }
+
+        $query->doesntHave('modifications');
     }
 
     private function applySort(Builder $query, string $sort): void
@@ -128,6 +224,7 @@ final readonly class EngineCrmRepository implements EngineCrmRepositoryInterface
             powerPsStart: (int) $engine->power_ps_start,
             fuelType: $engine->fuel_type->value,
             provider: $engine->provider->value,
+            allowChangeFields: $engine->allow_change_fields,
             engineCapacity: $engine->engine_capacity === null ? null : (string) $engine->engine_capacity,
             cylinderCount: $engine->cylinder_count === null ? null : (int) $engine->cylinder_count,
             cylinderDiameter: $engine->cylinder_diameter === null ? null : (float) $engine->cylinder_diameter,
@@ -135,7 +232,6 @@ final readonly class EngineCrmRepository implements EngineCrmRepositoryInterface
             powerPsUpto: $engine->power_ps_upto === null ? null : (int) $engine->power_ps_upto,
             numberOfValves: $engine->number_of_valves === null ? null : (int) $engine->number_of_valves,
             groupId: $engine->group_id === null ? null : (int) $engine->group_id,
-            allowChangeFields: $engine->allow_change_fields,
             modificationsCount: (int) $engine->modifications_count,
         );
     }
