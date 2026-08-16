@@ -25,8 +25,6 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
      */
     public function categories(int $brandId): Collection
     {
-        $toCategory = fn (object $category): CatalogCategoryDTO => $this->category($category);
-
         return DB::table('types')
             ->join('nomenclatures', function (JoinClause $join) use ($brandId): void {
                 $join
@@ -41,7 +39,12 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
                 'types.char',
                 DB::raw('COUNT(nomenclatures.id) as nomenclature_count'),
             ])
-            ->map($toCategory)
+            ->map(fn (object $category): CatalogCategoryDTO => new CatalogCategoryDTO(
+                id: (int) $category->id,
+                name: (string) $category->name,
+                code: $this->nullableString($category->char),
+                nomenclatureCount: (int) $category->nomenclature_count,
+            ))
             ->values();
     }
 
@@ -69,7 +72,12 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
             return null;
         }
 
-        return $this->category($category);
+        return new CatalogCategoryDTO(
+            id: (int) $category->id,
+            name: (string) $category->name,
+            code: $this->nullableString($category->char),
+            nomenclatureCount: (int) $category->nomenclature_count,
+        );
     }
 
     /**
@@ -79,15 +87,19 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
      */
     public function findByCategory(int $categoryId, int $brandId, int $page, int $pageSize): Collection
     {
-        $toSummary = fn (object $nomenclature): CatalogNomenclatureSummaryDTO => $this->summary($nomenclature);
-
         return $this->summaryQuery($brandId)
             ->where('nomenclatures.type_id', $categoryId)
             ->orderBy('nomenclatures.name')
             ->orderBy('nomenclatures.part_number')
             ->forPage($page, $pageSize)
             ->get()
-            ->map($toSummary)
+            ->map(static fn (object $nomenclature): CatalogNomenclatureSummaryDTO => new CatalogNomenclatureSummaryDTO(
+                partNumber: (string) $nomenclature->part_number,
+                name: (string) $nomenclature->name,
+                categoryId: (int) $nomenclature->type_id,
+                brandId: (int) $nomenclature->brand_id,
+                brandName: (string) $nomenclature->brand_name,
+            ))
             ->values();
     }
 
@@ -150,7 +162,6 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
         $trimmedQuery = trim($query);
         $normalizedQuery = mb_strtolower($trimmedQuery);
         $likeQuery = '%'.$trimmedQuery.'%';
-        $toSummary = fn (object $nomenclature): CatalogNomenclatureSummaryDTO => $this->summary($nomenclature);
 
         return $this->summaryQuery($brandId)
             ->where(function (Builder $builder) use ($likeQuery): void {
@@ -163,7 +174,13 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
             ->orderBy('nomenclatures.part_number')
             ->limit($limit)
             ->get()
-            ->map($toSummary)
+            ->map(static fn (object $nomenclature): CatalogNomenclatureSummaryDTO => new CatalogNomenclatureSummaryDTO(
+                partNumber: (string) $nomenclature->part_number,
+                name: (string) $nomenclature->name,
+                categoryId: (int) $nomenclature->type_id,
+                brandId: (int) $nomenclature->brand_id,
+                brandName: (string) $nomenclature->brand_name,
+            ))
             ->values();
     }
 
@@ -182,35 +199,6 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
                 'nomenclatures.brand_id',
                 'brands.name as brand_name',
             ]);
-    }
-
-    /**
-     * Мапит локальную строку Query Builder в typed category DTO.
-     */
-    private function category(object $category): CatalogCategoryDTO
-    {
-        $code = $this->nullableString($category->char);
-
-        return new CatalogCategoryDTO(
-            id: (int) $category->id,
-            name: (string) $category->name,
-            code: $code,
-            nomenclatureCount: (int) $category->nomenclature_count,
-        );
-    }
-
-    /**
-     * Мапит локальную строку Query Builder в typed summary DTO.
-     */
-    private function summary(object $nomenclature): CatalogNomenclatureSummaryDTO
-    {
-        return new CatalogNomenclatureSummaryDTO(
-            partNumber: (string) $nomenclature->part_number,
-            name: (string) $nomenclature->name,
-            categoryId: (int) $nomenclature->type_id,
-            brandId: (int) $nomenclature->brand_id,
-            brandName: (string) $nomenclature->brand_name,
-        );
     }
 
     /**

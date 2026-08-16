@@ -17,15 +17,4 @@ final readonly class ApplicableNomenclatureDTO
         public string $brandName,
     ) {}
 
-    /** @return array{part_number: string, name: string, category_id: int, brand_id: int, brand_name: string} */
-    public function toArray(): array
-    {
-        return [
-            'part_number' => $this->partNumber,
-            'name' => $this->name,
-            'category_id' => $this->categoryId,
-            'brand_id' => $this->brandId,
-            'brand_name' => $this->brandName,
-        ];
-    }
 }

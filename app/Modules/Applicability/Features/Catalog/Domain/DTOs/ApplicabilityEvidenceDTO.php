@@ -16,18 +16,4 @@ final readonly class ApplicabilityEvidenceDTO
         public ?string $algorithm,
     ) {}
 
-    /**
-     * Преобразует подтверждение в snake_case HTTP-проекцию.
-     *
-     * @return array{kit_id: int, target_type: string, source: string, algorithm: ?string}
-     */
-    public function toArray(): array
-    {
-        return [
-            'kit_id' => $this->kitId,
-            'target_type' => $this->targetType,
-            'source' => $this->source,
-            'algorithm' => $this->algorithm,
-        ];
-    }
 }

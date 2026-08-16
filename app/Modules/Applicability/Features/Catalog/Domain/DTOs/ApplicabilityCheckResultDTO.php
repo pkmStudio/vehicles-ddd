@@ -20,21 +20,4 @@ final readonly class ApplicabilityCheckResultDTO
         public Collection $evidence,
     ) {}
 
-    /**
-     * Преобразует подтверждённый результат в публичную HTTP-проекцию.
-     *
-     * @return array{part_number: string, modification_id: int, status: string, evidence: list<array<string, int|string|null>>}
-     */
-    public function toArray(): array
-    {
-        return [
-            'part_number' => $this->partNumber,
-            'modification_id' => $this->modificationId,
-            'status' => $this->status->value,
-            'evidence' => $this->evidence
-                ->map(static fn (ApplicabilityEvidenceDTO $evidence): array => $evidence->toArray())
-                ->values()
-                ->all(),
-        ];
-    }
 }

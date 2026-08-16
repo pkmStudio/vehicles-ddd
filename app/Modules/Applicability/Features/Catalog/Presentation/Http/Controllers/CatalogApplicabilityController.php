@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Catalog\Presentation\Http\Controllers;
 
-use App\Modules\Applicability\Features\Catalog\Domain\Contracts\UseCases\CheckNomenclatureApplicabilityUseCaseInterface;
-use App\Modules\Applicability\Features\Catalog\Domain\Contracts\UseCases\ListApplicableCategoriesUseCaseInterface;
-use App\Modules\Applicability\Features\Catalog\Domain\Contracts\UseCases\ListApplicableNomenclaturesUseCaseInterface;
-use App\Modules\Applicability\Features\Catalog\Domain\DTOs\ApplicableCategoryDTO;
+use App\Modules\Applicability\Features\Catalog\Application\UseCases\CheckNomenclatureApplicabilityUseCase;
+use App\Modules\Applicability\Features\Catalog\Application\UseCases\ListApplicableCategoriesUseCase;
+use App\Modules\Applicability\Features\Catalog\Application\UseCases\ListApplicableNomenclaturesUseCase;
 use App\Modules\Applicability\Features\Catalog\Domain\Enums\ApplicabilityLookupStatusEnum;
+use App\Modules\Applicability\Features\Catalog\Presentation\Http\Presenters\CatalogApplicabilityPresenter;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,16 +20,17 @@ final readonly class CatalogApplicabilityController
     private const int DAN_BRAND_ID = 3;
 
     public function __construct(
-        private CheckNomenclatureApplicabilityUseCaseInterface $checkApplicability,
-        private ListApplicableCategoriesUseCaseInterface $listCategories,
-        private ListApplicableNomenclaturesUseCaseInterface $listNomenclatures,
+        private CheckNomenclatureApplicabilityUseCase $checkApplicability,
+        private ListApplicableCategoriesUseCase $listCategories,
+        private ListApplicableNomenclaturesUseCase $listNomenclatures,
+        private CatalogApplicabilityPresenter $presenter,
     ) {}
 
     /** Проверяет положительную применяемость артикула для modification_id. */
     public function check(Request $request, string $partNumber): Response
     {
         $partNumber = trim($partNumber);
-        $modificationId = $this->positiveInteger($request->query('modification_id'));
+        $modificationId = $this->positiveIntegerQuery($request, 'modification_id');
         $brandId = $this->brandId($request);
 
         if ($partNumber === '' || $modificationId === null) {
@@ -47,7 +48,7 @@ final readonly class CatalogApplicabilityController
         );
 
         return match ($result->status) {
-            ApplicabilityLookupStatusEnum::COMPATIBLE => response()->json(['data' => $result->toArray()]),
+            ApplicabilityLookupStatusEnum::COMPATIBLE => response()->json(['data' => $this->presenter->check($result)]),
             ApplicabilityLookupStatusEnum::UNKNOWN => response()->noContent(),
             ApplicabilityLookupStatusEnum::NOMENCLATURE_NOT_FOUND => response()->json(
                 ['message' => 'Nomenclature not found.'],
@@ -78,19 +79,14 @@ final readonly class CatalogApplicabilityController
             return response()->json(['message' => 'Modification not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json([
-            'data' => $categories
-                ->map(static fn (ApplicableCategoryDTO $category): array => $category->toArray())
-                ->values()
-                ->all(),
-        ]);
+        return response()->json(['data' => $this->presenter->categories($categories)]);
     }
 
     /** Возвращает страницу применимых товаров выбранной категории. */
     public function nomenclatures(Request $request, int $modification, int $category): Response
     {
-        $page = $this->positiveInteger($request->query('page', 1));
-        $pageSize = $this->positiveInteger($request->query('page_size', 9));
+        $page = $this->positiveIntegerQuery($request, 'page', 1);
+        $pageSize = $this->positiveIntegerQuery($request, 'page_size', 9);
         $brandId = $this->brandId($request);
 
         if ($page === null || $pageSize === null || $pageSize > 100) {
@@ -113,7 +109,7 @@ final readonly class CatalogApplicabilityController
             return response()->json(['message' => 'Modification or category not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json(['data' => $result->toArray()]);
+        return response()->json(['data' => $this->presenter->page($result)]);
     }
 
     /** Возвращает DAN brand id по умолчанию или строгий положительный brand_id. */
@@ -123,11 +119,23 @@ final readonly class CatalogApplicabilityController
             return self::DAN_BRAND_ID;
         }
 
-        return $this->positiveInteger($request->query('brand_id'));
+        return $this->positiveIntegerQuery($request, 'brand_id');
+    }
+
+    /** Читает query-параметр и отсекает не-скалярный внешний payload на HTTP boundary. */
+    private function positiveIntegerQuery(Request $request, string $key, ?int $default = null): ?int
+    {
+        $value = $request->query($key, $default);
+
+        if (! is_int($value) && ! is_string($value) && $value !== null) {
+            return null;
+        }
+
+        return $this->positiveInteger($value);
     }
 
     /** Валидирует значение как положительный integer без неявного coercion. */
-    private function positiveInteger(mixed $value): ?int
+    private function positiveInteger(int|string|null $value): ?int
     {
         $integer = filter_var(
             $value,

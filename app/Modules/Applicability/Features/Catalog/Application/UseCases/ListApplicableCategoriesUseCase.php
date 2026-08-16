@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Applicability\Features\Catalog\Application\UseCases;
 
 use App\Modules\Applicability\Features\Catalog\Domain\Contracts\Repositories\CatalogApplicabilityRepositoryInterface;
-use App\Modules\Applicability\Features\Catalog\Domain\Contracts\UseCases\ListApplicableCategoriesUseCaseInterface;
 use App\Modules\Applicability\Features\Catalog\Domain\DTOs\ApplicableCategoryDTO;
 use Illuminate\Support\Collection;
 
 /**
  * Возвращает непустые категории применимых товаров выбранного бренда.
  */
-final readonly class ListApplicableCategoriesUseCase implements ListApplicableCategoriesUseCaseInterface
+final readonly class ListApplicableCategoriesUseCase
 {
     public function __construct(
         private CatalogApplicabilityRepositoryInterface $repository,

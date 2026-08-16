@@ -16,18 +16,4 @@ final readonly class ApplicableCategoryDTO
         public int $nomenclatureCount,
     ) {}
 
-    /**
-     * Преобразует категорию в публичную catalog-проекцию.
-     *
-     * @return array{id: int, name: string, code: ?string, nomenclature_count: int}
-     */
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'code' => $this->code,
-            'nomenclature_count' => $this->nomenclatureCount,
-        ];
-    }
 }

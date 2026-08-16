@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Applicability\Features\Catalog\Application\UseCases;
 
 use App\Modules\Applicability\Features\Catalog\Domain\Contracts\Repositories\CatalogApplicabilityRepositoryInterface;
-use App\Modules\Applicability\Features\Catalog\Domain\Contracts\UseCases\ListApplicableNomenclaturesUseCaseInterface;
 use App\Modules\Applicability\Features\Catalog\Domain\DTOs\ApplicableNomenclaturePageDTO;
 
 /**
  * Возвращает страницу применимых товаров категории выбранного бренда.
  */
-final readonly class ListApplicableNomenclaturesUseCase implements ListApplicableNomenclaturesUseCaseInterface
+final readonly class ListApplicableNomenclaturesUseCase
 {
     public function __construct(
         private CatalogApplicabilityRepositoryInterface $repository,

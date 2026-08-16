@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Applicability\Features\Catalog\Application\UseCases;
 
 use App\Modules\Applicability\Features\Catalog\Domain\Contracts\Repositories\CatalogApplicabilityRepositoryInterface;
-use App\Modules\Applicability\Features\Catalog\Domain\Contracts\UseCases\CheckNomenclatureApplicabilityUseCaseInterface;
 use App\Modules\Applicability\Features\Catalog\Domain\DTOs\ApplicabilityCheckResultDTO;
 use App\Modules\Applicability\Features\Catalog\Domain\Enums\ApplicabilityLookupStatusEnum;
 use Illuminate\Support\Collection;
@@ -13,7 +12,7 @@ use Illuminate\Support\Collection;
 /**
  * Проверяет положительные факты применяемости товара через активные комплекты.
  */
-final readonly class CheckNomenclatureApplicabilityUseCase implements CheckNomenclatureApplicabilityUseCaseInterface
+final readonly class CheckNomenclatureApplicabilityUseCase
 {
     public function __construct(
         private CatalogApplicabilityRepositoryInterface $repository,

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\NomenclatureCatalogClientInterface;
-use App\Support\Http\Presenters\HttpArrayPresenter;
+use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Presenters\NomenclatureCatalogPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,11 +16,11 @@ use Symfony\Component\HttpFoundation\Response;
 final readonly class NomenclatureCatalogController
 {
     /**
-     * Получает catalog client и общий HTTP array presenter.
+     * Получает catalog client и HTTP presenter.
      */
     public function __construct(
         private NomenclatureCatalogClientInterface $catalog,
-        private HttpArrayPresenter $arrays,
+        private NomenclatureCatalogPresenter $presenter,
     ) {}
 
     /**
@@ -35,7 +35,7 @@ final readonly class NomenclatureCatalogController
         }
 
         $categories = $this->catalog->categories($brandId);
-        $payload = ['data' => $this->arrays->collection($categories)];
+        $payload = ['data' => $this->presenter->categories($categories)];
 
         return response()->json($payload);
     }
@@ -68,7 +68,7 @@ final readonly class NomenclatureCatalogController
             return response()->json(['message' => 'Category not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        $payload = $this->arrays->item($result);
+        $payload = $this->presenter->page($result);
 
         return response()->json(['data' => $payload]);
     }
@@ -98,7 +98,7 @@ final readonly class NomenclatureCatalogController
             return response()->json(['message' => 'Nomenclature not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        $payload = $this->arrays->item($nomenclature);
+        $payload = $this->presenter->nomenclature($nomenclature);
 
         return response()->json(['data' => $payload]);
     }
@@ -125,7 +125,7 @@ final readonly class NomenclatureCatalogController
             brandId: $brandId,
             limit: $limit,
         );
-        $payload = $this->arrays->item($result);
+        $payload = $this->presenter->search($result);
 
         return response()->json(['data' => $payload]);
     }
