@@ -16,11 +16,13 @@ use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNot
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\FeatureValueData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
+use App\Modules\Vehicles\Shared\Domain\Contracts\Repositories\PartSpecificationDuplicateFinderInterface;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\PartSpecificationWritePolicy;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
 use Illuminate\Support\Collection;
@@ -36,12 +38,15 @@ final class UpsertVehicleWiperSpecificationFromRowServiceTest extends TestCase
         PartSpecificationCommandInterface $command,
         ?FeatureValueRepositoryInterface $featureValues = null,
         ?VehicleRepositoryInterface $vehicles = null,
+        ?PartSpecificationDuplicateFinderInterface $duplicates = null,
     ): UpsertVehicleWiperSpecificationFromRowService {
         $vehicles ??= Mockery::mock(VehicleRepositoryInterface::class);
         $vehicles
             ->shouldReceive('findByMsId')
             ->with(77)
             ->andReturn($this->vehicleData());
+        $duplicates ??= Mockery::mock(PartSpecificationDuplicateFinderInterface::class);
+        $duplicates->shouldReceive('findDuplicate')->zeroOrMoreTimes()->andReturnNull();
 
         return new UpsertVehicleWiperSpecificationFromRowService(
             $featureValues ?? Mockery::mock(FeatureValueRepositoryInterface::class),
@@ -50,6 +55,8 @@ final class UpsertVehicleWiperSpecificationFromRowServiceTest extends TestCase
             app(TemplatesClientInterface::class),
             $vehicles,
             new NullLogger,
+            $duplicates,
+            new PartSpecificationWritePolicy,
         );
     }
 

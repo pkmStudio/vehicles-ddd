@@ -19,9 +19,13 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Shared\Domain\Contracts\Repositories\PartSpecificationDuplicateFinderInterface;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\PartSpecificationEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\PartSpecificationWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
+use App\Modules\Vehicles\Shared\Domain\Exceptions\PartSpecificationUniquenessException;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\PartSpecificationWritePolicy;
 use Throwable;
 
 /**
@@ -44,6 +48,8 @@ final readonly class UpdatePartSpecificationUseCase
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
         private PartSpecificationDetailsWritePolicyInterface $detailsPolicy,
+        private PartSpecificationDuplicateFinderInterface $duplicates,
+        private PartSpecificationWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -90,6 +96,10 @@ final readonly class UpdatePartSpecificationUseCase
                 owner: $resolution->owner,
                 details: $detailsResult->details,
             );
+            $duplicateReject = $this->rejectIfDuplicate($request, $specificationData);
+            if ($duplicateReject !== null) {
+                return $duplicateReject;
+            }
 
             $specification = $this->command->update($specificationData);
             $this->publishUpdatedEvent($request, $specification);
@@ -181,6 +191,41 @@ final readonly class UpdatePartSpecificationUseCase
             name: $request->name,
             text: $request->text,
         );
+    }
+
+    /**
+     * Отклоняет update, если он конфликтует с другой specification по owner/template/details.
+     *
+     * Шаги:
+     * 1. Передать нормализованный snapshot в uniqueness write policy.
+     * 2. Если дубля нет — разрешить update.
+     * 3. Если дубль есть — вернуть rejected AlreadyExists с id конфликтующей записи.
+     */
+    private function rejectIfDuplicate(
+        UpdatePartSpecificationRequestDTO $request,
+        PartSpecificationData $data,
+    ): ?CatalogMutationResultDTO {
+        $incoming = PartSpecificationWritePolicyResultDTO::fromArray($data->toArray());
+        $duplicateId = $this->duplicates->findDuplicate($incoming);
+
+        try {
+            $this->writePolicy->apply($incoming, $duplicateId);
+
+            return null;
+        } catch (PartSpecificationUniquenessException) {
+            return $this->rejected(
+                request: $request,
+                reason: CatalogMutationRejectReasonEnum::AlreadyExists,
+                errors: [
+                    [
+                        'field' => 'details',
+                        'rule' => 'unique',
+                        'message' => 'Другая спецификация с таким владельцем, шаблоном и details уже существует.',
+                    ],
+                ],
+                recordId: $duplicateId,
+            );
+        }
     }
 
     /**

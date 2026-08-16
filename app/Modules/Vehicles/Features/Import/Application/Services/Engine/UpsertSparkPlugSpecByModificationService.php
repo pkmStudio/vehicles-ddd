@@ -11,10 +11,16 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\PartSpeci
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertSparkPlugSpecByModificationServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\ModificationSparkPlugResultDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
+use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Shared\Domain\Contracts\Repositories\PartSpecificationDuplicateFinderInterface;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\PartSpecificationEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\PartSpecificationWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
+use App\Modules\Vehicles\Shared\Domain\Exceptions\PartSpecificationUniquenessException;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\PartSpecificationWritePolicy;
 
 /**
  * Use-case: записать спецификацию «свечи зажигания» всем двигателям модификации.
@@ -42,6 +48,8 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
         private PartSpecificationCommandInterface $partSpecs,
         private PartSpecificationRepositoryInterface $specifications,
         private PartSpecificationDataFactoryInterface $factory,
+        private PartSpecificationDuplicateFinderInterface $duplicates,
+        private PartSpecificationWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -94,8 +102,8 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
                 featureValueId: $specification->featureValueId,
             );
             $specification = $existing === null
-                ? $this->partSpecs->create($specification)
-                : $this->partSpecs->update($this->factory->make((int) $engine->id, $details, $existing->id));
+                ? $this->createSpecification($specification)
+                : $this->updateSpecification($this->factory->make((int) $engine->id, $details, $existing->id));
 
             $payload = new PartSpecificationEventPayloadDTO(
                 id: (int) $specification->id,
@@ -118,6 +126,44 @@ final readonly class UpsertSparkPlugSpecByModificationService implements UpsertS
         }
 
         return new ModificationSparkPlugResultDTO(found: true, writtenCount: $written, skippedEngines: $skipped);
+    }
+
+    /**
+     * Создает specification после проверки natural-key уникальности.
+     */
+    private function createSpecification(PartSpecificationData $specification): PartSpecificationData
+    {
+        $this->ensureUnique($specification);
+
+        return $this->partSpecs->create($specification);
+    }
+
+    /**
+     * Обновляет specification после проверки natural-key уникальности.
+     */
+    private function updateSpecification(PartSpecificationData $specification): PartSpecificationData
+    {
+        $this->ensureUnique($specification);
+
+        return $this->partSpecs->update($specification);
+    }
+
+    /**
+     * Блокирует запись, если такая спецификация уже существует у того же владельца.
+     */
+    private function ensureUnique(PartSpecificationData $specification): void
+    {
+        $incoming = PartSpecificationWritePolicyResultDTO::fromArray([
+            ...$specification->toArray(),
+            'partable_type' => PartableTypeEnum::from($specification->partableType),
+        ]);
+        $duplicateId = $this->duplicates->findDuplicate($incoming);
+
+        try {
+            $this->writePolicy->apply($incoming, $duplicateId);
+        } catch (PartSpecificationUniquenessException $e) {
+            throw ImportRowValidationException::fromMessage($e->getMessage());
+        }
     }
 
     /**

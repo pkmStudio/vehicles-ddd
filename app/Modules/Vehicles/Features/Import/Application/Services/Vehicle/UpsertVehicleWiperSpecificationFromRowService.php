@@ -15,10 +15,14 @@ use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRo
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNotFoundException;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Shared\Domain\Contracts\Repositories\PartSpecificationDuplicateFinderInterface;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\PartSpecificationEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\PartSpecificationWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationCreated;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
+use App\Modules\Vehicles\Shared\Domain\Exceptions\PartSpecificationUniquenessException;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\PartSpecificationWritePolicy;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -49,6 +53,8 @@ final readonly class UpsertVehicleWiperSpecificationFromRowService implements Up
         private TemplatesClientInterface $templates,
         private VehicleRepositoryInterface $vehicles,
         private LoggerInterface $logger,
+        private PartSpecificationDuplicateFinderInterface $duplicates,
+        private PartSpecificationWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -139,6 +145,7 @@ final readonly class UpsertVehicleWiperSpecificationFromRowService implements Up
                     text: $data->text,
                     id: $existing->id,
                 );
+                $this->ensureUnique($updatedData);
                 $specification = $this->command->update($updatedData);
                 $payload = new PartSpecificationEventPayloadDTO(
                     id: (int) $specification->id,
@@ -162,6 +169,7 @@ final readonly class UpsertVehicleWiperSpecificationFromRowService implements Up
                 continue;
             }
 
+            $this->ensureUnique($data);
             $specification = $this->command->create($data);
             $payload = new PartSpecificationEventPayloadDTO(
                 id: (int) $specification->id,
@@ -253,6 +261,24 @@ final readonly class UpsertVehicleWiperSpecificationFromRowService implements Up
             'import_feature_value_id' => $featureValueId,
             'side' => $side,
         ]);
+    }
+
+    /**
+     * Блокирует запись, если такая спецификация уже существует у того же владельца.
+     */
+    private function ensureUnique(PartSpecificationData $specification): void
+    {
+        $incoming = PartSpecificationWritePolicyResultDTO::fromArray([
+            ...$specification->toArray(),
+            'partable_type' => PartableTypeEnum::from($specification->partableType),
+        ]);
+        $duplicateId = $this->duplicates->findDuplicate($incoming);
+
+        try {
+            $this->writePolicy->apply($incoming, $duplicateId);
+        } catch (PartSpecificationUniquenessException $e) {
+            throw ImportRowValidationException::fromMessage($e->getMessage());
+        }
     }
 
     /**

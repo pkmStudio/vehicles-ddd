@@ -15,10 +15,12 @@ use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\ModificationData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\PartSpecificationData;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\VehicleData;
+use App\Modules\Vehicles\Shared\Domain\Contracts\Repositories\PartSpecificationDuplicateFinderInterface;
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\PartSpecificationWritePolicy;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
@@ -99,6 +101,8 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
         $command->shouldReceive('create')->once()
             ->with(Mockery::on(fn (PartSpecificationData $d) => $d->partableId === 1 && $d->partableType === PartableTypeEnum::ENGINE->value))
             ->andReturn(new PartSpecificationData(partableType: PartableTypeEnum::ENGINE->value, partableId: 1, template: DetailTemplateEnum::SPARK_PLUGS, details: []));
+        $duplicates = Mockery::mock(PartSpecificationDuplicateFinderInterface::class);
+        $duplicates->shouldReceive('findDuplicate')->once()->andReturnNull();
 
         $service = new UpsertSparkPlugSpecByModificationService(
             Mockery::mock(VehicleRepositoryInterface::class),
@@ -106,6 +110,8 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
             $command,
             $specifications,
             new PartSpecificationDataFactory,
+            $duplicates,
+            new PartSpecificationWritePolicy,
         );
 
         $result = $service->upsertByModification(200, 50, ['gap' => '0.9']);
@@ -137,6 +143,8 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
 
         $specifications = Mockery::mock(PartSpecificationRepositoryInterface::class);
         $specifications->shouldNotReceive('findByPartableTemplateAndFeatureValue');
+        $duplicates = Mockery::mock(PartSpecificationDuplicateFinderInterface::class);
+        $duplicates->shouldNotReceive('findDuplicate');
 
         $service = new UpsertSparkPlugSpecByModificationService(
             Mockery::mock(VehicleRepositoryInterface::class),
@@ -144,6 +152,8 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
             $command,
             $specifications,
             new PartSpecificationDataFactory,
+            $duplicates,
+            new PartSpecificationWritePolicy,
         );
 
         $result = $service->upsertByModification(200, 50, []);
@@ -197,8 +207,18 @@ final class UpsertSparkPlugSpecByModificationServiceTest extends TestCase
             ->once()
             ->with(PartableTypeEnum::ENGINE->value, 1, DetailTemplateEnum::SPARK_PLUGS, null)
             ->andReturnNull();
+        $duplicates = Mockery::mock(PartSpecificationDuplicateFinderInterface::class);
+        $duplicates->shouldReceive('findDuplicate')->once()->andReturnNull();
 
-        $service = new UpsertSparkPlugSpecByModificationService($vehicles, $modifications, $command, $specifications, new PartSpecificationDataFactory);
+        $service = new UpsertSparkPlugSpecByModificationService(
+            $vehicles,
+            $modifications,
+            $command,
+            $specifications,
+            new PartSpecificationDataFactory,
+            $duplicates,
+            new PartSpecificationWritePolicy,
+        );
 
         $result = $service->upsertByModification(-5, 50, []);
 
