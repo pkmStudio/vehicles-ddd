@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutat
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
+use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationStatusEnum;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
@@ -399,6 +400,43 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
 
         $this->assertDatabaseMissing('vehicles', [
             'ms_id' => 503,
+        ]);
+    }
+
+    public function test_delete_td_vehicle_message_is_rejected(): void
+    {
+        $manufacturer = $this->createManufacturer();
+        $vehicle = $this->createVehicle(
+            msId: 507,
+            manufacturer: $manufacturer,
+            provider: ProviderEnum::TD,
+        );
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(function (CatalogMutationResultDTO $result) use ($vehicle): bool {
+                return $result->entity === CatalogEntityEnum::Vehicle
+                    && $result->operation === CatalogMutationOperationEnum::Delete
+                    && $result->status === CatalogMutationStatusEnum::Rejected
+                    && $result->reason === CatalogMutationRejectReasonEnum::ProviderDeleteForbidden->value
+                    && $result->operationId === 'vehicle-delete-td-1'
+                    && $result->externalId === 507
+                    && $result->recordId === $vehicle->id;
+            }));
+
+        app(VehicleMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'vehicle-delete-td-1',
+            'operation' => 'delete',
+            'vehicle' => [
+                'ms_id' => 507,
+            ],
+        ]);
+
+        $this->assertDatabaseHas('vehicles', [
+            'ms_id' => 507,
+            'provider' => ProviderEnum::TD->value,
         ]);
     }
 

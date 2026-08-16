@@ -14,6 +14,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\DeleteModific
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\Modification\ModificationDeleted;
 use Throwable;
 
@@ -67,6 +68,18 @@ final readonly class DeleteModificationUseCase
                     operation: CatalogMutationOperationEnum::Delete,
                     externalId: $request->modId,
                     reason: CatalogMutationRejectReasonEnum::NotFound,
+                );
+            }
+
+            if ($modification->provider === ProviderEnum::TD) {
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Modification,
+                    operation: CatalogMutationOperationEnum::Delete,
+                    externalId: $request->modId,
+                    reason: CatalogMutationRejectReasonEnum::ProviderDeleteForbidden,
+                    recordId: $modification->id,
                 );
             }
 

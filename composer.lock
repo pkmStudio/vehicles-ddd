@@ -4200,7 +4200,7 @@
             "source": {
                 "type": "git",
                 "url": "git@git.dan.center:php/wire-contracts.git",
-                "reference": "3b5b980b9fa7a89c60d3acbceac502d136ff0799"
+                "reference": "33bea77f29f54ad012c5c82ea3e751c5a04a127f"
             },
             "require": {
                 "php": "^8.3 || ^8.4"
@@ -4224,7 +4224,7 @@
                 "MIT"
             ],
             "description": "Wire DTO contracts for DAN services: Vehicles, CRM and Parse.",
-            "time": "2026-08-15T08:54:04+00:00"
+            "time": "2026-08-16T08:05:58+00:00"
         },
         {
             "name": "pkmstudio/moysklad-client",
