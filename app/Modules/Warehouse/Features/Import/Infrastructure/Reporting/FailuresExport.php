@@ -28,7 +28,12 @@ final readonly class FailuresExport implements FailuresExportInterface, FromColl
     private const int PACK_DIMENSION_TYPE_NAME_INDEX = 7;
 
     /**
-     * @param  array<int, array{row: int, attribute: string, errors: array<int, string>, values: mixed}>  $failures
+     * @param  array<int, array{
+     *     row: int,
+     *     attribute: string,
+     *     errors: array<int, string>,
+     *     values: array<int|string, string|int|float|bool|null>
+     * }>  $failures
      */
     public function __construct(
         private array $failures,
@@ -62,13 +67,11 @@ final readonly class FailuresExport implements FailuresExportInterface, FromColl
     /**
      * Достаёт читаемое название категории (тип товара) из сырой строки — только для
      * Nomenclature-импорта, у остальных типов позиции колонок другие, поэтому там просто пусто.
+     *
+     * @param  array<int|string, string|int|float|bool|null>  $values
      */
-    private function category(mixed $values): string
+    private function category(array $values): string
     {
-        if (! is_array($values)) {
-            return '';
-        }
-
         return match ($this->type) {
             ImportTypeEnum::Nomenclature => (string) ($values[self::NOMENCLATURE_TYPE_NAME_INDEX] ?? ''),
             ImportTypeEnum::PackDimension => (string) ($values[self::PACK_DIMENSION_TYPE_NAME_INDEX] ?? ''),

@@ -19,7 +19,12 @@ final readonly class LaravelImportFailureStore implements ImportFailureStoreInte
      * 1) Прочитать cache entry по ключу import run.
      * 2) Вернуть массив failures или пустой список при некорректном payload.
      *
-     * @return array<int, mixed>
+     * @return array<int, array{
+     *     row: int,
+     *     attribute: string,
+     *     errors: array<int, string>,
+     *     values: array<int|string, string|int|float|bool|null>
+     * }>
      */
     public function get(string $key): array
     {

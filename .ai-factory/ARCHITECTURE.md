@@ -37,6 +37,12 @@ context map. Tactical DDD с жирными entities/aggregates не являе�
 5. Удержать raw внешний формат на boundary: HTTP/Rabbit/Excel arrays превращаются в typed DTO до
    входа в Application-сервис/use case.
 
+Типизация строгая на всех слоях: `mixed`, `array<string, mixed>`, `array<int, mixed>` и
+универсальные входы вида `object` запрещены. Boundary-adapter, который читает raw
+HTTP/Rabbit/Excel payload, описывает точный array-shape или union допустимых scalar/value типов в
+PHPDoc и сразу переводит вход в typed DTO/Data. Если shape невозможно описать честно, данные
+остаются строкой/stream внешнего формата до validator/mapper boundary.
+
 ## Обоснование решения
 
 - **Тип проекта:** backend-сервис каталога и интеграционных workflow с насыщенными бизнес-правилами.
@@ -212,7 +218,8 @@ app/Modules/<Module>/Features/<Feature>/
   `array` payload'ы сущностей/интеграций.
 - CRUD shared events используют entity-specific `<Entity>EventPayloadDTO`, не универсальный
   `CatalogEventPayloadDTO`/raw snapshot. Payload собирается явно в отдельную переменную перед
-  `event(new ...)`; не используем `fromData(object)`/`fromModel(object)` без точного входного типа.
+  `event(new ...)`; не используем `fromData(object)`/`fromModel(object)` и другие универсальные
+  object/mixed-входы без точного входного типа.
 - REST CRM read API — read-only boundary для `dan-center`: entity-specific controllers/routes,
   concrete read use cases/query services, presenters/response DTO for HTTP shape, service-key
   middleware. Запись каталога через REST CRM read API не делаем.
