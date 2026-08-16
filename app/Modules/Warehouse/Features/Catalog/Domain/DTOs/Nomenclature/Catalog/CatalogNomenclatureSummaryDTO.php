@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Catalog;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
- * Краткая публичная REST-проекция Warehouse-номенклатуры.
+ * Краткий сценарный снимок Warehouse-номенклатуры публичного каталога.
  */
-final readonly class CatalogNomenclatureSummaryDTO
+final readonly class CatalogNomenclatureSummaryDTO implements HttpArraySerializableInterface
 {
+    /**
+     * Хранит поля позиции, необходимые списку и поиску.
+     */
     public function __construct(
         public string $partNumber,
         public string $name,
@@ -17,7 +22,11 @@ final readonly class CatalogNomenclatureSummaryDTO
         public string $brandName,
     ) {}
 
-    /** @return array{part_number: string, name: string, category_id: int, brand_id: int, brand_name: string} */
+    /**
+     * Возвращает HTTP-представление краткой номенклатуры.
+     *
+     * @return array{part_number: string, name: string, category_id: int, brand_id: int, brand_name: string}
+     */
     public function toArray(): array
     {
         return [

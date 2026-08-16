@@ -9,11 +9,13 @@ use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\KitCrmClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\NomenclatureCrmClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\PackDimensionCrmClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\TypeCrmClient;
+use App\Modules\Warehouse\Features\Catalog\Application\Clients\NomenclatureCatalogClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogCascadeDeleteService;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogMutationResultService;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\BrandCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\NomenclatureCatalogClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\NomenclatureCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\PackDimensionCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\TypeCrmClientInterface;
@@ -94,6 +96,7 @@ final class CatalogServiceProvider extends ServiceProvider
 
     private const array CLIENT_BINDINGS = [
         KitPropertiesClientInterface::class => KitPropertiesClient::class,
+        NomenclatureCatalogClientInterface::class => NomenclatureCatalogClient::class,
         BrandCrmClientInterface::class => BrandCrmClient::class,
         NomenclatureCrmClientInterface::class => NomenclatureCrmClient::class,
         KitCrmClientInterface::class => KitCrmClient::class,

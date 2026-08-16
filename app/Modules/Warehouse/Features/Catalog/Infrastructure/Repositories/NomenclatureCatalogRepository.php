@@ -7,7 +7,6 @@ namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCatalogRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Catalog\CatalogCategoryDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Catalog\CatalogNomenclatureDTO;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Catalog\CatalogNomenclaturePageDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Catalog\CatalogNomenclatureSummaryDTO;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
@@ -19,9 +18,15 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class NomenclatureCatalogRepository implements NomenclatureCatalogRepositoryInterface
 {
-    /** @return Collection<int, CatalogCategoryDTO> */
+    /**
+     * Возвращает непустые категории выбранного бренда с количеством позиций.
+     *
+     * @return Collection<int, CatalogCategoryDTO>
+     */
     public function categories(int $brandId): Collection
     {
+        $toCategory = fn (object $category): CatalogCategoryDTO => $this->category($category);
+
         return DB::table('types')
             ->join('nomenclatures', function (JoinClause $join) use ($brandId): void {
                 $join
@@ -36,11 +41,14 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
                 'types.char',
                 DB::raw('COUNT(nomenclatures.id) as nomenclature_count'),
             ])
-            ->map(fn (object $category): CatalogCategoryDTO => $this->category($category))
+            ->map($toCategory)
             ->values();
     }
 
-    public function paginateByCategory(int $categoryId, int $brandId, int $page, int $pageSize): ?CatalogNomenclaturePageDTO
+    /**
+     * Возвращает категорию с количеством позиций выбранного бренда.
+     */
+    public function findCategory(int $categoryId, int $brandId): ?CatalogCategoryDTO
     {
         $category = DB::table('types')
             ->leftJoin('nomenclatures', function (JoinClause $join) use ($brandId): void {
@@ -61,33 +69,39 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
             return null;
         }
 
-        $total = (int) $category->nomenclature_count;
-        $items = $this->summaryQuery($brandId)
+        return $this->category($category);
+    }
+
+    /**
+     * Возвращает элементы запрошенной страницы категории.
+     *
+     * @return Collection<int, CatalogNomenclatureSummaryDTO>
+     */
+    public function findByCategory(int $categoryId, int $brandId, int $page, int $pageSize): Collection
+    {
+        $toSummary = fn (object $nomenclature): CatalogNomenclatureSummaryDTO => $this->summary($nomenclature);
+
+        return $this->summaryQuery($brandId)
             ->where('nomenclatures.type_id', $categoryId)
             ->orderBy('nomenclatures.name')
             ->orderBy('nomenclatures.part_number')
             ->forPage($page, $pageSize)
             ->get()
-            ->map(fn (object $nomenclature): CatalogNomenclatureSummaryDTO => $this->summary($nomenclature))
+            ->map($toSummary)
             ->values();
-
-        return new CatalogNomenclaturePageDTO(
-            category: $this->category($category),
-            items: $items,
-            total: $total,
-            page: $page,
-            pageSize: $pageSize,
-            pageCount: (int) ceil($total / $pageSize),
-        );
     }
 
+    /**
+     * Возвращает детальную позицию по регистронезависимому артикулу и бренду.
+     */
     public function findByPartNumber(string $partNumber, int $brandId): ?CatalogNomenclatureDTO
     {
+        $normalizedPartNumber = mb_strtolower($partNumber);
         $nomenclature = DB::table('nomenclatures')
             ->join('types', 'types.id', '=', 'nomenclatures.type_id')
             ->join('brands', 'brands.id', '=', 'nomenclatures.brand_id')
             ->where('nomenclatures.brand_id', $brandId)
-            ->whereRaw('LOWER(nomenclatures.part_number) = ?', [mb_strtolower($partNumber)])
+            ->whereRaw('LOWER(nomenclatures.part_number) = ?', [$normalizedPartNumber])
             ->first([
                 'nomenclatures.*',
                 'types.name as category_name',
@@ -100,46 +114,62 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
             return null;
         }
 
+        $categoryCode = $this->nullableString($nomenclature->category_code);
+        $brandCode = $this->nullableString($nomenclature->brand_code);
+        $material = $this->listStringArray($nomenclature->material);
+        $vehicleType = $this->listStringArray($nomenclature->vehicle_type);
+        $details = $this->jsonArray($nomenclature->details);
+
         return new CatalogNomenclatureDTO(
             partNumber: (string) $nomenclature->part_number,
             name: (string) $nomenclature->name,
             categoryId: (int) $nomenclature->type_id,
             categoryName: (string) $nomenclature->category_name,
-            categoryCode: $this->nullableString($nomenclature->category_code),
+            categoryCode: $categoryCode,
             brandId: (int) $nomenclature->brand_id,
             brandName: (string) $nomenclature->brand_name,
-            brandCode: $this->nullableString($nomenclature->brand_code),
+            brandCode: $brandCode,
             country: (string) $nomenclature->country,
             color: (string) $nomenclature->color,
             weight: (int) $nomenclature->weight,
-            material: $this->listStringArray($nomenclature->material),
-            vehicleType: $this->listStringArray($nomenclature->vehicle_type),
+            material: $material,
+            vehicleType: $vehicleType,
             quantityPak: (int) $nomenclature->quantity_pak,
             quantityInPak: (int) $nomenclature->quantity_in_pak,
-            details: $this->jsonArray($nomenclature->details),
+            details: $details,
         );
     }
 
-    /** @return Collection<int, CatalogNomenclatureSummaryDTO> */
+    /**
+     * Ищет позиции по артикулу и имени, поднимая точный артикул первым.
+     *
+     * @return Collection<int, CatalogNomenclatureSummaryDTO>
+     */
     public function search(string $query, int $brandId, int $limit): Collection
     {
-        $normalizedQuery = mb_strtolower(trim($query));
+        $trimmedQuery = trim($query);
+        $normalizedQuery = mb_strtolower($trimmedQuery);
+        $likeQuery = '%'.$trimmedQuery.'%';
+        $toSummary = fn (object $nomenclature): CatalogNomenclatureSummaryDTO => $this->summary($nomenclature);
 
         return $this->summaryQuery($brandId)
-            ->where(function (Builder $builder) use ($query): void {
+            ->where(function (Builder $builder) use ($likeQuery): void {
                 $builder
-                    ->where('nomenclatures.part_number', 'ilike', '%'.trim($query).'%')
-                    ->orWhere('nomenclatures.name', 'ilike', '%'.trim($query).'%');
+                    ->where('nomenclatures.part_number', 'ilike', $likeQuery)
+                    ->orWhere('nomenclatures.name', 'ilike', $likeQuery);
             })
             ->orderByRaw('CASE WHEN LOWER(nomenclatures.part_number) = ? THEN 0 ELSE 1 END', [$normalizedQuery])
             ->orderBy('nomenclatures.name')
             ->orderBy('nomenclatures.part_number')
             ->limit($limit)
             ->get()
-            ->map(fn (object $nomenclature): CatalogNomenclatureSummaryDTO => $this->summary($nomenclature))
+            ->map($toSummary)
             ->values();
     }
 
+    /**
+     * Строит общий query краткой позиции для списка и поиска.
+     */
     private function summaryQuery(int $brandId): Builder
     {
         return DB::table('nomenclatures')
@@ -154,16 +184,24 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
             ]);
     }
 
+    /**
+     * Мапит локальную строку Query Builder в typed category DTO.
+     */
     private function category(object $category): CatalogCategoryDTO
     {
+        $code = $this->nullableString($category->char);
+
         return new CatalogCategoryDTO(
             id: (int) $category->id,
             name: (string) $category->name,
-            code: $this->nullableString($category->char),
+            code: $code,
             nomenclatureCount: (int) $category->nomenclature_count,
         );
     }
 
+    /**
+     * Мапит локальную строку Query Builder в typed summary DTO.
+     */
     private function summary(object $nomenclature): CatalogNomenclatureSummaryDTO
     {
         return new CatalogNomenclatureSummaryDTO(
@@ -175,13 +213,21 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
         );
     }
 
-    private function nullableString(mixed $value): ?string
+    /**
+     * Нормализует nullable строковое поле read projection.
+     */
+    private function nullableString(?string $value): ?string
     {
-        return is_string($value) ? $value : null;
+        return $value;
     }
 
-    /** @return array<string, mixed> */
-    private function jsonArray(mixed $value): array
+    /**
+     * Декодирует JSON-объект details из PostgreSQL/SQLite read projection.
+     *
+     * @param  array<string, bool|float|int|string|null|array<int|string, bool|float|int|string|null>>|string|null  $value
+     * @return array<string, bool|float|int|string|null|array<int|string, bool|float|int|string|null>>
+     */
+    private function jsonArray(array|string|null $value): array
     {
         if (is_array($value)) {
             return $value;
@@ -191,17 +237,30 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
             return [];
         }
 
-        $decoded = json_decode($value, true);
+        $decoded = json_decode(
+            json: $value,
+            associative: true,
+        );
 
         return is_array($decoded) ? $decoded : [];
     }
 
-    /** @return array<int, string> */
-    private function listStringArray(mixed $value): array
+    /**
+     * Декодирует JSON-массив и оставляет только строковые элементы.
+     *
+     * @param  array<string, bool|float|int|string|null|array<int|string, bool|float|int|string|null>>|string|null  $value
+     * @return list<string>
+     */
+    private function listStringArray(array|string|null $value): array
     {
-        return array_values(array_filter(
-            $this->jsonArray($value),
-            static fn (mixed $item): bool => is_string($item),
-        ));
+        $items = [];
+
+        foreach ($this->jsonArray($value) as $item) {
+            if (is_string($item)) {
+                $items[] = $item;
+            }
+        }
+
+        return $items;
     }
 }

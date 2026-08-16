@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Catalog\ListCatalogCategoriesUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Catalog\ListCategoryNomenclaturesUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Catalog\SearchCatalogNomenclaturesUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Catalog\ShowCatalogNomenclatureUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Catalog\CatalogCategoryDTO;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\NomenclatureCatalogClientInterface;
+use App\Support\Http\Presenters\HttpArrayPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,41 +15,36 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final readonly class NomenclatureCatalogController
 {
-    private const int DAN_BRAND_ID = 3;
-
+    /**
+     * Получает catalog client и общий HTTP array presenter.
+     */
     public function __construct(
-        private ListCatalogCategoriesUseCaseInterface $listCategories,
-        private ListCategoryNomenclaturesUseCaseInterface $listNomenclatures,
-        private ShowCatalogNomenclatureUseCaseInterface $showNomenclature,
-        private SearchCatalogNomenclaturesUseCaseInterface $searchNomenclatures,
+        private NomenclatureCatalogClientInterface $catalog,
+        private HttpArrayPresenter $arrays,
     ) {}
 
+    /**
+     * Возвращает непустые категории номенклатуры выбранного бренда.
+     */
     public function categories(Request $request): JsonResponse
     {
-        if ($response = $this->guard($request)) {
-            return $response;
-        }
-
         $brandId = $this->brandId($request);
 
         if ($brandId === null) {
             return $this->invalidBrandResponse();
         }
 
-        return response()->json([
-            'data' => $this->listCategories->execute($brandId)
-                ->map(static fn (CatalogCategoryDTO $category): array => $category->toArray())
-                ->values()
-                ->all(),
-        ]);
+        $categories = $this->catalog->categories($brandId);
+        $payload = ['data' => $this->arrays->collection($categories)];
+
+        return response()->json($payload);
     }
 
+    /**
+     * Возвращает страницу номенклатур выбранной категории.
+     */
     public function nomenclatures(Request $request, int $category): JsonResponse
     {
-        if ($response = $this->guard($request)) {
-            return $response;
-        }
-
         $page = $request->integer('page', 1);
         $pageSize = $request->integer('page_size', 9);
         $brandId = $this->brandId($request);
@@ -65,21 +57,27 @@ final readonly class NomenclatureCatalogController
             return $this->invalidBrandResponse();
         }
 
-        $result = $this->listNomenclatures->execute($category, $brandId, $page, $pageSize);
+        $result = $this->catalog->nomenclatures(
+            categoryId: $category,
+            brandId: $brandId,
+            page: $page,
+            pageSize: $pageSize,
+        );
 
         if ($result === null) {
             return response()->json(['message' => 'Category not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json(['data' => $result->toArray()]);
+        $payload = $this->arrays->item($result);
+
+        return response()->json(['data' => $payload]);
     }
 
+    /**
+     * Возвращает детальную номенклатуру по артикулу.
+     */
     public function show(Request $request, string $partNumber): JsonResponse
     {
-        if ($response = $this->guard($request)) {
-            return $response;
-        }
-
         $partNumber = trim($partNumber);
         $brandId = $this->brandId($request);
 
@@ -91,21 +89,25 @@ final readonly class NomenclatureCatalogController
             return $this->invalidBrandResponse();
         }
 
-        $nomenclature = $this->showNomenclature->execute($partNumber, $brandId);
+        $nomenclature = $this->catalog->nomenclature(
+            partNumber: $partNumber,
+            brandId: $brandId,
+        );
 
         if ($nomenclature === null) {
             return response()->json(['message' => 'Nomenclature not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json(['data' => $nomenclature->toArray()]);
+        $payload = $this->arrays->item($nomenclature);
+
+        return response()->json(['data' => $payload]);
     }
 
+    /**
+     * Возвращает ограниченный результат поиска по артикулу и имени.
+     */
     public function search(Request $request): JsonResponse
     {
-        if ($response = $this->guard($request)) {
-            return $response;
-        }
-
         $query = trim((string) $request->query('q', ''));
         $limit = $request->integer('limit', 8);
         $brandId = $this->brandId($request);
@@ -118,15 +120,23 @@ final readonly class NomenclatureCatalogController
             return $this->invalidBrandResponse();
         }
 
-        return response()->json([
-            'data' => $this->searchNomenclatures->execute($query, $brandId, $limit)->toArray(),
-        ]);
+        $result = $this->catalog->search(
+            query: $query,
+            brandId: $brandId,
+            limit: $limit,
+        );
+        $payload = $this->arrays->item($result);
+
+        return response()->json(['data' => $payload]);
     }
 
+    /**
+     * Читает положительный brand_id или использует настроенный бренд каталога.
+     */
     private function brandId(Request $request): ?int
     {
         if (! $request->query->has('brand_id')) {
-            return self::DAN_BRAND_ID;
+            return (int) config('services.dan_catalog.brand_id', 3);
         }
 
         $brandId = filter_var(
@@ -138,23 +148,11 @@ final readonly class NomenclatureCatalogController
         return is_int($brandId) ? $brandId : null;
     }
 
+    /**
+     * Возвращает единый ответ для невалидного brand_id.
+     */
     private function invalidBrandResponse(): JsonResponse
     {
         return response()->json(['message' => 'Invalid brand parameter.'], Response::HTTP_BAD_REQUEST);
-    }
-
-    private function guard(Request $request): ?JsonResponse
-    {
-        $key = (string) config('services.dan_catalog.read_api_key', '');
-
-        if ($key === '') {
-            return null;
-        }
-
-        if (hash_equals($key, (string) $request->header('X-Service-Key'))) {
-            return null;
-        }
-
-        return response()->json(['message' => 'Unauthorized.'], Response::HTTP_UNAUTHORIZED);
     }
 }

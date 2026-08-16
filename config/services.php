@@ -41,6 +41,7 @@ return [
 
     'dan_catalog' => [
         'read_api_key' => env('DAN_CATALOG_READ_API_KEY', ''),
+        'brand_id' => (int) env('DAN_CATALOG_BRAND_ID', 3),
     ],
 
 ];

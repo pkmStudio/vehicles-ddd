@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Catalog;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
- * Публичная REST-проекция плоской категории номенклатуры.
+ * Сценарный снимок плоской категории номенклатуры публичного каталога.
  */
-final readonly class CatalogCategoryDTO
+final readonly class CatalogCategoryDTO implements HttpArraySerializableInterface
 {
+    /**
+     * Хранит поля категории и число доступных позиций выбранного бренда.
+     */
     public function __construct(
         public int $id,
         public string $name,
@@ -16,7 +21,11 @@ final readonly class CatalogCategoryDTO
         public int $nomenclatureCount,
     ) {}
 
-    /** @return array{id: int, name: string, code: string|null, nomenclature_count: int} */
+    /**
+     * Возвращает HTTP-представление категории.
+     *
+     * @return array{id: int, name: string, code: string|null, nomenclature_count: int}
+     */
     public function toArray(): array
     {
         return [
