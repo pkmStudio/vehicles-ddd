@@ -6,6 +6,7 @@ namespace App\Modules\Applicability\Shared\Infrastructure\Providers;
 
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Providers\CalculationEventServiceProvider;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Providers\CalculationServiceProvider;
+use App\Modules\Applicability\Features\Catalog\Infrastructure\Providers\CatalogServiceProvider;
 use App\Modules\Applicability\Features\Export\Infrastructure\Providers\ExportServiceProvider;
 use App\Modules\Applicability\Features\Import\Infrastructure\Providers\ImportEventServiceProvider;
 use App\Modules\Applicability\Features\Import\Infrastructure\Providers\ImportServiceProvider;
@@ -28,6 +29,7 @@ final class ApplicabilityServiceProvider extends ServiceProvider
     {
         $this->app->register(CalculationServiceProvider::class);
         $this->app->register(CalculationEventServiceProvider::class);
+        $this->app->register(CatalogServiceProvider::class);
         $this->app->register(ImportServiceProvider::class);
         $this->app->register(ImportEventServiceProvider::class);
         $this->app->register(ExportServiceProvider::class);
