@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Detail template option для CRM-форм Vehicles.
  */
-final readonly class VehicleCrmDetailTemplateOptionDTO
+final readonly class VehicleCrmDetailTemplateOptionDTO implements HttpArraySerializableInterface
 {
     /**
      * Хранит id и label detail template option.

@@ -31,8 +31,8 @@ final class WiperWithAdapterStrategyTest extends TestCase
 
     public function test_supports_wiper_with_adapter_combination(): void
     {
-        $wiperType = new TypeData(name: 'Щетки стеклоочистителя', id: 3);
-        $adapterType = new TypeData(name: 'Адаптер стеклоочистителя', id: 7);
+        $wiperType = new TypeData(name: 'Щетки стеклоочистителя', char: 'WB', id: 3);
+        $adapterType = new TypeData(name: 'Адаптер стеклоочистителя', char: 'AW', id: 7);
 
         $resolver = Mockery::mock(TypeTemplateResolverInterface::class);
         $resolver->shouldReceive('resolve')->with($wiperType)->andReturn(NomenclatureDetailTemplateEnum::WIPER);
@@ -50,7 +50,7 @@ final class WiperWithAdapterStrategyTest extends TestCase
 
     public function test_does_not_support_single_type(): void
     {
-        $wiperType = new TypeData(name: 'Щетки стеклоочистителя', id: 3);
+        $wiperType = new TypeData(name: 'Щетки стеклоочистителя', char: 'WB', id: 3);
 
         $resolver = Mockery::mock(TypeTemplateResolverInterface::class);
         $resolver->shouldReceive('resolve')->with($wiperType)->andReturn(NomenclatureDetailTemplateEnum::WIPER);
@@ -64,8 +64,8 @@ final class WiperWithAdapterStrategyTest extends TestCase
 
     public function test_resolve_type_returns_wiper_nomenclature_type(): void
     {
-        $wiperType = new TypeData(name: 'Щетки стеклоочистителя', id: 3);
-        $adapterType = new TypeData(name: 'Адаптер стеклоочистителя', id: 7);
+        $wiperType = new TypeData(name: 'Щетки стеклоочистителя', char: 'WB', id: 3);
+        $adapterType = new TypeData(name: 'Адаптер стеклоочистителя', char: 'AW', id: 7);
 
         $resolver = Mockery::mock(TypeTemplateResolverInterface::class);
         $resolver->shouldReceive('resolve')->with($wiperType)->andReturn(NomenclatureDetailTemplateEnum::WIPER);
@@ -83,8 +83,8 @@ final class WiperWithAdapterStrategyTest extends TestCase
 
     public function test_primary_nomenclatures_excludes_adapter(): void
     {
-        $wiperType = new TypeData(name: 'Щетки стеклоочистителя', id: 3);
-        $adapterType = new TypeData(name: 'Адаптер стеклоочистителя', id: 7);
+        $wiperType = new TypeData(name: 'Щетки стеклоочистителя', char: 'WB', id: 3);
+        $adapterType = new TypeData(name: 'Адаптер стеклоочистителя', char: 'AW', id: 7);
 
         $resolver = Mockery::mock(TypeTemplateResolverInterface::class);
         $resolver->shouldReceive('resolve')->with($wiperType)->andReturn(NomenclatureDetailTemplateEnum::WIPER);

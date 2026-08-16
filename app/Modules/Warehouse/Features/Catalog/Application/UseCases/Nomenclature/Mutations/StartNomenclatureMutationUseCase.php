@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Mutations;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\CreateNomenclatureUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\DeleteNomenclatureUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\StartNomenclatureMutationUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\UpdateNomenclatureUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\CreateNomenclatureRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\DeleteNomenclatureRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureMutationRequestDTO;
@@ -18,7 +14,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutation
 /**
  * Оркестрирует старт мутации Warehouse-номенклатуры из внешнего сообщения.
  */
-final readonly class StartNomenclatureMutationUseCase implements StartNomenclatureMutationUseCaseInterface
+final readonly class StartNomenclatureMutationUseCase
 {
     /**
      * Инициализирует use case конкретных операций.
@@ -28,9 +24,9 @@ final readonly class StartNomenclatureMutationUseCase implements StartNomenclatu
      * 3) Сохранить сценарий удаления Warehouse-номенклатуры.
      */
     public function __construct(
-        private CreateNomenclatureUseCaseInterface $createNomenclature,
-        private UpdateNomenclatureUseCaseInterface $updateNomenclature,
-        private DeleteNomenclatureUseCaseInterface $deleteNomenclature,
+        private CreateNomenclatureUseCase $createNomenclature,
+        private UpdateNomenclatureUseCase $updateNomenclature,
+        private DeleteNomenclatureUseCase $deleteNomenclature,
     ) {}
 
     /**
@@ -54,7 +50,7 @@ final readonly class StartNomenclatureMutationUseCase implements StartNomenclatu
      * Делегирует создание номенклатуры профильному use case.
      * Шаги:
      * 1) Получить CreateNomenclatureRequestDTO из общего request.
-     * 2) Передать DTO в CreateNomenclatureUseCaseInterface.
+     * 2) Передать DTO в CreateNomenclatureUseCase.
      * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function create(NomenclatureMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
@@ -68,7 +64,7 @@ final readonly class StartNomenclatureMutationUseCase implements StartNomenclatu
      * Делегирует обновление номенклатуры профильному use case.
      * Шаги:
      * 1) Получить UpdateNomenclatureRequestDTO из общего request.
-     * 2) Передать DTO в UpdateNomenclatureUseCaseInterface.
+     * 2) Передать DTO в UpdateNomenclatureUseCase.
      * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function update(NomenclatureMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
@@ -82,7 +78,7 @@ final readonly class StartNomenclatureMutationUseCase implements StartNomenclatu
      * Делегирует удаление номенклатуры профильному use case.
      * Шаги:
      * 1) Получить DeleteNomenclatureRequestDTO из общего request.
-     * 2) Передать DTO в DeleteNomenclatureUseCaseInterface.
+     * 2) Передать DTO в DeleteNomenclatureUseCase.
      * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function delete(NomenclatureMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO

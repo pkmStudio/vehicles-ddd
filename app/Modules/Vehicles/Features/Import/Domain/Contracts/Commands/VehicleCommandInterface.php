@@ -18,12 +18,12 @@ interface VehicleCommandInterface
     public function create(VehicleData $data): VehicleData;
 
     /**
-     * Обновить автомобиль по внешнему ms_id.
+     * Обновить автомобиль из import data.
      *
      * Шаги:
-     * 1) Найти существующую запись по ms_id.
+     * 1) Найти существующую запись по ms_id из VehicleData.
      * 2) Применить значения VehicleData.
      * 3) Вернуть обновленный snapshot.
      */
-    public function updateByMsId(VehicleData $data): VehicleData;
+    public function update(VehicleData $data): VehicleData;
 }

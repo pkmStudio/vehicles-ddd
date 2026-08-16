@@ -6,12 +6,11 @@ namespace App\Modules\Vehicles\Features\Import\Application\UseCases\Command;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\ManufacturerCommandImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\EngineModificationReadinessGateInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\Command\StartTecDocImportUseCaseInterface;
 
 /**
  * Запускает консольный каскад импорта TecDoc с файла производителей.
  */
-final readonly class StartTecDocImportUseCase implements StartTecDocImportUseCaseInterface
+final readonly class StartTecDocImportUseCase
 {
     /**
      * Инициализирует зависимости сценария консольного импорта TecDoc.

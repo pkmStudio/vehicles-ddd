@@ -9,6 +9,8 @@ use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Engine;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Modification;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Vehicle;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -30,7 +32,15 @@ final class EngineModificationImportTest extends TestCase
      */
     public function test_links_engine_to_modification_from_csv(): void
     {
-        $engine = Engine::query()->create(['eng_id' => 500, 'code_engine' => 'M54B30']);
+        $engine = Engine::query()->create([
+            'eng_id' => 500,
+            'code_engine' => 'M54B30',
+            'power_kw_start' => 170,
+            'power_ps_start' => 231,
+            'fuel_type' => 'бензин',
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => [],
+        ]);
 
         $manufacturer = Manufacturer::query()->create(['mfa_id' => 10, 'name' => 'Skoda', 'provider' => 'TD']);
         $vehicle = Vehicle::query()->create([
@@ -38,14 +48,26 @@ final class EngineModificationImportTest extends TestCase
             'mfa_id' => 10,
             'ms_id' => 300,
             'name' => 'Octavia',
+            'generation' => 'III',
+            'generation_year_from' => 2013,
             'type' => 'PC',
             'type_carcase' => 'Hatchback',
+            'provider' => ProviderEnum::TD->value,
+            'steering_type' => 'Левый руль',
+            'is_allow' => true,
         ]);
         $modification = Modification::query()->create([
             'vehicle_id' => $vehicle->id,
             'ms_id' => 300,
             'mod_id' => 50,
             'type' => 'PC',
+            'year_from' => 2013,
+            'description' => '1.4 TSI',
+            'power_ps' => 150,
+            'power_kw' => 110,
+            'engine_type' => EngineTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => ['year_from', 'year_to'],
         ]);
 
         $path = base_path('tests/Fixtures/engine_modification_sample.csv');

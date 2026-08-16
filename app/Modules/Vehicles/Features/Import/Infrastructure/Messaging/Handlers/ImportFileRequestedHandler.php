@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
+use App\Modules\Vehicles\Features\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\ExternalImportFileRequestDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Enums\ExternalImportTypeEnum;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Messaging\Validators\ImportFileRequestedPayloadValidator;
@@ -23,7 +23,7 @@ final readonly class ImportFileRequestedHandler
      * 2) Принять validator inbound payload.
      */
     public function __construct(
-        private StartExternalFileImportUseCaseInterface $useCase,
+        private StartExternalFileImportUseCase $useCase,
         private ImportFileRequestedPayloadValidator $validator,
     ) {}
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Applicability\Features\Export\Infrastructure\Providers;
 
 use App\Modules\Applicability\Features\Export\Application\Services\VehicleKitApplicabilityExportService;
-use App\Modules\Applicability\Features\Export\Application\UseCases\External\StartExportUseCase;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Exports\VehicleKitApplicabilityExportInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
@@ -13,7 +12,6 @@ use App\Modules\Applicability\Features\Export\Domain\Contracts\Repositories\KitA
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\VehicleKitApplicabilityExportServiceInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\VehicleKitApplicabilityReferenceServiceInterface;
-use App\Modules\Applicability\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
 use App\Modules\Applicability\Features\Export\Infrastructure\Exports\VehicleKitApplicabilityExport;
 use App\Modules\Applicability\Features\Export\Infrastructure\Factories\ExportFileFactory;
 use App\Modules\Applicability\Features\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
@@ -42,10 +40,6 @@ final class ExportServiceProvider extends ServiceProvider
         ExportFileFactoryInterface::class => ExportFileFactory::class,
     ];
 
-    private const array USE_CASE_BINDINGS = [
-        StartExportUseCaseInterface::class => StartExportUseCase::class,
-    ];
-
     private const array NOTIFICATION_BINDINGS = [
         ExportNotificationServiceInterface::class => RabbitMqExportNotificationService::class,
     ];
@@ -70,7 +64,7 @@ final class ExportServiceProvider extends ServiceProvider
      * Возвращает сгруппированные DI bindings фичи Export.
      *
      * Шаги:
-     * 1. Собирает bindings exports, repositories, services, factories, use cases и notifications.
+     * 1. Собирает bindings exports, repositories, services, factories и notifications.
      * 2. Возвращает группы единым списком для `register()`.
      */
     private function bindings(): array
@@ -80,7 +74,6 @@ final class ExportServiceProvider extends ServiceProvider
             self::REPOSITORY_BINDINGS,
             self::SERVICE_BINDINGS,
             self::FACTORY_BINDINGS,
-            self::USE_CASE_BINDINGS,
             self::NOTIFICATION_BINDINGS,
         ];
     }

@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Map
 
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Engine\EngineSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 
 /**
  * Маппит строку основного Excel-листа двигателей в DTO с явными индексами колонок.
@@ -18,15 +19,21 @@ final readonly class EngineMainSheetRowMapper
 
     private const int ENGINE_CAPACITY = 2;
 
-    private const int POWER_PS_START = 4;
+    private const int FUEL_TYPE = 3;
 
-    private const int POWER_PS_UPTO = 5;
+    private const int POWER_KW_START = 4;
 
-    private const int CYLINDER_COUNT = 6;
+    private const int POWER_KW_UPTO = 5;
 
-    private const int CYLINDER_DIAMETER = 7;
+    private const int POWER_PS_START = 6;
 
-    private const int NUMBER_OF_VALVES = 8;
+    private const int POWER_PS_UPTO = 7;
+
+    private const int CYLINDER_COUNT = 8;
+
+    private const int CYLINDER_DIAMETER = 9;
+
+    private const int NUMBER_OF_VALVES = 10;
 
     /**
      * Получить нормализатор значений основного листа двигателей.
@@ -51,45 +58,22 @@ final readonly class EngineMainSheetRowMapper
      */
     public function map(array $row): EngineSheetRowDTO
     {
-        $engId = $this->formatter->nullableInt(
-            value: $row[self::ENG_ID] ?? null,
-            field: 'eng_id',
-        );
-        $codeEngine = $this->formatter->nullableString($row[self::CODE_ENGINE] ?? null);
-        $powerPsStart = $this->formatter->nullableInt(
-            value: $row[self::POWER_PS_START] ?? null,
-            field: 'power_ps_start',
-        );
-        $powerPsUpto = $this->formatter->nullableInt(
-            value: $row[self::POWER_PS_UPTO] ?? null,
-            field: 'power_ps_upto',
-        );
-        $engineCapacity = $this->formatter->nullableString($row[self::ENGINE_CAPACITY] ?? null);
-        $cylinderDiameter = $this->formatter->nullableFloat(
-            value: $row[self::CYLINDER_DIAMETER] ?? null,
-            field: 'cylinder_diameter',
-        );
-        $cylinderCount = $this->formatter->nullableInt(
-            value: $row[self::CYLINDER_COUNT] ?? null,
-            field: 'cylinder_count',
-        );
-        $numberOfValves = $this->formatter->nullableInt(
-            value: $row[self::NUMBER_OF_VALVES] ?? null,
-            field: 'number_of_valves',
-        );
-
         return new EngineSheetRowDTO(
-            engId: $engId,
-            codeEngine: $codeEngine,
-            powerKwStart: null,
-            powerKwUpto: null,
-            powerPsStart: $powerPsStart,
-            powerPsUpto: $powerPsUpto,
-            engineCapacity: $engineCapacity,
-            cylinderDiameter: $cylinderDiameter,
-            cylinderCount: $cylinderCount,
-            numberOfValves: $numberOfValves,
-            fuelType: null,
+            engId: $this->formatter->nullableInt($row[self::ENG_ID] ?? null, 'eng_id'),
+            codeEngine: $this->formatter->requiredString($row[self::CODE_ENGINE] ?? null, 'code_engine'),
+            powerKwStart: $this->formatter->requiredInt($row[self::POWER_KW_START] ?? null, 'power_kw_start'),
+            powerPsStart: $this->formatter->requiredInt($row[self::POWER_PS_START] ?? null, 'power_ps_start'),
+            fuelType: $this->formatter->requiredString($row[self::FUEL_TYPE] ?? null, 'fuel_type'),
+            powerKwUpto: $this->formatter->nullableInt($row[self::POWER_KW_UPTO] ?? null, 'power_kw_upto'),
+            powerPsUpto: $this->formatter->nullableInt($row[self::POWER_PS_UPTO] ?? null, 'power_ps_upto'),
+            engineCapacity: $this->formatter->nullableString($row[self::ENGINE_CAPACITY] ?? null),
+            cylinderDiameter: $this->formatter->nullableFloat($row[self::CYLINDER_DIAMETER] ?? null, 'cylinder_diameter'),
+            cylinderCount: $this->formatter->nullableInt($row[self::CYLINDER_COUNT] ?? null, 'cylinder_count'),
+            numberOfValves: $this->formatter->nullableInt($row[self::NUMBER_OF_VALVES] ?? null, 'number_of_valves'),
+            provider: ProviderEnum::OD,
+            allowChangeFields: [],
+            operationId: 'vehicles-engine-manager-import',
+            generateNegativeEngIdWhenMissing: true,
         );
     }
 }

@@ -7,12 +7,20 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufactur
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Manufacturer\ManufacturerSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use ValueError;
 
 /**
  * Переводит строку внешнего листа производителей в DTO с обязательным провайдером.
  */
 final readonly class ManufacturerSheetRowMapper
 {
+    private const int MFA_ID = 0;
+
+    private const int NAME = 1;
+
+    private const int PROVIDER = 2;
+
     /**
      * Получить нормализатор значений ячеек Excel.
      *
@@ -39,9 +47,9 @@ final readonly class ManufacturerSheetRowMapper
      */
     public function map(array $row): ManufacturerSheetRowDTO
     {
-        $mfaId = $this->formatter->nullableInt($row[0] ?? null, 'mfa_id');
-        $name = $this->formatter->nullableString($row[1] ?? null);
-        $provider = $this->formatter->nullableString($row[2] ?? null);
+        $mfaId = $this->formatter->nullableInt($row[self::MFA_ID] ?? null, 'mfa_id');
+        $name = $this->formatter->nullableString($row[self::NAME] ?? null);
+        $provider = $this->formatter->nullableString($row[self::PROVIDER] ?? null);
 
         $errors = [];
         if ($mfaId === null) {
@@ -56,6 +64,12 @@ final readonly class ManufacturerSheetRowMapper
 
         if ($errors !== []) {
             throw ImportRowValidationException::fromMessages($errors);
+        }
+
+        try {
+            $provider = ProviderEnum::from($provider);
+        } catch (ValueError) {
+            throw ImportRowValidationException::fromMessage('Поле provider: недопустимое значение.');
         }
 
         return new ManufacturerSheetRowDTO(

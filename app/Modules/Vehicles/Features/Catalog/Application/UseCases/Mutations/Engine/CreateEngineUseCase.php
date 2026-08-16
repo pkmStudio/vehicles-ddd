@@ -8,20 +8,22 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineComman
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\CreateEngineUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\CreateEngineRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\EngineEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\EngineWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Engine\EngineCreated;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\EngineWritePolicy;
 use Throwable;
 
 /**
  * Оркестрирует сценарий мутации двигателей из внешнего сообщения.
  */
-final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
+final readonly class CreateEngineUseCase
 {
     /**
      * Получает порты create engine workflow.
@@ -36,6 +38,7 @@ final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
         private EngineCommandInterface $command,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
+        private EngineWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -74,27 +77,50 @@ final readonly class CreateEngineUseCase implements CreateEngineUseCaseInterface
 
             $engineData = new EngineData(
                 engId: $engId,
+                provider: $request->provider,
                 codeEngine: $request->codeEngine,
                 powerKwStart: $request->powerKwStart,
-                powerKwUpto: $request->powerKwUpto,
                 powerPsStart: $request->powerPsStart,
+                fuelType: $request->fuelType,
+                allowChangeFields: $request->allowChangeFields,
+                powerKwUpto: $request->powerKwUpto,
                 powerPsUpto: $request->powerPsUpto,
                 engineCapacity: $request->engineCapacity,
                 cylinderDiameter: $request->cylinderDiameter,
                 cylinderCount: $request->cylinderCount,
                 numberOfValves: $request->numberOfValves,
-                fuelType: $request->fuelType,
                 groupId: $request->groupId,
-                provider: $request->provider,
-                allowChangeFields: $request->allowChangeFields,
             );
 
-            $engine = $this->command->create($engineData);
+            $writeResult = $this->writePolicy->apply(
+                incoming: EngineWritePolicyResultDTO::fromArray($engineData->toArray()),
+                existing: null,
+                sourceProvider: $request->provider,
+            );
+            $engine = $this->command->create(EngineData::from($writeResult->toArray()));
+
+            $payload = new EngineEventPayloadDTO(
+                id: (int) $engine->id,
+                engId: $engine->engId,
+                provider: $engine->provider,
+                codeEngine: $engine->codeEngine,
+                powerKwStart: $engine->powerKwStart,
+                powerPsStart: $engine->powerPsStart,
+                fuelType: $engine->fuelType,
+                allowChangeFields: $engine->allowChangeFields,
+                powerKwUpto: $engine->powerKwUpto,
+                powerPsUpto: $engine->powerPsUpto,
+                engineCapacity: $engine->engineCapacity,
+                cylinderDiameter: $engine->cylinderDiameter,
+                cylinderCount: $engine->cylinderCount,
+                numberOfValves: $engine->numberOfValves,
+                groupId: $engine->groupId,
+            );
 
             event(new EngineCreated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                engine: $engine->toArray(),
+                engine: $payload,
             ));
 
             return $this->results->completed(

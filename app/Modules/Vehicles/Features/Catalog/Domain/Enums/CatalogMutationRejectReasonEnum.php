@@ -17,4 +17,6 @@ enum CatalogMutationRejectReasonEnum: string
     case OwnerNotFound = 'owner_not_found';
     case InvalidDetails = 'invalid_details';
     case ContractMismatch = 'contract_mismatch';
+    case ProviderOwnershipConflict = 'provider_ownership_conflict';
+    case ProviderDeleteForbidden = 'provider_delete_forbidden';
 }

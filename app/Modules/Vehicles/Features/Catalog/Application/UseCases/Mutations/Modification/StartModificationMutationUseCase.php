@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Modification;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\CreateModificationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\DeleteModificationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\StartModificationMutationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\UpdateModificationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\CreateModificationRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\DeleteModificationRequestDTO;
@@ -18,7 +14,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationE
 /**
  * Оркестрирует сценарий мутации модификаций из внешнего сообщения.
  */
-final readonly class StartModificationMutationUseCase implements StartModificationMutationUseCaseInterface
+final readonly class StartModificationMutationUseCase
 {
     /**
      * Получает use cases для трех поддерживаемых операций modification mutation.
@@ -29,9 +25,9 @@ final readonly class StartModificationMutationUseCase implements StartModificati
      * 3) Принять delete-сценарий модификации.
      */
     public function __construct(
-        private CreateModificationUseCaseInterface $createModification,
-        private UpdateModificationUseCaseInterface $updateModification,
-        private DeleteModificationUseCaseInterface $deleteModification,
+        private CreateModificationUseCase $createModification,
+        private UpdateModificationUseCase $updateModification,
+        private DeleteModificationUseCase $deleteModification,
     ) {}
 
     /**

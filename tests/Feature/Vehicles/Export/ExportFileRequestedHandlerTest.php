@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Export;
 
+use App\Modules\Vehicles\Features\Export\Application\UseCases\External\StartExportUseCase;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\FileExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportCompletionNotificationDTO;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportCompletionStatusEnum;
@@ -149,15 +149,12 @@ final class ExportFileRequestedHandlerTest extends TestCase
      * UseCase — ошибка валидации логируется, а не бросается исключением.
      *
      * Шаги:
-     * 1. Мокает StartExportUseCaseInterface — ожидает, что execute() НЕ вызовется.
+     * 1. Мокает StartExportUseCase — ожидает, что execute() НЕ вызовется.
      * 2. Ожидает Log::error с указанием invalid_keys, включающим 'export_type'.
      * 3. Зовёт handle() с payload без поля 'export_type'.
      */
     public function test_invalid_payload_is_logged_and_skipped(): void
     {
-        $useCase = $this->mock(StartExportUseCaseInterface::class);
-        $useCase->shouldNotReceive('execute');
-
         Log::shouldReceive('error')
             ->once()
             ->with(

@@ -6,7 +6,7 @@ namespace Tests\Feature\Vehicles\Import;
 
 use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Clients\TemplatesClientInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\VehicleWiperSpecificationImportServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleWiperSpecificationFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\Vehicle\VehicleWiperSheetRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
@@ -89,7 +89,7 @@ final class VehicleWipersSheetImportTest extends TestCase
      *
      * Шаги:
      * 1. Создаёт производителя и ТС с исходным name='Octavia'.
-     * 2. Мокает VehicleWiperSpecificationImportServiceInterface — ожидает upsertFromRow() с
+     * 2. Мокает UpsertVehicleWiperSpecificationFromRowServiceInterface — ожидает upsertFromRow() с
      *    ожидаемым DTO (msId/templateSlug/featureValueName/name/text/details из строки), где
      *    details реально собраны `DetailsDataFactory::make()`, не подставлены мок-ом.
      * 3. Прогоняет одну строку с другим name ('Changed from wipers sheet') через collection().
@@ -107,16 +107,19 @@ final class VehicleWipersSheetImportTest extends TestCase
             'mfa_id' => 10,
             'ms_id' => 300,
             'name' => 'Octavia',
+            'generation' => 'III',
+            'generation_year_from' => 2013,
             'type' => 'PC',
             'type_carcase' => 'Hatchback',
             'provider' => 'OD',
             'steering_type' => 'Левый руль',
+            'is_allow' => false,
         ]);
 
         $row = $this->wiperRow('Changed from wipers sheet');
         $details = $this->expectedWiperDetails();
 
-        $wiperSpec = $this->mock(VehicleWiperSpecificationImportServiceInterface::class);
+        $wiperSpec = $this->mock(UpsertVehicleWiperSpecificationFromRowServiceInterface::class);
         $wiperSpec->shouldReceive('upsertFromRow')
             ->once()
             ->with(Mockery::on(fn (VehicleWiperSheetRowDTO $dto): bool => $dto->msId === 300
@@ -154,7 +157,7 @@ final class VehicleWipersSheetImportTest extends TestCase
      * не тихо заводит новую запись.
      *
      * Шаги:
-     * 1. Мокает VehicleWiperSpecificationImportServiceInterface так, чтобы upsertFromRow()
+     * 1. Мокает UpsertVehicleWiperSpecificationFromRowServiceInterface так, чтобы upsertFromRow()
      *    бросал ImportRowValidationException «ТС не найдено».
      * 2. Прогоняет одну строку (без предварительного создания ТС) через collection().
      * 3. Проверяет, что в БД ТС так и не появилось (count === 0).
@@ -163,7 +166,7 @@ final class VehicleWipersSheetImportTest extends TestCase
     {
         $row = $this->wiperRow();
 
-        $wiperSpec = $this->mock(VehicleWiperSpecificationImportServiceInterface::class);
+        $wiperSpec = $this->mock(UpsertVehicleWiperSpecificationFromRowServiceInterface::class);
         $wiperSpec->shouldReceive('upsertFromRow')
             ->once()
             ->with(Mockery::on(fn (VehicleWiperSheetRowDTO $dto): bool => $dto->msId === 300))

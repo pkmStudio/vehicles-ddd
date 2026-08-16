@@ -15,7 +15,12 @@ final readonly class CacheImportFailureStore implements ImportFailureStoreInterf
     /**
      * Забирает накопленные failures по cache key и очищает хранилище.
      *
-     * @return array<int, mixed>
+     * @return array<int, array{
+     *     row: int,
+     *     attribute: string,
+     *     errors: array<int, string>,
+     *     values: array<int|string, string|int|float|bool|null>
+     * }>
      */
     public function pull(string $cacheKey): array
     {

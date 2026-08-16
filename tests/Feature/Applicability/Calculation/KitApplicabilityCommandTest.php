@@ -22,8 +22,8 @@ use Tests\TestCase;
  */
 final class KitApplicabilityCommandTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesWarehouseKit;
+    use RefreshDatabase;
 
     public function test_creates_calculated_targets_and_dispatches_created(): void
     {

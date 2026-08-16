@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Presentation\Console\Commands;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\Command\StartTecDocImportUseCaseInterface;
+use App\Modules\Vehicles\Features\Import\Application\UseCases\Command\StartTecDocImportUseCase;
 use Illuminate\Console\Command;
 
 /**
@@ -24,7 +24,7 @@ final class TecDocImportCars extends Command
      * 2. Сообщить оператору, что сценарий поставил дальнейшую работу в очередь.
      * 3. Вернуть successful console exit code.
      */
-    public function handle(StartTecDocImportUseCaseInterface $useCase): int
+    public function handle(StartTecDocImportUseCase $useCase): int
     {
         $useCase->execute();
 

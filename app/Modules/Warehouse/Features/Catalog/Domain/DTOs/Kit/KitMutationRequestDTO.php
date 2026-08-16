@@ -47,9 +47,9 @@ final readonly class KitMutationRequestDTO
             userId: (int) $payload['user_id'],
             operationId: (string) $payload['operation_id'],
             nomenclatureIds: self::ids($kit['nomenclature_ids']),
+            guarantee: (int) $kit['guarantee'],
             isSaleSeparately: (bool) ($kit['is_sale_separately'] ?? false),
             isActive: (bool) ($kit['is_active'] ?? true),
-            guarantee: (int) ($kit['guarantee'] ?? 12),
         );
     }
 
@@ -65,9 +65,9 @@ final readonly class KitMutationRequestDTO
             operationId: (string) $payload['operation_id'],
             id: (int) $kit['id'],
             nomenclatureIds: self::ids($kit['nomenclature_ids']),
+            guarantee: (int) $kit['guarantee'],
             isSaleSeparately: (bool) ($kit['is_sale_separately'] ?? false),
             isActive: (bool) ($kit['is_active'] ?? true),
-            guarantee: (int) ($kit['guarantee'] ?? 12),
         );
     }
 

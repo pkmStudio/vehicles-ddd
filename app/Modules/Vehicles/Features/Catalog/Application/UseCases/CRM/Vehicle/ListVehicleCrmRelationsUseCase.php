@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmRelationsUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmRelationPageDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
 
 /**
  * Оркестрирует CRM relation read-сценарии автомобиля.
  */
-final readonly class ListVehicleCrmRelationsUseCase implements ListVehicleCrmRelationsUseCaseInterface
+final readonly class ListVehicleCrmRelationsUseCase
 {
     public function __construct(
         private VehicleCrmRepositoryInterface $vehicles,

@@ -9,7 +9,6 @@ use App\Modules\Vehicles\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Enums\EngineImportSheet;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineImportCompleted;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Sheets\EngineMainSheetImport;
-use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithEvents;
@@ -18,7 +17,7 @@ use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 /**
- * Запускает внешний многостраничный импорт двигателей с основным листом и листом свечей.
+ * Запускает внешний многостраничный импорт чистого каталога двигателей.
  */
 final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, ShouldQueue, WithChunkReading, WithEvents, WithMultipleSheets
 {
@@ -44,7 +43,7 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
      * Шаги:
      * 1) Рассчитать ключи кеша и блокировки отчёта ошибок по текущему operation_id.
      * 2) Создать адаптер основного листа двигателей с теми же ключами.
-     * 3) Создать адаптер листа свечей с теми же ключами.
+     * 3) Не подключать лист свечей: details/import применяемости двигателей отключены.
      */
     public function sheets(): array
     {
@@ -56,10 +55,10 @@ final class EngineMultiSheetImport implements EngineMultiSheetImportInterface, S
                 EngineMainSheetImport::class,
                 ['cacheKey' => $cacheKey, 'lockKey' => $lockKey],
             ),
-            EngineImportSheet::SparkPlugs->value => app()->makeWith(
-                EngineSparkPlugsSheetImport::class,
-                ['cacheKey' => $cacheKey, 'lockKey' => $lockKey],
-            ),
+            // EngineImportSheet::SparkPlugs->value => app()->makeWith(
+            //     EngineSparkPlugsSheetImport::class,
+            //     ['cacheKey' => $cacheKey, 'lockKey' => $lockKey],
+            // ),
         ];
     }
 

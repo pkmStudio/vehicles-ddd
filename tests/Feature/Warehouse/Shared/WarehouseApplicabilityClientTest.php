@@ -18,7 +18,7 @@ final class WarehouseApplicabilityClientTest extends TestCase
     {
         $kitTypeId = $this->createType(id: 4, name: 'ФИЛЬТР МАСЛЯНЫЙ', char: 'WB');
         $idFallbackTypeId = $this->createType(id: 2, name: 'Неизвестный тип', char: 'ZZ');
-        $nameFallbackTypeId = $this->createType(id: 999, name: ' свечи зажигания ');
+        $nameFallbackTypeId = $this->createType(id: 999, name: ' свечи зажигания ', char: 'SP');
         $brandId = $this->createBrand();
         $packDimensionId = $this->createPackDimension($kitTypeId);
         $kitId = $this->createKit(typeId: $kitTypeId, packDimensionId: $packDimensionId);
@@ -46,7 +46,7 @@ final class WarehouseApplicabilityClientTest extends TestCase
         $this->assertSame(NomenclatureDetailTemplateEnum::SPARK_PLUGS, $kits[0]->nomenclatures[1]->type?->template);
     }
 
-    private function createType(int $id, string $name, ?string $char = null): int
+    private function createType(int $id, string $name, string $char): int
     {
         DB::table('types')->insert([
             'id' => $id,

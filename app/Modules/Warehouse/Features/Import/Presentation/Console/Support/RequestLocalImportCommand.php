@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Import\Presentation\Console\Support;
 
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\UseCases\External\PublishLocalImportRequestUseCaseInterface;
+use App\Modules\Warehouse\Features\Import\Application\UseCases\External\PublishLocalImportRequestUseCase;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\LocalImportRequestDTO;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -63,7 +63,7 @@ abstract class RequestLocalImportCommand extends Command
      * 4) Вывести ошибку и вернуть FAILURE при неуспешном result.
      * 5) Вывести сообщение успеха и вернуть SUCCESS.
      */
-    public function handle(PublishLocalImportRequestUseCaseInterface $useCase): int
+    public function handle(PublishLocalImportRequestUseCase $useCase): int
     {
         $request = new LocalImportRequestDTO(
             eventName: $this->eventName(),

@@ -14,7 +14,7 @@ final readonly class VehicleTdRowDTO
         public int $msId,
         public string $name,
         public string $generation,
-        public ?string $typeCarcase,
+        public string $typeCarcase,
         public int $generationYearFrom,
         public ?int $generationYearTo,
         public string $type,

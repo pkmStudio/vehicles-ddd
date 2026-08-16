@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm;
 
-final readonly class KitCrmPaginationMetaDTO
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
+final readonly class KitCrmPaginationMetaDTO implements HttpArraySerializableInterface
 {
     /**
      * Фиксирует значения DTO без дополнительного поведения.

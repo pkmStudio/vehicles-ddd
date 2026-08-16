@@ -25,6 +25,8 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
 {
     use CachesImportFailures;
 
+    private const int ENG_ID = 0;
+
     private const int SPEC_START_COLUMN = 9;
 
     private ?UpsertEngineSparkPlugSpecServiceInterface $service = null;
@@ -52,7 +54,7 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
      * Шаги:
      * 1) Сохранить только ключ списка ошибок.
      * 2) Сохранить только ключ блокировки списка ошибок.
-     * 3) Не сериализовать сервисы и клиент Templates.
+     * 3) Оставить runtime-зависимости для ленивого получения из контейнера.
      *
      * @return array<string, mixed>
      */
@@ -70,7 +72,7 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
      * Шаги:
      * 1) Вернуть ключ списка ошибок из сериализованных данных.
      * 2) Вернуть ключ блокировки списка ошибок.
-     * 3) Сбросить runtime-зависимости для последующего резолва из контейнера.
+     * 3) Runtime-зависимости остаются ленивыми и не входят в состояние листа.
      *
      * @param  array<string, mixed>  $data
      */
@@ -78,8 +80,6 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
     {
         $this->cacheKey = (string) $data['cacheKey'];
         $this->lockKey = (string) $data['lockKey'];
-        $this->service = null;
-        $this->templates = null;
     }
 
     /**
@@ -98,7 +98,7 @@ final class EngineSparkPlugsSheetImport implements SkipsOnFailure, ToCollection,
         $service = $this->service();
 
         foreach ($collection as $indexRow => $row) {
-            $engId = $row[0] ?? null;
+            $engId = $row[self::ENG_ID] ?? null;
 
             if (! $engId) {
                 continue;

@@ -9,23 +9,24 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\Manufact
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\Vehicle\VehicleMutationWritePolicyInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\UpdateVehicleUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\UpdateVehicleRequestDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleMutationWriteContextDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ManufacturerData;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\VehicleData;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\VehicleEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\VehicleWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleUpdated;
+use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\VehicleWritePolicy;
 use Throwable;
 
 /**
  * Оркестрирует сценарий мутации автомобилей из внешнего сообщения.
  */
-final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterface
+final readonly class UpdateVehicleUseCase
 {
     /**
      * Получает порты, нужные для update vehicle mutation.
@@ -41,7 +42,7 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
         private VehicleCommandInterface $command,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
-        private VehicleMutationWritePolicyInterface $writePolicy,
+        private VehicleWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -86,6 +87,12 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
             $this->publishUpdatedEvent($request, $vehicle);
 
             return $this->completed($request, $vehicle);
+        } catch (ProviderOwnershipException $e) {
+            return $this->rejected(
+                request: $request,
+                reason: CatalogMutationRejectReasonEnum::ProviderOwnershipConflict,
+                errors: $e->errors(),
+            );
         } catch (Throwable $e) {
             $this->failed($request);
 
@@ -126,7 +133,7 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
         UpdateVehicleRequestDTO $request,
         VehicleData $existing,
     ): int|CatalogMutationResultDTO {
-        if (! $this->writePolicy->allowsCatalogManagedFields($existing)) {
+        if (! $this->writePolicy->allowsCatalogManagedFields(VehicleWritePolicyResultDTO::fromArray($existing->toArray()))) {
             return $existing->manufacturerId;
         }
 
@@ -171,7 +178,7 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
         UpdateVehicleRequestDTO $request,
         VehicleData $existing,
     ): int|CatalogMutationResultDTO|null {
-        if (! $this->writePolicy->allowsCatalogManagedFields($existing)) {
+        if (! $this->writePolicy->allowsCatalogManagedFields(VehicleWritePolicyResultDTO::fromArray($existing->toArray()))) {
             return $existing->parentId;
         }
 
@@ -215,22 +222,23 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
             provider: $request->provider,
             generation: $request->generation,
             generationYearFrom: $request->generationYearFrom,
+            isAllow: $request->isAllow,
             generationYearTo: $request->generationYearTo,
             parentId: $parentId,
+            parentMsId: $request->parentMsId,
             excelTableId: $request->excelTableId,
             localizedName: $request->localizedName,
             generationShort: $request->generationShort,
-            isAllow: $request->isAllow,
             id: $existing->id,
         );
 
-        return $this->writePolicy->applyForUpdate(
-            incoming: $incomingData,
-            existing: $existing,
-            context: new VehicleMutationWriteContextDTO(
-                operationId: $request->operationId,
-            ),
+        $writeResult = $this->writePolicy->apply(
+            incoming: VehicleWritePolicyResultDTO::fromArray($incomingData->toArray()),
+            existing: VehicleWritePolicyResultDTO::fromArray($existing->toArray()),
+            sourceProvider: $request->provider,
         );
+
+        return VehicleData::from($writeResult->toArray());
     }
 
     /**
@@ -244,10 +252,31 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
         UpdateVehicleRequestDTO $request,
         VehicleData $vehicle,
     ): void {
+        $payload = new VehicleEventPayloadDTO(
+            id: (int) $vehicle->id,
+            msId: $vehicle->msId,
+            mfaId: $vehicle->mfaId,
+            manufacturerId: $vehicle->manufacturerId,
+            name: $vehicle->name,
+            type: $vehicle->type,
+            steeringType: $vehicle->steeringType,
+            typeCarcase: $vehicle->typeCarcase,
+            provider: $vehicle->provider,
+            generation: $vehicle->generation,
+            generationYearFrom: $vehicle->generationYearFrom,
+            isAllow: $vehicle->isAllow,
+            generationYearTo: $vehicle->generationYearTo,
+            parentId: $vehicle->parentId,
+            parentMsId: $vehicle->parentMsId ?? null,
+            excelTableId: $vehicle->excelTableId,
+            localizedName: $vehicle->localizedName,
+            generationShort: $vehicle->generationShort,
+        );
+
         event(new VehicleUpdated(
             userId: $request->userId,
             operationId: $request->operationId,
-            vehicle: $vehicle->toArray(),
+            vehicle: $payload,
         ));
     }
 
@@ -284,6 +313,7 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
     private function rejected(
         UpdateVehicleRequestDTO $request,
         CatalogMutationRejectReasonEnum $reason,
+        array $errors = [],
     ): CatalogMutationResultDTO {
         return $this->results->rejected(
             userId: $request->userId,
@@ -292,6 +322,7 @@ final readonly class UpdateVehicleUseCase implements UpdateVehicleUseCaseInterfa
             operation: CatalogMutationOperationEnum::Update,
             externalId: $request->msId,
             reason: $reason,
+            errors: $errors,
         );
     }
 

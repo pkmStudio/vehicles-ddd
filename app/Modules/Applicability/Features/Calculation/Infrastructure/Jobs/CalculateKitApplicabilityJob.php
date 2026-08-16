@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Calculation\Infrastructure\Jobs;
 
+use App\Modules\Applicability\Features\Calculation\Application\UseCases\CalculateKitApplicabilityUseCase;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\ExternalCalculationContextServiceInterface;
-use App\Modules\Applicability\Features\Calculation\Domain\Contracts\UseCases\CalculateKitApplicabilityUseCaseInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable as FoundationQueueable;
 
@@ -37,7 +37,7 @@ final class CalculateKitApplicabilityJob implements ShouldQueue
      * 3. Оставляет публикацию итогового факта самому use case.
      */
     public function handle(
-        CalculateKitApplicabilityUseCaseInterface $useCase,
+        CalculateKitApplicabilityUseCase $useCase,
         ExternalCalculationContextServiceInterface $context,
     ): void {
         if ($this->operationId !== null && $this->userId !== null) {

@@ -15,7 +15,6 @@ interface ImportKitApplicabilityRowServiceInterface
      * 1. Валидирует обязательные идентификаторы строки.
      * 2. Проверяет внешние справочники kit и modification.
      * 3. Делегирует запись связи применяемости command boundary.
-     *
      */
     public function importFromRow(KitApplicabilityImportRowDTO $row): void;
 }

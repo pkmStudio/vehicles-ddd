@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\StartNomenclatureMutationUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Mutations\StartNomenclatureMutationUseCase;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\NomenclatureMutationRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\NomenclatureMutationPayloadValidator;
@@ -26,7 +26,7 @@ final readonly class NomenclatureMutationRequestedHandler
      * 3. Получает reporter для contract mismatch результата.
      */
     public function __construct(
-        private StartNomenclatureMutationUseCaseInterface $useCase,
+        private StartNomenclatureMutationUseCase $useCase,
         private NomenclatureMutationPayloadValidator $validator,
         private WarehouseCatalogMutationContractMismatchReporter $contractMismatchReporter,
     ) {}

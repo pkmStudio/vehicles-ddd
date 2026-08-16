@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Export\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
+use App\Modules\Vehicles\Features\Export\Application\UseCases\External\StartExportUseCase;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportFileRequestDTO;
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Messaging\Validators\ExportFileRequestedPayloadValidator;
@@ -23,7 +23,7 @@ final readonly class ExportFileRequestedHandler
      * - Принять validator payload входящего RabbitMQ-события.
      */
     public function __construct(
-        private StartExportUseCaseInterface $useCase,
+        private StartExportUseCase $useCase,
         private ExportFileRequestedPayloadValidator $validator,
     ) {}
 

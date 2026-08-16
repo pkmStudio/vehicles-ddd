@@ -6,7 +6,6 @@ namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Mod
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ListVehicleModificationsForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog\CatalogModificationDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
 use Illuminate\Support\Collection;
@@ -14,7 +13,7 @@ use Illuminate\Support\Collection;
 /**
  * Возвращает REST-список модификаций разрешённого ТС.
  */
-final readonly class ListVehicleModificationsForCatalogUseCase implements ListVehicleModificationsForCatalogUseCaseInterface
+final readonly class ListVehicleModificationsForCatalogUseCase
 {
     /**
      * Подключает репозитории ТС и модификаций.

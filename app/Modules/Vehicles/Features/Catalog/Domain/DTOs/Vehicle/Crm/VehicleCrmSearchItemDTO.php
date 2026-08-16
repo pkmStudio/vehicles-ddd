@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Compact projection автомобиля для CRM autocomplete.
  */
-final readonly class VehicleCrmSearchItemDTO
+final readonly class VehicleCrmSearchItemDTO implements HttpArraySerializableInterface
 {
     /**
      * Хранит поля option-элемента поиска автомобиля.

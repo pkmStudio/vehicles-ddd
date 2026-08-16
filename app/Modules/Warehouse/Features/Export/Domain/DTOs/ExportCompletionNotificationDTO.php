@@ -19,7 +19,7 @@ final readonly class ExportCompletionNotificationDTO
         public int $userId,
         public ExportCompletionStatusEnum $status,
         public ExportTypeEnum $exportType,
-        public ?string $operationId = null,
+        public string $operationId,
         public ?string $disk = null,
         public ?string $path = null,
         public ?int $typeId = null,
@@ -28,7 +28,7 @@ final readonly class ExportCompletionNotificationDTO
     /**
      * Преобразует DTO в snake_case payload для rabbit-transport.
      *
-     * @return array{user_id: int, status: string, export_type: string, operation_id: ?string, disk: ?string, path: ?string, type_id: ?int}
+     * @return array{user_id: int, status: string, export_type: string, operation_id: string, disk: ?string, path: ?string, type_id: ?int}
      */
     public function toArray(): array
     {

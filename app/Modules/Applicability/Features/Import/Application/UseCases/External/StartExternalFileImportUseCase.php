@@ -6,12 +6,11 @@ namespace App\Modules\Applicability\Features\Import\Application\UseCases\Externa
 
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Factories\ImportFileFactoryInterface;
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
-use App\Modules\Applicability\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Modules\Applicability\Features\Import\Domain\DTOs\ExternalImportFileRequestDTO;
 use App\Modules\Applicability\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use Throwable;
 
-final readonly class StartExternalFileImportUseCase implements StartExternalFileImportUseCaseInterface
+final readonly class StartExternalFileImportUseCase
 {
     /**
      * Получает зависимости запуска внешнего import workflow.

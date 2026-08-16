@@ -4,28 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Shared\Domain\Events\PartSpecification;
 
-use App\Modules\Vehicles\Shared\Domain\DTOs\Events\CatalogEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\PartSpecificationEventPayloadDTO;
 
 /**
  * Фиксирует доменный факт создания спецификации детали.
  */
 final readonly class PartSpecificationCreated
 {
-    public int $userId;
-
-    public string $operationId;
-
-    public CatalogEventPayloadDTO $specification;
-
-    /**
-     * @param  array<string, mixed>|CatalogEventPayloadDTO  $specification
-     */
-    public function __construct(int $userId, string $operationId, array|CatalogEventPayloadDTO $specification)
-    {
-        $this->userId = $userId;
-        $this->operationId = $operationId;
-        $this->specification = is_array($specification)
-            ? CatalogEventPayloadDTO::fromArray($specification)
-            : $specification;
-    }
+    public function __construct(
+        public int $userId,
+        public string $operationId,
+        public PartSpecificationEventPayloadDTO $specification,
+    ) {}
 }

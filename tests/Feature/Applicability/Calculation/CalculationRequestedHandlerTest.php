@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Applicability\Calculation;
 
+use App\Modules\Applicability\Features\Calculation\Application\UseCases\CalculateKitApplicabilityUseCase;
+use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\WarehouseKitClientInterface;
+use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Commands\KitApplicabilityCommandInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\ExternalCalculationContextServiceInterface;
-use App\Modules\Applicability\Features\Calculation\Domain\Contracts\UseCases\CalculateKitApplicabilityUseCaseInterface;
-use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\KitApplicabilityCalculationResultDTO;
+use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\KitApplicabilityCalculatorInterface;
+use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\KitApplicabilityKitResultDTO;
+use App\Modules\Applicability\Features\Calculation\Domain\ModelData\KitData;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Jobs\CalculateKitApplicabilityChunkJob;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Jobs\CalculateKitApplicabilityJob;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Jobs\DispatchKitApplicabilityCalculationJob;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Messaging\Handlers\CalculationRequestedHandler;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Services\ApplicabilityCalculationRunProgress;
+use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilityTargetTypeEnum;
+use App\Modules\Applicability\Shared\Domain\Enums\KitApplicabilityAlgorithmEnum;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
@@ -82,11 +88,17 @@ final class CalculationRequestedHandlerTest extends TestCase
 
     public function test_job_passes_payload_to_use_case(): void
     {
-        $useCase = Mockery::mock(CalculateKitApplicabilityUseCaseInterface::class);
-        $useCase->shouldReceive('execute')
+        $kits = Mockery::mock(WarehouseKitClientInterface::class);
+        $kits->shouldReceive('activeKits')
             ->once()
-            ->with(7, 50, 'operation-123')
-            ->andReturn(new KitApplicabilityCalculationResultDTO(operationId: 'operation-123'));
+            ->with(7, 50)
+            ->andReturn([]);
+
+        $calculator = Mockery::mock(KitApplicabilityCalculatorInterface::class);
+        $calculator->shouldNotReceive('calculate');
+
+        $command = Mockery::mock(KitApplicabilityCommandInterface::class);
+        $command->shouldNotReceive('syncCalculatedTargets');
 
         $context = Mockery::mock(ExternalCalculationContextServiceInterface::class);
         $context->shouldReceive('rememberUserId')
@@ -98,7 +110,7 @@ final class CalculationRequestedHandlerTest extends TestCase
             chunk: 50,
             operationId: 'operation-123',
             userId: 42,
-        ))->handle($useCase, $context);
+        ))->handle(new CalculateKitApplicabilityUseCase($kits, $calculator, $command), $context);
 
         $this->addToAssertionCount(1);
     }
@@ -117,30 +129,46 @@ final class CalculationRequestedHandlerTest extends TestCase
             chunks: [[7, 8]],
         );
 
-        $useCase = Mockery::mock(CalculateKitApplicabilityUseCaseInterface::class);
-        $useCase->shouldReceive('execute')
+        $kits = Mockery::mock(WarehouseKitClientInterface::class);
+        $kits->shouldReceive('activeKits')
             ->once()
-            ->with(7, 1, 'operation-chunk', false)
-            ->andReturn(new KitApplicabilityCalculationResultDTO(
-                operationId: 'operation-chunk',
-                processedKits: 1,
-                calculatedKits: 1,
-                affectedKitIds: [7],
-            ));
-        $useCase->shouldReceive('execute')
+            ->with(7, 1)
+            ->andReturn([new KitData(id: 7, typeId: 1, quantityInPackage: 1, isActive: true)]);
+        $kits->shouldReceive('activeKits')
             ->once()
-            ->with(8, 1, 'operation-chunk', false)
-            ->andReturn(new KitApplicabilityCalculationResultDTO(
-                operationId: 'operation-chunk',
-                processedKits: 1,
-                skippedKits: 1,
+            ->with(8, 1)
+            ->andReturn([new KitData(id: 8, typeId: 1, quantityInPackage: 1, isActive: true)]);
+
+        $calculator = Mockery::mock(KitApplicabilityCalculatorInterface::class);
+        $calculator->shouldReceive('calculate')
+            ->once()
+            ->with(Mockery::on(fn (KitData $kit): bool => $kit->id === 7))
+            ->andReturn(new KitApplicabilityKitResultDTO(
+                kitId: 7,
+                algorithm: KitApplicabilityAlgorithmEnum::WIPER,
+                targetType: ApplicabilityTargetTypeEnum::MODIFICATION,
+                targetIds: [101],
             ));
+        $calculator->shouldReceive('calculate')
+            ->once()
+            ->with(Mockery::on(fn (KitData $kit): bool => $kit->id === 8))
+            ->andReturnNull();
+
+        $command = Mockery::mock(KitApplicabilityCommandInterface::class);
+        $command->shouldReceive('syncCalculatedTargets')
+            ->once()
+            ->with(
+                7,
+                ApplicabilityTargetTypeEnum::MODIFICATION,
+                KitApplicabilityAlgorithmEnum::WIPER,
+                [101],
+            );
 
         (new CalculateKitApplicabilityChunkJob(
             operationId: 'operation-chunk',
             chunkIndex: 0,
             kitIds: [7, 8],
-        ))->handle($useCase, $progress);
+        ))->handle(new CalculateKitApplicabilityUseCase($kits, $calculator, $command), $progress);
 
         $result = $progress->result('operation-chunk');
 
@@ -165,7 +193,7 @@ final class CalculationRequestedHandlerTest extends TestCase
         );
     }
 
-    private function jobProperty(object $job, string $property): mixed
+    private function jobProperty(DispatchKitApplicabilityCalculationJob $job, string $property): string|int|null
     {
         $reflection = new ReflectionClass($job);
 

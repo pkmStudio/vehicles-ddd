@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Modification;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\ModificationCommandImportInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromRowServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Modification\UpsertModificationFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Modification\ModificationCommandImported;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNotFoundException;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
-use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Modification\Mappers\ModificationCommandRowMapper;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Modification\Mappers\ModificationTdRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -26,56 +27,9 @@ use Maatwebsite\Excel\Validators\Failure;
  */
 final class ModificationCommandImport implements ModificationCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
-    private ?UpsertModificationFromRowServiceInterface $service = null;
+    private ?UpsertModificationFromTdRowServiceInterface $service = null;
 
-    private ?ModificationCommandRowMapper $rowMapper = null;
-
-    /**
-     * Получить зависимости для прямого запуска командного импорта модификаций.
-     *
-     * Шаги:
-     * 1) Принять сервис сохранения модификации из строки.
-     * 2) Принять маппер командной строки модификации.
-     * 3) Сохранить зависимости до сериализации задания очереди.
-     */
-    public function __construct(
-        UpsertModificationFromRowServiceInterface $service,
-        ModificationCommandRowMapper $rowMapper,
-    ) {
-        $this->service = $service;
-        $this->rowMapper = $rowMapper;
-    }
-
-    /**
-     * Подготовить импорт к сериализации в очередь.
-     *
-     * Шаги:
-     * 1) Не сохранять сервис записи модификации.
-     * 2) Не сохранять маппер строки.
-     * 3) Оставить импорт в очереди сериализуемым без графа зависимостей.
-     *
-     * @return array<string, mixed>
-     */
-    public function __serialize(): array
-    {
-        return [];
-    }
-
-    /**
-     * Восстановить импорт после очереди.
-     *
-     * Шаги:
-     * 1) Сбросить сервис записи модификации.
-     * 2) Сбросить маппер строки.
-     * 3) Позволить методам lazy-resolve получить зависимости из контейнера при обработке.
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function __unserialize(array $data): void
-    {
-        $this->service = null;
-        $this->rowMapper = null;
-    }
+    private ?ModificationTdRowMapper $rowMapper = null;
 
     /**
      * Запустить командный импорт модификаций.
@@ -106,8 +60,8 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
      *
      * Шаги:
      * 1) Получить маппер и сервис записи после возможного восстановления из очереди.
-     * 2) Сохранить модификацию и отдельно зафиксировать ошибку, если родительское ТС не найдено.
-     * 3) Передать ошибки валидации строки в общий помощник ошибок Laravel Excel.
+     * 2) Сохранить модификацию или получить ошибку строки от маппера/сервиса.
+     * 3) Передать ошибки строки в общий обработчик Laravel Excel.
      */
     public function collection(Collection $collection): void
     {
@@ -119,27 +73,11 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
             $rowValues = $row->toArray();
             try {
                 $modificationRow = $rowMapper->map($rowValues);
-                $modification = $service->upsertFromRow($modificationRow);
-
-                if (! $modification) {
-                    $this->fail($line, "ТС ms_id={$modificationRow->msId} не найдено", $rowValues);
-                }
-            } catch (ImportRowValidationException $e) {
-                $this->fail($line, $e->errors(), $rowValues);
+                $service->upsertFromRow($modificationRow);
+            } catch (ImportRowValidationException|ImportRowReferenceNotFoundException $e) {
+                $this->onFailure(new Failure($line, 'Модификация', $e->errors(), $rowValues));
             }
         }
-    }
-
-    /**
-     * Превратить ошибку строки модификации в ошибку Laravel Excel.
-     *
-     * Шаги:
-     * 1) Привести строку или массив ошибок к массиву.
-     * 2) Сохранить ошибку с атрибутом «Модификация» и исходными значениями строки.
-     */
-    private function fail(int $row, string|array $errors, array $values): void
-    {
-        $this->onFailure(new Failure($row, 'Модификация', (array) $errors, $values));
     }
 
     /**
@@ -203,23 +141,23 @@ final class ModificationCommandImport implements ModificationCommandImportInterf
      * Получить сервис сохранения модификации.
      *
      * Шаги:
-     * 1) Вернуть уже переданный сервис, если импорт не проходил через очередь.
-     * 2) Иначе резолвить сервис из контейнера во время обработки.
+     * 1) Лениво получить сервис из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
-    private function service(): UpsertModificationFromRowServiceInterface
+    private function service(): UpsertModificationFromTdRowServiceInterface
     {
-        return $this->service ??= app(UpsertModificationFromRowServiceInterface::class);
+        return $this->service ??= app(UpsertModificationFromTdRowServiceInterface::class);
     }
 
     /**
      * Получить маппер командной строки модификации.
      *
      * Шаги:
-     * 1) Вернуть уже переданный маппер, если импорт не проходил через очередь.
-     * 2) Иначе резолвить маппер из контейнера во время обработки.
+     * 1) Лениво получить маппер из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
-    private function rowMapper(): ModificationCommandRowMapper
+    private function rowMapper(): ModificationTdRowMapper
     {
-        return $this->rowMapper ??= app(ModificationCommandRowMapper::class);
+        return $this->rowMapper ??= app(ModificationTdRowMapper::class);
     }
 }

@@ -15,6 +15,7 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\Part
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\PartSpecification;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
@@ -302,7 +303,11 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
                     'external_id' => 7101,
                     'engine' => [
                         'code_engine' => 'ABC',
+                        'power_kw_start' => 100,
+                        'power_ps_start' => 136,
+                        'fuel_type' => EngineFuelTypeEnum::PETROL->value,
                         'engine_capacity' => '2.0',
+                        'provider' => ProviderEnum::TD->value,
                     ],
                 ],
                 'template' => DetailTemplateEnum::SPARK_PLUGS->value,
@@ -392,6 +397,51 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
         ]);
     }
 
+    public function test_part_specification_create_is_rejected_when_owner_template_and_details_already_exist(): void
+    {
+        $this->createManufacturer(900);
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::PartSpecification
+                && $result->operation === CatalogMutationOperationEnum::Create
+                && $result->status === CatalogMutationStatusEnum::Completed));
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::PartSpecification
+                && $result->operation === CatalogMutationOperationEnum::Create
+                && $result->status === CatalogMutationStatusEnum::Rejected
+                && $result->reason === CatalogMutationRejectReasonEnum::AlreadyExists->value
+                && $result->errors[0]['rule'] === 'unique'));
+
+        app(PartSpecificationMutationRequestedHandler::class)->handle($this->vehicleSpecificationPayload(
+            operationId: 'part-specification-create-natural-duplicate-source',
+            operation: 'create',
+            specificationId: 8351,
+            ownerExternalId: 7351,
+            vehicleName: 'Natural Duplicate Source',
+            specificationName: 'Original natural spec',
+        ));
+
+        app(PartSpecificationMutationRequestedHandler::class)->handle($this->vehicleSpecificationPayload(
+            operationId: 'part-specification-create-natural-duplicate',
+            operation: 'create',
+            specificationId: 8352,
+            ownerExternalId: 7351,
+            vehicleName: 'Natural Duplicate Source',
+            specificationName: 'Duplicate natural spec',
+        ));
+
+        $this->assertDatabaseHas('part_specifications', [
+            'id' => 8351,
+            'name' => 'Original natural spec',
+        ]);
+        $this->assertDatabaseMissing('part_specifications', [
+            'id' => 8352,
+        ]);
+    }
+
     public function test_part_specification_update_is_rejected_when_specification_not_found(): void
     {
         $this->createManufacturer(900);
@@ -439,7 +489,7 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseMissing('part_specifications', ['id' => 8501]);
     }
 
-    public function test_vehicle_owner_payload_keeps_locked_fields_for_existing_td_vehicle(): void
+    public function test_vehicle_owner_payload_rejects_provider_conflict_for_existing_td_vehicle(): void
     {
         $existingManufacturer = $this->createManufacturer(901);
         $incomingManufacturer = $this->createManufacturer(902);
@@ -468,7 +518,8 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
             ->once()
             ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::PartSpecification
                 && $result->operation === CatalogMutationOperationEnum::Create
-                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->status === CatalogMutationStatusEnum::Rejected
+                && $result->reason === CatalogMutationRejectReasonEnum::ProviderOwnershipConflict->value
                 && $result->operationId === 'part-specification-owner-td-locked'));
 
         app(PartSpecificationMutationRequestedHandler::class)->handle($this->vehicleSpecificationPayload(
@@ -490,11 +541,12 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
             'manufacturer_id' => $existingManufacturer->id,
             'mfa_id' => $existingManufacturer->mfa_id,
             'parent_id' => $existingParent->id,
-            'name' => 'TD owner new',
+            'name' => 'TD owner old',
             'generation' => 'TD owner generation',
             'type_carcase' => CarcaseTypeEnum::SALOON->value,
             'provider' => ProviderEnum::TD->value,
         ]);
+        $this->assertDatabaseMissing('part_specifications', ['id' => 8601]);
     }
 
     public function test_part_specification_mutation_events_have_unique_names_and_same_handler(): void
@@ -519,7 +571,7 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
         ?int $parentId = null,
         string $name = 'Octavia',
         ProviderEnum $provider = ProviderEnum::OD,
-        ?string $generation = null,
+        string $generation = 'III',
         CarcaseTypeEnum $typeCarcase = CarcaseTypeEnum::HATCHBACK,
     ): Vehicle {
         return Vehicle::query()->create([
@@ -555,17 +607,19 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
         int $mfaId = 900,
         ProviderEnum $provider = ProviderEnum::OD,
         ?int $parentMsId = null,
-        ?string $generation = null,
+        string $generation = 'III',
         CarcaseTypeEnum $typeCarcase = CarcaseTypeEnum::HATCHBACK,
     ): array {
         $vehicle = [
             'mfa_id' => $mfaId,
             'name' => $vehicleName,
+            'generation' => $generation,
+            'generation_year_from' => 2013,
             'type' => VehicleTypeEnum::PC->value,
             'type_carcase' => $typeCarcase->value,
             'provider' => $provider->value,
             'steering_type' => SteeringTypeEnum::LEFT->value,
-            'generation' => $generation,
+            'is_allow' => true,
         ];
 
         if ($parentMsId !== null) {

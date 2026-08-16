@@ -22,7 +22,12 @@ interface ImportFailureReporterInterface
      * 3) Сформировать путь отчёта по типу импорта и времени.
      * 4) Сохранить CSV/Excel-отчёт и вернуть путь.
      *
-     * @param  array<int, array{row: int, attribute: string, errors: array<int, string>, values: mixed}>  $failures
+     * @param  array<int, array{
+     *     row: int,
+     *     attribute: string,
+     *     errors: array<int, string>,
+     *     values: array<int|string, string|int|float|bool|null>
+     * }>  $failures
      */
     public function store(array $failures, ImportTypeEnum $type): ?string;
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Sheets;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Mappers\EngineMainSheetRowMapper;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
@@ -23,7 +23,7 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
 {
     use CachesImportFailures;
 
-    private ?UpsertEngineFromSheetServiceInterface $service = null;
+    private ?UpsertEngineFromRowServiceInterface $service = null;
 
     private ?EngineMainSheetRowMapper $rowMapper = null;
 
@@ -48,9 +48,9 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
      * Шаги:
      * 1) Сохранить только ключ списка ошибок.
      * 2) Сохранить только ключ блокировки списка ошибок.
-     * 3) Не сериализовать сервисы и мапперы.
+     * 3) Оставить runtime-зависимости для ленивого получения из контейнера.
      *
-     * @return array<string, mixed>
+     * @return array{cacheKey: string, lockKey: string}
      */
     public function __serialize(): array
     {
@@ -66,16 +66,14 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
      * Шаги:
      * 1) Вернуть ключ списка ошибок из сериализованных данных.
      * 2) Вернуть ключ блокировки списка ошибок.
-     * 3) Сбросить runtime-зависимости для последующего резолва из контейнера.
+     * 3) Runtime-зависимости остаются ленивыми и не входят в состояние листа.
      *
-     * @param  array<string, mixed>  $data
+     * @param  array{cacheKey: string, lockKey: string}  $data
      */
     public function __unserialize(array $data): void
     {
         $this->cacheKey = (string) $data['cacheKey'];
         $this->lockKey = (string) $data['lockKey'];
-        $this->service = null;
-        $this->rowMapper = null;
     }
 
     /**
@@ -96,7 +94,6 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
             try {
                 DB::transaction(function () use ($rowMapper, $rowValues, $service): void {
                     $engineRow = $rowMapper->map($rowValues);
-
                     $service->upsertFromRow($engineRow);
                 });
             } catch (ImportRowValidationException $e) {
@@ -131,9 +128,9 @@ final class EngineMainSheetImport implements SkipsOnFailure, ToCollection, WithS
      * 1) Резолвить сервис из контейнера во время обработки queued job.
      * 2) Не хранить dependency graph в сериализованном Excel-адаптере.
      */
-    private function service(): UpsertEngineFromSheetServiceInterface
+    private function service(): UpsertEngineFromRowServiceInterface
     {
-        return $this->service ??= app(UpsertEngineFromSheetServiceInterface::class);
+        return $this->service ??= app(UpsertEngineFromRowServiceInterface::class);
     }
 
     /**

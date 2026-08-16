@@ -23,4 +23,12 @@ final class InvalidWiperKitDataException extends RuntimeException
     {
         return new self("Wiper nomenclature with sort {$sort} not found for kit {$kitId}");
     }
+
+    /**
+     * Создает исключение для WIPER details без обязательной длины.
+     */
+    public static function missingWiperLength(string $field): self
+    {
+        return new self("Required wiper length {$field} is missing");
+    }
 }

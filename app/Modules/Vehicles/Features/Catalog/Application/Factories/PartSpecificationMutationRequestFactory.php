@@ -156,7 +156,7 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
      *
      * Шаги:
      * 1) Привести обязательные поля mfa_id, name, type и type_carcase к локальным типам.
-     * 2) Подставить значения provider/steering по умолчанию, если payload их не содержит.
+     * 2) Прочитать обязательные provider/steering/is_allow без fallback.
      * 3) Нормализовать обязательные generation/year_from и optional excel/year_to/is_allow поля.
      *
      * @param  array<string, mixed>  $vehicle
@@ -168,18 +168,16 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
             name: (string) $vehicle['name'],
             type: VehicleTypeEnum::from((string) $vehicle['type']),
             typeCarcase: CarcaseTypeEnum::from((string) $vehicle['type_carcase']),
-            provider: isset($vehicle['provider']) ? ProviderEnum::from((string) $vehicle['provider']) : ProviderEnum::OD,
-            steeringType: isset($vehicle['steering_type'])
-                ? SteeringTypeEnum::from((string) $vehicle['steering_type'])
-                : SteeringTypeEnum::LEFT,
+            provider: ProviderEnum::from((string) $vehicle['provider']),
+            steeringType: SteeringTypeEnum::from((string) $vehicle['steering_type']),
             generation: (string) $vehicle['generation'],
             generationYearFrom: (int) $vehicle['generation_year_from'],
+            isAllow: (bool) $vehicle['is_allow'],
             parentMsId: isset($vehicle['parent_ms_id']) ? (int) $vehicle['parent_ms_id'] : null,
             generationShort: isset($vehicle['generation_short']) ? (string) $vehicle['generation_short'] : null,
             localizedName: isset($vehicle['localized_name']) ? (string) $vehicle['localized_name'] : null,
             excelTableId: isset($vehicle['excel_table_id']) ? (string) $vehicle['excel_table_id'] : null,
             generationYearTo: isset($vehicle['generation_year_to']) ? (int) $vehicle['generation_year_to'] : null,
-            isAllow: (bool) ($vehicle['is_allow'] ?? false),
         );
     }
 
@@ -187,9 +185,9 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
      * Собирает typed snapshot двигателя-владельца part specification.
      *
      * Шаги:
-     * 1) Прочитать optional engine attributes из owner payload.
+     * 1) Прочитать обязательные engine attributes из owner payload.
      * 2) Привести числовые мощность, объем, цилиндры и group id к нужным scalar-типам.
-     * 3) Преобразовать fuel_type в enum, если он передан.
+     * 3) Преобразовать fuel_type в enum.
      * 4) Вернуть DTO, пригодный для поиска или создания engine owner.
      *
      * @param  array<string, mixed>  $engine
@@ -197,16 +195,17 @@ final readonly class PartSpecificationMutationRequestFactory implements PartSpec
     private function engineOwner(array $engine): PartSpecificationOwnerEngineDTO
     {
         return new PartSpecificationOwnerEngineDTO(
-            codeEngine: isset($engine['code_engine']) ? (string) $engine['code_engine'] : null,
-            powerKwStart: isset($engine['power_kw_start']) ? (int) $engine['power_kw_start'] : null,
+            codeEngine: (string) $engine['code_engine'],
+            powerKwStart: (int) $engine['power_kw_start'],
+            powerPsStart: (int) $engine['power_ps_start'],
+            fuelType: EngineFuelTypeEnum::from((string) $engine['fuel_type']),
+            provider: ProviderEnum::from((string) $engine['provider']),
             powerKwUpto: isset($engine['power_kw_upto']) ? (int) $engine['power_kw_upto'] : null,
-            powerPsStart: isset($engine['power_ps_start']) ? (int) $engine['power_ps_start'] : null,
             powerPsUpto: isset($engine['power_ps_upto']) ? (int) $engine['power_ps_upto'] : null,
             engineCapacity: isset($engine['engine_capacity']) ? (string) $engine['engine_capacity'] : null,
             cylinderDiameter: isset($engine['cylinder_diameter']) ? (float) $engine['cylinder_diameter'] : null,
             cylinderCount: isset($engine['cylinder_count']) ? (int) $engine['cylinder_count'] : null,
             numberOfValves: isset($engine['number_of_valves']) ? (int) $engine['number_of_valves'] : null,
-            fuelType: isset($engine['fuel_type']) ? EngineFuelTypeEnum::from((string) $engine['fuel_type']) : null,
             groupId: isset($engine['group_id']) ? (int) $engine['group_id'] : null,
         );
     }

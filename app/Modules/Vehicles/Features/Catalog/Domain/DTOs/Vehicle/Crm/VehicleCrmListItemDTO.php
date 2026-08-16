@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Сценарный снимок автомобиля для списка CRM read API.
  */
-final readonly class VehicleCrmListItemDTO
+final readonly class VehicleCrmListItemDTO implements HttpArraySerializableInterface
 {
     /**
      * Хранит плоские поля автомобиля, производителя и родительской модели для CRM списка.

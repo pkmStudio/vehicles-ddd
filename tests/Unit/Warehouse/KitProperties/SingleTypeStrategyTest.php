@@ -48,7 +48,7 @@ final class SingleTypeStrategyTest extends TestCase
     public function test_resolve_type_returns_first_nomenclature_type(): void
     {
         $strategy = new SingleTypeStrategy;
-        $type = new TypeData(name: 'Колодки', id: 1);
+        $type = new TypeData(name: 'Колодки', char: 'BP', id: 1);
 
         $collection = new Collection([$this->nomenclature(1, $type)]);
 

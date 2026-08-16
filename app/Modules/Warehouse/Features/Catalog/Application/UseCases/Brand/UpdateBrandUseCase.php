@@ -8,20 +8,20 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\BrandComman
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\UpdateBrandUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\UpdateBrandRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\BrandEventPayloadDTO;
 use App\Modules\Warehouse\Shared\Domain\Events\Brand\BrandUpdated;
 use Throwable;
 
 /**
  * Выполняет обновление Warehouse-бренда из внешнего сообщения.
  */
-final readonly class UpdateBrandUseCase implements UpdateBrandUseCaseInterface
+final readonly class UpdateBrandUseCase
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
@@ -92,11 +92,19 @@ final readonly class UpdateBrandUseCase implements UpdateBrandUseCaseInterface
             );
 
             $brand = $this->command->update($data);
+            $payload = new BrandEventPayloadDTO(
+                id: (int) $brand->id,
+                name: $brand->name,
+                numberSert: $brand->numberSert,
+                dateStart: $brand->dateStart,
+                dateEnd: $brand->dateEnd,
+                char: $brand->char,
+            );
 
             event(new BrandUpdated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                brand: $brand->toArray(),
+                brand: $payload,
             ));
 
             return $this->results->completed(

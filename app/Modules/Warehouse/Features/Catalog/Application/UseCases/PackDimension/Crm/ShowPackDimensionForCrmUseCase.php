@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\Crm;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionCrmRepositoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\Crm\ShowPackDimensionForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\Crm\PackDimensionCrmListItemDTO;
 
 /**
  * Оркестрирует CRM read-сценарий detail-снимка упаковочного размера.
  */
-final readonly class ShowPackDimensionForCrmUseCase implements ShowPackDimensionForCrmUseCaseInterface
+final readonly class ShowPackDimensionForCrmUseCase
 {
     /**
      * Инициализирует порт репозитория упаковочных размеров для CRM detail-сценария.

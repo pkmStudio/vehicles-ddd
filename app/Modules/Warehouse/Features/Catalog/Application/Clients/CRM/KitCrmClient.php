@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM;
 
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\Crm\ListKitsForCrmUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\Crm\ShowKitForCrmUseCase;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitCrmClientInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\Crm\ListKitsForCrmUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\Crm\ShowKitForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm\KitCrmListItemDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm\KitCrmOptionDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm\KitCrmPageDTO;
@@ -26,8 +26,8 @@ final readonly class KitCrmClient implements KitCrmClientInterface
      * 2. Сохраняет зависимости как thin facade CRM read API.
      */
     public function __construct(
-        private ListKitsForCrmUseCaseInterface $list,
-        private ShowKitForCrmUseCaseInterface $show,
+        private ListKitsForCrmUseCase $list,
+        private ShowKitForCrmUseCase $show,
     ) {}
 
     /**

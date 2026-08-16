@@ -6,6 +6,8 @@ namespace App\Modules\Vehicles\Shared\Infrastructure\Providers;
 
 use App\Modules\Vehicles\Features\Catalog\Application\Clients\VehiclesApplicabilityClient;
 use App\Modules\Vehicles\Shared\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
+use App\Modules\Vehicles\Shared\Domain\Contracts\Repositories\PartSpecificationDuplicateFinderInterface;
+use App\Modules\Vehicles\Shared\Infrastructure\Repositories\PartSpecificationDuplicateFinder;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -24,6 +26,7 @@ final class VehiclesServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(VehiclesApplicabilityClientInterface::class, VehiclesApplicabilityClient::class);
+        $this->app->bind(PartSpecificationDuplicateFinderInterface::class, PartSpecificationDuplicateFinder::class);
     }
 
     /**

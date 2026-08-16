@@ -57,7 +57,7 @@ final class PackagingServiceTest extends TestCase
 
     public function test_dispatches_wiper_adapter_template_to_wiper_adapter_strategy(): void
     {
-        $type = new TypeData(name: 'Адаптер стеклоочистителя', id: 7);
+        $type = new TypeData(name: 'Адаптер стеклоочистителя', char: 'AW', id: 7);
         $first = new PackDimensionData(name: 'First', weight: 5, width: 10, height: 10, length: 10, price: 5, typeId: 7, id: 1);
         $boxes = new Collection([$first, new PackDimensionData(name: 'Second', weight: 5, width: 999, height: 999, length: 999, price: 5, typeId: 7, id: 2)]);
 
@@ -80,7 +80,7 @@ final class PackagingServiceTest extends TestCase
 
     public function test_dispatches_spark_plugs_template_to_spark_plugs_strategy(): void
     {
-        $type = new TypeData(name: 'Свечи зажигания', id: 2);
+        $type = new TypeData(name: 'Свечи зажигания', char: 'SP', id: 2);
         $smallest = new PackDimensionData(name: 'Small', weight: 5, width: 10, height: 10, length: 10, price: 5, typeId: 2, id: 1);
         $largest = new PackDimensionData(name: 'Large', weight: 5, width: 50, height: 50, length: 50, price: 5, typeId: 2, id: 2);
         $boxes = new Collection([$smallest, $largest]);

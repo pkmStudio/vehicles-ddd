@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\EngineCommandImportInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineFromSheetServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Engine\UpsertEngineFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Engine\EngineCommandImported;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
-use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Mappers\EngineSheetRowMapper;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Mappers\EngineTdRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -26,56 +26,9 @@ use Maatwebsite\Excel\Validators\Failure;
  */
 final class EngineCommandImport implements EngineCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
-    private ?UpsertEngineFromSheetServiceInterface $service = null;
+    private ?UpsertEngineFromRowServiceInterface $service = null;
 
-    private ?EngineSheetRowMapper $rowMapper = null;
-
-    /**
-     * Получить зависимости для прямого запуска импорта двигателей.
-     *
-     * Шаги:
-     * 1) Принять сервис сохранения двигателя из строки.
-     * 2) Принять маппер строки командного листа двигателей.
-     * 3) Сохранить зависимости до сериализации задания очереди.
-     */
-    public function __construct(
-        UpsertEngineFromSheetServiceInterface $service,
-        EngineSheetRowMapper $rowMapper,
-    ) {
-        $this->service = $service;
-        $this->rowMapper = $rowMapper;
-    }
-
-    /**
-     * Подготовить импорт к сериализации в очередь.
-     *
-     * Шаги:
-     * 1) Не сохранять сервис записи двигателя.
-     * 2) Не сохранять маппер строки.
-     * 3) Оставить импорт в очереди сериализуемым без графа зависимостей.
-     *
-     * @return array<string, mixed>
-     */
-    public function __serialize(): array
-    {
-        return [];
-    }
-
-    /**
-     * Восстановить импорт после очереди.
-     *
-     * Шаги:
-     * 1) Сбросить сервис записи двигателя.
-     * 2) Сбросить маппер строки.
-     * 3) Позволить методам ленивого получения зависимостей обратиться к контейнеру при обработке.
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function __unserialize(array $data): void
-    {
-        $this->service = null;
-        $this->rowMapper = null;
-    }
+    private ?EngineTdRowMapper $rowMapper = null;
 
     /**
      * Запустить импорт файла двигателей.
@@ -118,7 +71,6 @@ final class EngineCommandImport implements EngineCommandImportInterface, ShouldQ
             $rowValues = $row->toArray();
             try {
                 $engineRow = $rowMapper->map($rowValues);
-
                 $service->upsertFromRow($engineRow);
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(new Failure($index + $this->startRow(), 'Двигатель', $e->errors(), $rowValues));
@@ -187,23 +139,23 @@ final class EngineCommandImport implements EngineCommandImportInterface, ShouldQ
      * Получить сервис сохранения двигателя.
      *
      * Шаги:
-     * 1) Вернуть уже переданный сервис, если импорт не проходил через очередь.
-     * 2) Иначе резолвить сервис из контейнера во время обработки.
+     * 1) Лениво получить сервис из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
-    private function service(): UpsertEngineFromSheetServiceInterface
+    private function service(): UpsertEngineFromRowServiceInterface
     {
-        return $this->service ??= app(UpsertEngineFromSheetServiceInterface::class);
+        return $this->service ??= app(UpsertEngineFromRowServiceInterface::class);
     }
 
     /**
      * Получить маппер командной строки двигателя.
      *
      * Шаги:
-     * 1) Вернуть уже переданный маппер, если импорт не проходил через очередь.
-     * 2) Иначе резолвить маппер из контейнера во время обработки.
+     * 1) Лениво получить маппер из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
-    private function rowMapper(): EngineSheetRowMapper
+    private function rowMapper(): EngineTdRowMapper
     {
-        return $this->rowMapper ??= app(EngineSheetRowMapper::class);
+        return $this->rowMapper ??= app(EngineTdRowMapper::class);
     }
 }

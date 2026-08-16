@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Applicability\Import;
 
-use App\Modules\Applicability\Features\Import\Infrastructure\Clients\VehiclesModificationClient;
 use App\Modules\Applicability\Features\Import\Domain\Exceptions\ImportRowValidationException;
+use App\Modules\Applicability\Features\Import\Infrastructure\Clients\VehiclesModificationClient;
 use App\Modules\Applicability\Features\Import\Infrastructure\Models\Modification;
 use App\Modules\Applicability\Features\Import\Infrastructure\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;

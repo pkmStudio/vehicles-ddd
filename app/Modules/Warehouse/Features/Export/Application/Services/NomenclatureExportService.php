@@ -152,7 +152,7 @@ final readonly class NomenclatureExportService implements NomenclatureExportServ
         $rows = [];
 
         for ($i = 0; $i < $max; $i++) {
-            $valueAtIndex = fn (array $values): mixed => $values[$i] ?? null;
+            $valueAtIndex = fn (array $values): string|int|float|bool|null => $values[$i] ?? null;
 
             $rows[] = array_map(
                 $valueAtIndex,

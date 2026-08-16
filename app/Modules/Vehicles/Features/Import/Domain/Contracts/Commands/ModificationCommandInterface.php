@@ -18,12 +18,12 @@ interface ModificationCommandInterface
     public function create(ModificationData $data): ModificationData;
 
     /**
-     * Обновить модификацию по натуральному ключу mod_id/type.
+     * Обновить модификацию из import data.
      *
      * Шаги:
-     * 1) Найти существующую запись по mod_id и type.
+     * 1) Найти существующую запись по mod_id и type из ModificationData.
      * 2) Применить значения ModificationData.
      * 3) Вернуть обновленный snapshot.
      */
-    public function updateByModIdAndType(ModificationData $data): ModificationData;
+    public function update(ModificationData $data): ModificationData;
 }

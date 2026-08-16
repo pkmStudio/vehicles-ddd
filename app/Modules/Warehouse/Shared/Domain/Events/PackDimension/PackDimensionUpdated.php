@@ -4,28 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Shared\Domain\Events\PackDimension;
 
-use App\Modules\Warehouse\Shared\Domain\DTOs\Events\CatalogEventPayloadDTO;
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\PackDimensionEventPayloadDTO;
 
 /**
  * Доменный факт обновления упаковочного размера Warehouse.
  */
 final readonly class PackDimensionUpdated
 {
-    public int $userId;
-
-    public string $operationId;
-
-    public CatalogEventPayloadDTO $packDimension;
-
-    /**
-     * @param  array<string, mixed>|CatalogEventPayloadDTO  $packDimension
-     */
-    public function __construct(int $userId, string $operationId, array|CatalogEventPayloadDTO $packDimension)
-    {
-        $this->userId = $userId;
-        $this->operationId = $operationId;
-        $this->packDimension = is_array($packDimension)
-            ? CatalogEventPayloadDTO::fromArray($packDimension, 'name')
-            : $packDimension;
-    }
+    public function __construct(
+        public int $userId,
+        public string $operationId,
+        public PackDimensionEventPayloadDTO $packDimension,
+    ) {}
 }

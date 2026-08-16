@@ -19,7 +19,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // rabbit-transport:setup регистрируется самим пакетом pkmstudio/rabbit-transport.
         __DIR__.'/../app/Modules/Vehicles/Features/Import/Presentation/Console/Commands',
         __DIR__.'/../app/Modules/Vehicles/Features/Export/Presentation/Console/Commands',
-        __DIR__.'/../app/Modules/Vehicles/Features/Maintenance/Presentation/Console/Commands',
         __DIR__.'/../app/Modules/Warehouse/Features/Export/Presentation/Console/Commands',
         __DIR__.'/../app/Modules/Warehouse/Features/Import/Presentation/Console/Commands',
         __DIR__.'/../app/Modules/Warehouse/Features/Maintenance/Presentation/Console/Commands',

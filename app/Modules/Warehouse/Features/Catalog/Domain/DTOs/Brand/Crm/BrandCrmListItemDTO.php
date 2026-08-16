@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\Crm;
 
-final readonly class BrandCrmListItemDTO
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
+final readonly class BrandCrmListItemDTO implements HttpArraySerializableInterface
 {
     public function __construct(
         public int $id,
@@ -12,7 +14,7 @@ final readonly class BrandCrmListItemDTO
         public string $numberSert,
         public string $dateStart,
         public string $dateEnd,
-        public ?string $char,
+        public string $char,
         public int $nomenclaturesCount = 0,
         public ?string $createdAt = null,
         public ?string $updatedAt = null,

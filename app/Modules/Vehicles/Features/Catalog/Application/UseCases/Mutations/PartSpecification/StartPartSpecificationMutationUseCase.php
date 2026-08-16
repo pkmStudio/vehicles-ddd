@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\PartSpecification;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\CreatePartSpecificationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\DeletePartSpecificationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\StartPartSpecificationMutationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\UpdatePartSpecificationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\CreatePartSpecificationRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\DeletePartSpecificationRequestDTO;
@@ -18,7 +14,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationE
 /**
  * Оркестрирует сценарий мутации спецификаций деталей из внешнего сообщения.
  */
-final readonly class StartPartSpecificationMutationUseCase implements StartPartSpecificationMutationUseCaseInterface
+final readonly class StartPartSpecificationMutationUseCase
 {
     /**
      * Получает use cases для трех поддерживаемых операций part specification mutation.
@@ -29,9 +25,9 @@ final readonly class StartPartSpecificationMutationUseCase implements StartPartS
      * 3) Принять delete-сценарий спецификации.
      */
     public function __construct(
-        private CreatePartSpecificationUseCaseInterface $createPartSpecification,
-        private UpdatePartSpecificationUseCaseInterface $updatePartSpecification,
-        private DeletePartSpecificationUseCaseInterface $deletePartSpecification,
+        private CreatePartSpecificationUseCase $createPartSpecification,
+        private UpdatePartSpecificationUseCase $updatePartSpecification,
+        private DeletePartSpecificationUseCase $deletePartSpecification,
     ) {}
 
     /**

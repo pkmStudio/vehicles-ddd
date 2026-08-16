@@ -9,6 +9,7 @@ use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\VehicleK
 use App\Modules\Applicability\Features\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Modules\Applicability\Features\Export\Infrastructure\Exports\Sheets\VehicleKitApplicabilityDataSheetExport;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
@@ -58,7 +59,7 @@ final readonly class VehicleKitApplicabilityExport implements VehicleKitApplicab
      * 2. Создает reference sheet с headings и rows из export service.
      * 3. Возвращает листы в порядке, который увидит пользователь в workbook.
      *
-     * @return array<int, object>
+     * @return array<int, WithTitle>
      */
     public function sheets(): array
     {

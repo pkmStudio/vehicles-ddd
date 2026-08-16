@@ -8,20 +8,20 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\BrandComman
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\CreateBrandUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\CreateBrandRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\BrandEventPayloadDTO;
 use App\Modules\Warehouse\Shared\Domain\Events\Brand\BrandCreated;
 use Throwable;
 
 /**
  * Выполняет создание Warehouse-бренда из внешнего сообщения.
  */
-final readonly class CreateBrandUseCase implements CreateBrandUseCaseInterface
+final readonly class CreateBrandUseCase
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
@@ -49,14 +49,12 @@ final readonly class CreateBrandUseCase implements CreateBrandUseCaseInterface
     public function execute(CreateBrandRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }
 
         try {
             $existingBrand = $this->brands->findByName($request->name);
-
             if ($existingBrand !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
@@ -77,11 +75,19 @@ final readonly class CreateBrandUseCase implements CreateBrandUseCaseInterface
             );
 
             $brand = $this->command->create($data);
+            $payload = new BrandEventPayloadDTO(
+                id: (int) $brand->id,
+                name: $brand->name,
+                numberSert: $brand->numberSert,
+                dateStart: $brand->dateStart,
+                dateEnd: $brand->dateEnd,
+                char: $brand->char,
+            );
 
             event(new BrandCreated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                brand: $brand->toArray(),
+                brand: $payload,
             ));
 
             return $this->results->completed(

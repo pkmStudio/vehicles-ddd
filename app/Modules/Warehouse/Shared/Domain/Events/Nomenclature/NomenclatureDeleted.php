@@ -24,7 +24,7 @@ final readonly class NomenclatureDeleted
     public Collection $integrations;
 
     /**
-     * @param  array<int, array<string, mixed>|NomenclatureIntegrationDeletionContextDTO>  $integrations
+     * @param  array<int, NomenclatureIntegrationDeletionContextDTO>  $integrations
      */
     public function __construct(
         int $userId,
@@ -37,11 +37,6 @@ final readonly class NomenclatureDeleted
         $this->operationId = $operationId;
         $this->nomenclatureId = $nomenclatureId;
         $this->partNumber = $partNumber;
-        $this->integrations = new Collection(array_map(
-            fn (array|NomenclatureIntegrationDeletionContextDTO $integration): NomenclatureIntegrationDeletionContextDTO => is_array($integration)
-                ? NomenclatureIntegrationDeletionContextDTO::fromArray($integration)
-                : $integration,
-            $integrations,
-        ));
+        $this->integrations = new Collection($integrations);
     }
 }

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Meta-снимок пагинации CRM списка Warehouse-номенклатуры.
  */
-final readonly class NomenclatureCrmPaginationMetaDTO
+final readonly class NomenclatureCrmPaginationMetaDTO implements HttpArraySerializableInterface
 {
     /**
      * Фиксирует значения DTO без дополнительного поведения.

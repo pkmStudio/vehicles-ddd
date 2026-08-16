@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Calculation\Infrastructure\Jobs;
 
-use App\Modules\Applicability\Features\Calculation\Domain\Contracts\UseCases\CalculateKitApplicabilityUseCaseInterface;
+use App\Modules\Applicability\Features\Calculation\Application\UseCases\CalculateKitApplicabilityUseCase;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\KitApplicabilityCalculationResultDTO;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Services\ApplicabilityCalculationRunProgress;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,7 +38,7 @@ final class CalculateKitApplicabilityChunkJob implements ShouldQueue
      * 4. Передает aggregate result чанка в cache progress coordinator.
      */
     public function handle(
-        CalculateKitApplicabilityUseCaseInterface $useCase,
+        CalculateKitApplicabilityUseCase $useCase,
         ApplicabilityCalculationRunProgress $progress,
     ): void {
         $processed = 0;

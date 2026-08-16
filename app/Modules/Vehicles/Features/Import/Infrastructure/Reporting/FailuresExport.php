@@ -21,7 +21,12 @@ final readonly class FailuresExport implements FailuresExportInterface, FromColl
      * 1) Принять failure payloads из reporter service.
      * 2) Сохранить их как immutable state export adapter-а.
      *
-     * @param  array<int, mixed>  $failures
+     * @param  array<int, array{
+     *     row: int,
+     *     attribute: string,
+     *     errors: array<int, string>,
+     *     values: array<int|string, string|int|float|bool|null>
+     * }>  $failures
      */
     public function __construct(
         private array $failures,
@@ -54,15 +59,15 @@ final readonly class FailuresExport implements FailuresExportInterface, FromColl
      * 2) Нормализовать errors/value payload в строковые значения.
      * 3) Вернуть Laravel collection строк отчета.
      *
-     * @return Collection<int, array{row: mixed, attribute: mixed, error: mixed, value: string|false}>
+     * @return Collection<int, array{row: int, attribute: string, error: string, value: string|false}>
      */
     public function collection(): Collection
     {
-        $toFailureRow = function ($failure) {
+        $toFailureRow = function (array $failure): array {
             return [
                 'row' => $failure['row'],
                 'attribute' => $failure['attribute'],
-                'error' => is_array($failure['errors']) ? implode('; ', $failure['errors']) : $failure['errors'],
+                'error' => implode('; ', $failure['errors']),
                 'value' => json_encode($failure['values'], JSON_UNESCAPED_UNICODE),
             ];
         };

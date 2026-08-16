@@ -6,6 +6,10 @@ namespace App\Modules\Vehicles\Features\Import\Domain\Contracts\Services;
 
 interface EngineModificationReadinessGateInterface
 {
+    public const string FLAG_ENGINES = 'engines_imported';
+
+    public const string FLAG_MODIFICATIONS = 'modifications_imported';
+
     /**
      * Отметить завершение импорта engines.
      *

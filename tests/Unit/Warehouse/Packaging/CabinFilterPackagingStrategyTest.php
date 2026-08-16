@@ -26,7 +26,7 @@ final class CabinFilterPackagingStrategyTest extends TestCase
         $tinyBox = new PackDimensionData(name: 'Tiny', weight: 5, width: 1, height: 1, length: 1, price: 5, typeId: 6, id: 42);
         $boxes = new Collection([$tinyBox]);
 
-        $result = $strategy->calculate(new TypeData(name: 'Фильтр салонный', id: 6), [$nomenclature], $boxes);
+        $result = $strategy->calculate(new TypeData(name: 'Фильтр салонный', char: 'CF', id: 6), [$nomenclature], $boxes);
 
         $this->assertSame($tinyBox, $result);
     }
@@ -46,7 +46,7 @@ final class CabinFilterPackagingStrategyTest extends TestCase
         $box = new PackDimensionData(name: 'Close-fit', weight: 70, width: 44, height: 14, length: 54, price: 5, typeId: 6, id: 7);
         $boxes = new Collection([$box]);
 
-        $result = $strategy->calculate(new TypeData(name: 'Фильтр салонный', id: 6), [$nomenclature], $boxes);
+        $result = $strategy->calculate(new TypeData(name: 'Фильтр салонный', char: 'CF', id: 6), [$nomenclature], $boxes);
 
         $this->assertSame($box, $result);
     }

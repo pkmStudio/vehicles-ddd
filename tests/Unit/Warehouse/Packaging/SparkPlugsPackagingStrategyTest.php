@@ -31,7 +31,7 @@ final class SparkPlugsPackagingStrategyTest extends TestCase
         $strategy = new SparkPlugsPackagingStrategy;
 
         $nomenclatures = array_fill(0, 7, $this->nomenclature());
-        $result = $strategy->calculate(new TypeData(name: 'Свечи зажигания', id: 2), $nomenclatures, $this->boxes());
+        $result = $strategy->calculate(new TypeData(name: 'Свечи зажигания', char: 'SP', id: 2), $nomenclatures, $this->boxes());
 
         $this->assertSame(2, $result->id);
     }
@@ -41,7 +41,7 @@ final class SparkPlugsPackagingStrategyTest extends TestCase
         $strategy = new SparkPlugsPackagingStrategy;
 
         $nomenclatures = array_fill(0, 6, $this->nomenclature());
-        $result = $strategy->calculate(new TypeData(name: 'Свечи зажигания', id: 2), $nomenclatures, $this->boxes());
+        $result = $strategy->calculate(new TypeData(name: 'Свечи зажигания', char: 'SP', id: 2), $nomenclatures, $this->boxes());
 
         $this->assertSame(1, $result->id);
     }

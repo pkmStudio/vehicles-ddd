@@ -14,6 +14,7 @@ use App\Modules\Vehicles\Features\Export\Domain\DTOs\PartSpecificationExportRowD
 use App\Modules\Vehicles\Features\Export\Domain\Enums\EngineExportSheetEnum;
 use App\Modules\Vehicles\Features\Export\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Support\Collection;
 
 /**
@@ -24,11 +25,11 @@ final readonly class EngineExportService implements EngineExportServiceInterface
     private array $fieldHeadings;
 
     /**
-     * Инициализирует зависимости и заголовки шаблона свечей зажигания.
+     * Инициализирует зависимости экспорта двигателей.
      *
      * Шаги:
      * 1) Сохранить read repository, row mapper, expander и Templates client.
-     * 2) Получить заголовки details-шаблона свечей для последующей сборки листа.
+     * 2) Оставить details-заголовки пустыми: менеджерский export двигателей сейчас чистый.
      */
     public function __construct(
         private EngineRepositoryInterface $engines,
@@ -36,7 +37,7 @@ final readonly class EngineExportService implements EngineExportServiceInterface
         private EngineSparkPlugSpecificationRowExpanderInterface $expander,
         private TemplatesClientInterface $templates,
     ) {
-        $this->fieldHeadings = $this->templates->vehicleDetailHeadings(DetailTemplateEnum::SPARK_PLUGS);
+        $this->fieldHeadings = [];
     }
 
     /**
@@ -137,7 +138,7 @@ final readonly class EngineExportService implements EngineExportServiceInterface
 
         for ($i = 0; $i < $max; $i++) {
             $rows[] = array_map(
-                static fn (array $values): mixed => $values[$i] ?? null,
+                static fn (array $values): ?string => $values[$i] ?? null,
                 $columns,
             );
         }
@@ -168,12 +169,10 @@ final readonly class EngineExportService implements EngineExportServiceInterface
      */
     private function referenceColumns(): array
     {
-        return array_merge(
-            [
-                'Тип топлива' => $this->enumValues(EngineFuelTypeEnum::class),
-            ],
-            $this->templates->vehicleReferenceOptions(DetailTemplateEnum::SPARK_PLUGS),
-        );
+        return [
+            'Тип топлива' => $this->enumValues(EngineFuelTypeEnum::class),
+            'Провайдер' => $this->enumValues(ProviderEnum::class),
+        ];
     }
 
     /**

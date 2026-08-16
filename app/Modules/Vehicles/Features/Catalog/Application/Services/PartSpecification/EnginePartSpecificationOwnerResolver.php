@@ -13,7 +13,10 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpec
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\ResolvedPartSpecificationOwnerDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\EngineWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\EngineWritePolicy;
 
 /**
  * Разрешает двигатель-владелец PartSpecification, создавая или обновляя его при наличии payload.
@@ -30,6 +33,7 @@ final readonly class EnginePartSpecificationOwnerResolver implements EnginePartS
     public function __construct(
         private EngineRepositoryInterface $engines,
         private EngineCommandInterface $command,
+        private EngineWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -60,7 +64,19 @@ final readonly class EnginePartSpecificationOwnerResolver implements EnginePartS
             payload: $owner->engine,
             id: $existing->id,
         );
-        $engine = $this->command->update($engineData);
+        try {
+            $writeResult = $this->writePolicy->apply(
+                incoming: EngineWritePolicyResultDTO::fromArray($engineData->toArray()),
+                existing: EngineWritePolicyResultDTO::fromArray($existing->toArray()),
+                sourceProvider: $engineData->provider,
+            );
+        } catch (ProviderOwnershipException) {
+            return new PartSpecificationOwnerResolutionDTO(
+                owner: null,
+                rejectReason: CatalogMutationRejectReasonEnum::ProviderOwnershipConflict,
+            );
+        }
+        $engine = $this->command->update(EngineData::from($writeResult->toArray()));
 
         return $this->resolved(
             externalId: $engine->engId,
@@ -89,7 +105,12 @@ final readonly class EnginePartSpecificationOwnerResolver implements EnginePartS
             engId: $owner->externalId,
             payload: $owner->engine,
         );
-        $engine = $this->command->create($engineData);
+        $writeResult = $this->writePolicy->apply(
+            incoming: EngineWritePolicyResultDTO::fromArray($engineData->toArray()),
+            existing: null,
+            sourceProvider: $engineData->provider,
+        );
+        $engine = $this->command->create(EngineData::from($writeResult->toArray()));
 
         return $this->resolved(
             externalId: $engine->engId,
@@ -112,16 +133,18 @@ final readonly class EnginePartSpecificationOwnerResolver implements EnginePartS
     ): EngineData {
         return new EngineData(
             engId: $engId,
+            provider: $payload->provider,
             codeEngine: $payload->codeEngine,
             powerKwStart: $payload->powerKwStart,
-            powerKwUpto: $payload->powerKwUpto,
             powerPsStart: $payload->powerPsStart,
+            fuelType: $payload->fuelType,
+            allowChangeFields: [],
+            powerKwUpto: $payload->powerKwUpto,
             powerPsUpto: $payload->powerPsUpto,
             engineCapacity: $payload->engineCapacity,
             cylinderDiameter: $payload->cylinderDiameter,
             cylinderCount: $payload->cylinderCount,
             numberOfValves: $payload->numberOfValves,
-            fuelType: $payload->fuelType,
             groupId: $payload->groupId,
             id: $id,
         );

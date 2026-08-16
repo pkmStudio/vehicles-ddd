@@ -11,14 +11,17 @@ use App\Modules\Vehicles\Features\Export\Application\Services\External\CleanupSt
 use App\Modules\Vehicles\Features\Export\Application\Services\Rows\EngineExportRow;
 use App\Modules\Vehicles\Features\Export\Application\Services\Rows\VehicleExportRow;
 use App\Modules\Vehicles\Features\Export\Application\Services\VehicleExportService;
-use App\Modules\Vehicles\Features\Export\Application\UseCases\External\StartExportUseCase;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\EngineModificationsExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\ModificationCatalogExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Files\ExportFileStorageInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\EngineExportServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\EngineSparkPlugSpecificationRowExpanderInterface;
@@ -28,15 +31,18 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\Expo
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
-use App\Modules\Vehicles\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Cache\LaravelExportRunCacheService;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\EngineMultiSheetExport;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\EngineModification\EngineModificationsExport;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Modification\ModificationCatalogExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\VehicleMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Factories\ExportFileFactory;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Files\LaravelExportFileStorage;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\EngineModificationRepository;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\EngineRepository;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\ModificationRepository;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\VehicleRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -51,11 +57,15 @@ final class ExportServiceProvider extends ServiceProvider
     private const array EXPORT_BINDINGS = [
         EngineMultiSheetExportInterface::class => EngineMultiSheetExport::class,
         VehicleMultiSheetExportInterface::class => VehicleMultiSheetExport::class,
+        ModificationCatalogExportInterface::class => ModificationCatalogExport::class,
+        EngineModificationsExportInterface::class => EngineModificationsExport::class,
     ];
 
     private const array REPOSITORY_BINDINGS = [
         VehicleRepositoryInterface::class => VehicleRepository::class,
         EngineRepositoryInterface::class => EngineRepository::class,
+        ModificationRepositoryInterface::class => ModificationRepository::class,
+        EngineModificationRepositoryInterface::class => EngineModificationRepository::class,
     ];
 
     private const array SERVICE_BINDINGS = [
@@ -73,10 +83,6 @@ final class ExportServiceProvider extends ServiceProvider
         ExportFileFactoryInterface::class => ExportFileFactory::class,
     ];
 
-    private const array USE_CASE_BINDINGS = [
-        StartExportUseCaseInterface::class => StartExportUseCase::class,
-    ];
-
     private const array CLIENT_BINDINGS = [
         TemplatesClientInterface::class => TemplatesClient::class,
     ];
@@ -90,7 +96,7 @@ final class ExportServiceProvider extends ServiceProvider
      *
      * Шаги:
      * - Зарегистрировать RabbitMQ notification service для события готового файла.
-     * - Последовательно привязать export, repository, service, factory, use case, client и file adapters.
+     * - Последовательно привязать export, repository, service, factory, client и file adapters.
      */
     public function register(): void
     {
@@ -110,10 +116,6 @@ final class ExportServiceProvider extends ServiceProvider
         }
 
         foreach (self::FACTORY_BINDINGS as $interface => $implementation) {
-            $this->app->bind($interface, $implementation);
-        }
-
-        foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
 

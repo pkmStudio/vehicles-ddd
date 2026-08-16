@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmRelationPageDTO;
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -25,7 +26,7 @@ final readonly class VehicleCrmRelationPageDTOFactory
      * 2. Собирает pagination meta через локальную factory.
      * 3. Возвращает общий relation page DTO.
      *
-     * @param  Collection<int, object>  $items
+     * @param  Collection<int, HttpArraySerializableInterface>  $items
      */
     public function make(Collection $items, LengthAwarePaginator $paginator): VehicleCrmRelationPageDTO
     {

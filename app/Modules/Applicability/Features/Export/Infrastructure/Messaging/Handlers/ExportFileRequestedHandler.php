@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Export\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Applicability\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
+use App\Modules\Applicability\Features\Export\Application\UseCases\External\StartExportUseCase;
 use App\Modules\Applicability\Features\Export\Domain\DTOs\ExportFileRequestDTO;
 use App\Modules\Applicability\Features\Export\Domain\Enums\ExportTypeEnum;
 use App\Modules\Applicability\Features\Export\Infrastructure\Messaging\Validators\ExportFileRequestedPayloadValidator;
@@ -20,7 +20,7 @@ final readonly class ExportFileRequestedHandler
      * 2. Сохраняет validator raw payload из broker-сообщения.
      */
     public function __construct(
-        private StartExportUseCaseInterface $useCase,
+        private StartExportUseCase $useCase,
         private ExportFileRequestedPayloadValidator $validator,
     ) {}
 

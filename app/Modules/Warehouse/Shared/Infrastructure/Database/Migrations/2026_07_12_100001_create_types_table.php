@@ -19,7 +19,7 @@ return new class extends Migration
         Schema::create('types', function (Blueprint $table) {
             $table->id();
             $table->string('name')->comment('Название типа номенклатуры');
-            $table->string('char', 2)->nullable()->comment('Короткий буквенный код типа, напр. BP/SP/WB');
+            $table->string('char', 2)->comment('Короткий буквенный код типа, напр. BP/SP/WB');
 
             $table->timestamps();
         });

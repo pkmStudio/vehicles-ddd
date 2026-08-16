@@ -10,20 +10,20 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\Nomencl
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Mutations\CreateNomenclatureUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\CreateNomenclatureRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\NomenclatureEventPayloadDTO;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use Throwable;
 
 /**
  * Выполняет создание Warehouse-номенклатуры из внешнего сообщения.
  */
-final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseCaseInterface
+final readonly class CreateNomenclatureUseCase
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
@@ -53,14 +53,12 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
     public function execute(CreateNomenclatureRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }
 
         try {
             $type = $this->types->findById($request->typeId);
-
             if ($type === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
@@ -73,7 +71,6 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
             }
 
             $brand = $this->brands->findById($request->brandId);
-
             if ($brand === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
@@ -86,7 +83,6 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
             }
 
             $existingNomenclature = $this->nomenclatures->findByPartNumber($request->partNumber);
-
             if ($existingNomenclature !== null) {
                 return $this->results->rejected(
                     userId: $request->userId,
@@ -101,10 +97,26 @@ final readonly class CreateNomenclatureUseCase implements CreateNomenclatureUseC
             $data = $this->data($request);
             $nomenclature = $this->command->create($data);
 
+            $payload = new NomenclatureEventPayloadDTO(
+                id: (int) $nomenclature->id,
+                typeId: $nomenclature->typeId,
+                brandId: $nomenclature->brandId,
+                name: $nomenclature->name,
+                country: $nomenclature->country,
+                partNumber: $nomenclature->partNumber,
+                color: $nomenclature->color,
+                weight: $nomenclature->weight,
+                material: $nomenclature->material,
+                vehicleType: $nomenclature->vehicleType,
+                quantityPak: $nomenclature->quantityPak,
+                quantityInPak: $nomenclature->quantityInPak,
+                details: $nomenclature->details,
+            );
+
             event(new NomenclatureCreated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                nomenclature: $nomenclature->toArray(),
+                nomenclature: $payload,
             ));
 
             return $this->results->completed(

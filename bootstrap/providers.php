@@ -6,7 +6,6 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Providers\CatalogServic
 use App\Modules\Vehicles\Features\Export\Infrastructure\Providers\ExportServiceProvider;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Providers\ImportEventServiceProvider;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Providers\ImportServiceProvider;
-use App\Modules\Vehicles\Features\Maintenance\Infrastructure\Providers\MaintenanceServiceProvider;
 use App\Modules\Vehicles\Shared\Infrastructure\Providers\VehiclesServiceProvider;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Providers\CatalogServiceProvider as WarehouseCatalogServiceProvider;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Providers\ExportServiceProvider as WarehouseExportServiceProvider;
@@ -31,7 +30,6 @@ return [
     TemplatesServiceProvider::class,
     ImportServiceProvider::class,
     ImportEventServiceProvider::class,
-    MaintenanceServiceProvider::class,
     ExportServiceProvider::class,
     WarehouseExportServiceProvider::class,
     WiperAdapterAuditServiceProvider::class,

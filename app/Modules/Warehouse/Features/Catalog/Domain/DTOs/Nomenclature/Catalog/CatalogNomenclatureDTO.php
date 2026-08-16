@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Catalog;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
- * Детальная публичная REST-проекция Warehouse-номенклатуры.
+ * Детальный сценарный снимок Warehouse-номенклатуры публичного каталога.
  */
-final readonly class CatalogNomenclatureDTO
+final readonly class CatalogNomenclatureDTO implements HttpArraySerializableInterface
 {
     /**
-     * @param  array<int, string>  $material
-     * @param  array<int, string>  $vehicleType
-     * @param  array<string, mixed>  $details
+     * @param  list<string>  $material
+     * @param  list<string>  $vehicleType
+     * @param  array<string, bool|float|int|string|null|array<int|string, bool|float|int|string|null>>  $details
      */
     public function __construct(
         public string $partNumber,
@@ -33,7 +35,11 @@ final readonly class CatalogNomenclatureDTO
         public array $details,
     ) {}
 
-    /** @return array<string, mixed> */
+    /**
+     * Возвращает HTTP-представление детальной номенклатуры.
+     *
+     * @return array{part_number: string, name: string, category_id: int, category_name: string, category_code: string|null, brand_id: int, brand_name: string, brand_code: string|null, country: string, color: string, weight: int, material: list<string>, vehicle_type: list<string>, quantity_pak: int, quantity_in_pak: int, details: array<string, bool|float|int|string|null|array<int|string, bool|float|int|string|null>>}
+     */
     public function toArray(): array
     {
         return [

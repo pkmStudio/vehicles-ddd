@@ -14,7 +14,7 @@ final class TypeData extends Data
      */
     public function __construct(
         public readonly string $name,
-        public readonly ?string $char = null,
+        public readonly string $char,
         public readonly ?int $id = null,
         public readonly ?NomenclatureDetailTemplateEnum $template = null,
     ) {}

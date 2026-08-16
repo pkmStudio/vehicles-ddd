@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Import;
 
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Engine;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\PartSpecification;
-use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Engine\Sheets\EngineSparkPlugsSheetImport;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
@@ -31,7 +32,15 @@ final class EngineSparkPlugsSheetImportTest extends TestCase
      */
     public function test_writes_spark_plug_spec_for_engine(): void
     {
-        $engine = Engine::query()->create(['eng_id' => 500, 'code_engine' => 'M54B30']);
+        $engine = Engine::query()->create([
+            'eng_id' => 500,
+            'code_engine' => 'M54B30',
+            'power_kw_start' => 170,
+            'power_ps_start' => 231,
+            'fuel_type' => 'бензин',
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => [],
+        ]);
 
         /** @var EngineSparkPlugsSheetImport $import */
         $import = app()->makeWith(EngineSparkPlugsSheetImport::class, [

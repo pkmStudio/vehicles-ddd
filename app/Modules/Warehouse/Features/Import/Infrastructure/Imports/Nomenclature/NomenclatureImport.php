@@ -51,26 +51,9 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     private ?BrandRepositoryInterface $brands = null;
 
     /**
-     * Получает построчный сервис импорта и справочники типов/брендов.
-     * Шаги:
-     * 1) Сохранить сервис построчной валидации и записи номенклатуры.
-     * 2) Сохранить read repositories типов и брендов для preload на chunk.
-     * 3) Оставить runtime context пустым до вызова import().
-     */
-    public function __construct(
-        ImportNomenclatureFromRowServiceInterface $service,
-        TypeRepositoryInterface $types,
-        BrandRepositoryInterface $brands,
-    ) {
-        $this->service = $service;
-        $this->types = $types;
-        $this->brands = $brands;
-    }
-
-    /**
      * Сериализует только scalar context queued import adapter-а.
      * Шаги:
-     * 1) Не сериализовать service/repository dependency graph.
+     * 1) Не хранить service/repository dependency graph в состоянии adapter-а.
      * 2) Сохранить userId и operationId, нужные для события завершения.
      * 3) Сохранить cache/lock keys, через которые CachesImportFailures накопил ошибки.
      *
@@ -218,10 +201,10 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     /**
      * Регистрирует serializable Laravel Excel events для queued import.
      * Шаги:
-     * 1) Привязать AfterImport к static callable без closure.
+     * 1) Привязать AfterImport к static handler без closure.
      * 2) Оставить dispatch завершения до окончания всех queued chunks.
      *
-     * @return array<class-string, callable>
+     * @return array<class-string, array{class-string<self>, string}>
      */
     public function registerEvents(): array
     {
@@ -252,8 +235,8 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     /**
      * Возвращает построчный Application-сервис, резолвя его в worker-е при необходимости.
      * Шаги:
-     * 1) Использовать уже внедренный сервис при синхронном выполнении.
-     * 2) После queue unserialize лениво получить сервис из container.
+     * 1) Лениво получить сервис из container.
+     * 2) Закешировать resolved instance в свойстве adapter-а на время обработки.
      * 3) Закешировать resolved instance в свойстве adapter-а.
      */
     private function service(): ImportNomenclatureFromRowServiceInterface
@@ -262,10 +245,10 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     }
 
     /**
-     * Возвращает repository типов, безопасно восстанавливая dependency после queue unserialize.
+     * Возвращает repository типов для preload на chunk.
      * Шаги:
-     * 1) Использовать сохраненный repository, если adapter еще не сериализовался.
-     * 2) Иначе лениво получить TypeRepositoryInterface из Laravel container.
+     * 1) Лениво получить TypeRepositoryInterface из Laravel container.
+     * 2) Закешировать resolved instance на время обработки.
      */
     private function types(): TypeRepositoryInterface
     {
@@ -273,10 +256,10 @@ final class NomenclatureImport implements NomenclatureImportInterface, ShouldQue
     }
 
     /**
-     * Возвращает repository брендов, безопасно восстанавливая dependency после queue unserialize.
+     * Возвращает repository брендов для preload на chunk.
      * Шаги:
-     * 1) Использовать сохраненный repository, если adapter еще не сериализовался.
-     * 2) Иначе лениво получить BrandRepositoryInterface из Laravel container.
+     * 1) Лениво получить BrandRepositoryInterface из Laravel container.
+     * 2) Закешировать resolved instance на время обработки.
      */
     private function brands(): BrandRepositoryInterface
     {

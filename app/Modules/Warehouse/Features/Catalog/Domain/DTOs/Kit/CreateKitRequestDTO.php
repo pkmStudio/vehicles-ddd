@@ -16,8 +16,8 @@ final readonly class CreateKitRequestDTO
         public int $userId,
         public string $operationId,
         public array $nomenclatureIds,
+        public int $guarantee,
         public bool $isSaleSeparately = false,
         public bool $isActive = true,
-        public int $guarantee = 12,
     ) {}
 }

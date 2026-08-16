@@ -22,7 +22,7 @@ final class WiperAdapterPackagingStrategyTest extends TestCase
         $boxes = new Collection([$first, $second]);
 
         $nomenclature = new NomenclatureData(partNumber: 'AW-1', quantityInPak: 1, details: []);
-        $result = $strategy->calculate(new TypeData(name: 'Адаптер стеклоочистителя', id: 7), [$nomenclature], $boxes);
+        $result = $strategy->calculate(new TypeData(name: 'Адаптер стеклоочистителя', char: 'AW', id: 7), [$nomenclature], $boxes);
 
         $this->assertSame($first, $result);
     }

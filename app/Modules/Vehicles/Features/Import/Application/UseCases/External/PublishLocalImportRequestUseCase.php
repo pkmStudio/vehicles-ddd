@@ -6,7 +6,6 @@ namespace App\Modules\Vehicles\Features\Import\Application\UseCases\External;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Files\LocalImportFileStorageInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Publishers\LocalImportRequestPublisherInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\PublishLocalImportRequestUseCaseInterface;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\LocalImportRequestDTO;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\LocalImportRequestResultDTO;
 use Psr\Log\LoggerInterface;
@@ -14,7 +13,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Проверяет локальный Vehicles import file и публикует import request через порт транспорта.
  */
-final readonly class PublishLocalImportRequestUseCase implements PublishLocalImportRequestUseCaseInterface
+final readonly class PublishLocalImportRequestUseCase
 {
     /**
      * Получает порты Storage/RabbitMQ и PSR logger для workflow-событий.

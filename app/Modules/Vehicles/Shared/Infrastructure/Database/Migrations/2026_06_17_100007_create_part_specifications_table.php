@@ -20,6 +20,11 @@ return new class extends Migration
             $table->text('text')->nullable()->comment('Приписка к описанию');
             $table->jsonb('details')->comment('Заполненный шаблон');
             $table->timestamps();
+
+            $table->unique(
+                ['partable_type', 'partable_id', 'template', 'details'],
+                'part_specifications_unique_owner_template_details',
+            );
         });
     }
 

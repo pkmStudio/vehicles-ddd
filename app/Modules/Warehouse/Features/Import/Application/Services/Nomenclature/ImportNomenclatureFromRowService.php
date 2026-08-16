@@ -15,6 +15,7 @@ use App\Modules\Warehouse\Features\Import\Domain\Exceptions\ImportRowValidationE
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
 use App\Modules\Warehouse\Features\Import\Domain\ModelData\TypeData;
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\NomenclatureEventPayloadDTO;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
 use Illuminate\Support\Collection;
@@ -145,7 +146,7 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
                 return $created;
             }
 
-            $updated = $this->command->updateById($data);
+            $updated = $this->command->update($data);
             $this->dispatchMutationEvent($updated, wasExisting: true, userId: $userId, operationId: $operationId);
 
             return $updated;
@@ -153,7 +154,7 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
 
         $existing = $this->nomenclatures->findByPartNumber($data->partNumber);
         if ($existing !== null) {
-            $updated = $this->command->updateById($this->withId($data, $existing->id));
+            $updated = $this->command->update($this->withId($data, $existing->id));
             $this->dispatchMutationEvent($updated, wasExisting: true, userId: $userId, operationId: $operationId);
 
             return $updated;
@@ -171,7 +172,7 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
      * 1) Подставить fallback userId/operationId для локальных импортов без внешнего контекста.
      * 2) Для существующей записи опубликовать NomenclatureUpdated.
      * 3) Для новой записи опубликовать NomenclatureCreated.
-     * 4) Передать snapshot номенклатуры как array payload публичного события.
+     * 4) Передать snapshot номенклатуры как typed payload публичного события.
      */
     private function dispatchMutationEvent(
         NomenclatureData $nomenclature,
@@ -181,12 +182,27 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
     ): void {
         $eventUserId = $userId ?? 0;
         $eventOperationId = $operationId ?? 'warehouse-nomenclature-import';
+        $payload = new NomenclatureEventPayloadDTO(
+            id: (int) $nomenclature->id,
+            typeId: $nomenclature->typeId,
+            brandId: $nomenclature->brandId,
+            name: $nomenclature->name,
+            country: $nomenclature->country,
+            partNumber: $nomenclature->partNumber,
+            color: $nomenclature->color,
+            weight: $nomenclature->weight,
+            material: $nomenclature->material,
+            vehicleType: $nomenclature->vehicleType,
+            quantityPak: $nomenclature->quantityPak,
+            quantityInPak: $nomenclature->quantityInPak,
+            details: $nomenclature->details,
+        );
 
         if ($wasExisting) {
             event(new NomenclatureUpdated(
                 userId: $eventUserId,
                 operationId: $eventOperationId,
-                nomenclature: $nomenclature->toArray(),
+                nomenclature: $payload,
             ));
 
             return;
@@ -195,7 +211,7 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
         event(new NomenclatureCreated(
             userId: $eventUserId,
             operationId: $eventOperationId,
-            nomenclature: $nomenclature->toArray(),
+            nomenclature: $payload,
         ));
     }
 
@@ -258,10 +274,10 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
     /**
      * Переводит `;`-джойн русских лейблов в массив внутренних ключей.
      * Шаги:
-     * 1) Для пустой ячейки вернуть пустой список.
+     * 1) Требовать непустую ячейку.
      * 2) Разбить ячейку по ';'.
      * 3) Нормализовать каждый label в upper-case trimmed string.
-     * 4) Добавить только labels, присутствующие в переданном словаре.
+     * 4) Ошибаться на пустых или неизвестных labels вместо молчаливого пропуска.
      *
      * @param  array<string, string>  $keysByLabel
      * @return array<int, string>
@@ -269,15 +285,26 @@ final readonly class ImportNomenclatureFromRowService implements ImportNomenclat
     private function labelsToKeys(string $value, array $keysByLabel): array
     {
         if (trim($value) === '') {
-            return [];
+            throw ImportRowValidationException::fromMessages([
+                'labels' => ['Список значений обязателен.'],
+            ]);
         }
 
         $result = [];
         foreach (explode(';', $value) as $label) {
             $label = mb_strtoupper(trim($label));
-            if ($label === '' || ! isset($keysByLabel[$label])) {
-                continue;
+            if ($label === '') {
+                throw ImportRowValidationException::fromMessages([
+                    'labels' => ['Пустое значение в списке недопустимо.'],
+                ]);
             }
+
+            if (! isset($keysByLabel[$label])) {
+                throw ImportRowValidationException::fromMessages([
+                    'labels' => ["Неизвестное значение: {$label}."],
+                ]);
+            }
+
             $result[] = $keysByLabel[$label];
         }
 

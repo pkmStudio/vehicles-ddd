@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\Crm;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitCrmRepositoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\Crm\ListKitsForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm\KitCrmOptionDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm\KitCrmPageDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitCrmReadQueryDTO;
@@ -14,7 +13,7 @@ use Illuminate\Support\Collection;
 /**
  * Оркестрирует CRM read-сценарии списка и options комплектов.
  */
-final readonly class ListKitsForCrmUseCase implements ListKitsForCrmUseCaseInterface
+final readonly class ListKitsForCrmUseCase
 {
     /**
      * Инициализирует порт репозитория комплектов для CRM read-сценариев.

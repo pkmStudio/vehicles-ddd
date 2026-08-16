@@ -10,8 +10,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\Crm\EngineCrmPageDT
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\Crm\EngineCrmPaginationMetaDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\EngineCrmReadQueryDTO;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Engine;
-use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
-use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -125,19 +123,19 @@ final readonly class EngineCrmRepository implements EngineCrmRepositoryInterface
         return new EngineCrmListItemDTO(
             id: (int) $engine->id,
             engId: (int) $engine->eng_id,
-            codeEngine: $engine->code_engine === null ? null : (string) $engine->code_engine,
+            codeEngine: (string) $engine->code_engine,
+            powerKwStart: (int) $engine->power_kw_start,
+            powerPsStart: (int) $engine->power_ps_start,
+            fuelType: $engine->fuel_type->value,
+            provider: $engine->provider->value,
             engineCapacity: $engine->engine_capacity === null ? null : (string) $engine->engine_capacity,
             cylinderCount: $engine->cylinder_count === null ? null : (int) $engine->cylinder_count,
             cylinderDiameter: $engine->cylinder_diameter === null ? null : (float) $engine->cylinder_diameter,
-            powerKwStart: $engine->power_kw_start === null ? null : (int) $engine->power_kw_start,
             powerKwUpto: $engine->power_kw_upto === null ? null : (int) $engine->power_kw_upto,
-            powerPsStart: $engine->power_ps_start === null ? null : (int) $engine->power_ps_start,
             powerPsUpto: $engine->power_ps_upto === null ? null : (int) $engine->power_ps_upto,
             numberOfValves: $engine->number_of_valves === null ? null : (int) $engine->number_of_valves,
-            fuelType: $engine->fuel_type?->value,
             groupId: $engine->group_id === null ? null : (int) $engine->group_id,
-            provider: $this->enumValue($engine->provider, ProviderEnum::TD->value),
-            allowChangeFields: $engine->allow_change_fields ?? [],
+            allowChangeFields: $engine->allow_change_fields,
             modificationsCount: (int) $engine->modifications_count,
         );
     }
@@ -150,10 +148,5 @@ final readonly class EngineCrmRepository implements EngineCrmRepositoryInterface
             total: $paginator->total(),
             lastPage: $paginator->lastPage(),
         );
-    }
-
-    private function enumValue(?BackedEnum $enum, string $fallback): string
-    {
-        return $enum?->value ?? $fallback;
     }
 }

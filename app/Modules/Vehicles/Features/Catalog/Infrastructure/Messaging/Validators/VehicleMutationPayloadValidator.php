@@ -9,6 +9,7 @@ use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
+use BackedEnum;
 use Illuminate\Contracts\Validation\Factory as ValidatorFactory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
@@ -67,9 +68,9 @@ final readonly class VehicleMutationPayloadValidator
                 'vehicle.generation_year_to' => ['nullable', 'integer', 'min:1900', 'max:2155'],
                 'vehicle.type' => ['required', 'string', Rule::in($this->enumValues(VehicleTypeEnum::cases()))],
                 'vehicle.type_carcase' => ['required', 'string', Rule::in($this->enumValues(CarcaseTypeEnum::cases()))],
-                'vehicle.provider' => ['nullable', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
-                'vehicle.steering_type' => ['nullable', 'string', Rule::in($this->enumValues(SteeringTypeEnum::cases()))],
-                'vehicle.is_allow' => ['sometimes', 'boolean'],
+                'vehicle.provider' => ['required', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
+                'vehicle.steering_type' => ['required', 'string', Rule::in($this->enumValues(SteeringTypeEnum::cases()))],
+                'vehicle.is_allow' => ['required', 'boolean'],
             ];
         }
 
@@ -105,12 +106,12 @@ final readonly class VehicleMutationPayloadValidator
      * - Пройти по cases переданного enum.
      * - Вернуть значения cases для Rule::in().
      *
-     * @param  array<int, object>  $cases
+     * @param  array<int, BackedEnum>  $cases
      * @return list<string>
      */
     private function enumValues(array $cases): array
     {
-        $toEnumValue = fn (object $case): string => $case->value;
+        $toEnumValue = fn (BackedEnum $case): string => (string) $case->value;
 
         return array_map(
             $toEnumValue,

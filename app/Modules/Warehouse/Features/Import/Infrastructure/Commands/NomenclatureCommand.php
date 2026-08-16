@@ -15,7 +15,7 @@ use App\Modules\Warehouse\Features\Import\Infrastructure\Models\Nomenclature;
 final readonly class NomenclatureCommand implements NomenclatureCommandInterface
 {
     /**
-     * Обновляет запись по id. Бросает исключение, если запись не найдена или артикул уже занят
+     * Обновляет запись из import data. Бросает исключение, если запись не найдена или артикул уже занят
      * другой записью (уникальный индекс part_number допускает конфликт только с самой собой).
      *
      * Шаги:
@@ -24,7 +24,7 @@ final readonly class NomenclatureCommand implements NomenclatureCommandInterface
      * 3) Собрать payload без relation-поля type.
      * 4) Обновить запись и вернуть refreshed NomenclatureData.
      */
-    public function updateById(NomenclatureData $data): NomenclatureData
+    public function update(NomenclatureData $data): NomenclatureData
     {
         $nomenclature = Nomenclature::query()->find($data->id);
 

@@ -16,7 +16,12 @@ interface ImportFailureStoreInterface
      * 1) Прочитать failure payload из cache.
      * 2) Вернуть список failures или пустой массив.
      *
-     * @return array<int, mixed>
+     * @return array<int, array{
+     *     row: int,
+     *     attribute: string,
+     *     errors: array<int, string>,
+     *     values: array<int|string, string|int|float|bool|null>
+     * }>
      */
     public function get(string $key): array;
 
