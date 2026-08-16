@@ -8,10 +8,12 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\Nomencl
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Catalog\CatalogCategoryDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Catalog\CatalogNomenclatureDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Catalog\CatalogNomenclatureSummaryDTO;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Database\Query\JoinClause;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Nomenclature;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Type;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
+use LogicException;
 
 /**
  * Читает Warehouse-номенклатуру для публичного каталога dan-catalog.
@@ -25,23 +27,19 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
      */
     public function categories(int $brandId): Collection
     {
-        $toCategory = fn (object $category): CatalogCategoryDTO => $this->category($category);
-
-        return DB::table('types')
-            ->join('nomenclatures', function (JoinClause $join) use ($brandId): void {
-                $join
-                    ->on('nomenclatures.type_id', '=', 'types.id')
-                    ->where('nomenclatures.brand_id', $brandId);
-            })
-            ->groupBy('types.id', 'types.name', 'types.char')
-            ->orderBy('types.name')
-            ->get([
-                'types.id',
-                'types.name',
-                'types.char',
-                DB::raw('COUNT(nomenclatures.id) as nomenclature_count'),
+        return Type::query()
+            ->select(['id', 'name', 'char'])
+            ->whereHas(
+                'nomenclatures',
+                static fn (Builder $query): Builder => $query->where('brand_id', $brandId),
+            )
+            ->withCount([
+                'nomenclatures as nomenclature_count' => static fn (Builder $query): Builder => $query
+                    ->where('brand_id', $brandId),
             ])
-            ->map($toCategory)
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Type $type): CatalogCategoryDTO => $this->category($type))
             ->values();
     }
 
@@ -50,20 +48,13 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
      */
     public function findCategory(int $categoryId, int $brandId): ?CatalogCategoryDTO
     {
-        $category = DB::table('types')
-            ->leftJoin('nomenclatures', function (JoinClause $join) use ($brandId): void {
-                $join
-                    ->on('nomenclatures.type_id', '=', 'types.id')
-                    ->where('nomenclatures.brand_id', $brandId);
-            })
-            ->where('types.id', $categoryId)
-            ->groupBy('types.id', 'types.name', 'types.char')
-            ->first([
-                'types.id',
-                'types.name',
-                'types.char',
-                DB::raw('COUNT(nomenclatures.id) as nomenclature_count'),
-            ]);
+        $category = Type::query()
+            ->select(['id', 'name', 'char'])
+            ->withCount([
+                'nomenclatures as nomenclature_count' => static fn (Builder $query): Builder => $query
+                    ->where('brand_id', $brandId),
+            ])
+            ->find($categoryId);
 
         if ($category === null) {
             return null;
@@ -79,15 +70,13 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
      */
     public function findByCategory(int $categoryId, int $brandId, int $page, int $pageSize): Collection
     {
-        $toSummary = fn (object $nomenclature): CatalogNomenclatureSummaryDTO => $this->summary($nomenclature);
-
         return $this->summaryQuery($brandId)
-            ->where('nomenclatures.type_id', $categoryId)
-            ->orderBy('nomenclatures.name')
-            ->orderBy('nomenclatures.part_number')
+            ->where('type_id', $categoryId)
+            ->orderBy('name')
+            ->orderBy('part_number')
             ->forPage($page, $pageSize)
             ->get()
-            ->map($toSummary)
+            ->map(fn (Nomenclature $nomenclature): CatalogNomenclatureSummaryDTO => $this->summary($nomenclature))
             ->values();
     }
 
@@ -97,45 +86,42 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
     public function findByPartNumber(string $partNumber, int $brandId): ?CatalogNomenclatureDTO
     {
         $normalizedPartNumber = mb_strtolower($partNumber);
-        $nomenclature = DB::table('nomenclatures')
-            ->join('types', 'types.id', '=', 'nomenclatures.type_id')
-            ->join('brands', 'brands.id', '=', 'nomenclatures.brand_id')
-            ->where('nomenclatures.brand_id', $brandId)
-            ->whereRaw('LOWER(nomenclatures.part_number) = ?', [$normalizedPartNumber])
-            ->first([
-                'nomenclatures.*',
-                'types.name as category_name',
-                'types.char as category_code',
-                'brands.name as brand_name',
-                'brands.char as brand_code',
-            ]);
+        $nomenclature = Nomenclature::query()
+            ->with(['type:id,name,char', 'brand:id,name,char'])
+            ->whereHas('type')
+            ->whereHas('brand')
+            ->where('brand_id', $brandId)
+            ->whereRaw('LOWER(part_number) = ?', [$normalizedPartNumber])
+            ->first();
 
         if ($nomenclature === null) {
             return null;
         }
 
-        $categoryCode = $this->nullableString($nomenclature->category_code);
-        $brandCode = $this->nullableString($nomenclature->brand_code);
-        $material = $this->listStringArray($nomenclature->material);
-        $vehicleType = $this->listStringArray($nomenclature->vehicle_type);
-        $details = $this->jsonArray($nomenclature->details);
+        $type = $this->type($nomenclature);
+        $brand = $this->brand($nomenclature);
+        $categoryCode = $this->nullableString($type->getAttribute('char'));
+        $brandCode = $this->nullableString($brand->getAttribute('char'));
+        $material = $this->listStringArray($nomenclature->getAttribute('material'));
+        $vehicleType = $this->listStringArray($nomenclature->getAttribute('vehicle_type'));
+        $details = $this->jsonArray($nomenclature->getAttribute('details'));
 
         return new CatalogNomenclatureDTO(
-            partNumber: (string) $nomenclature->part_number,
-            name: (string) $nomenclature->name,
-            categoryId: (int) $nomenclature->type_id,
-            categoryName: (string) $nomenclature->category_name,
+            partNumber: (string) $nomenclature->getAttribute('part_number'),
+            name: (string) $nomenclature->getAttribute('name'),
+            categoryId: (int) $type->getKey(),
+            categoryName: (string) $type->getAttribute('name'),
             categoryCode: $categoryCode,
-            brandId: (int) $nomenclature->brand_id,
-            brandName: (string) $nomenclature->brand_name,
+            brandId: (int) $brand->getKey(),
+            brandName: (string) $brand->getAttribute('name'),
             brandCode: $brandCode,
-            country: (string) $nomenclature->country,
-            color: (string) $nomenclature->color,
-            weight: (int) $nomenclature->weight,
+            country: (string) $nomenclature->getAttribute('country'),
+            color: (string) $nomenclature->getAttribute('color'),
+            weight: (int) $nomenclature->getAttribute('weight'),
             material: $material,
             vehicleType: $vehicleType,
-            quantityPak: (int) $nomenclature->quantity_pak,
-            quantityInPak: (int) $nomenclature->quantity_in_pak,
+            quantityPak: (int) $nomenclature->getAttribute('quantity_pak'),
+            quantityInPak: (int) $nomenclature->getAttribute('quantity_in_pak'),
             details: $details,
         );
     }
@@ -150,20 +136,19 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
         $trimmedQuery = trim($query);
         $normalizedQuery = mb_strtolower($trimmedQuery);
         $likeQuery = '%'.$trimmedQuery.'%';
-        $toSummary = fn (object $nomenclature): CatalogNomenclatureSummaryDTO => $this->summary($nomenclature);
 
         return $this->summaryQuery($brandId)
             ->where(function (Builder $builder) use ($likeQuery): void {
                 $builder
-                    ->where('nomenclatures.part_number', 'ilike', $likeQuery)
-                    ->orWhere('nomenclatures.name', 'ilike', $likeQuery);
+                    ->where('part_number', 'ilike', $likeQuery)
+                    ->orWhere('name', 'ilike', $likeQuery);
             })
-            ->orderByRaw('CASE WHEN LOWER(nomenclatures.part_number) = ? THEN 0 ELSE 1 END', [$normalizedQuery])
-            ->orderBy('nomenclatures.name')
-            ->orderBy('nomenclatures.part_number')
+            ->orderByRaw('CASE WHEN LOWER(part_number) = ? THEN 0 ELSE 1 END', [$normalizedQuery])
+            ->orderBy('name')
+            ->orderBy('part_number')
             ->limit($limit)
             ->get()
-            ->map($toSummary)
+            ->map(fn (Nomenclature $nomenclature): CatalogNomenclatureSummaryDTO => $this->summary($nomenclature))
             ->values();
     }
 
@@ -172,45 +157,66 @@ final readonly class NomenclatureCatalogRepository implements NomenclatureCatalo
      */
     private function summaryQuery(int $brandId): Builder
     {
-        return DB::table('nomenclatures')
-            ->join('brands', 'brands.id', '=', 'nomenclatures.brand_id')
-            ->where('nomenclatures.brand_id', $brandId)
-            ->select([
-                'nomenclatures.part_number',
-                'nomenclatures.name',
-                'nomenclatures.type_id',
-                'nomenclatures.brand_id',
-                'brands.name as brand_name',
-            ]);
+        return Nomenclature::query()
+            ->with('brand:id,name')
+            ->whereHas('brand')
+            ->where('brand_id', $brandId)
+            ->select(['id', 'part_number', 'name', 'type_id', 'brand_id']);
     }
 
     /**
-     * Мапит локальную строку Query Builder в typed category DTO.
+     * Мапит Eloquent-модель категории в typed DTO.
      */
-    private function category(object $category): CatalogCategoryDTO
+    private function category(Type $category): CatalogCategoryDTO
     {
-        $code = $this->nullableString($category->char);
+        $code = $this->nullableString($category->getAttribute('char'));
 
         return new CatalogCategoryDTO(
-            id: (int) $category->id,
-            name: (string) $category->name,
+            id: (int) $category->getKey(),
+            name: (string) $category->getAttribute('name'),
             code: $code,
-            nomenclatureCount: (int) $category->nomenclature_count,
+            nomenclatureCount: (int) $category->getAttribute('nomenclature_count'),
         );
     }
 
     /**
-     * Мапит локальную строку Query Builder в typed summary DTO.
+     * Мапит Eloquent-модель номенклатуры в typed DTO.
      */
-    private function summary(object $nomenclature): CatalogNomenclatureSummaryDTO
+    private function summary(Nomenclature $nomenclature): CatalogNomenclatureSummaryDTO
     {
+        $brand = $this->brand($nomenclature);
+
         return new CatalogNomenclatureSummaryDTO(
-            partNumber: (string) $nomenclature->part_number,
-            name: (string) $nomenclature->name,
-            categoryId: (int) $nomenclature->type_id,
-            brandId: (int) $nomenclature->brand_id,
-            brandName: (string) $nomenclature->brand_name,
+            partNumber: (string) $nomenclature->getAttribute('part_number'),
+            name: (string) $nomenclature->getAttribute('name'),
+            categoryId: (int) $nomenclature->getAttribute('type_id'),
+            brandId: (int) $brand->getKey(),
+            brandName: (string) $brand->getAttribute('name'),
         );
+    }
+
+    /** Возвращает eager-loaded бренд номенклатуры. */
+    private function brand(Nomenclature $nomenclature): Brand
+    {
+        $brand = $nomenclature->getRelation('brand');
+
+        if (! $brand instanceof Brand) {
+            throw new LogicException('Nomenclature brand relation is not loaded.');
+        }
+
+        return $brand;
+    }
+
+    /** Возвращает eager-loaded тип номенклатуры. */
+    private function type(Nomenclature $nomenclature): Type
+    {
+        $type = $nomenclature->getRelation('type');
+
+        if (! $type instanceof Type) {
+            throw new LogicException('Nomenclature type relation is not loaded.');
+        }
+
+        return $type;
     }
 
     /**
