@@ -9,6 +9,7 @@ use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\KitCrmC
 use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\NomenclatureCatalogController;
 use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\NomenclatureCrmController;
 use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\PackDimensionCrmController;
+use App\Modules\Warehouse\Features\Catalog\Presentation\Http\Controllers\TypeCrmController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -60,6 +61,11 @@ Route::prefix('v1')->group(function (): void {
             Route::prefix('warehouse/brands')->group(function (): void {
                 Route::get('{id}', [BrandCrmController::class, 'show'])->whereNumber('id');
                 Route::get('/', [BrandCrmController::class, 'index']);
+            });
+
+            Route::prefix('warehouse/types')->group(function (): void {
+                Route::get('{id}', [TypeCrmController::class, 'show'])->whereNumber('id');
+                Route::get('/', [TypeCrmController::class, 'index']);
             });
 
             Route::prefix('warehouse/kits')->group(function (): void {

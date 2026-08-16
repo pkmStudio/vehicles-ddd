@@ -15,40 +15,6 @@ use App\Modules\Vehicles\Features\Catalog\Application\Services\CatalogMutationRe
 use App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification\EnginePartSpecificationOwnerResolver;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification\PartSpecificationDetailsWritePolicy;
 use App\Modules\Vehicles\Features\Catalog\Application\Services\PartSpecification\VehiclePartSpecificationOwnerResolver;
-use App\Modules\Vehicles\Features\Catalog\Application\Services\Vehicle\VehicleMutationWritePolicy;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Manufacturer\ListManufacturersForCatalogUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Modification\ListVehicleModificationsForCatalogUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Modification\ShowModificationForCatalogUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Vehicle\ListManufacturerVehiclesForCatalogUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Engine\ListEnginesForCrmUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Engine\ShowEngineForCrmUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Manufacturer\ListManufacturersForCrmUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Manufacturer\ShowManufacturerForCrmUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\ListVehicleCrmOptionsUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\ListVehicleCrmRelationsUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\ListVehiclesForCrmUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\SearchVehiclesForCrmUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle\ShowVehicleForCrmUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Engine\CreateEngineUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Engine\DeleteEngineUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Engine\StartEngineMutationUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Engine\UpdateEngineUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Manufacturer\CreateManufacturerUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Manufacturer\DeleteManufacturerUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Manufacturer\StartManufacturerMutationUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Manufacturer\UpdateManufacturerUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Modification\CreateModificationUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Modification\DeleteModificationUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Modification\StartModificationMutationUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Modification\UpdateModificationUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\PartSpecification\CreatePartSpecificationUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\PartSpecification\DeletePartSpecificationUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\PartSpecification\StartPartSpecificationMutationUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\PartSpecification\UpdatePartSpecificationUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle\CreateVehicleUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle\DeleteVehicleUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle\StartVehicleMutationUseCase;
-use App\Modules\Vehicles\Features\Catalog\Application\UseCases\Mutations\Vehicle\UpdateVehicleUseCase;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\EngineCrmClientInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\ManufacturerCrmClientInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Clients\VehicleCatalogClientInterface;
@@ -77,40 +43,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutat
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\PartSpecification\EnginePartSpecificationOwnerResolverInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\PartSpecification\PartSpecificationDetailsWritePolicyInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\PartSpecification\VehiclePartSpecificationOwnerResolverInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\Vehicle\VehicleMutationWritePolicyInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Manufacturer\ListManufacturersForCatalogUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ListVehicleModificationsForCatalogUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Modification\ShowModificationForCatalogUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Vehicle\ListManufacturerVehiclesForCatalogUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Engine\ListEnginesForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Engine\ShowEngineForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Manufacturer\ListManufacturersForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Manufacturer\ShowManufacturerForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmOptionsUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmRelationsUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehiclesForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\SearchVehiclesForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ShowVehicleForCrmUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\CreateEngineUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\DeleteEngineUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\StartEngineMutationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Engine\UpdateEngineUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Manufacturer\CreateManufacturerUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Manufacturer\DeleteManufacturerUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Manufacturer\StartManufacturerMutationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Manufacturer\UpdateManufacturerUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\CreateModificationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\DeleteModificationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\StartModificationMutationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Modification\UpdateModificationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\CreatePartSpecificationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\DeletePartSpecificationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\StartPartSpecificationMutationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\UpdatePartSpecificationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\CreateVehicleUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\DeleteVehicleUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\StartVehicleMutationUseCaseInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\UpdateVehicleUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Cache\LaravelCatalogMutationCacheService;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\EngineCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\EngineModificationCommand;
@@ -135,42 +67,6 @@ use Illuminate\Support\ServiceProvider;
  */
 final class CatalogServiceProvider extends ServiceProvider
 {
-    private const array USE_CASE_BINDINGS = [
-        StartVehicleMutationUseCaseInterface::class => StartVehicleMutationUseCase::class,
-        CreateVehicleUseCaseInterface::class => CreateVehicleUseCase::class,
-        UpdateVehicleUseCaseInterface::class => UpdateVehicleUseCase::class,
-        DeleteVehicleUseCaseInterface::class => DeleteVehicleUseCase::class,
-        ListManufacturerVehiclesForCatalogUseCaseInterface::class => ListManufacturerVehiclesForCatalogUseCase::class,
-        ListVehiclesForCrmUseCaseInterface::class => ListVehiclesForCrmUseCase::class,
-        ListVehicleCrmOptionsUseCaseInterface::class => ListVehicleCrmOptionsUseCase::class,
-        ListVehicleCrmRelationsUseCaseInterface::class => ListVehicleCrmRelationsUseCase::class,
-        ShowVehicleForCrmUseCaseInterface::class => ShowVehicleForCrmUseCase::class,
-        SearchVehiclesForCrmUseCaseInterface::class => SearchVehiclesForCrmUseCase::class,
-        ListEnginesForCrmUseCaseInterface::class => ListEnginesForCrmUseCase::class,
-        ShowEngineForCrmUseCaseInterface::class => ShowEngineForCrmUseCase::class,
-        ListManufacturersForCrmUseCaseInterface::class => ListManufacturersForCrmUseCase::class,
-        ShowManufacturerForCrmUseCaseInterface::class => ShowManufacturerForCrmUseCase::class,
-        StartManufacturerMutationUseCaseInterface::class => StartManufacturerMutationUseCase::class,
-        CreateManufacturerUseCaseInterface::class => CreateManufacturerUseCase::class,
-        UpdateManufacturerUseCaseInterface::class => UpdateManufacturerUseCase::class,
-        DeleteManufacturerUseCaseInterface::class => DeleteManufacturerUseCase::class,
-        ListManufacturersForCatalogUseCaseInterface::class => ListManufacturersForCatalogUseCase::class,
-        StartEngineMutationUseCaseInterface::class => StartEngineMutationUseCase::class,
-        CreateEngineUseCaseInterface::class => CreateEngineUseCase::class,
-        UpdateEngineUseCaseInterface::class => UpdateEngineUseCase::class,
-        DeleteEngineUseCaseInterface::class => DeleteEngineUseCase::class,
-        StartModificationMutationUseCaseInterface::class => StartModificationMutationUseCase::class,
-        CreateModificationUseCaseInterface::class => CreateModificationUseCase::class,
-        UpdateModificationUseCaseInterface::class => UpdateModificationUseCase::class,
-        DeleteModificationUseCaseInterface::class => DeleteModificationUseCase::class,
-        ListVehicleModificationsForCatalogUseCaseInterface::class => ListVehicleModificationsForCatalogUseCase::class,
-        ShowModificationForCatalogUseCaseInterface::class => ShowModificationForCatalogUseCase::class,
-        StartPartSpecificationMutationUseCaseInterface::class => StartPartSpecificationMutationUseCase::class,
-        CreatePartSpecificationUseCaseInterface::class => CreatePartSpecificationUseCase::class,
-        UpdatePartSpecificationUseCaseInterface::class => UpdatePartSpecificationUseCase::class,
-        DeletePartSpecificationUseCaseInterface::class => DeletePartSpecificationUseCase::class,
-    ];
-
     private const array FACTORY_BINDINGS = [
         PartSpecificationMutationRequestFactoryInterface::class => PartSpecificationMutationRequestFactory::class,
         PartSpecificationOwnerResolverFactoryInterface::class => PartSpecificationOwnerResolverFactory::class,
@@ -211,7 +107,6 @@ final class CatalogServiceProvider extends ServiceProvider
         CatalogMutationResultServiceInterface::class => CatalogMutationResultService::class,
         VehiclePartSpecificationOwnerResolverInterface::class => VehiclePartSpecificationOwnerResolver::class,
         EnginePartSpecificationOwnerResolverInterface::class => EnginePartSpecificationOwnerResolver::class,
-        VehicleMutationWritePolicyInterface::class => VehicleMutationWritePolicy::class,
         PartSpecificationDetailsWritePolicyInterface::class => PartSpecificationDetailsWritePolicy::class,
     ];
 
@@ -225,13 +120,6 @@ final class CatalogServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {
-            $this->app->bind(
-                abstract: $interface,
-                concrete: $implementation,
-            );
-        }
-
         foreach (self::COMMAND_BINDINGS as $interface => $implementation) {
             $this->app->bind(
                 abstract: $interface,

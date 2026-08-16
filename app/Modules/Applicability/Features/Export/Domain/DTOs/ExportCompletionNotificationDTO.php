@@ -16,7 +16,7 @@ final readonly class ExportCompletionNotificationDTO
         public int $userId,
         public ExportCompletionStatusEnum $status,
         public ExportTypeEnum $exportType,
-        public ?string $operationId = null,
+        public string $operationId,
         public ?string $disk = null,
         public ?string $path = null,
     ) {}
@@ -24,7 +24,7 @@ final readonly class ExportCompletionNotificationDTO
     /**
      * Преобразует notification DTO в wire payload RabbitMQ-события.
      *
-     * @return array{user_id: int, status: string, export_type: string, operation_id: ?string, disk: ?string, path: ?string}
+     * @return array{user_id: int, status: string, export_type: string, operation_id: string, disk: ?string, path: ?string}
      */
     public function toArray(): array
     {

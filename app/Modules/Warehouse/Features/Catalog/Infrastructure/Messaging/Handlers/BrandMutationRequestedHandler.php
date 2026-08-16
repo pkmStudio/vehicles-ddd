@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\StartBrandMutationUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand\StartBrandMutationUseCase;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandMutationRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\BrandMutationPayloadValidator;
@@ -26,7 +26,7 @@ final readonly class BrandMutationRequestedHandler
      * 3. Получает reporter для contract mismatch результата.
      */
     public function __construct(
-        private StartBrandMutationUseCaseInterface $useCase,
+        private StartBrandMutationUseCase $useCase,
         private BrandMutationPayloadValidator $validator,
         private WarehouseCatalogMutationContractMismatchReporter $contractMismatchReporter,
     ) {}

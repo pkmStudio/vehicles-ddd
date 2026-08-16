@@ -51,3 +51,4 @@
 - DTO могут иметь простой `toArray()`/`fromArray()`, если это механическая сериализация собственного состояния.
 - Validation, defaults, config lookup, HTTP/RabbitMQ aliases, Eloquent/paginator/external payload mapping и сборка из нескольких объектов остаются в factory, presenter или Infrastructure adapter.
 - Public shared events должны нести scalar fields или typed event payload DTO/value objects, не raw массивы сущностей.
+- `mixed`, `array<string, mixed>`, `array<int, mixed>` и универсальные `object`-входы запрещены на всех слоях. Raw boundary payload описывается точным array-shape или union допустимых scalar/value типов и сразу переводится в typed DTO/Data.

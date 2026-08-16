@@ -14,4 +14,6 @@ enum ExternalImportTypeEnum: string
     case EngineCross = 'engine_cross';
     case EngineSparkPlugsByModification = 'engine_spark_plugs_by_modification';
     case Manufacturer = 'manufacturer';
+    case ModificationCatalog = 'modification_catalog';
+    case EngineModifications = 'engine_modifications';
 }

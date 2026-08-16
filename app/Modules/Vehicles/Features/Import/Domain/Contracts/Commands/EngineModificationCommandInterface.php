@@ -16,4 +16,16 @@ interface EngineModificationCommandInterface
      * 2) Добавить связь без удаления существующих связей.
      */
     public function syncWithoutDetaching(EngineModificationData $data): void;
+
+    /**
+     * Синхронизирует желаемый набор двигателей для одной группы `mod_id + type`.
+     *
+     * Шаги:
+     * 1) Найти modification по mod_id/type.
+     * 2) Найти engines по списку eng_id.
+     * 3) Заменить связи этой modification ровно на переданный набор.
+     *
+     * @param  array<int, int>  $engIds
+     */
+    public function syncDesiredStateByModIdAndType(int $modId, string $type, array $engIds): void;
 }

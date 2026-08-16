@@ -59,7 +59,7 @@ final readonly class KitMutationPayloadValidator
                 'kit.nomenclature_ids.*' => ['required', 'integer', 'min:1', 'distinct'],
                 'kit.is_sale_separately' => ['sometimes', 'boolean'],
                 'kit.is_active' => ['sometimes', 'boolean'],
-                'kit.guarantee' => ['nullable', 'integer', 'min:0'],
+                'kit.guarantee' => ['required', 'integer', 'min:0'],
             ];
         }
 

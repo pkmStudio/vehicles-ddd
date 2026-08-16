@@ -29,7 +29,7 @@ interface EngineExportRowInterface
      * 1) Прочитать engine snapshot.
      * 2) Вернуть values в порядке базовых headings.
      *
-     * @return array<int, mixed>
+     * @return array<int, string|int|float|null>
      */
     public function getBaseData(EngineData $engine): array;
 }

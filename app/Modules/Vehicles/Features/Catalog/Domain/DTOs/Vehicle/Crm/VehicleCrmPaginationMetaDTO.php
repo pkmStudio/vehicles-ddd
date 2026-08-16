@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Meta-снимок пагинации CRM списка автомобилей.
  */
-final readonly class VehicleCrmPaginationMetaDTO
+final readonly class VehicleCrmPaginationMetaDTO implements HttpArraySerializableInterface
 {
     /**
      * Хранит числовые значения текущей страницы, размера и общего результата.

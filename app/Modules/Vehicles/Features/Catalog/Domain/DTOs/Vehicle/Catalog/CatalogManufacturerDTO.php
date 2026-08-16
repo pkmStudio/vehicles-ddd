@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ManufacturerData;
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
 
 /**
  * Публичная REST-проекция производителя для каталога.
  */
-final readonly class CatalogManufacturerDTO
+final readonly class CatalogManufacturerDTO implements HttpArraySerializableInterface
 {
     /**
      * Хранит публичные поля производителя для ответа каталога.

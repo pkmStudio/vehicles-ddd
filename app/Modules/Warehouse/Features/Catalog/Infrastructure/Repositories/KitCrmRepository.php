@@ -180,7 +180,7 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
             ->map(fn (Type $type): KitCrmOptionDTO => new KitCrmOptionDTO(
                 id: (int) $type->id,
                 label: (string) $type->name,
-                meta: ['char' => $type->char === null ? null : (string) $type->char],
+                meta: ['char' => (string) $type->char],
             ))
             ->values();
     }
@@ -300,10 +300,10 @@ final readonly class KitCrmRepository implements KitCrmRepositoryInterface
             complement: (bool) $kit->complement,
             weight: (int) $kit->weight,
             packDimensionId: (int) $kit->pack_dimension_id,
-            packDimensionName: $kit->packDimension?->name === null ? null : (string) $kit->packDimension->name,
+            packDimensionName: (string) $kit->packDimension->name,
             typeId: (int) $kit->type_id,
-            typeName: $kit->type?->name === null ? null : (string) $kit->type->name,
-            typeChar: $kit->type?->char === null ? null : (string) $kit->type->char,
+            typeName: (string) $kit->type->name,
+            typeChar: (string) $kit->type->char,
             importHash: $kit->import_hash === null ? null : (string) $kit->import_hash,
             isSaleSeparately: (bool) $kit->is_sale_separately,
             isActive: (bool) $kit->is_active,

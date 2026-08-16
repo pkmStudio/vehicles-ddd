@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\Crm;
 
-final readonly class PackDimensionCrmListItemDTO
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
+final readonly class PackDimensionCrmListItemDTO implements HttpArraySerializableInterface
 {
     /**
      * Фиксирует значения DTO без дополнительного поведения.
@@ -18,8 +20,8 @@ final readonly class PackDimensionCrmListItemDTO
         public int $length,
         public int $price,
         public int $typeId,
-        public ?string $typeName,
-        public ?string $typeChar,
+        public string $typeName,
+        public string $typeChar,
         public bool $generated,
         public int $kitsCount = 0,
         public ?string $createdAt = null,

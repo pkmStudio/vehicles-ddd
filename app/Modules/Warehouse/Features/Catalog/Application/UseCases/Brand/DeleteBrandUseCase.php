@@ -9,7 +9,6 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRe
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogCascadeDeleteServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\DeleteBrandUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\DeleteBrandRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
@@ -21,7 +20,7 @@ use Throwable;
 /**
  * Выполняет удаление Warehouse-бренда из внешнего сообщения.
  */
-final readonly class DeleteBrandUseCase implements DeleteBrandUseCaseInterface
+final readonly class DeleteBrandUseCase
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.

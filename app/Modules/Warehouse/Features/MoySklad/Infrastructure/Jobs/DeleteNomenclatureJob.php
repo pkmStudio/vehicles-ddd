@@ -42,7 +42,7 @@ final class DeleteNomenclatureJob implements ShouldQueue
      * 1) Создать MoySkladJobMiddleware из внешнего пакета.
      * 2) Вернуть middleware списком для Laravel queue worker.
      *
-     * @return array<int, object>
+     * @return array<int, MoySkladJobMiddleware>
      */
     public function middleware(): array
     {

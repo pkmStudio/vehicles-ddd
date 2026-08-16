@@ -116,7 +116,7 @@ final readonly class BrandCrmRepository implements BrandCrmRepositoryInterface
             numberSert: (string) $brand->number_sert,
             dateStart: (string) $brand->date_start,
             dateEnd: (string) $brand->date_end,
-            char: $brand->char === null ? null : (string) $brand->char,
+            char: (string) $brand->char,
             nomenclaturesCount: (int) $brand->nomenclatures_count,
             createdAt: $brand->created_at === null ? null : (string) $brand->created_at,
             updatedAt: $brand->updated_at === null ? null : (string) $brand->updated_at,

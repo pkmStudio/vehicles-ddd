@@ -8,19 +8,19 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleR
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogCascadeDeleteServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\DeleteVehicleUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\DeleteVehicleRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleDeleted;
 use Throwable;
 
 /**
  * Оркестрирует сценарий мутации автомобилей из внешнего сообщения.
  */
-final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterface
+final readonly class DeleteVehicleUseCase
 {
     /**
      * Получает порты delete vehicle workflow.
@@ -49,7 +49,6 @@ final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterfa
     public function execute(DeleteVehicleRequestDTO $request): ?CatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }
@@ -64,6 +63,18 @@ final readonly class DeleteVehicleUseCase implements DeleteVehicleUseCaseInterfa
                     operation: CatalogMutationOperationEnum::Delete,
                     externalId: $request->msId,
                     reason: CatalogMutationRejectReasonEnum::NotFound,
+                );
+            }
+
+            if ($vehicle->provider === ProviderEnum::TD) {
+                return $this->results->rejected(
+                    userId: $request->userId,
+                    operationId: $request->operationId,
+                    entity: CatalogEntityEnum::Vehicle,
+                    operation: CatalogMutationOperationEnum::Delete,
+                    externalId: $request->msId,
+                    reason: CatalogMutationRejectReasonEnum::ProviderDeleteForbidden,
+                    recordId: $vehicle->id,
                 );
             }
 

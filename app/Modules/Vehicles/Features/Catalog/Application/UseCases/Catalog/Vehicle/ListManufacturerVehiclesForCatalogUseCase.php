@@ -6,7 +6,6 @@ namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Veh
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Vehicle\ListManufacturerVehiclesForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog\CatalogVehicleDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\VehicleData;
 use Illuminate\Support\Collection;
@@ -14,7 +13,7 @@ use Illuminate\Support\Collection;
 /**
  * Возвращает REST-список разрешённых ТС производителя.
  */
-final readonly class ListManufacturerVehiclesForCatalogUseCase implements ListManufacturerVehiclesForCatalogUseCaseInterface
+final readonly class ListManufacturerVehiclesForCatalogUseCase
 {
     /**
      * Подключает репозитории производителя и его ТС.

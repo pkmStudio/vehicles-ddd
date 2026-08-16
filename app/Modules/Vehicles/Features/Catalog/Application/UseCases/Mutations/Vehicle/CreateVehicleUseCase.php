@@ -9,23 +9,23 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\Manufact
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\Vehicle\VehicleMutationWritePolicyInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Vehicle\CreateVehicleUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\CreateVehicleRequestDTO;
-use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleMutationWriteContextDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ManufacturerData;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\VehicleData;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\VehicleEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\VehicleWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Events\Vehicle\VehicleCreated;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\VehicleWritePolicy;
 use Throwable;
 
 /**
  * Оркестрирует сценарий мутации автомобилей из внешнего сообщения.
  */
-final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterface
+final readonly class CreateVehicleUseCase
 {
     /**
      * Получает порты, нужные для create vehicle mutation.
@@ -41,7 +41,7 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
         private VehicleCommandInterface $command,
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
-        private VehicleMutationWritePolicyInterface $writePolicy,
+        private VehicleWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -209,20 +209,22 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
             provider: $request->provider,
             generation: $request->generation,
             generationYearFrom: $request->generationYearFrom,
+            isAllow: $request->isAllow,
             generationYearTo: $request->generationYearTo,
             parentId: $parentId,
+            parentMsId: $request->parentMsId,
             excelTableId: $request->excelTableId,
             localizedName: $request->localizedName,
             generationShort: $request->generationShort,
-            isAllow: $request->isAllow,
         );
 
-        return $this->writePolicy->applyForCreate(
-            incoming: $incomingData,
-            context: new VehicleMutationWriteContextDTO(
-                operationId: $request->operationId,
-            ),
+        $writeResult = $this->writePolicy->apply(
+            incoming: VehicleWritePolicyResultDTO::fromArray($incomingData->toArray()),
+            existing: null,
+            sourceProvider: $request->provider,
         );
+
+        return VehicleData::from($writeResult->toArray());
     }
 
     /**
@@ -236,10 +238,31 @@ final readonly class CreateVehicleUseCase implements CreateVehicleUseCaseInterfa
         CreateVehicleRequestDTO $request,
         VehicleData $vehicle,
     ): void {
+        $payload = new VehicleEventPayloadDTO(
+            id: (int) $vehicle->id,
+            msId: $vehicle->msId,
+            mfaId: $vehicle->mfaId,
+            manufacturerId: $vehicle->manufacturerId,
+            name: $vehicle->name,
+            type: $vehicle->type,
+            steeringType: $vehicle->steeringType,
+            typeCarcase: $vehicle->typeCarcase,
+            provider: $vehicle->provider,
+            generation: $vehicle->generation,
+            generationYearFrom: $vehicle->generationYearFrom,
+            isAllow: $vehicle->isAllow,
+            generationYearTo: $vehicle->generationYearTo,
+            parentId: $vehicle->parentId,
+            parentMsId: $vehicle->parentMsId ?? null,
+            excelTableId: $vehicle->excelTableId,
+            localizedName: $vehicle->localizedName,
+            generationShort: $vehicle->generationShort,
+        );
+
         event(new VehicleCreated(
             userId: $request->userId,
             operationId: $request->operationId,
-            vehicle: $vehicle->toArray(),
+            vehicle: $payload,
         ));
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Presentation\Console\Support;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\UseCases\External\PublishLocalImportRequestUseCaseInterface;
+use App\Modules\Vehicles\Features\Import\Application\UseCases\External\PublishLocalImportRequestUseCase;
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\LocalImportRequestDTO;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -62,7 +62,7 @@ abstract class RequestLocalImportCommand extends Command
      * 3. Передать DTO в Application use case публикации Rabbit-сообщения.
      * 4. Вывести результат и вернуть console exit code.
      */
-    public function handle(PublishLocalImportRequestUseCaseInterface $useCase): int
+    public function handle(PublishLocalImportRequestUseCase $useCase): int
     {
         $request = new LocalImportRequestDTO(
             eventName: $this->eventName(),

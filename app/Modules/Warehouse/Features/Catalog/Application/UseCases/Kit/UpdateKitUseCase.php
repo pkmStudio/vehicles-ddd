@@ -10,7 +10,6 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitRepo
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\UpdateKitUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\UpdateKitRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\KitProperties\KitPropertiesDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
@@ -19,6 +18,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutation
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\KitData;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\NomenclatureData;
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\KitEventPayloadDTO;
 use App\Modules\Warehouse\Shared\Domain\Events\Kit\KitUpdated;
 use InvalidArgumentException;
 use Throwable;
@@ -27,7 +27,7 @@ use UnexpectedValueException;
 /**
  * Выполняет обновление Warehouse-набора из внешнего сообщения.
  */
-final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
+final readonly class UpdateKitUseCase
 {
     /**
      * Инициализирует чтение номенклатуры/наборов, расчёт свойств, запись, cache и result-сервис.
@@ -132,11 +132,25 @@ final readonly class UpdateKitUseCase implements UpdateKitUseCaseInterface
                 data: $data,
                 nomenclatureIds: $request->nomenclatureIds,
             );
+            $payload = new KitEventPayloadDTO(
+                id: (int) $kit->id,
+                complectation: $kit->complectation,
+                guarantee: $kit->guarantee,
+                quantityInPackage: $kit->quantityInPackage,
+                quantityPackage: $kit->quantityPackage,
+                complement: $kit->complement,
+                weight: $kit->weight,
+                packDimensionId: $kit->packDimensionId,
+                typeId: $kit->typeId,
+                importHash: $kit->importHash,
+                isSaleSeparately: $kit->isSaleSeparately,
+                isActive: $kit->isActive,
+            );
 
             event(new KitUpdated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                kit: $kit->toArray(),
+                kit: $payload,
             ));
 
             return $this->results->completed(

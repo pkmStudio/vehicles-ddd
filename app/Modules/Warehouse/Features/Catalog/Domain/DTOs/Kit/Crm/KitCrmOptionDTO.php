@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm;
 
-final readonly class KitCrmOptionDTO
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
+final readonly class KitCrmOptionDTO implements HttpArraySerializableInterface
 {
     /**
      * @param  array<string, mixed>  $meta

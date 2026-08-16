@@ -7,7 +7,6 @@ namespace App\Modules\Warehouse\Features\Export\Application\UseCases\External;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
-use App\Modules\Warehouse\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportCompletionNotificationDTO;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportFileRequestDTO;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportRunContextDTO;
@@ -17,7 +16,7 @@ use Throwable;
 /**
  * Запускает Warehouse-экспорт по внешнему запросу и отправляет итоговое уведомление.
  */
-final readonly class StartExportUseCase implements StartExportUseCaseInterface
+final readonly class StartExportUseCase
 {
     /**
      * Получает сервис идемпотентности, фабрику экспортов и notifier.

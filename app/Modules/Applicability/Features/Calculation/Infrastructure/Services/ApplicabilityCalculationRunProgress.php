@@ -173,6 +173,11 @@ final readonly class ApplicabilityCalculationRunProgress
             return null;
         }
 
+        /** @var array<int, int> $affectedKitIds */
+        $affectedKitIds = $run['affected_kit_ids'] ?? [];
+        /** @var list<string> $errors */
+        $errors = $run['errors'] ?? [];
+
         return new KitApplicabilityCalculationResultDTO(
             operationId: (string) ($run['operation_id'] ?? $operationId),
             processedKits: (int) ($run['processed_kits'] ?? 0),
@@ -181,12 +186,9 @@ final readonly class ApplicabilityCalculationRunProgress
             failedKits: (int) ($run['failed_kits'] ?? 0) + (int) ($run['chunks_failed'] ?? 0),
             affectedKitIds: array_values(array_unique(array_map(
                 static fn (int|string $id): int => (int) $id,
-                is_array($run['affected_kit_ids'] ?? null) ? $run['affected_kit_ids'] : [],
+                $affectedKitIds,
             ))),
-            errors: array_values(array_map(
-                static fn (mixed $error): string => (string) $error,
-                is_array($run['errors'] ?? null) ? $run['errors'] : [],
-            )),
+            errors: array_values($errors),
         );
     }
 

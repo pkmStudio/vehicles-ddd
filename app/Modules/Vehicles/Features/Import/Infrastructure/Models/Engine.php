@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Models;
 
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -15,6 +16,8 @@ class Engine extends AbstractModel
     protected $casts = [
         'fuel_type' => EngineFuelTypeEnum::class,
         'details' => 'array',
+        'provider' => ProviderEnum::class,
+        'allow_change_fields' => 'array',
     ];
 
     public $timestamps = false;

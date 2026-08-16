@@ -17,6 +17,8 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Engine;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Modification;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
@@ -156,7 +158,12 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             'engine' => [
                 'eng_id' => 200,
                 'code_engine' => 'ABC',
+                'power_kw_start' => 100,
+                'power_ps_start' => 136,
+                'fuel_type' => EngineFuelTypeEnum::PETROL->value,
                 'engine_capacity' => '1.8',
+                'provider' => ProviderEnum::OD->value,
+                'allow_change_fields' => [],
             ],
         ]);
 
@@ -167,7 +174,12 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             'engine' => [
                 'eng_id' => 200,
                 'code_engine' => 'ABC2',
+                'power_kw_start' => 110,
+                'power_ps_start' => 150,
+                'fuel_type' => EngineFuelTypeEnum::PETROL->value,
                 'engine_capacity' => '2.0',
+                'provider' => ProviderEnum::OD->value,
+                'allow_change_fields' => [],
             ],
         ]);
 
@@ -187,12 +199,27 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
     {
         $manufacturer = $this->createManufacturer(102);
         $vehicle = $this->createVehicle(602, $manufacturer);
-        $engine = Engine::query()->create(['eng_id' => 201, 'code_engine' => 'ABC']);
+        $engine = Engine::query()->create([
+            'eng_id' => 201,
+            'code_engine' => 'ABC',
+            'power_kw_start' => 100,
+            'power_ps_start' => 136,
+            'fuel_type' => EngineFuelTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::OD->value,
+            'allow_change_fields' => [],
+        ]);
         $modificationId = DB::table('modifications')->insertGetId([
             'vehicle_id' => $vehicle->id,
             'ms_id' => $vehicle->ms_id,
             'mod_id' => 3001,
             'type' => VehicleTypeEnum::PC->value,
+            'year_from' => 2013,
+            'description' => '1.4 TSI',
+            'power_ps' => 150,
+            'power_kw' => 110,
+            'engine_type' => EngineTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => json_encode(['year_from', 'year_to']),
         ]);
         DB::table('engine_modification')->insert([
             'engine_id' => $engine->id,
@@ -222,6 +249,42 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseMissing('engine_modification', ['engine_id' => $engine->id]);
         $this->assertDatabaseMissing('engines', ['eng_id' => 201]);
         $this->assertDatabaseHas('modifications', ['id' => $modificationId]);
+    }
+
+    public function test_td_engine_delete_is_rejected(): void
+    {
+        $engine = Engine::query()->create([
+            'eng_id' => 203,
+            'code_engine' => 'TDLOCK',
+            'power_kw_start' => 100,
+            'power_ps_start' => 136,
+            'fuel_type' => EngineFuelTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => [],
+        ]);
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Engine
+                && $result->operation === CatalogMutationOperationEnum::Delete
+                && $result->status === CatalogMutationStatusEnum::Rejected
+                && $result->reason === CatalogMutationRejectReasonEnum::ProviderDeleteForbidden->value
+                && $result->recordId === $engine->id));
+
+        app(EngineMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'engine-delete-td-1',
+            'operation' => 'delete',
+            'engine' => [
+                'eng_id' => 203,
+            ],
+        ]);
+
+        $this->assertDatabaseHas('engines', [
+            'eng_id' => 203,
+            'provider' => ProviderEnum::TD->value,
+        ]);
     }
 
     public function test_modification_create_update_and_delete_messages(): void
@@ -268,12 +331,27 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
     {
         $manufacturer = $this->createManufacturer(104);
         $vehicle = $this->createVehicle(604, $manufacturer);
-        $engine = Engine::query()->create(['eng_id' => 202, 'code_engine' => 'DEF']);
+        $engine = Engine::query()->create([
+            'eng_id' => 202,
+            'code_engine' => 'DEF',
+            'power_kw_start' => 100,
+            'power_ps_start' => 136,
+            'fuel_type' => EngineFuelTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => [],
+        ]);
         $modification = Modification::query()->create([
             'vehicle_id' => $vehicle->id,
             'ms_id' => $vehicle->ms_id,
             'mod_id' => 4002,
             'type' => VehicleTypeEnum::PC->value,
+            'year_from' => 2013,
+            'description' => '1.4 TSI',
+            'power_ps' => 150,
+            'power_kw' => 110,
+            'engine_type' => EngineTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::OD->value,
+            'allow_change_fields' => ['year_from', 'year_to'],
         ]);
         DB::table('engine_modification')->insert([
             'engine_id' => $engine->id,
@@ -306,6 +384,49 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
         $this->assertDatabaseHas('engines', ['id' => $engine->id]);
     }
 
+    public function test_td_modification_delete_is_rejected(): void
+    {
+        $manufacturer = $this->createManufacturer(106);
+        $vehicle = $this->createVehicle(606, $manufacturer);
+        $modification = Modification::query()->create([
+            'vehicle_id' => $vehicle->id,
+            'ms_id' => $vehicle->ms_id,
+            'mod_id' => 4004,
+            'type' => VehicleTypeEnum::PC->value,
+            'year_from' => 2013,
+            'description' => '1.4 TSI',
+            'power_ps' => 150,
+            'power_kw' => 110,
+            'engine_type' => EngineTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => ['year_from', 'year_to'],
+        ]);
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Modification
+                && $result->operation === CatalogMutationOperationEnum::Delete
+                && $result->status === CatalogMutationStatusEnum::Rejected
+                && $result->reason === CatalogMutationRejectReasonEnum::ProviderDeleteForbidden->value
+                && $result->recordId === $modification->id));
+
+        app(ModificationMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'modification-delete-td-1',
+            'operation' => 'delete',
+            'modification' => [
+                'mod_id' => 4004,
+                'type' => VehicleTypeEnum::PC->value,
+            ],
+        ]);
+
+        $this->assertDatabaseHas('modifications', [
+            'mod_id' => 4004,
+            'provider' => ProviderEnum::TD->value,
+        ]);
+    }
+
     public function test_modification_create_rejects_unknown_nested_engine_without_creating_it(): void
     {
         $manufacturer = $this->createManufacturer(105);
@@ -327,11 +448,18 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
                 'mod_id' => 4003,
                 'ms_id' => $vehicle->ms_id,
                 'type' => VehicleTypeEnum::PC->value,
+                'year_from' => 2019,
                 'description' => '1.4 TSI',
+                'power_ps' => 150,
+                'power_kw' => 110,
+                'engine_type' => EngineTypeEnum::PETROL->value,
+                'provider' => ProviderEnum::OD->value,
+                'allow_change_fields' => [],
                 'engines' => [
                     [
                         'eng_id' => 999999,
                         'code_engine' => 'NEW',
+                        'allow_change_fields' => [],
                     ],
                 ],
             ],
@@ -399,7 +527,13 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
                 'mod_id' => $modId,
                 'ms_id' => $msId,
                 'type' => VehicleTypeEnum::PC->value,
+                'year_from' => 2019,
                 'description' => $description,
+                'power_ps' => 150,
+                'power_kw' => 110,
+                'engine_type' => EngineTypeEnum::PETROL->value,
+                'provider' => ProviderEnum::OD->value,
+                'allow_change_fields' => [],
             ],
         ];
     }

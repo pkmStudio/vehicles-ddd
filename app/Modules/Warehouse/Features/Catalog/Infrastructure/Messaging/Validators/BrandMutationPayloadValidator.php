@@ -59,7 +59,7 @@ final readonly class BrandMutationPayloadValidator
                 'brand.number_sert' => ['required', 'string', 'max:255'],
                 'brand.date_start' => ['required', 'date'],
                 'brand.date_end' => ['required', 'date'],
-                'brand.char' => ['nullable', 'string', 'max:1'],
+                'brand.char' => ['required', 'string', 'max:1'],
             ];
         }
 

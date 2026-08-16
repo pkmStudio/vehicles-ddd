@@ -31,7 +31,7 @@ final class OilFilterPackagingStrategyTest extends TestCase
         $box = new PackDimensionData(name: 'Box', weight: 5, width: 60, height: 20, length: 70, price: 5, typeId: 4, id: 5);
         $boxes = new Collection([$box]);
 
-        $result = $strategy->calculate(new TypeData(name: 'Фильтр масляный', id: 4), [$nomenclature], $boxes);
+        $result = $strategy->calculate(new TypeData(name: 'Фильтр масляный', char: 'OF', id: 4), [$nomenclature], $boxes);
 
         $this->assertSame($box, $result);
     }
@@ -53,7 +53,7 @@ final class OilFilterPackagingStrategyTest extends TestCase
 
         $this->expectException(PackDimensionNotResolvableException::class);
 
-        $strategy->calculate(new TypeData(name: 'Фильтр масляный', id: 4), [$nomenclature], $boxes);
+        $strategy->calculate(new TypeData(name: 'Фильтр масляный', char: 'OF', id: 4), [$nomenclature], $boxes);
     }
 
     protected function tearDown(): void

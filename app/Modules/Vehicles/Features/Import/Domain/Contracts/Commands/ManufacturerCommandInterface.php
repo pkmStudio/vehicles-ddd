@@ -22,12 +22,12 @@ interface ManufacturerCommandInterface
     public function create(ManufacturerData $data): ManufacturerData;
 
     /**
-     * Обновить производителя по внешнему mfa_id.
+     * Обновить существующего производителя.
      *
      * Шаги:
-     * 1) Найти существующую запись по mfa_id.
+     * 1) Принять ManufacturerData после проверки существования записи.
      * 2) Применить значения ManufacturerData.
      * 3) Вернуть обновленный snapshot.
      */
-    public function updateByMfaId(ManufacturerData $data): ManufacturerData;
+    public function update(ManufacturerData $data): ManufacturerData;
 }

@@ -20,7 +20,6 @@ interface ImportKitFromRowServiceInterface
      * 2) Найти номенклатуры и проверить, что все артикулы существуют.
      * 3) Собрать свойства набора и импортный hash.
      * 4) Обновить существующий набор или создать новый.
-     *
      */
     public function importFromRow(KitImportRowDTO $row): KitData;
 }

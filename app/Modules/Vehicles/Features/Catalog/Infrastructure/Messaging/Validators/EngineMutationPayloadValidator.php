@@ -7,6 +7,7 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Validat
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use BackedEnum;
 use Illuminate\Contracts\Validation\Factory as ValidatorFactory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
@@ -48,19 +49,19 @@ final readonly class EngineMutationPayloadValidator
 
         if ($operation === CatalogMutationOperationEnum::Create->value || $operation === CatalogMutationOperationEnum::Update->value) {
             $rules += [
-                'engine.code_engine' => ['nullable', 'string', 'max:255'],
+                'engine.code_engine' => ['required', 'string', 'max:255'],
                 'engine.engine_capacity' => ['nullable', 'string', 'max:255'],
                 'engine.cylinder_count' => ['nullable', 'integer'],
                 'engine.cylinder_diameter' => ['nullable', 'numeric'],
-                'engine.power_kw_start' => ['nullable', 'integer'],
+                'engine.power_kw_start' => ['required', 'integer'],
                 'engine.power_kw_upto' => ['nullable', 'integer'],
-                'engine.power_ps_start' => ['nullable', 'integer'],
+                'engine.power_ps_start' => ['required', 'integer'],
                 'engine.power_ps_upto' => ['nullable', 'integer'],
                 'engine.number_of_valves' => ['nullable', 'integer'],
-                'engine.fuel_type' => ['nullable', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
+                'engine.fuel_type' => ['required', 'string', Rule::in($this->enumValues(EngineFuelTypeEnum::cases()))],
                 'engine.group_id' => ['nullable', 'integer'],
-                'engine.provider' => ['nullable', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
-                'engine.allow_change_fields' => ['nullable', 'array'],
+                'engine.provider' => ['required', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
+                'engine.allow_change_fields' => ['present', 'array'],
                 'engine.allow_change_fields.*' => ['string', 'max:64'],
             ];
         }
@@ -91,10 +92,13 @@ final readonly class EngineMutationPayloadValidator
      * Шаги:
      * - Пройти по cases переданного enum.
      * - Вернуть значения cases для Rule::in().
+     *
+     * @param  array<int, BackedEnum>  $cases
+     * @return list<string>
      */
     private function enumValues(array $cases): array
     {
-        $toEnumValue = fn (object $case): string => $case->value;
+        $toEnumValue = fn (BackedEnum $case): string => (string) $case->value;
 
         return array_map($toEnumValue, $cases);
     }

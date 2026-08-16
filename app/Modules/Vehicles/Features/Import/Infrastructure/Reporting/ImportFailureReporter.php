@@ -22,7 +22,12 @@ final readonly class ImportFailureReporter implements ImportFailureReporterInter
      * 2) Собрать имя файла, disk и directory из config.
      * 3) Сохранить FailuresExport через Laravel Excel facade и вернуть path.
      *
-     * @param  array<int, mixed>  $failures
+     * @param  array<int, array{
+     *     row: int,
+     *     attribute: string,
+     *     errors: array<int, string>,
+     *     values: array<int|string, string|int|float|bool|null>
+     * }>  $failures
      */
     public function store(array $failures): ?string
     {

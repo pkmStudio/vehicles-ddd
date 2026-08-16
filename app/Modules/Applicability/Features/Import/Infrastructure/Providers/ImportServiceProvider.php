@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Applicability\Features\Import\Infrastructure\Providers;
 
 use App\Modules\Applicability\Features\Import\Application\Services\ImportKitApplicabilityRowService;
-use App\Modules\Applicability\Features\Import\Application\UseCases\External\StartExternalFileImportUseCase;
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Clients\VehiclesModificationClientInterface;
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Clients\WarehouseKitClientInterface;
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Commands\KitApplicabilityCommandInterface;
@@ -18,7 +17,6 @@ use App\Modules\Applicability\Features\Import\Domain\Contracts\Reporting\ImportF
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Services\External\ExternalImportCacheServiceInterface;
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Services\ImportKitApplicabilityRowServiceInterface;
 use App\Modules\Applicability\Features\Import\Domain\Contracts\Storage\ExternalImportFileStorageInterface;
-use App\Modules\Applicability\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Modules\Applicability\Features\Import\Infrastructure\Clients\VehiclesModificationClient;
 use App\Modules\Applicability\Features\Import\Infrastructure\Clients\WarehouseKitClient;
 use App\Modules\Applicability\Features\Import\Infrastructure\Commands\KitApplicabilityCommand;
@@ -57,10 +55,6 @@ final class ImportServiceProvider extends ServiceProvider
         ImportFileFactoryInterface::class => ImportFileFactory::class,
     ];
 
-    private const array USE_CASE_BINDINGS = [
-        StartExternalFileImportUseCaseInterface::class => StartExternalFileImportUseCase::class,
-    ];
-
     private const array NOTIFICATION_BINDINGS = [
         ImportNotificationServiceInterface::class => RabbitMqImportNotificationService::class,
     ];
@@ -91,7 +85,7 @@ final class ImportServiceProvider extends ServiceProvider
      * Возвращает сгруппированные DI bindings фичи Import.
      *
      * Шаги:
-     * 1. Собирает bindings clients, commands, imports, services, factories, use cases, notifications и reporting.
+     * 1. Собирает bindings clients, commands, imports, services, factories, notifications и reporting.
      * 2. Возвращает группы единым списком для `register()`.
      */
     private function bindings(): array
@@ -102,7 +96,6 @@ final class ImportServiceProvider extends ServiceProvider
             self::IMPORT_BINDINGS,
             self::SERVICE_BINDINGS,
             self::FACTORY_BINDINGS,
-            self::USE_CASE_BINDINGS,
             self::NOTIFICATION_BINDINGS,
             self::REPORTING_BINDINGS,
         ];

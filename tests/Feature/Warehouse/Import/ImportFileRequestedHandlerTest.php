@@ -7,7 +7,6 @@ namespace Tests\Feature\Warehouse\Import;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\KitImportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\NomenclatureImportInterface;
 use App\Modules\Warehouse\Features\Import\Domain\Contracts\Imports\PackDimensionImportInterface;
-use App\Modules\Warehouse\Features\Import\Domain\Contracts\UseCases\External\StartExternalFileImportUseCaseInterface;
 use App\Modules\Warehouse\Features\Import\Domain\DTOs\ImportRunContextDTO;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
 use Illuminate\Support\Facades\Cache;
@@ -140,9 +139,6 @@ final class ImportFileRequestedHandlerTest extends TestCase
 
     public function test_invalid_payload_is_logged_and_skipped(): void
     {
-        $useCase = $this->mock(StartExternalFileImportUseCaseInterface::class);
-        $useCase->shouldNotReceive('execute');
-
         Log::shouldReceive('error')
             ->once()
             ->with(

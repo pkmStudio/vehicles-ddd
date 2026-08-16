@@ -9,20 +9,20 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDim
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\UpdatePackDimensionUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\UpdatePackDimensionRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\PackDimensionData;
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\PackDimensionEventPayloadDTO;
 use App\Modules\Warehouse\Shared\Domain\Events\PackDimension\PackDimensionUpdated;
 use Throwable;
 
 /**
  * Выполняет обновление упаковочного размера Warehouse из внешнего сообщения.
  */
-final readonly class UpdatePackDimensionUseCase implements UpdatePackDimensionUseCaseInterface
+final readonly class UpdatePackDimensionUseCase
 {
     /**
      * Инициализирует чтение, запись, cache и result-сервис.
@@ -99,10 +99,22 @@ final readonly class UpdatePackDimensionUseCase implements UpdatePackDimensionUs
 
             $packDimension = $this->command->update($data);
 
+            $payload = new PackDimensionEventPayloadDTO(
+                id: (int) $packDimension->id,
+                name: $packDimension->name,
+                weight: $packDimension->weight,
+                width: $packDimension->width,
+                height: $packDimension->height,
+                length: $packDimension->length,
+                price: $packDimension->price,
+                typeId: $packDimension->typeId,
+                generated: $packDimension->generated ?? false,
+            );
+
             event(new PackDimensionUpdated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                packDimension: $packDimension->toArray(),
+                packDimension: $payload,
             ));
 
             return $this->results->completed(

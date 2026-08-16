@@ -11,6 +11,7 @@ use App\Modules\Warehouse\Features\Export\Domain\DTOs\KitExportSortDTO;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\Kit\Sheets\KitDataSheetExport;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\ReferenceSheetExport;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
@@ -53,7 +54,7 @@ final readonly class KitExport implements KitExportInterface, WithMultipleSheets
     }
 
     /**
-     * @return array<int, object>
+     * @return array<int, WithTitle>
      */
     public function sheets(): array
     {

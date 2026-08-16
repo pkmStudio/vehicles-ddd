@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Calculation\Presentation\Console\Commands;
 
-use App\Modules\Applicability\Features\Calculation\Domain\Contracts\UseCases\CalculateKitApplicabilityUseCaseInterface;
+use App\Modules\Applicability\Features\Calculation\Application\UseCases\CalculateKitApplicabilityUseCase;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Jobs\CalculateKitApplicabilityJob;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -29,7 +29,7 @@ final class CalculateKitApplicabilityCommand extends Command
      * 5. Печатает агрегированные счетчики и ошибки отдельных kit-ов.
      * 6. Возвращает failure exit code только если есть failed kits.
      */
-    public function handle(CalculateKitApplicabilityUseCaseInterface $useCase): int
+    public function handle(CalculateKitApplicabilityUseCase $useCase): int
     {
         $kitId = $this->option('kit-id') === null ? null : (int) $this->option('kit-id');
         $chunk = max(1, (int) $this->option('chunk'));

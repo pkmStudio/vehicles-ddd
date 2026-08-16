@@ -13,6 +13,8 @@ use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmSear
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleCrmReadQueryDTO;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineFuelTypeEnum;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
@@ -168,39 +170,6 @@ final class VehicleCrmReadApiTest extends TestCase
 
         self::assertSame($response->json('data.0'), $wireModification->toArray());
         self::assertSame($response->json('meta'), $wireMeta->toArray());
-    }
-
-    /**
-     * Проверяет, что legacy nullable enum-поля в БД не ломают CRM read API.
-     */
-    public function test_modifications_endpoint_handles_legacy_nullable_enum_fields(): void
-    {
-        DB::statement('alter table modifications alter column type drop not null');
-        DB::statement('alter table modifications alter column provider drop not null');
-        DB::statement('alter table modifications alter column allow_change_fields drop not null');
-
-        $manufacturer = $this->createManufacturer();
-        $vehicle = $this->createVehicle(msId: 1105, manufacturer: $manufacturer, name: 'Octavia');
-        $modificationId = (int) DB::table('modifications')->insertGetId([
-            'vehicle_id' => $vehicle->id,
-            'ms_id' => 1105,
-            'mod_id' => 7005,
-            'type' => null,
-            'year_from' => 2013,
-            'year_to' => 2020,
-            'description' => 'Legacy 1.4 TSI',
-            'provider' => null,
-            'allow_change_fields' => null,
-        ]);
-
-        $response = $this->getJson("/api/v1/crm/vehicles/{$vehicle->id}/modifications?per_page=10");
-
-        $response
-            ->assertOk()
-            ->assertJsonPath('data.0.id', $modificationId)
-            ->assertJsonPath('data.0.type', VehicleTypeEnum::PC->value)
-            ->assertJsonPath('data.0.provider', ProviderEnum::TD->value)
-            ->assertJsonPath('data.0.allow_change_fields', []);
     }
 
     /**
@@ -439,8 +408,13 @@ final class VehicleCrmReadApiTest extends TestCase
         return (int) DB::table('engines')->insertGetId([
             'eng_id' => 5001,
             'code_engine' => 'CZDA',
+            'power_kw_start' => 110,
+            'power_ps_start' => 150,
+            'fuel_type' => EngineFuelTypeEnum::PETROL->value,
             'engine_capacity' => '1.4',
             'cylinder_count' => 4,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => json_encode([]),
         ]);
     }
 
@@ -457,6 +431,11 @@ final class VehicleCrmReadApiTest extends TestCase
             'year_from' => 2013,
             'year_to' => 2020,
             'description' => '1.4 TSI',
+            'power_ps' => 150,
+            'power_kw' => 110,
+            'engine_type' => EngineTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => json_encode(['year_from', 'year_to']),
         ]);
     }
 

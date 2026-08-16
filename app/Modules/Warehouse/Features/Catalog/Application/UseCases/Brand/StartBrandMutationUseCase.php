@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Brand;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\CreateBrandUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\DeleteBrandUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\StartBrandMutationUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Brand\UpdateBrandUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\BrandMutationRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\CreateBrandRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Brand\DeleteBrandRequestDTO;
@@ -18,7 +14,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutation
 /**
  * Оркестрирует старт мутации Warehouse-бренда из внешнего сообщения.
  */
-final readonly class StartBrandMutationUseCase implements StartBrandMutationUseCaseInterface
+final readonly class StartBrandMutationUseCase
 {
     /**
      * Инициализирует use case конкретных операций.
@@ -28,9 +24,9 @@ final readonly class StartBrandMutationUseCase implements StartBrandMutationUseC
      * 3) Сохранить сценарий удаления Warehouse-бренда.
      */
     public function __construct(
-        private CreateBrandUseCaseInterface $createBrand,
-        private UpdateBrandUseCaseInterface $updateBrand,
-        private DeleteBrandUseCaseInterface $deleteBrand,
+        private CreateBrandUseCase $createBrand,
+        private UpdateBrandUseCase $updateBrand,
+        private DeleteBrandUseCase $deleteBrand,
     ) {}
 
     /**
@@ -54,7 +50,7 @@ final readonly class StartBrandMutationUseCase implements StartBrandMutationUseC
      * Делегирует создание бренда профильному use case.
      * Шаги:
      * 1) Получить CreateBrandRequestDTO из общего request.
-     * 2) Передать DTO в CreateBrandUseCaseInterface.
+     * 2) Передать DTO в CreateBrandUseCase.
      * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function create(BrandMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
@@ -68,7 +64,7 @@ final readonly class StartBrandMutationUseCase implements StartBrandMutationUseC
      * Делегирует обновление бренда профильному use case.
      * Шаги:
      * 1) Получить UpdateBrandRequestDTO из общего request.
-     * 2) Передать DTO в UpdateBrandUseCaseInterface.
+     * 2) Передать DTO в UpdateBrandUseCase.
      * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function update(BrandMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
@@ -82,7 +78,7 @@ final readonly class StartBrandMutationUseCase implements StartBrandMutationUseC
      * Делегирует удаление бренда профильному use case.
      * Шаги:
      * 1) Получить DeleteBrandRequestDTO из общего request.
-     * 2) Передать DTO в DeleteBrandUseCaseInterface.
+     * 2) Передать DTO в DeleteBrandUseCase.
      * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function delete(BrandMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO

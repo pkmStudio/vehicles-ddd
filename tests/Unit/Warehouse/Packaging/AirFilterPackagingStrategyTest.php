@@ -32,7 +32,7 @@ final class AirFilterPackagingStrategyTest extends TestCase
         $box = new PackDimensionData(name: 'Loose fit', weight: 70, width: 90, height: 60, length: 100, price: 5, typeId: 5, id: 4);
         $boxes = new Collection([$box]);
 
-        $result = $strategy->calculate(new TypeData(name: 'Фильтр воздушный', id: 5), [$nomenclature], $boxes);
+        $result = $strategy->calculate(new TypeData(name: 'Фильтр воздушный', char: 'AF', id: 5), [$nomenclature], $boxes);
 
         $this->assertSame($box, $result);
     }
@@ -55,7 +55,7 @@ final class AirFilterPackagingStrategyTest extends TestCase
             details: ['metrics' => ['length' => [50], 'width' => [40], 'height' => [10]]],
         );
 
-        $result = $strategy->calculate(new TypeData(name: 'Фильтр воздушный', id: 5), [$nomenclature], new Collection);
+        $result = $strategy->calculate(new TypeData(name: 'Фильтр воздушный', char: 'AF', id: 5), [$nomenclature], new Collection);
 
         $this->assertSame($created, $result);
     }

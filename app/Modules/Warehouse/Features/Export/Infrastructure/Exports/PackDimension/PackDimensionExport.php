@@ -10,6 +10,7 @@ use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\PackDimension\Sheets\PackDimensionDataSheetExport;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Exports\ReferenceSheetExport;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
@@ -68,7 +69,7 @@ final readonly class PackDimensionExport implements PackDimensionExportInterface
      * 2) Создать reference sheet с типами из application-сервиса.
      * 3) Вернуть листы в порядке отображения в workbook.
      *
-     * @return array<int, object>
+     * @return array<int, WithTitle>
      */
     public function sheets(): array
     {

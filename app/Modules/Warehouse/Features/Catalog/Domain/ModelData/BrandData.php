@@ -22,7 +22,7 @@ final class BrandData extends Data
         public readonly string $numberSert,
         public readonly string $dateStart,
         public readonly string $dateEnd,
-        public readonly ?string $char = null,
+        public readonly string $char,
         public readonly ?int $id = null,
     ) {}
 }

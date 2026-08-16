@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class VehicleCommand implements VehicleCommandInterface
 {
+    // TODO: Возможно, catalog write должен использовать parent_ms_id для резолва parent_id перед записью.
+    private const array NON_WRITABLE_FIELDS = ['id', 'parent_ms_id'];
+
     /**
      * Создает запись автомобилей.
      *
@@ -25,7 +28,7 @@ final readonly class VehicleCommand implements VehicleCommandInterface
     public function create(VehicleData $data): VehicleData
     {
         $createVehicle = fn (): VehicleData => VehicleData::from(
-            Vehicle::query()->create(Arr::except($data->toArray(), ['id'])),
+            Vehicle::query()->create(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS)),
         );
 
         return DB::transaction($createVehicle);
@@ -43,7 +46,7 @@ final readonly class VehicleCommand implements VehicleCommandInterface
     {
         return DB::transaction(function () use ($data): VehicleData {
             $vehicle = Vehicle::query()->where('ms_id', $data->msId)->firstOrFail();
-            $vehicle->fill(Arr::except($data->toArray(), ['id']));
+            $vehicle->fill(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS));
             $vehicle->save();
 
             return VehicleData::from($vehicle->refresh());

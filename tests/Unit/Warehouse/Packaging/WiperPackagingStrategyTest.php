@@ -25,7 +25,7 @@ final class WiperPackagingStrategyTest extends TestCase
         $nomenclature = new NomenclatureData(partNumber: 'WB-1', quantityInPak: 1, details: ['length_main' => 500, 'length_second' => 450]);
         $boxes = new Collection([$this->box('L400', 400, 1), $this->box('L550', 550, 2), $this->box('L700', 700, 3)]);
 
-        $result = $strategy->calculate(new TypeData(name: 'Щетки', id: 3), [$nomenclature], $boxes);
+        $result = $strategy->calculate(new TypeData(name: 'Щетки', char: 'WB', id: 3), [$nomenclature], $boxes);
 
         $this->assertSame(2, $result->id);
     }
@@ -37,7 +37,7 @@ final class WiperPackagingStrategyTest extends TestCase
         $nomenclature = new NomenclatureData(partNumber: 'WB-2', quantityInPak: 1, details: ['length_main' => 900, 'length_second' => 0]);
         $boxes = new Collection([$this->box('L400', 400, 1), $this->box('L550', 550, 2)]);
 
-        $result = $strategy->calculate(new TypeData(name: 'Щетки', id: 3), [$nomenclature], $boxes);
+        $result = $strategy->calculate(new TypeData(name: 'Щетки', char: 'WB', id: 3), [$nomenclature], $boxes);
 
         $this->assertSame(2, $result->id);
     }

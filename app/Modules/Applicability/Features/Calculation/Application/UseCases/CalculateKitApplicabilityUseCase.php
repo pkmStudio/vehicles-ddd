@@ -7,13 +7,12 @@ namespace App\Modules\Applicability\Features\Calculation\Application\UseCases;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\WarehouseKitClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Commands\KitApplicabilityCommandInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\KitApplicabilityCalculatorInterface;
-use App\Modules\Applicability\Features\Calculation\Domain\Contracts\UseCases\CalculateKitApplicabilityUseCaseInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\DTOs\Calculation\KitApplicabilityCalculationResultDTO;
 use App\Modules\Applicability\Features\Calculation\Domain\Events\KitApplicabilityRecalculated;
 use Illuminate\Support\Str;
 use Throwable;
 
-final readonly class CalculateKitApplicabilityUseCase implements CalculateKitApplicabilityUseCaseInterface
+final readonly class CalculateKitApplicabilityUseCase
 {
     /**
      * Получает порты расчета и синхронизации применяемости комплектов.

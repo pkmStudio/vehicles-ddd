@@ -26,7 +26,12 @@ final readonly class ImportFailureReporter implements ImportFailureReporterInter
      * 4) Создать FailuresExport через container с failures и type.
      * 5) Сохранить CSV через Laravel Excel и вернуть путь.
      *
-     * @param  array<int, array{row: int, attribute: string, errors: array<int, string>, values: mixed}>  $failures
+     * @param  array<int, array{
+     *     row: int,
+     *     attribute: string,
+     *     errors: array<int, string>,
+     *     values: array<int|string, string|int|float|bool|null>
+     * }>  $failures
      */
     public function store(array $failures, ImportTypeEnum $type): ?string
     {

@@ -58,7 +58,7 @@ final readonly class EngineMainSheetExport implements FromCollection, WithHeadin
      * Шаги:
      * 1) Передать row в export service mapper основного листа.
      *
-     * @return array<int, mixed>
+     * @return array<int, string|int|float|null>
      */
     public function map($row): array
     {

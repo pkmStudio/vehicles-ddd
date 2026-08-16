@@ -7,7 +7,6 @@ namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\ModificationCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Modification;
-use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
@@ -16,20 +15,7 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class ModificationCommand implements ModificationCommandInterface
 {
-    private const array BUSINESS_FIELDS = [
-        'year_from',
-        'year_to',
-        'localized_name',
-        'description',
-        'power_ps',
-        'power_kw',
-        'brake_system_type',
-        'engine_type',
-        'gear_type',
-        'drive_type',
-        'number_of_cylinders',
-        'capacity_lt',
-    ];
+    private const array NON_WRITABLE_FIELDS = ['id'];
 
     /**
      * Создает запись модификаций.
@@ -41,7 +27,7 @@ final readonly class ModificationCommand implements ModificationCommandInterface
     public function create(ModificationData $data): ModificationData
     {
         $createModification = fn (): ModificationData => ModificationData::from(
-            Modification::query()->create(Arr::except($data->toArray(), ['id'])),
+            Modification::query()->create(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS)),
         );
 
         return DB::transaction($createModification);
@@ -62,7 +48,7 @@ final readonly class ModificationCommand implements ModificationCommandInterface
                 ->where('mod_id', $data->modId)
                 ->where('type', $data->type->value)
                 ->firstOrFail();
-            $modification->fill($this->updatePayload($modification, $data));
+            $modification->fill(Arr::except($data->toArray(), self::NON_WRITABLE_FIELDS));
             $modification->save();
 
             return ModificationData::from($modification->refresh());
@@ -104,45 +90,5 @@ final readonly class ModificationCommand implements ModificationCommandInterface
         DB::transaction(function () use ($ids): void {
             Modification::query()->whereIn('id', $ids)->delete();
         });
-    }
-
-    /**
-     * Собирает payload обновления с учётом provider-правил.
-     *
-     * Шаги:
-     * - Взять только бизнес-поля из входящего Data-снимка.
-     * - Для provider OD разрешить запись всех бизнес-полей.
-     * - Для остальных provider записать только пустые или явно разрешённые поля.
-     *
-     * @return array<string, mixed>
-     */
-    private function updatePayload(Modification $modification, ModificationData $data): array
-    {
-        $incoming = Arr::only($data->toArray(), self::BUSINESS_FIELDS);
-
-        if ($modification->provider === ProviderEnum::OD) {
-            return [
-                ...$incoming,
-                'allow_change_fields' => $data->allowChangeFields,
-            ];
-        }
-
-        $allowedFields = $modification->allow_change_fields;
-        $payload = [];
-
-        foreach ($incoming as $field => $value) {
-            $current = $modification->getAttribute($field);
-            if ($current === null || in_array($field, $allowedFields, true)) {
-                $payload[$field] = $value;
-
-                if ($current === null && $value !== null && $value !== '') {
-                    $allowedFields[] = $field;
-                }
-            }
-        }
-
-        $payload['allow_change_fields'] = array_values(array_unique($allowedFields));
-
-        return $payload;
     }
 }

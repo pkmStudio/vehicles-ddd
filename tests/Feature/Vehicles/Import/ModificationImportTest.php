@@ -9,6 +9,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Events\Modification\Modification
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Modification;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Vehicle;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -40,8 +41,13 @@ final class ModificationImportTest extends TestCase
             'mfa_id' => 10,
             'ms_id' => 300,
             'name' => 'Octavia',
+            'generation' => 'III',
+            'generation_year_from' => 2013,
             'type' => 'PC',
             'type_carcase' => 'Hatchback',
+            'provider' => ProviderEnum::TD->value,
+            'steering_type' => 'Левый руль',
+            'is_allow' => true,
         ]);
 
         $path = base_path('tests/Fixtures/modifications_sample.csv');

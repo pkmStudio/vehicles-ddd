@@ -109,20 +109,15 @@ final readonly class WarehouseApplicabilityRepository implements WarehouseApplic
      * Читает Warehouse type и добавляет template для применяемости.
      * Шаги:
      * 1) Найти type row по id в таблице types.
-     * 2) Вернуть null, если type отсутствует.
-     * 3) Привести id/name/char к scalar DTO fields.
-     * 4) Определить detail template через локальный resolver.
+     * 2) Привести id/name/char к scalar DTO fields.
+     * 3) Определить detail template через локальный resolver.
      */
-    private function type(?Type $type): ?WarehouseTypeForApplicabilityDTO
+    private function type(Type $type): WarehouseTypeForApplicabilityDTO
     {
-        if ($type === null) {
-            return null;
-        }
-
         return new WarehouseTypeForApplicabilityDTO(
             id: (int) $type->id,
             name: (string) $type->name,
-            char: $type->char === null ? null : (string) $type->char,
+            char: (string) $type->char,
             template: $this->templateResolver->resolve($type),
         );
     }

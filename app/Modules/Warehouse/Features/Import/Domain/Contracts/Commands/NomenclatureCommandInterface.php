@@ -12,14 +12,14 @@ use App\Modules\Warehouse\Features\Import\Domain\ModelData\NomenclatureData;
 interface NomenclatureCommandInterface
 {
     /**
-     * Обновляет запись по id. Бросает исключение, если запись с этим id не найдена.
+     * Обновляет запись из import data. Бросает исключение, если запись с id из DTO не найдена.
      *
      * Шаги:
      * 1) Найти номенклатуру по id из DTO.
      * 2) Применить импортируемые поля и details.
      * 3) Вернуть актуальный снимок NomenclatureData.
      */
-    public function updateById(NomenclatureData $data): NomenclatureData;
+    public function update(NomenclatureData $data): NomenclatureData;
 
     /**
      * Создаёт новую номенклатуру.

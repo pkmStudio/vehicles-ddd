@@ -25,11 +25,14 @@ final readonly class EngineExportRow implements EngineExportRowInterface
             'Код двигателя',
             'Объём (куб. см)',
             'Тип топлива',
+            'Мощность кВт от',
+            'Мощность кВт до',
             'Мощность л.с. от',
             'Мощность л.с. до',
             'Кол-во цилиндров',
             'Диаметр цилиндров',
             'Кол-во клапанов',
+            'Провайдер',
         ];
     }
 
@@ -47,11 +50,14 @@ final readonly class EngineExportRow implements EngineExportRowInterface
             $engine->codeEngine,
             $engine->engineCapacity,
             $engine->fuelType?->value,
+            $engine->powerKwStart,
+            $engine->powerKwUpto,
             $engine->powerPsStart,
             $engine->powerPsUpto,
             $engine->cylinderCount,
             $engine->cylinderDiameter,
             $engine->numberOfValves,
+            $engine->provider->value,
         ];
     }
 }

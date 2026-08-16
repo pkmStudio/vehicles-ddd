@@ -8,20 +8,20 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\PackDimensi
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\TypeRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationCacheServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationResultServiceInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\CreatePackDimensionUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\CreatePackDimensionRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\PackDimensionData;
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\PackDimensionEventPayloadDTO;
 use App\Modules\Warehouse\Shared\Domain\Events\PackDimension\PackDimensionCreated;
 use Throwable;
 
 /**
  * Выполняет создание упаковочного размера Warehouse из внешнего сообщения.
  */
-final readonly class CreatePackDimensionUseCase implements CreatePackDimensionUseCaseInterface
+final readonly class CreatePackDimensionUseCase
 {
     /**
      * Инициализирует чтение типов, запись, cache и result-сервис.
@@ -49,14 +49,12 @@ final readonly class CreatePackDimensionUseCase implements CreatePackDimensionUs
     public function execute(CreatePackDimensionRequestDTO $request): ?WarehouseCatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }
 
         try {
             $type = $this->types->findById($request->typeId);
-
             if ($type === null) {
                 return $this->results->rejected(
                     userId: $request->userId,
@@ -81,10 +79,22 @@ final readonly class CreatePackDimensionUseCase implements CreatePackDimensionUs
 
             $packDimension = $this->command->create($data);
 
+            $payload = new PackDimensionEventPayloadDTO(
+                id: (int) $packDimension->id,
+                name: $packDimension->name,
+                weight: $packDimension->weight,
+                width: $packDimension->width,
+                height: $packDimension->height,
+                length: $packDimension->length,
+                price: $packDimension->price,
+                typeId: $packDimension->typeId,
+                generated: $packDimension->generated ?? false,
+            );
+
             event(new PackDimensionCreated(
                 userId: $request->userId,
                 operationId: $request->operationId,
-                packDimension: $packDimension->toArray(),
+                packDimension: $payload,
             ));
 
             return $this->results->completed(

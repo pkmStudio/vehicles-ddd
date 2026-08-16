@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\CRM\Vehicle;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\CRM\Vehicle\ListVehicleCrmOptionsUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmDetailTemplateOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureValueOptionDTO;
@@ -14,7 +13,7 @@ use Illuminate\Support\Collection;
 /**
  * Оркестрирует CRM-сценарии справочников формы ТС.
  */
-final readonly class ListVehicleCrmOptionsUseCase implements ListVehicleCrmOptionsUseCaseInterface
+final readonly class ListVehicleCrmOptionsUseCase
 {
     /**
      * Получает порт репозитория ТС для CRM.

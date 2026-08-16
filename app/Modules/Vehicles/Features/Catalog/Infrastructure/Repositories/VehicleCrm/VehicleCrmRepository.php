@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm;
 
-use App\Modules\Templates\Domain\Enums\DetailTemplateEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleCrmRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmEngineDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm\VehicleCrmFeatureOptionDTO;
@@ -25,12 +24,6 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\PartSpecificatio
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmPageDTOFactory;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\VehicleCrm\Factories\VehicleCrmRelationPageDTOFactory;
-use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\SteeringTypeEnum;
-use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
-use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -545,10 +538,10 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             generationShort: $vehicle->generation_short === null ? null : (string) $vehicle->generation_short,
             generationYearFrom: (int) $vehicle->generation_year_from,
             generationYearTo: $vehicle->generation_year_to === null ? null : (int) $vehicle->generation_year_to,
-            type: $this->enumValue($vehicle->type, VehicleTypeEnum::PC->value),
-            typeCarcase: $this->enumValue($vehicle->type_carcase, CarcaseTypeEnum::HATCHBACK->value),
-            provider: $this->enumValue($vehicle->provider, ProviderEnum::TD->value),
-            steeringType: $this->enumValue($vehicle->steering_type, SteeringTypeEnum::LEFT->value),
+            type: $vehicle->type->value,
+            typeCarcase: $vehicle->type_carcase->value,
+            provider: $vehicle->provider->value,
+            steeringType: $vehicle->steering_type->value,
             isAllow: (bool) $vehicle->is_allow,
         );
     }
@@ -579,21 +572,22 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             vehicleId: (int) $modification->vehicle_id,
             msId: (int) $modification->ms_id,
             modId: (int) $modification->mod_id,
-            yearFrom: $modification->year_from === null ? null : (int) $modification->year_from,
+            yearFrom: (int) $modification->year_from,
             yearTo: $modification->year_to === null ? null : (int) $modification->year_to,
-            description: $modification->description === null ? null : (string) $modification->description,
-            type: $this->enumValue($modification->type, VehicleTypeEnum::PC->value),
+            description: (string) $modification->description,
+            descriptionShort: $modification->description_short === null ? null : (string) $modification->description_short,
+            type: $modification->type->value,
             brakeSystemType: $modification->brake_system_type?->value,
-            powerPs: $modification->power_ps === null ? null : (int) $modification->power_ps,
-            powerKw: $modification->power_kw === null ? null : (int) $modification->power_kw,
-            engineType: $modification->engine_type?->value,
+            powerPs: (int) $modification->power_ps,
+            powerKw: (int) $modification->power_kw,
+            engineType: $modification->engine_type->value,
             gearType: $modification->gear_type?->value,
             driveType: $modification->drive_type?->value,
             localizedName: $modification->localized_name === null ? null : (string) $modification->localized_name,
             numberOfCylinders: $modification->number_of_cylinders === null ? null : (int) $modification->number_of_cylinders,
             capacityLt: $modification->capacity_lt === null ? null : (float) $modification->capacity_lt,
-            provider: $this->enumValue($modification->provider, ProviderEnum::TD->value),
-            allowChangeFields: $modification->allow_change_fields ?? [],
+            provider: $modification->provider->value,
+            allowChangeFields: $modification->allow_change_fields,
             engines: ($engines ?? $modification->engines
                 ->map(fn (Engine $engine): VehicleCrmEngineDTO => $this->engine($engine))
                 ->values()),
@@ -606,19 +600,19 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             modificationId: (int) $engine->getAttribute('modification_id'),
             id: (int) $engine->id,
             engId: (int) $engine->eng_id,
-            codeEngine: $engine->code_engine === null ? null : (string) $engine->code_engine,
+            codeEngine: (string) $engine->code_engine,
+            powerKwStart: (int) $engine->power_kw_start,
+            powerPsStart: (int) $engine->power_ps_start,
+            fuelType: $engine->fuel_type->value,
+            provider: $engine->provider->value,
             engineCapacity: $engine->engine_capacity === null ? null : (string) $engine->engine_capacity,
             cylinderCount: $engine->cylinder_count === null ? null : (int) $engine->cylinder_count,
             cylinderDiameter: $engine->cylinder_diameter === null ? null : (float) $engine->cylinder_diameter,
-            powerKwStart: $engine->power_kw_start === null ? null : (int) $engine->power_kw_start,
             powerKwUpto: $engine->power_kw_upto === null ? null : (int) $engine->power_kw_upto,
-            powerPsStart: $engine->power_ps_start === null ? null : (int) $engine->power_ps_start,
             powerPsUpto: $engine->power_ps_upto === null ? null : (int) $engine->power_ps_upto,
             numberOfValves: $engine->number_of_valves === null ? null : (int) $engine->number_of_valves,
-            fuelType: $engine->fuel_type?->value,
             groupId: $engine->group_id === null ? null : (int) $engine->group_id,
-            provider: $this->enumValue($engine->provider, ProviderEnum::TD->value),
-            allowChangeFields: $engine->allow_change_fields ?? [],
+            allowChangeFields: $engine->allow_change_fields,
         );
     }
 
@@ -627,19 +621,19 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         return new VehicleCrmEngineDTO(
             id: (int) $engine->id,
             engId: (int) $engine->eng_id,
-            codeEngine: $engine->code_engine === null ? null : (string) $engine->code_engine,
+            codeEngine: (string) $engine->code_engine,
+            powerKwStart: (int) $engine->power_kw_start,
+            powerPsStart: (int) $engine->power_ps_start,
+            fuelType: $engine->fuel_type->value,
+            provider: $engine->provider->value,
             engineCapacity: $engine->engine_capacity === null ? null : (string) $engine->engine_capacity,
             cylinderCount: $engine->cylinder_count === null ? null : (int) $engine->cylinder_count,
             cylinderDiameter: $engine->cylinder_diameter === null ? null : (float) $engine->cylinder_diameter,
-            powerKwStart: $engine->power_kw_start === null ? null : (int) $engine->power_kw_start,
             powerKwUpto: $engine->power_kw_upto === null ? null : (int) $engine->power_kw_upto,
-            powerPsStart: $engine->power_ps_start === null ? null : (int) $engine->power_ps_start,
             powerPsUpto: $engine->power_ps_upto === null ? null : (int) $engine->power_ps_upto,
             numberOfValves: $engine->number_of_valves === null ? null : (int) $engine->number_of_valves,
-            fuelType: $engine->fuel_type?->value,
             groupId: $engine->group_id === null ? null : (int) $engine->group_id,
-            provider: $this->enumValue($engine->provider, ProviderEnum::TD->value),
-            allowChangeFields: $engine->allow_change_fields ?? [],
+            allowChangeFields: $engine->allow_change_fields,
         );
     }
 
@@ -650,24 +644,19 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
 
         return new VehicleCrmPartSpecificationDTO(
             id: (int) $specification->id,
-            partableType: $this->enumValue($specification->partable_type, PartableTypeEnum::VEHICLE->value),
+            partableType: $specification->partable_type->value,
             partableId: (int) $specification->partable_id,
             featureId: $feature?->id === null ? null : (int) $feature->id,
             featureName: $feature?->name === null ? null : (string) $feature->name,
             featureValueId: $featureValue?->id === null ? null : (int) $featureValue->id,
             featureValueName: $featureValue?->name === null ? null : (string) $featureValue->name,
             featureValueShortCode: $featureValue?->short_code === null ? null : (string) $featureValue->short_code,
-            template: $this->enumValue($specification->template, DetailTemplateEnum::WIPER->value),
+            template: $specification->template->value,
             name: $specification->name === null ? null : (string) $specification->name,
             text: $specification->text === null ? null : (string) $specification->text,
-            details: $specification->details ?? [],
+            details: $specification->details,
             createdAt: $specification->created_at === null ? null : (string) $specification->created_at,
             updatedAt: $specification->updated_at === null ? null : (string) $specification->updated_at,
         );
-    }
-
-    private function enumValue(?BackedEnum $enum, string $fallback): string
-    {
-        return $enum?->value ?? $fallback;
     }
 }

@@ -53,11 +53,11 @@ final readonly class NomenclatureMutationRequestDTO
             partNumber: (string) $nomenclature['part_number'],
             color: (string) $nomenclature['color'],
             weight: (int) $nomenclature['weight'],
-            material: array_values($nomenclature['material'] ?? []),
-            vehicleType: array_values($nomenclature['vehicle_type'] ?? []),
+            material: array_values($nomenclature['material']),
+            vehicleType: array_values($nomenclature['vehicle_type']),
             quantityPak: (int) $nomenclature['quantity_pak'],
             quantityInPak: (int) $nomenclature['quantity_in_pak'],
-            details: $nomenclature['details'] ?? [],
+            details: $nomenclature['details'],
         );
     }
 
@@ -79,11 +79,11 @@ final readonly class NomenclatureMutationRequestDTO
             partNumber: (string) $nomenclature['part_number'],
             color: (string) $nomenclature['color'],
             weight: (int) $nomenclature['weight'],
-            material: array_values($nomenclature['material'] ?? []),
-            vehicleType: array_values($nomenclature['vehicle_type'] ?? []),
+            material: array_values($nomenclature['material']),
+            vehicleType: array_values($nomenclature['vehicle_type']),
             quantityPak: (int) $nomenclature['quantity_pak'],
             quantityInPak: (int) $nomenclature['quantity_in_pak'],
-            details: $nomenclature['details'] ?? [],
+            details: $nomenclature['details'],
         );
     }
 

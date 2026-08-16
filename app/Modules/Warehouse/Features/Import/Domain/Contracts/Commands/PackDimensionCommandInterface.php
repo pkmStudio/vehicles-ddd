@@ -12,14 +12,14 @@ use App\Modules\Warehouse\Features\Import\Domain\ModelData\PackDimensionData;
 interface PackDimensionCommandInterface
 {
     /**
-     * Обновляет упаковочный размер по id.
+     * Обновляет упаковочный размер из import data.
      *
      * Шаги:
      * 1) Найти упаковочный размер по id из DTO.
      * 2) Обновить тип и габаритные поля.
      * 3) Вернуть актуальный снимок PackDimensionData.
      */
-    public function updateById(PackDimensionData $data): PackDimensionData;
+    public function update(PackDimensionData $data): PackDimensionData;
 
     /**
      * Создаёт новый упаковочный размер.

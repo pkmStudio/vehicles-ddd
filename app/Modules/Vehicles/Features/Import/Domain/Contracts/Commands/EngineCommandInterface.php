@@ -18,14 +18,14 @@ interface EngineCommandInterface
     public function create(EngineData $data): EngineData;
 
     /**
-     * Обновить двигатель по внешнему eng_id.
+     * Обновить двигатель из import data.
      *
      * Шаги:
-     * 1) Найти существующую запись по eng_id.
+     * 1) Найти существующую запись по eng_id из EngineData.
      * 2) Применить значения EngineData.
      * 3) Вернуть обновленный snapshot.
      */
-    public function updateByEngId(EngineData $data): EngineData;
+    public function update(EngineData $data): EngineData;
 
     /**
      * Проставить группу двигателю. Принимает Data с обязательными id и groupId.

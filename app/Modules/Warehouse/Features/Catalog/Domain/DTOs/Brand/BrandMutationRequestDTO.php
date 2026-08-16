@@ -50,7 +50,7 @@ final readonly class BrandMutationRequestDTO
             numberSert: (string) $brand['number_sert'],
             dateStart: (string) $brand['date_start'],
             dateEnd: (string) $brand['date_end'],
-            char: isset($brand['char']) ? (string) $brand['char'] : null,
+            char: (string) $brand['char'],
         );
     }
 
@@ -69,7 +69,7 @@ final readonly class BrandMutationRequestDTO
             numberSert: (string) $brand['number_sert'],
             dateStart: (string) $brand['date_start'],
             dateEnd: (string) $brand['date_end'],
-            char: isset($brand['char']) ? (string) $brand['char'] : null,
+            char: (string) $brand['char'],
         );
     }
 

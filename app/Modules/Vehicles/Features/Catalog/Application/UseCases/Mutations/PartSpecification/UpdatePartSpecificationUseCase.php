@@ -10,7 +10,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\PartSpec
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\PartSpecification\PartSpecificationDetailsWritePolicyInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\PartSpecification\UpdatePartSpecificationUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpecificationDetailsWriteResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\PartSpecification\PartSpecificationOwnerResolutionDTO;
@@ -20,13 +19,19 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\PartSpecificationData;
+use App\Modules\Vehicles\Shared\Domain\Contracts\Repositories\PartSpecificationDuplicateFinderInterface;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Events\PartSpecificationEventPayloadDTO;
+use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\PartSpecificationWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\PartSpecification\PartSpecificationUpdated;
+use App\Modules\Vehicles\Shared\Domain\Exceptions\PartSpecificationUniquenessException;
+use App\Modules\Vehicles\Shared\Domain\Services\Policy\PartSpecificationWritePolicy;
 use Throwable;
 
 /**
  * Оркестрирует сценарий обновления спецификаций деталей из внешнего сообщения.
  */
-final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecificationUseCaseInterface
+final readonly class UpdatePartSpecificationUseCase
 {
     /**
      * Получает порты, нужные для безопасного update part specification workflow.
@@ -43,6 +48,8 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
         private CatalogMutationCacheServiceInterface $cache,
         private CatalogMutationResultServiceInterface $results,
         private PartSpecificationDetailsWritePolicyInterface $detailsPolicy,
+        private PartSpecificationDuplicateFinderInterface $duplicates,
+        private PartSpecificationWritePolicy $writePolicy,
     ) {}
 
     /**
@@ -89,6 +96,10 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
                 owner: $resolution->owner,
                 details: $detailsResult->details,
             );
+            $duplicateReject = $this->rejectIfDuplicate($request, $specificationData);
+            if ($duplicateReject !== null) {
+                return $duplicateReject;
+            }
 
             $specification = $this->command->update($specificationData);
             $this->publishUpdatedEvent($request, $specification);
@@ -183,6 +194,41 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
     }
 
     /**
+     * Отклоняет update, если он конфликтует с другой specification по owner/template/details.
+     *
+     * Шаги:
+     * 1. Передать нормализованный snapshot в uniqueness write policy.
+     * 2. Если дубля нет — разрешить update.
+     * 3. Если дубль есть — вернуть rejected AlreadyExists с id конфликтующей записи.
+     */
+    private function rejectIfDuplicate(
+        UpdatePartSpecificationRequestDTO $request,
+        PartSpecificationData $data,
+    ): ?CatalogMutationResultDTO {
+        $incoming = PartSpecificationWritePolicyResultDTO::fromArray($data->toArray());
+        $duplicateId = $this->duplicates->findDuplicate($incoming);
+
+        try {
+            $this->writePolicy->apply($incoming, $duplicateId);
+
+            return null;
+        } catch (PartSpecificationUniquenessException) {
+            return $this->rejected(
+                request: $request,
+                reason: CatalogMutationRejectReasonEnum::AlreadyExists,
+                errors: [
+                    [
+                        'field' => 'details',
+                        'rule' => 'unique',
+                        'message' => 'Другая спецификация с таким владельцем, шаблоном и details уже существует.',
+                    ],
+                ],
+                recordId: $duplicateId,
+            );
+        }
+    }
+
+    /**
      * Публикует факт обновления спецификации.
      *
      * Шаги:
@@ -193,10 +239,21 @@ final readonly class UpdatePartSpecificationUseCase implements UpdatePartSpecifi
         UpdatePartSpecificationRequestDTO $request,
         PartSpecificationData $specification,
     ): void {
+        $payload = new PartSpecificationEventPayloadDTO(
+            id: (int) $specification->id,
+            partableType: $specification->partableType instanceof PartableTypeEnum ? $specification->partableType : PartableTypeEnum::from((string) $specification->partableType),
+            partableId: $specification->partableId,
+            template: $specification->template,
+            details: $specification->details,
+            featureValueId: $specification->featureValueId,
+            name: $specification->name,
+            text: $specification->text,
+        );
+
         event(new PartSpecificationUpdated(
             userId: $request->userId,
             operationId: $request->operationId,
-            specification: $specification->toArray(),
+            specification: $payload,
         ));
     }
 

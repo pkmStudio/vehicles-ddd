@@ -43,7 +43,7 @@ final class KitPropertiesServiceTest extends TestCase
 
     public function test_builds_properties_for_single_type_kit(): void
     {
-        $type = new TypeData(name: 'Колодки', id: 1);
+        $type = new TypeData(name: 'Колодки', char: 'BP', id: 1);
         $n1 = new NomenclatureData(typeId: 1, partNumber: 'BP-1', quantityInPak: 2, quantityPak: 1, weight: 100, material: ['NICKEL'], details: [], type: $type);
         $n2 = new NomenclatureData(typeId: 1, partNumber: 'BP-2', quantityInPak: 3, quantityPak: 2, weight: 150, material: [], details: [], type: $type);
 
@@ -79,8 +79,8 @@ final class KitPropertiesServiceTest extends TestCase
 
     public function test_excludes_adapter_from_primary_but_includes_its_weight(): void
     {
-        $wiperType = new TypeData(name: 'Щетки стеклоочистителя', id: 3);
-        $adapterType = new TypeData(name: 'Адаптер стеклоочистителя', id: 7);
+        $wiperType = new TypeData(name: 'Щетки стеклоочистителя', char: 'WB', id: 3);
+        $adapterType = new TypeData(name: 'Адаптер стеклоочистителя', char: 'AW', id: 7);
 
         $wiper = new NomenclatureData(typeId: 3, partNumber: 'WB-1', quantityInPak: 1, quantityPak: 1, weight: 100, material: [], details: ['category' => 'FRAMELESS'], type: $wiperType, brandId: 10);
         $adapter = new NomenclatureData(typeId: 7, partNumber: 'AW-1', quantityInPak: 5, quantityPak: 5, weight: 20, material: [], details: [], type: $adapterType, brandId: 20);
@@ -117,7 +117,7 @@ final class KitPropertiesServiceTest extends TestCase
 
     public function test_treats_unresolvable_pack_dimension_as_null(): void
     {
-        $type = new TypeData(name: 'Фильтр масляный', id: 4);
+        $type = new TypeData(name: 'Фильтр масляный', char: 'OF', id: 4);
         $n = new NomenclatureData(typeId: 4, partNumber: 'OF-1', quantityInPak: 1, quantityPak: 1, weight: 100, material: [], details: [], type: $type);
 
         $packaging = Mockery::mock(PackagingClientInterface::class);
@@ -147,8 +147,8 @@ final class KitPropertiesServiceTest extends TestCase
 
     public function test_throws_when_no_strategy_supports_combination(): void
     {
-        $type1 = new TypeData(name: 'Колодки', id: 1);
-        $type2 = new TypeData(name: 'Свечи зажигания', id: 2);
+        $type1 = new TypeData(name: 'Колодки', char: 'BP', id: 1);
+        $type2 = new TypeData(name: 'Свечи зажигания', char: 'SP', id: 2);
         $n1 = new NomenclatureData(typeId: 1, partNumber: 'A', quantityInPak: 1, quantityPak: 1, weight: 1, material: [], details: [], type: $type1);
         $n2 = new NomenclatureData(typeId: 2, partNumber: 'B', quantityInPak: 1, quantityPak: 1, weight: 1, material: [], details: [], type: $type2);
 

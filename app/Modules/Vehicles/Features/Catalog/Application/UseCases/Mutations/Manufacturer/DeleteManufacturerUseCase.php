@@ -9,7 +9,6 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\Manufact
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogCascadeDeleteServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Mutations\Manufacturer\DeleteManufacturerUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Manufacturer\DeleteManufacturerRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
@@ -21,7 +20,7 @@ use Throwable;
 /**
  * Оркестрирует сценарий мутации производителей из внешнего сообщения.
  */
-final readonly class DeleteManufacturerUseCase implements DeleteManufacturerUseCaseInterface
+final readonly class DeleteManufacturerUseCase
 {
     /**
      * Получает порты delete manufacturer workflow.
@@ -51,7 +50,6 @@ final readonly class DeleteManufacturerUseCase implements DeleteManufacturerUseC
     public function execute(DeleteManufacturerRequestDTO $request): ?CatalogMutationResultDTO
     {
         $operationAccepted = $this->cache->accept($request->operationId);
-
         if (! $operationAccepted) {
             return null;
         }

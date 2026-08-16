@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\StartKitMutationUseCaseInterface;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\StartKitMutationUseCase;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitMutationRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Validators\KitMutationPayloadValidator;
@@ -26,7 +26,7 @@ final readonly class KitMutationRequestedHandler
      * 3. Получает reporter для contract mismatch результата.
      */
     public function __construct(
-        private StartKitMutationUseCaseInterface $useCase,
+        private StartKitMutationUseCase $useCase,
         private KitMutationPayloadValidator $validator,
         private WarehouseCatalogMutationContractMismatchReporter $contractMismatchReporter,
     ) {}

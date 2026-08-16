@@ -29,11 +29,11 @@ final readonly class CreateVehicleRequestDTO
         public SteeringTypeEnum $steeringType,
         public string $generation,
         public int $generationYearFrom,
+        public bool $isAllow,
         public ?int $parentMsId = null,
         public ?string $generationShort = null,
         public ?string $localizedName = null,
         public ?string $excelTableId = null,
         public ?int $generationYearTo = null,
-        public bool $isAllow = false,
     ) {}
 }

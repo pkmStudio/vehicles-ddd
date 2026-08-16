@@ -7,6 +7,7 @@ namespace App\Modules\Vehicles\Features\Export\Infrastructure\Exports;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
@@ -50,7 +51,7 @@ abstract readonly class AbstractMultiSheetExport implements WithMultipleSheets
      * Шаги:
      * 1) Собрать concrete sheet export adapters в порядке Excel workbook.
      *
-     * @return array<int, object>
+     * @return array<int, WithTitle>
      */
     abstract public function sheets(): array;
 }

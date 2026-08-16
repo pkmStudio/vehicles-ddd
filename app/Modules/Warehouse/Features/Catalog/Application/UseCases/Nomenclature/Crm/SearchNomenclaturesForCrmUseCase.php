@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Nomenclature\Crm;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmRepositoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Nomenclature\Crm\SearchNomenclaturesForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmSearchItemDTO;
 use Illuminate\Support\Collection;
 
 /**
  * Оркестрирует CRM search-сценарий Warehouse-номенклатуры.
  */
-final readonly class SearchNomenclaturesForCrmUseCase implements SearchNomenclaturesForCrmUseCaseInterface
+final readonly class SearchNomenclaturesForCrmUseCase
 {
     /**
      * Инициализирует зависимости сценария.

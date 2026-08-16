@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Application\UseCases\Catalog\Manufacturer;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\UseCases\Catalog\Manufacturer\ListManufacturersForCatalogUseCaseInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog\CatalogManufacturerDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ManufacturerData;
 use Illuminate\Support\Collection;
@@ -13,7 +12,7 @@ use Illuminate\Support\Collection;
 /**
  * Возвращает REST-список производителей публичного каталога.
  */
-final readonly class ListManufacturersForCatalogUseCase implements ListManufacturersForCatalogUseCaseInterface
+final readonly class ListManufacturersForCatalogUseCase
 {
     /**
      * Подключает репозиторий производителей публичного каталога.

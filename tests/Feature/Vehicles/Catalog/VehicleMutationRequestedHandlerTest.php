@@ -8,10 +8,12 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutat
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
+use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationStatusEnum;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
+use App\Modules\Vehicles\Shared\Domain\Enums\Engine\EngineTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\PartableTypeEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\CarcaseTypeEnum;
@@ -401,6 +403,43 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
         ]);
     }
 
+    public function test_delete_td_vehicle_message_is_rejected(): void
+    {
+        $manufacturer = $this->createManufacturer();
+        $vehicle = $this->createVehicle(
+            msId: 507,
+            manufacturer: $manufacturer,
+            provider: ProviderEnum::TD,
+        );
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(function (CatalogMutationResultDTO $result) use ($vehicle): bool {
+                return $result->entity === CatalogEntityEnum::Vehicle
+                    && $result->operation === CatalogMutationOperationEnum::Delete
+                    && $result->status === CatalogMutationStatusEnum::Rejected
+                    && $result->reason === CatalogMutationRejectReasonEnum::ProviderDeleteForbidden->value
+                    && $result->operationId === 'vehicle-delete-td-1'
+                    && $result->externalId === 507
+                    && $result->recordId === $vehicle->id;
+            }));
+
+        app(VehicleMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'vehicle-delete-td-1',
+            'operation' => 'delete',
+            'vehicle' => [
+                'ms_id' => 507,
+            ],
+        ]);
+
+        $this->assertDatabaseHas('vehicles', [
+            'ms_id' => 507,
+            'provider' => ProviderEnum::TD->value,
+        ]);
+    }
+
     public function test_delete_vehicle_message_cascades_related_records(): void
     {
         $manufacturer = $this->createManufacturer();
@@ -412,6 +451,13 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
             'ms_id' => $vehicle->ms_id,
             'mod_id' => 7001,
             'type' => VehicleTypeEnum::PC->value,
+            'year_from' => 2013,
+            'description' => '1.4 TSI',
+            'power_ps' => 150,
+            'power_kw' => 110,
+            'engine_type' => EngineTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => json_encode(['year_from', 'year_to']),
         ]);
 
         DB::table('part_specifications')->insert([
@@ -504,7 +550,7 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
         ?int $parentId = null,
         string $name = 'Octavia',
         ProviderEnum $provider = ProviderEnum::OD,
-        ?string $generation = null,
+        string $generation = 'III',
         CarcaseTypeEnum $typeCarcase = CarcaseTypeEnum::HATCHBACK,
     ): Vehicle {
         return Vehicle::query()->create([

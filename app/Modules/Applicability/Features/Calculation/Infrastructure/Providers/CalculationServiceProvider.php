@@ -12,7 +12,6 @@ use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\Wi
 use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\WiperDataExtractor;
 use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\WiperLengthExtractor;
 use App\Modules\Applicability\Features\Calculation\Application\Services\Wiper\WiperVehicleFinder;
-use App\Modules\Applicability\Features\Calculation\Application\UseCases\CalculateKitApplicabilityUseCase;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\VehiclesApplicabilityClientInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Clients\WarehouseKitClientInterface;
@@ -27,7 +26,6 @@ use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wip
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperDataExtractorInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperLengthExtractorInterface;
 use App\Modules\Applicability\Features\Calculation\Domain\Contracts\Services\Wiper\WiperVehicleFinderInterface;
-use App\Modules\Applicability\Features\Calculation\Domain\Contracts\UseCases\CalculateKitApplicabilityUseCaseInterface;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\VehiclesApplicabilityClient;
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Clients\WarehouseKitClient;
@@ -70,10 +68,6 @@ final class CalculationServiceProvider extends ServiceProvider
         CalculationNotificationServiceInterface::class => RabbitMqCalculationNotificationService::class,
     ];
 
-    private const array USE_CASE_BINDINGS = [
-        CalculateKitApplicabilityUseCaseInterface::class => CalculateKitApplicabilityUseCase::class,
-    ];
-
     /**
      * Регистрирует DI bindings calculation-фичи.
      *
@@ -101,10 +95,6 @@ final class CalculationServiceProvider extends ServiceProvider
         }
 
         foreach (self::NOTIFICATION_BINDINGS as $interface => $implementation) {
-            $this->app->bind($interface, $implementation);
-        }
-
-        foreach (self::USE_CASE_BINDINGS as $interface => $implementation) {
             $this->app->bind($interface, $implementation);
         }
 

@@ -7,6 +7,7 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\VehicleCommandImportInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Vehicle\VehicleCommandImported;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNotFoundException;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleTdRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -26,6 +27,10 @@ use Maatwebsite\Excel\Validators\Failure;
  */
 final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToCollection, VehicleCommandImportInterface, WithChunkReading, WithEvents, WithStartRow
 {
+    private ?UpsertVehicleFromTdRowServiceInterface $service = null;
+
+    private ?VehicleTdRowMapper $rowMapper = null;
+
     /**
      * Запустить командный импорт ТС.
      *
@@ -55,40 +60,24 @@ final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToColle
      *
      * Шаги:
      * 1) Получить сервис записи ТС и маппер TecDoc-строки из контейнера.
-     * 2) Сохранить ТС и отдельно зафиксировать ошибку, если производитель не найден.
-     * 3) Передать ошибки валидации строки в общий помощник ошибок Laravel Excel.
+     * 2) Сохранить ТС или получить ошибку строки от маппера/сервиса.
+     * 3) Передать ошибки строки в общий обработчик Laravel Excel.
      */
     public function collection(Collection $collection): void
     {
-        $service = app(UpsertVehicleFromTdRowServiceInterface::class);
-        $rowMapper = app(VehicleTdRowMapper::class);
+        $service = $this->service();
+        $rowMapper = $this->rowMapper();
 
         foreach ($collection as $index => $row) {
             $line = $index + $this->startRow();
             $rowValues = $row->toArray();
             try {
                 $vehicleRow = $rowMapper->map($rowValues);
-                $vehicle = $service->upsertFromRow($vehicleRow);
-
-                if (! $vehicle) {
-                    $this->fail($line, "Производитель mfa_id={$vehicleRow->mfaId} не найден", $rowValues);
-                }
-            } catch (ImportRowValidationException $e) {
-                $this->fail($line, $e->errors(), $rowValues);
+                $service->upsertFromRow($vehicleRow);
+            } catch (ImportRowValidationException|ImportRowReferenceNotFoundException $e) {
+                $this->onFailure(new Failure($line, 'ТС', $e->errors(), $rowValues));
             }
         }
-    }
-
-    /**
-     * Превратить ошибку строки ТС в ошибку Laravel Excel.
-     *
-     * Шаги:
-     * 1) Привести строку или массив ошибок к массиву.
-     * 2) Сохранить ошибку с атрибутом «ТС» и исходными значениями строки.
-     */
-    private function fail(int $row, string|array $errors, array $values): void
-    {
-        $this->onFailure(new Failure($row, 'ТС', (array) $errors, $values));
     }
 
     /**
@@ -146,5 +135,29 @@ final class VehicleCommandImport implements ShouldQueue, SkipsOnFailure, ToColle
     public static function afterImport(): void
     {
         event(new VehicleCommandImported);
+    }
+
+    /**
+     * Получить сервис сохранения ТС из TecDoc-строки.
+     *
+     * Шаги:
+     * 1) Лениво получить сервис из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
+     */
+    private function service(): UpsertVehicleFromTdRowServiceInterface
+    {
+        return $this->service ??= app(UpsertVehicleFromTdRowServiceInterface::class);
+    }
+
+    /**
+     * Получить маппер TecDoc-строки ТС.
+     *
+     * Шаги:
+     * 1) Лениво получить маппер из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
+     */
+    private function rowMapper(): VehicleTdRowMapper
+    {
+        return $this->rowMapper ??= app(VehicleTdRowMapper::class);
     }
 }

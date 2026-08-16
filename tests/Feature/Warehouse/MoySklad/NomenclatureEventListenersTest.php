@@ -6,6 +6,8 @@ namespace Tests\Feature\Warehouse\MoySklad;
 
 use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Jobs\DeleteNomenclatureJob;
 use App\Modules\Warehouse\Features\MoySklad\Infrastructure\Jobs\SyncNomenclatureJob;
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\NomenclatureEventPayloadDTO;
+use App\Modules\Warehouse\Shared\Domain\DTOs\Events\NomenclatureIntegrationDeletionContextDTO;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureCreated;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureDeleted;
 use App\Modules\Warehouse\Shared\Domain\Events\Nomenclature\NomenclatureUpdated;
@@ -36,13 +38,13 @@ final class NomenclatureEventListenersTest extends TestCase
         event(new NomenclatureCreated(
             userId: 42,
             operationId: 'op-create',
-            nomenclature: ['id' => 10],
+            nomenclature: $this->nomenclaturePayload(),
         ));
 
         event(new NomenclatureUpdated(
             userId: 42,
             operationId: 'op-update',
-            nomenclature: ['id' => 10],
+            nomenclature: $this->nomenclaturePayload(),
         ));
 
         Queue::assertPushed(SyncNomenclatureJob::class, 2);
@@ -59,14 +61,33 @@ final class NomenclatureEventListenersTest extends TestCase
             nomenclatureId: 10,
             partNumber: 'BP-10',
             integrations: [
-                [
-                    'id' => 5,
-                    'provider' => 'moysklad',
-                    'external_id' => '33333333-3333-3333-3333-333333333333',
-                ],
+                new NomenclatureIntegrationDeletionContextDTO(
+                    id: 5,
+                    provider: 'moysklad',
+                    externalId: '33333333-3333-3333-3333-333333333333',
+                ),
             ],
         ));
 
         Queue::assertPushed(DeleteNomenclatureJob::class);
+    }
+
+    private function nomenclaturePayload(): NomenclatureEventPayloadDTO
+    {
+        return new NomenclatureEventPayloadDTO(
+            id: 10,
+            typeId: 1,
+            brandId: 2,
+            name: 'Щетка',
+            country: 'RU',
+            partNumber: 'BP-10',
+            color: 'black',
+            weight: 100,
+            material: ['rubber'],
+            vehicleType: ['passenger'],
+            quantityPak: 1,
+            quantityInPak: 1,
+            details: [],
+        );
     }
 }

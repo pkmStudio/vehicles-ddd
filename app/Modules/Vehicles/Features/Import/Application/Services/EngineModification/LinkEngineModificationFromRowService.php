@@ -6,8 +6,11 @@ namespace App\Modules\Vehicles\Features\Import\Application\Services\EngineModifi
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineModificationCommandInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\EngineModificationDataFactoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\EngineModification\LinkEngineModificationFromRowServiceInterface;
-use App\Modules\Vehicles\Features\Import\Domain\DTOs\EngineModification\EngineModificationCommandRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\DTOs\EngineModification\EngineModificationRowDTO;
+use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowReferenceNotFoundException;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 
 /**
@@ -21,29 +24,38 @@ final readonly class LinkEngineModificationFromRowService implements LinkEngineM
      * Шаги:
      * 1) Сохранить command записи pivot-связи.
      * 2) Сохранить factory валидации и сборки `EngineModificationData`.
+     * 3) Сохранить repositories для проверки существования связанных engine/modification.
      */
     public function __construct(
         private EngineModificationCommandInterface $command,
         private EngineModificationDataFactoryInterface $factory,
+        private EngineRepositoryInterface $engines,
+        private ModificationRepositoryInterface $modifications,
     ) {}
 
     /**
-     * Связывает двигатель и модификацию из command import row.
+     * Связывает двигатель и модификацию из import row DTO.
      *
      * Шаги:
-     * 1) Собрать raw row array из typed command DTO.
+     * 1) Передать typed row DTO в factory.
      * 2) Валидировать и преобразовать строку в `EngineModificationData`.
-     * 3) Синхронизировать pivot-связь без удаления существующих связей.
+     * 3) Проверить, что engine и modification уже существуют.
+     * 4) Синхронизировать pivot-связь без удаления существующих связей.
      *
      * @throws ImportRowValidationException
+     * @throws ImportRowReferenceNotFoundException
      */
-    public function linkFromRow(EngineModificationCommandRowDTO $row): void
+    public function linkFromRow(EngineModificationRowDTO $row): void
     {
-        $data = $this->factory->make([
-            'eng_id' => $row->engId,
-            'mod_id' => $row->modId,
-            'type' => $row->type,
-        ]);
+        $data = $this->factory->make($row);
+
+        if ($this->engines->findByEngId($data->engId) === null) {
+            throw ImportRowReferenceNotFoundException::withMessage("Двигатель eng_id={$data->engId} не найден.");
+        }
+
+        if ($this->modifications->findByModIdAndType($data->modId, $data->type->value) === null) {
+            throw ImportRowReferenceNotFoundException::withMessage("Модификация mod_id={$data->modId}, type={$data->type->value} не найдена.");
+        }
 
         $this->command->syncWithoutDetaching($data);
     }

@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\Kit\Crm;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitCrmRepositoryInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\Kit\Crm\ShowKitForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\Crm\KitCrmListItemDTO;
 
 /**
  * Оркестрирует CRM read-сценарий detail-снимка комплекта.
  */
-final readonly class ShowKitForCrmUseCase implements ShowKitForCrmUseCaseInterface
+final readonly class ShowKitForCrmUseCase
 {
     /**
      * Инициализирует порт репозитория комплектов для CRM detail-сценария.

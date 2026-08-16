@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer;
 
 use App\Modules\Vehicles\Features\Import\Domain\Contracts\Imports\Command\ManufacturerCommandImportInterface;
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromRowServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Manufacturer\UpsertManufacturerFromTdRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Events\Manufacturer\ManufacturerCommandImported;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
-use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\Mappers\ManufacturerCommandRowMapper;
+use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\Mappers\ManufacturerTdRowMapper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -26,56 +26,9 @@ use Maatwebsite\Excel\Validators\Failure;
  */
 final class ManufacturerCommandImport implements ManufacturerCommandImportInterface, ShouldQueue, SkipsOnFailure, ToCollection, WithChunkReading, WithEvents, WithStartRow
 {
-    private ?UpsertManufacturerFromRowServiceInterface $service = null;
+    private ?UpsertManufacturerFromTdRowServiceInterface $service = null;
 
-    private ?ManufacturerCommandRowMapper $rowMapper = null;
-
-    /**
-     * Получить зависимости для прямого запуска командного импорта производителей.
-     *
-     * Шаги:
-     * 1) Принять сервис сохранения производителя из строки.
-     * 2) Принять маппер командной строки производителя.
-     * 3) Сохранить зависимости до сериализации задания очереди.
-     */
-    public function __construct(
-        UpsertManufacturerFromRowServiceInterface $service,
-        ManufacturerCommandRowMapper $rowMapper,
-    ) {
-        $this->service = $service;
-        $this->rowMapper = $rowMapper;
-    }
-
-    /**
-     * Подготовить импорт к сериализации в очередь.
-     *
-     * Шаги:
-     * 1) Не сохранять сервис записи производителя.
-     * 2) Не сохранять маппер строки.
-     * 3) Оставить импорт в очереди сериализуемым без графа зависимостей.
-     *
-     * @return array<string, mixed>
-     */
-    public function __serialize(): array
-    {
-        return [];
-    }
-
-    /**
-     * Восстановить импорт после очереди.
-     *
-     * Шаги:
-     * 1) Сбросить сервис записи производителя.
-     * 2) Сбросить маппер строки.
-     * 3) Позволить методам ленивого получения зависимостей обратиться к контейнеру при обработке.
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function __unserialize(array $data): void
-    {
-        $this->service = null;
-        $this->rowMapper = null;
-    }
+    private ?ManufacturerTdRowMapper $rowMapper = null;
 
     /**
      * Запустить командный импорт производителей.
@@ -118,7 +71,6 @@ final class ManufacturerCommandImport implements ManufacturerCommandImportInterf
             $rowValues = $row->toArray();
             try {
                 $manufacturerRow = $rowMapper->map($rowValues);
-
                 $service->upsertFromRow($manufacturerRow);
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(new Failure(
@@ -192,23 +144,23 @@ final class ManufacturerCommandImport implements ManufacturerCommandImportInterf
      * Получить сервис сохранения производителя.
      *
      * Шаги:
-     * 1) Вернуть уже переданный сервис, если импорт не проходил через очередь.
-     * 2) Иначе резолвить сервис из контейнера во время обработки.
+     * 1) Лениво получить сервис из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
-    private function service(): UpsertManufacturerFromRowServiceInterface
+    private function service(): UpsertManufacturerFromTdRowServiceInterface
     {
-        return $this->service ??= app(UpsertManufacturerFromRowServiceInterface::class);
+        return $this->service ??= app(UpsertManufacturerFromTdRowServiceInterface::class);
     }
 
     /**
-     * Получить маппер командной строки производителя.
+     * Получить маппер TecDoc-строки производителя.
      *
      * Шаги:
-     * 1) Вернуть уже переданный маппер, если импорт не проходил через очередь.
-     * 2) Иначе резолвить маппер из контейнера во время обработки.
+     * 1) Лениво получить маппер из контейнера во время обработки.
+     * 2) Закешировать resolved instance на время обработки.
      */
-    private function rowMapper(): ManufacturerCommandRowMapper
+    private function rowMapper(): ManufacturerTdRowMapper
     {
-        return $this->rowMapper ??= app(ManufacturerCommandRowMapper::class);
+        return $this->rowMapper ??= app(ManufacturerTdRowMapper::class);
     }
 }

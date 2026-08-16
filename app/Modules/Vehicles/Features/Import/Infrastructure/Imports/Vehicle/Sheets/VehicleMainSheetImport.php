@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Sheets;
 
-use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromSheetServiceInterface;
+use App\Modules\Vehicles\Features\Import\Domain\Contracts\Services\Vehicle\UpsertVehicleFromRowServiceInterface;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Vehicle\Mappers\VehicleSheetRowMapper;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Traits\CachesImportFailures;
@@ -22,6 +22,10 @@ use Maatwebsite\Excel\Validators\Failure;
 final class VehicleMainSheetImport implements ShouldQueue, SkipsOnFailure, ToCollection, WithStartRow
 {
     use CachesImportFailures;
+
+    private ?UpsertVehicleFromRowServiceInterface $service = null;
+
+    private ?VehicleSheetRowMapper $rowMapper = null;
 
     /**
      * Получить ключи отчёта ошибок для листа ТС.
@@ -48,16 +52,15 @@ final class VehicleMainSheetImport implements ShouldQueue, SkipsOnFailure, ToCol
      */
     public function collection(Collection $collection): void
     {
-        $upsertVehicle = $this->upsertVehicle();
+        $service = $this->service();
         $rowMapper = $this->rowMapper();
 
         foreach ($collection as $indexRow => $row) {
             $rowValues = $row->toArray();
             try {
-                DB::transaction(function () use ($rowMapper, $rowValues, $upsertVehicle): void {
+                DB::transaction(function () use ($rowMapper, $rowValues, $service): void {
                     $vehicleRow = $rowMapper->map($rowValues);
-
-                    $upsertVehicle->upsertFromRow($vehicleRow);
+                    $service->upsertFromRow($vehicleRow);
                 });
             } catch (ImportRowValidationException $e) {
                 $this->onFailure(
@@ -91,9 +94,9 @@ final class VehicleMainSheetImport implements ShouldQueue, SkipsOnFailure, ToCol
      * 1) Резолвить сервис из контейнера во время обработки queued job.
      * 2) Не хранить dependency graph в сериализованном Excel-адаптере.
      */
-    private function upsertVehicle(): UpsertVehicleFromSheetServiceInterface
+    private function service(): UpsertVehicleFromRowServiceInterface
     {
-        return app(UpsertVehicleFromSheetServiceInterface::class);
+        return $this->service ??= app(UpsertVehicleFromRowServiceInterface::class);
     }
 
     /**
@@ -105,6 +108,6 @@ final class VehicleMainSheetImport implements ShouldQueue, SkipsOnFailure, ToCol
      */
     private function rowMapper(): VehicleSheetRowMapper
     {
-        return app(VehicleSheetRowMapper::class);
+        return $this->rowMapper ??= app(VehicleSheetRowMapper::class);
     }
 }

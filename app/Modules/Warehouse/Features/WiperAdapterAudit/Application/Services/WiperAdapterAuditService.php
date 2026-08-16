@@ -203,8 +203,8 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
             return null;
         }
 
-        $char = $type->char === null ? null : mb_strtoupper(trim($type->char));
-        if ($char !== null && isset(self::TEMPLATE_BY_CHAR[$char])) {
+        $char = mb_strtoupper(trim($type->char));
+        if (isset(self::TEMPLATE_BY_CHAR[$char])) {
             return self::TEMPLATE_BY_CHAR[$char];
         }
 
@@ -218,19 +218,18 @@ final readonly class WiperAdapterAuditService implements WiperAdapterAuditServic
     }
 
     /**
-     * Нормализует значение details adapter_type_front к списку строковых enum names.
+     * Нормализует список details adapter_type_front к списку строковых enum names.
      * Шаги:
-     * 1) Для non-array значения использовать пустой список.
-     * 2) Привести каждый adapter к trimmed string.
-     * 3) Отфильтровать пустые значения.
-     * 4) Вернуть плотный list<string>.
+     * 1) Обрезать пробелы у каждого adapter.
+     * 2) Отфильтровать пустые значения.
+     * 3) Вернуть плотный list<string>.
      *
+     * @param  list<string>  $value
      * @return list<string>
      */
-    private function adapterList(mixed $value): array
+    private function adapterList(array $value): array
     {
-        $value = is_array($value) ? $value : [];
-        $trimAdapter = fn (mixed $adapter): string => trim((string) $adapter);
+        $trimAdapter = fn (string $adapter): string => trim($adapter);
         $isFilledAdapter = fn (string $adapter): bool => $adapter !== '';
 
         $value = array_map(

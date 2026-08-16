@@ -7,6 +7,7 @@ namespace Tests\Unit\Vehicles\Import;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Manufacturer\Mappers\ManufacturerSheetRowMapper;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Tests\TestCase;
 
 /**
@@ -23,7 +24,7 @@ final class ManufacturerSheetRowMapperTest extends TestCase
 
         $this->assertSame(101, $row->mfaId);
         $this->assertSame('Test Motors', $row->name);
-        $this->assertSame('OD', $row->provider);
+        $this->assertSame(ProviderEnum::OD, $row->provider);
     }
 
     public function test_missing_provider_throws_validation_exception(): void
@@ -32,6 +33,16 @@ final class ManufacturerSheetRowMapperTest extends TestCase
 
         $this->expectException(ImportRowValidationException::class);
         $mapper->map([101, 'Test Motors', null]);
+    }
+
+    public function test_invalid_provider_throws_validation_exception(): void
+    {
+        $mapper = new ManufacturerSheetRowMapper(new ImportRowValueFormatter);
+
+        $this->expectException(ImportRowValidationException::class);
+        $this->expectExceptionMessage('Поле provider: недопустимое значение.');
+
+        $mapper->map([101, 'Test Motors', 'bad-provider']);
     }
 
     public function test_missing_mfa_id_throws_validation_exception(): void

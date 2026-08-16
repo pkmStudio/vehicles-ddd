@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension;
 
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\CreatePackDimensionUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\DeletePackDimensionUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\StartPackDimensionMutationUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\UpdatePackDimensionUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\CreatePackDimensionRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\DeletePackDimensionRequestDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\PackDimensionMutationRequestDTO;
@@ -18,7 +14,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutation
 /**
  * Оркестрирует старт мутации упаковочного размера Warehouse из внешнего сообщения.
  */
-final readonly class StartPackDimensionMutationUseCase implements StartPackDimensionMutationUseCaseInterface
+final readonly class StartPackDimensionMutationUseCase
 {
     /**
      * Инициализирует use case конкретных операций.
@@ -28,9 +24,9 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
      * 3) Сохранить сценарий удаления упаковочного размера Warehouse.
      */
     public function __construct(
-        private CreatePackDimensionUseCaseInterface $createPackDimension,
-        private UpdatePackDimensionUseCaseInterface $updatePackDimension,
-        private DeletePackDimensionUseCaseInterface $deletePackDimension,
+        private CreatePackDimensionUseCase $createPackDimension,
+        private UpdatePackDimensionUseCase $updatePackDimension,
+        private DeletePackDimensionUseCase $deletePackDimension,
     ) {}
 
     /**
@@ -54,7 +50,7 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
      * Делегирует создание упаковочного размера профильному use case.
      * Шаги:
      * 1) Получить CreatePackDimensionRequestDTO из общего request.
-     * 2) Передать DTO в CreatePackDimensionUseCaseInterface.
+     * 2) Передать DTO в CreatePackDimensionUseCase.
      * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function create(PackDimensionMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
@@ -68,7 +64,7 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
      * Делегирует обновление упаковочного размера профильному use case.
      * Шаги:
      * 1) Получить UpdatePackDimensionRequestDTO из общего request.
-     * 2) Передать DTO в UpdatePackDimensionUseCaseInterface.
+     * 2) Передать DTO в UpdatePackDimensionUseCase.
      * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function update(PackDimensionMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO
@@ -82,7 +78,7 @@ final readonly class StartPackDimensionMutationUseCase implements StartPackDimen
      * Делегирует удаление упаковочного размера профильному use case.
      * Шаги:
      * 1) Получить DeletePackDimensionRequestDTO из общего request.
-     * 2) Передать DTO в DeletePackDimensionUseCaseInterface.
+     * 2) Передать DTO в DeletePackDimensionUseCase.
      * 3) Вернуть DTO результата или null без дополнительной обработки.
      */
     private function delete(PackDimensionMutationRequestDTO $request): ?WarehouseCatalogMutationResultDTO

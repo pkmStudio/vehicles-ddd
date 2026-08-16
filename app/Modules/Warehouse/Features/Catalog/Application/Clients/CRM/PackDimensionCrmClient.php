@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM;
 
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\Crm\ListPackDimensionsForCrmUseCase;
+use App\Modules\Warehouse\Features\Catalog\Application\UseCases\PackDimension\Crm\ShowPackDimensionForCrmUseCase;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\PackDimensionCrmClientInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\Crm\ListPackDimensionsForCrmUseCaseInterface;
-use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\UseCases\PackDimension\Crm\ShowPackDimensionForCrmUseCaseInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Nomenclature\Crm\NomenclatureCrmOptionDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\Crm\PackDimensionCrmListItemDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\PackDimension\Crm\PackDimensionCrmPageDTO;
@@ -26,8 +26,8 @@ final readonly class PackDimensionCrmClient implements PackDimensionCrmClientInt
      * 2. Сохраняет зависимости как thin facade CRM read API.
      */
     public function __construct(
-        private ListPackDimensionsForCrmUseCaseInterface $list,
-        private ShowPackDimensionForCrmUseCaseInterface $show,
+        private ListPackDimensionsForCrmUseCase $list,
+        private ShowPackDimensionForCrmUseCase $show,
     ) {}
 
     /**

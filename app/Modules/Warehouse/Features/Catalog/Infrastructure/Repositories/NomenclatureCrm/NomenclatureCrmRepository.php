@@ -309,12 +309,12 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
         return new NomenclatureCrmListItemDTO(
             id: (int) $nomenclature->id,
             typeId: (int) $nomenclature->type_id,
-            typeName: $nomenclature->type?->name === null ? null : (string) $nomenclature->type->name,
-            typeChar: $nomenclature->type?->char === null ? null : (string) $nomenclature->type->char,
+            typeName: (string) $nomenclature->type->name,
+            typeChar: (string) $nomenclature->type->char,
             typeTemplate: $nomenclature->type === null ? null : $this->templateResolver->value($nomenclature->type),
             brandId: (int) $nomenclature->brand_id,
-            brandName: $nomenclature->brand?->name === null ? null : (string) $nomenclature->brand->name,
-            brandChar: $nomenclature->brand?->char === null ? null : (string) $nomenclature->brand->char,
+            brandName: (string) $nomenclature->brand->name,
+            brandChar: (string) $nomenclature->brand->char,
             name: (string) $nomenclature->name,
             country: (string) $nomenclature->country,
             partNumber: (string) $nomenclature->part_number,
@@ -351,7 +351,7 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
             id: (int) $type->id,
             label: (string) $type->name,
             meta: [
-                'char' => $type->char === null ? null : (string) $type->char,
+                'char' => (string) $type->char,
                 'template' => $this->templateResolver->value($type),
             ],
         );
@@ -363,7 +363,7 @@ final readonly class NomenclatureCrmRepository implements NomenclatureCrmReposit
             id: (int) $brand->id,
             label: (string) $brand->name,
             meta: [
-                'char' => $brand->char === null ? null : (string) $brand->char,
+                'char' => (string) $brand->char,
             ],
         );
     }

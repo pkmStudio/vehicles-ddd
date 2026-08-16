@@ -12,6 +12,22 @@ use App\Modules\Warehouse\Features\Import\Infrastructure\Imports\Formatters\Impo
  */
 final readonly class PackDimensionImportRowMapper
 {
+    private const int ID = 0;
+
+    private const int NAME = 1;
+
+    private const int WEIGHT = 2;
+
+    private const int WIDTH = 3;
+
+    private const int HEIGHT = 4;
+
+    private const int LENGTH = 5;
+
+    private const int PRICE = 6;
+
+    private const int TYPE = 7;
+
     private ImportRowValueFormatter $formatter;
 
     public function __construct(?ImportRowValueFormatter $formatter = null)
@@ -25,14 +41,14 @@ final readonly class PackDimensionImportRowMapper
     public function map(array $row): PackDimensionImportRowDTO
     {
         return new PackDimensionImportRowDTO(
-            id: $this->formatter->nullableInt($row[0] ?? null, 'ID'),
-            name: $this->formatter->requiredString($row[1] ?? null, 'Название коробки'),
-            weight: $this->formatter->positiveInt($row[2] ?? null, 'Вес'),
-            width: $this->formatter->positiveInt($row[3] ?? null, 'Ширина'),
-            height: $this->formatter->positiveInt($row[4] ?? null, 'Высота'),
-            length: $this->formatter->positiveInt($row[5] ?? null, 'Длина'),
-            price: $this->formatter->nonNegativeInt($row[6] ?? null, 'Цена'),
-            type: $this->formatter->requiredString($row[7] ?? null, 'Тип товара'),
+            id: $this->formatter->nullableInt($row[self::ID] ?? null, 'ID'),
+            name: $this->formatter->requiredString($row[self::NAME] ?? null, 'Название коробки'),
+            weight: $this->formatter->positiveInt($row[self::WEIGHT] ?? null, 'Вес'),
+            width: $this->formatter->positiveInt($row[self::WIDTH] ?? null, 'Ширина'),
+            height: $this->formatter->positiveInt($row[self::HEIGHT] ?? null, 'Высота'),
+            length: $this->formatter->positiveInt($row[self::LENGTH] ?? null, 'Длина'),
+            price: $this->formatter->nonNegativeInt($row[self::PRICE] ?? null, 'Цена'),
+            type: $this->formatter->requiredString($row[self::TYPE] ?? null, 'Тип товара'),
         );
     }
 }

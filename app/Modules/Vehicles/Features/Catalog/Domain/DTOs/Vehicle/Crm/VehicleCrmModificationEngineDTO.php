@@ -4,27 +4,29 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Сценарный снимок двигателя, привязанного к конкретной модификации CRM автомобиля.
  */
-final readonly class VehicleCrmModificationEngineDTO
+final readonly class VehicleCrmModificationEngineDTO implements HttpArraySerializableInterface
 {
     public function __construct(
         public int $modificationId,
         public int $id,
         public int $engId,
-        public ?string $codeEngine = null,
+        public string $codeEngine,
+        public int $powerKwStart,
+        public int $powerPsStart,
+        public string $fuelType,
+        public string $provider,
         public ?string $engineCapacity = null,
         public ?int $cylinderCount = null,
         public ?float $cylinderDiameter = null,
-        public ?int $powerKwStart = null,
         public ?int $powerKwUpto = null,
-        public ?int $powerPsStart = null,
         public ?int $powerPsUpto = null,
         public ?int $numberOfValves = null,
-        public ?string $fuelType = null,
         public ?int $groupId = null,
-        public string $provider = 'TD',
         public array $allowChangeFields = [],
     ) {}
 

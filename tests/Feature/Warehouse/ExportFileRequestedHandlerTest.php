@@ -7,7 +7,6 @@ namespace Tests\Feature\Warehouse;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Exports\FileExportInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Warehouse\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
-use App\Modules\Warehouse\Features\Export\Domain\Contracts\UseCases\External\StartExportUseCaseInterface;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportCompletionNotificationDTO;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\ExportRunContextDTO;
 use App\Modules\Warehouse\Features\Export\Domain\DTOs\KitExportFiltersDTO;
@@ -127,9 +126,6 @@ final class ExportFileRequestedHandlerTest extends TestCase
      */
     public function test_nomenclature_export_without_type_id_is_logged_and_skipped(): void
     {
-        $useCase = $this->mock(StartExportUseCaseInterface::class);
-        $useCase->shouldNotReceive('execute');
-
         Log::shouldReceive('error')
             ->once()
             ->with(

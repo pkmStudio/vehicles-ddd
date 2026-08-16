@@ -16,7 +16,7 @@ final class WarehouseKitForApplicabilityDTO extends Data
         public readonly int $typeId,
         public readonly int $quantityInPackage,
         public readonly bool $isActive,
+        public readonly WarehouseTypeForApplicabilityDTO $type,
         public readonly array $nomenclatures = [],
-        public readonly ?WarehouseTypeForApplicabilityDTO $type = null,
     ) {}
 }

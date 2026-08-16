@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\Catalog;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
 
 /**
  * Публичная REST-проекция модификации ТС для каталога.
  */
-final readonly class CatalogModificationDTO
+final readonly class CatalogModificationDTO implements HttpArraySerializableInterface
 {
     /**
      * Хранит публичные поля модификации для ответа каталога.
@@ -19,12 +20,12 @@ final readonly class CatalogModificationDTO
         public int $modId,
         public int $vehicleId,
         public int $msId,
-        public ?int $yearFrom,
+        public int $yearFrom,
         public ?int $yearTo,
-        public ?string $description,
-        public ?int $powerPs,
-        public ?int $powerKw,
-        public ?string $engineType,
+        public string $description,
+        public int $powerPs,
+        public int $powerKw,
+        public string $engineType,
         public ?string $gearType,
         public ?string $driveType,
         public ?string $brakeSystemType,
@@ -47,7 +48,7 @@ final readonly class CatalogModificationDTO
             description: $modification->description,
             powerPs: $modification->powerPs,
             powerKw: $modification->powerKw,
-            engineType: $modification->engineType?->value,
+            engineType: $modification->engineType->value,
             gearType: $modification->gearType?->value,
             driveType: $modification->driveType?->value,
             brakeSystemType: $modification->brakeSystemType?->value,

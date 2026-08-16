@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\Crm;
 
+use App\Support\Http\Contracts\HttpArraySerializableInterface;
+
 /**
  * Read-only снимок двигателя для CRM каталога.
  */
-final readonly class EngineCrmListItemDTO
+final readonly class EngineCrmListItemDTO implements HttpArraySerializableInterface
 {
     /**
      * @param  list<string>  $allowChangeFields
@@ -15,19 +17,19 @@ final readonly class EngineCrmListItemDTO
     public function __construct(
         public int $id,
         public int $engId,
-        public ?string $codeEngine = null,
+        public string $codeEngine,
+        public int $powerKwStart,
+        public int $powerPsStart,
+        public string $fuelType,
+        public string $provider,
+        public array $allowChangeFields,
         public ?string $engineCapacity = null,
         public ?int $cylinderCount = null,
         public ?float $cylinderDiameter = null,
-        public ?int $powerKwStart = null,
         public ?int $powerKwUpto = null,
-        public ?int $powerPsStart = null,
         public ?int $powerPsUpto = null,
         public ?int $numberOfValves = null,
-        public ?string $fuelType = null,
         public ?int $groupId = null,
-        public string $provider = 'TD',
-        public array $allowChangeFields = [],
         public int $modificationsCount = 0,
     ) {}
 

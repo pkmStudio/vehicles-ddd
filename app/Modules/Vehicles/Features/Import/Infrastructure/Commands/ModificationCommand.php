@@ -30,14 +30,14 @@ final readonly class ModificationCommand implements ModificationCommandInterface
     }
 
     /**
-     * Обновить modification row по mod_id/type через Eloquent.
+     * Обновить modification row через Eloquent.
      *
      * Шаги:
-     * 1) Найти modification по натуральному ключу mod_id/type.
+     * 1) Найти modification по натуральному ключу mod_id/type из ModificationData.
      * 2) Обновить writable fields из ModificationData.
      * 3) Refresh model и вернуть ModificationData snapshot.
      */
-    public function updateByModIdAndType(ModificationData $data): ModificationData
+    public function update(ModificationData $data): ModificationData
     {
         $modification = Modification::query()
             ->where('mod_id', $data->modId)
