@@ -55,7 +55,7 @@ final class EngineMultiSheetExportTest extends TestCase
             'code_engine' => 'M54B30',
             'power_kw_start' => 170,
             'power_ps_start' => 231,
-            'engine_capacity' => '2979',
+            'engine_capacity' => 2979.0,
             'cylinder_count' => 6,
             'fuel_type' => 'бензин',
             'provider' => ProviderEnum::TD->value,

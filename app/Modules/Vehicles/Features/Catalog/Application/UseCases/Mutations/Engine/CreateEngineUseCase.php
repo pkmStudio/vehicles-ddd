@@ -58,10 +58,10 @@ final readonly class CreateEngineUseCase
             return null;
         }
 
-        $engId = $request->engId ?? 0;
+        $engId = 0;
 
         try {
-            $engId = $request->engId ?? $this->engines->nextOwnEngId();
+            $engId = $this->engines->nextOwnEngId();
             $existingEngine = $this->engines->findByEngId($engId);
 
             if ($existingEngine !== null) {

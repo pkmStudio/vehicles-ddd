@@ -40,9 +40,9 @@ final class EngineCrmReadApiTest extends TestCase
 
     public function test_index_returns_filtered_sorted_paginated_engines(): void
     {
-        $czda = $this->createEngine(engId: 5001, codeEngine: 'CZDA', capacity: '1.4');
-        $dkza = $this->createEngine(engId: 5002, codeEngine: 'DKZA', capacity: '2.0');
-        $this->createEngine(engId: 5003, codeEngine: 'ABC', capacity: '1.6', provider: ProviderEnum::OD);
+        $czda = $this->createEngine(engId: 5001, codeEngine: 'CZDA', capacity: 1.4);
+        $dkza = $this->createEngine(engId: 5002, codeEngine: 'DKZA', capacity: 2.1);
+        $this->createEngine(engId: 5003, codeEngine: 'ABC', capacity: 1.6, provider: ProviderEnum::OD);
         $this->attachModification($czda);
         $this->attachModification($czda);
         $this->attachModification($dkza);
@@ -55,7 +55,7 @@ final class EngineCrmReadApiTest extends TestCase
             ->assertJsonPath('data.0.code_engine', 'DKZA')
             ->assertJsonPath('data.1.code_engine', 'CZDA')
             ->assertJsonPath('data.1.eng_id', 5001)
-            ->assertJsonPath('data.1.engine_capacity', '1.4')
+            ->assertJsonPath('data.1.engine_capacity', 1.4)
             ->assertJsonPath('data.1.modifications_count', 2);
 
         $wireEngine = WireEngineCrmResource::fromArray($response->json('data.0'));
@@ -67,7 +67,7 @@ final class EngineCrmReadApiTest extends TestCase
 
     public function test_show_returns_engine_details(): void
     {
-        $engine = $this->createEngine(engId: 5001, codeEngine: 'CZDA', capacity: '1.4');
+        $engine = $this->createEngine(engId: 5001, codeEngine: 'CZDA', capacity: 1.4);
         $this->attachModification($engine);
 
         $response = $this->getJson("/api/v1/crm/vehicles/engines/{$engine->id}");
@@ -112,7 +112,7 @@ final class EngineCrmReadApiTest extends TestCase
 
     public function test_repository_returns_local_crm_read_dtos(): void
     {
-        $engine = $this->createEngine(engId: 5001, codeEngine: 'CZDA', capacity: '1.4');
+        $engine = $this->createEngine(engId: 5001, codeEngine: 'CZDA', capacity: 1.4);
 
         $repository = app(EngineCrmRepositoryInterface::class);
         $query = new EngineCrmReadQueryDTO(perPage: 10);
@@ -127,7 +127,7 @@ final class EngineCrmReadApiTest extends TestCase
     private function createEngine(
         int $engId,
         string $codeEngine,
-        string $capacity,
+        float $capacity,
         ProviderEnum $provider = ProviderEnum::TD,
     ): Engine {
         return Engine::query()->create([

@@ -162,14 +162,12 @@ final readonly class EngineCrmRepository implements EngineCrmRepositoryInterface
             return;
         }
 
-        $query->whereRaw("engines.engine_capacity ~ '^[0-9]+(\\.[0-9]+)?$'");
-
         if (is_numeric($from)) {
-            $query->whereRaw('engines.engine_capacity::numeric >= ?', [(float) $from]);
+            $query->where('engines.engine_capacity', '>=', (float) $from);
         }
 
         if (is_numeric($to)) {
-            $query->whereRaw('engines.engine_capacity::numeric <= ?', [(float) $to]);
+            $query->where('engines.engine_capacity', '<=', (float) $to);
         }
     }
 
@@ -225,7 +223,7 @@ final readonly class EngineCrmRepository implements EngineCrmRepositoryInterface
             fuelType: $engine->fuel_type->value,
             provider: $engine->provider->value,
             allowChangeFields: $engine->allow_change_fields,
-            engineCapacity: $engine->engine_capacity === null ? null : (string) $engine->engine_capacity,
+            engineCapacity: $engine->engine_capacity === null ? null : (float) $engine->engine_capacity,
             cylinderCount: $engine->cylinder_count === null ? null : (int) $engine->cylinder_count,
             cylinderDiameter: $engine->cylinder_diameter === null ? null : (float) $engine->cylinder_diameter,
             powerKwUpto: $engine->power_kw_upto === null ? null : (int) $engine->power_kw_upto,

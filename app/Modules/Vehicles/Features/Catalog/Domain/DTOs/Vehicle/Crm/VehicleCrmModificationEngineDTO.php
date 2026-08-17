@@ -20,7 +20,7 @@ final readonly class VehicleCrmModificationEngineDTO implements HttpArraySeriali
         public int $powerPsStart,
         public string $fuelType,
         public string $provider,
-        public ?string $engineCapacity = null,
+        public ?float $engineCapacity = null,
         public ?int $cylinderCount = null,
         public ?float $cylinderDiameter = null,
         public ?int $powerKwUpto = null,

@@ -65,7 +65,7 @@ final readonly class EngineTdRowMapper
             fuelType: $this->formatter->requiredString($row[self::FUEL_TYPE] ?? null, 'fuel_type'),
             powerKwUpto: $this->formatter->nullableInt($row[self::POWER_KW_UPTO] ?? null, 'power_kw_upto'),
             powerPsUpto: $this->formatter->nullableInt($row[self::POWER_PS_UPTO] ?? null, 'power_ps_upto'),
-            engineCapacity: $this->formatter->nullableString($row[self::ENGINE_CAPACITY] ?? null),
+            engineCapacity: $this->formatter->nullableFloat($row[self::ENGINE_CAPACITY] ?? null, 'engine_capacity'),
             cylinderDiameter: $this->formatter->nullableFloat($row[self::CYLINDER_DIAMETER] ?? null, 'cylinder_diameter'),
             cylinderCount: $this->formatter->nullableInt($row[self::CYLINDER_COUNT] ?? null, 'cylinder_count'),
             numberOfValves: $this->formatter->nullableInt($row[self::NUMBER_OF_VALVES] ?? null, 'number_of_valves'),

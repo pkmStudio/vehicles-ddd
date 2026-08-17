@@ -23,7 +23,7 @@ final readonly class EngineEventPayloadDTO
         public array $allowChangeFields,
         public ?int $powerKwUpto = null,
         public ?int $powerPsUpto = null,
-        public ?string $engineCapacity = null,
+        public ?float $engineCapacity = null,
         public ?float $cylinderDiameter = null,
         public ?int $cylinderCount = null,
         public ?int $numberOfValves = null,

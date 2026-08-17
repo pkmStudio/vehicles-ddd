@@ -26,7 +26,7 @@ final class EngineData extends Data
         public readonly array $allowChangeFields,
         public readonly ?int $powerKwUpto = null,
         public readonly ?int $powerPsUpto = null,
-        public readonly ?string $engineCapacity = null,
+        public readonly ?float $engineCapacity = null,
         public readonly ?float $cylinderDiameter = null,
         public readonly ?int $cylinderCount = null,
         public readonly ?int $numberOfValves = null,

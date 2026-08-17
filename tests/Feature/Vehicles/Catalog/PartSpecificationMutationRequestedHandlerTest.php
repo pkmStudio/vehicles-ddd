@@ -306,7 +306,7 @@ final class PartSpecificationMutationRequestedHandlerTest extends TestCase
                         'power_kw_start' => 100,
                         'power_ps_start' => 136,
                         'fuel_type' => EngineFuelTypeEnum::PETROL->value,
-                        'engine_capacity' => '2.0',
+                        'engine_capacity' => 2.0,
                         'provider' => ProviderEnum::TD->value,
                     ],
                 ],

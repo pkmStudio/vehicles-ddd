@@ -27,7 +27,7 @@ final readonly class UpdateEngineRequestDTO
         public ProviderEnum $provider,
         public ?int $powerKwUpto = null,
         public ?int $powerPsUpto = null,
-        public ?string $engineCapacity = null,
+        public ?float $engineCapacity = null,
         public ?float $cylinderDiameter = null,
         public ?int $cylinderCount = null,
         public ?int $numberOfValves = null,

@@ -411,7 +411,7 @@ final class VehicleCrmReadApiTest extends TestCase
             'power_kw_start' => 110,
             'power_ps_start' => 150,
             'fuel_type' => EngineFuelTypeEnum::PETROL->value,
-            'engine_capacity' => '1.4',
+            'engine_capacity' => 1.4,
             'cylinder_count' => 4,
             'provider' => ProviderEnum::TD->value,
             'allow_change_fields' => json_encode([]),

@@ -23,7 +23,7 @@ final readonly class EngineCrmListItemDTO implements HttpArraySerializableInterf
         public string $fuelType,
         public string $provider,
         public array $allowChangeFields,
-        public ?string $engineCapacity = null,
+        public ?float $engineCapacity = null,
         public ?int $cylinderCount = null,
         public ?float $cylinderDiameter = null,
         public ?int $powerKwUpto = null,

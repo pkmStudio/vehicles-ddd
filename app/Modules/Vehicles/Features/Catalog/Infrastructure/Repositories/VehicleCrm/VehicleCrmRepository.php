@@ -423,7 +423,6 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
         $query->where(function (Builder $query) use ($search): void {
             $query
                 ->where('engines.code_engine', 'ilike', "%{$search}%")
-                ->orWhere('engines.engine_capacity', 'ilike', "%{$search}%")
                 ->orWhere('engines.fuel_type', 'ilike', "%{$search}%");
 
             if (is_numeric($search)) {
@@ -605,7 +604,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             powerPsStart: (int) $engine->power_ps_start,
             fuelType: $engine->fuel_type->value,
             provider: $engine->provider->value,
-            engineCapacity: $engine->engine_capacity === null ? null : (string) $engine->engine_capacity,
+            engineCapacity: $engine->engine_capacity === null ? null : (float) $engine->engine_capacity,
             cylinderCount: $engine->cylinder_count === null ? null : (int) $engine->cylinder_count,
             cylinderDiameter: $engine->cylinder_diameter === null ? null : (float) $engine->cylinder_diameter,
             powerKwUpto: $engine->power_kw_upto === null ? null : (int) $engine->power_kw_upto,
@@ -626,7 +625,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             powerPsStart: (int) $engine->power_ps_start,
             fuelType: $engine->fuel_type->value,
             provider: $engine->provider->value,
-            engineCapacity: $engine->engine_capacity === null ? null : (string) $engine->engine_capacity,
+            engineCapacity: $engine->engine_capacity === null ? null : (float) $engine->engine_capacity,
             cylinderCount: $engine->cylinder_count === null ? null : (int) $engine->cylinder_count,
             cylinderDiameter: $engine->cylinder_diameter === null ? null : (float) $engine->cylinder_diameter,
             powerKwUpto: $engine->power_kw_upto === null ? null : (int) $engine->power_kw_upto,

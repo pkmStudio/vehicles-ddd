@@ -59,7 +59,7 @@ final class EngineMainSheetImportTest extends TestCase
             'power_kw_upto' => 180,
             'power_ps_start' => 234,
             'power_ps_upto' => 245,
-            'engine_capacity' => '2979',
+            'engine_capacity' => 2979.0,
             'cylinder_count' => 8,
             'cylinder_diameter' => 3.2,
             'number_of_valves' => 32,

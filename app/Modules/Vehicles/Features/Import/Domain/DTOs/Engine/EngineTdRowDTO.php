@@ -19,7 +19,7 @@ final readonly class EngineTdRowDTO
         public string $fuelType,
         public ?int $powerKwUpto,
         public ?int $powerPsUpto,
-        public ?string $engineCapacity,
+        public ?float $engineCapacity,
         public ?float $cylinderDiameter,
         public ?int $cylinderCount,
         public ?int $numberOfValves,

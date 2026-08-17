@@ -156,28 +156,30 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             'operation_id' => 'engine-create-1',
             'operation' => 'create',
             'engine' => [
-                'eng_id' => 200,
                 'code_engine' => 'ABC',
                 'power_kw_start' => 100,
                 'power_ps_start' => 136,
                 'fuel_type' => EngineFuelTypeEnum::PETROL->value,
-                'engine_capacity' => '1.8',
+                'engine_capacity' => 1.8,
                 'provider' => ProviderEnum::OD->value,
                 'allow_change_fields' => [],
             ],
         ]);
+
+        $engine = Engine::query()->where('code_engine', 'ABC')->firstOrFail();
+        $this->assertLessThan(0, $engine->eng_id);
 
         app(EngineMutationRequestedHandler::class)->handle([
             'user_id' => 42,
             'operation_id' => 'engine-update-1',
             'operation' => 'update',
             'engine' => [
-                'eng_id' => 200,
+                'eng_id' => $engine->eng_id,
                 'code_engine' => 'ABC2',
                 'power_kw_start' => 110,
                 'power_ps_start' => 150,
                 'fuel_type' => EngineFuelTypeEnum::PETROL->value,
-                'engine_capacity' => '2.0',
+                'engine_capacity' => 2.0,
                 'provider' => ProviderEnum::OD->value,
                 'allow_change_fields' => [],
             ],
@@ -188,11 +190,41 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             'operation_id' => 'engine-delete-1',
             'operation' => 'delete',
             'engine' => [
-                'eng_id' => 200,
+                'eng_id' => $engine->eng_id,
             ],
         ]);
 
-        $this->assertDatabaseMissing('engines', ['eng_id' => 200]);
+        $this->assertDatabaseMissing('engines', ['eng_id' => $engine->eng_id]);
+    }
+
+    public function test_engine_create_rejects_negative_numeric_values(): void
+    {
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Engine
+                && $result->operation === CatalogMutationOperationEnum::Create
+                && $result->status === CatalogMutationStatusEnum::Failed
+                && $result->reason === CatalogMutationRejectReasonEnum::ContractMismatch->value
+                && in_array('engine.cylinder_count', $result->errors['invalid_keys'] ?? [], true)));
+
+        app(EngineMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'engine-create-negative-cylinder-count',
+            'operation' => 'create',
+            'engine' => [
+                'code_engine' => 'NEGATIVE',
+                'power_kw_start' => 100,
+                'power_ps_start' => 136,
+                'fuel_type' => EngineFuelTypeEnum::PETROL->value,
+                'engine_capacity' => 1.8,
+                'cylinder_count' => -4,
+                'provider' => ProviderEnum::OD->value,
+                'allow_change_fields' => [],
+            ],
+        ]);
+
+        $this->assertDatabaseMissing('engines', ['code_engine' => 'NEGATIVE']);
     }
 
     public function test_engine_delete_cascades_engine_modifications(): void

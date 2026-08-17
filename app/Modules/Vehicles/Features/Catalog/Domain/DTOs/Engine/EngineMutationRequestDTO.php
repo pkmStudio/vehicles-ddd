@@ -89,7 +89,7 @@ final readonly class EngineMutationRequestDTO
             provider: ProviderEnum::from((string) $engine['provider']),
             powerKwUpto: isset($engine['power_kw_upto']) ? (int) $engine['power_kw_upto'] : null,
             powerPsUpto: isset($engine['power_ps_upto']) ? (int) $engine['power_ps_upto'] : null,
-            engineCapacity: isset($engine['engine_capacity']) ? (string) $engine['engine_capacity'] : null,
+            engineCapacity: isset($engine['engine_capacity']) ? (float) $engine['engine_capacity'] : null,
             cylinderDiameter: isset($engine['cylinder_diameter']) ? (float) $engine['cylinder_diameter'] : null,
             cylinderCount: isset($engine['cylinder_count']) ? (int) $engine['cylinder_count'] : null,
             numberOfValves: isset($engine['number_of_valves']) ? (int) $engine['number_of_valves'] : null,

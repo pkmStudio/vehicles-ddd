@@ -15,6 +15,7 @@ class Engine extends AbstractModel
 {
     protected $casts = [
         'fuel_type' => EngineFuelTypeEnum::class,
+        'engine_capacity' => 'float',
         'details' => 'array',
         'provider' => ProviderEnum::class,
         'allow_change_fields' => 'array',
