@@ -85,7 +85,7 @@ Presentation ──▶ Application ──▶ Domain
 |---|---|---|---|
 | `*UseCase` | `Application/UseCases` | Внешний сценарий целиком: принять typed input, вызвать services/ports, вернуть result/запустить workflow. | Не имеет интерфейса в Domain, не читает raw HTTP/Rabbit/Excel payload, не работает с Eloquent/Excel/Rabbit напрямую. |
 | `*Service` | `Application/Services` | Прикладное правило или шаг сценария, который переиспользуется несколькими entrypoint'ами/use cases. | Не парсит сырой внешний формат и не выбирает concrete infrastructure adapter. |
-| `*WritePolicy` / `*Policy` | `Application/Services/Policy` или feature-local `Application/Services/<Entity>` | Чистое правило записи/ownership/allow-change, которое определяет итоговые поля перед `Command`. | Не сохраняет в БД, не логирует successful path, не знает Excel/Rabbit/HTTP. |
+| `*WritePolicy` / `*Policy` | `Application/Services/Policy`, feature-local `Application/Services/<Entity>` или `<Module>/Shared/Domain/Services/Policy` для module-wide provider/write rules | Чистое правило записи/ownership/allow-change, которое определяет итоговые поля перед `Command`. | Не сохраняет в БД, не логирует successful path, не знает Excel/Rabbit/HTTP. |
 | `*Factory` в `Application` | `Application/Factories` | Валидирует typed DTO и собирает `Data`/domain value/result DTO. | Не принимает raw row array и не выбирает concrete import/export adapter. |
 | `*Repository` | `Infrastructure/Repositories` + port в `Domain/Contracts/Repositories` | Читает БД и возвращает `Data`/`Collection<Data>`/`Generator<Data>`/узкие scalar reads. | Не пишет состояние и не отдаёт Eloquent наружу. |
 | `*Command` | `Infrastructure/Commands` + port в `Domain/Contracts/Commands` | Пишет БД из `Data`/DTO: `create`, `update`, `delete`, `upsert`. | Не принимает сырые массивы внешнего формата и не содержит бизнес-оркестрацию. |
@@ -158,6 +158,10 @@ contexts.
 - `Domain/Events` — факты, которые должны слушать другие фичи этого же модуля;
 - `Domain/Enums` — только enum'ы, которые являются wire/db-контрактом между фичами;
 - `Domain/Exceptions` — публичные исключения module-level контрактов;
+- `Domain/Services/Policy` — только чистые module-wide provider/write policies без IO, когда одно
+  правило записи реально переиспользуется несколькими фичами одного модуля, например `Catalog` и
+  `Import`. Такие policies принимают typed DTO/value objects, не работают с БД/логами/framework и
+  не подменяют Application use cases;
 - `Infrastructure/Clients` — adapter'ы, которые переводят локальный язык потребителя в публичный
   API владельца возможности;
 - `Infrastructure/Logging` — технические module-level logging adapter'ы без бизнес-логики;
@@ -169,6 +173,7 @@ contexts.
 - `ModelData`;
 - Eloquent-модели;
 - repositories, commands, use cases, application services;
+- обычные helper/services без module-wide provider/write смысла;
 - внутренние enum'ы конкретного workflow;
 - события, которые используются только внутри одной фичи.
 
@@ -908,7 +913,7 @@ Presentation   -> exposes console/http entrypoints
 | Новый шаблон/поле формы `details` (`PartSpecification`) | `Data`-класс (`extends AbstractDetailsData`, только поля) → `Templates/Domain/ModelData/<Entity>/<X>DetailsData.php` (+ enum-словарь поля в `Templates/Domain/Enums/`, если select); сборку из строки — в `DetailsDataFactory`, рендер в ячейки — в `DetailsDataPresenter` (`Templates/Application/Factories/`), не в самом `Data`-классе |
 | Новый сценарий с внешним триггером | `<Feature>/Application/UseCases/<Group>/` concrete class; без `Domain/Contracts/UseCases`; entrypoint только передает typed DTO/parameters |
 | Новое прикладное правило/координацию | `<Feature>/Application/Services/<Entity>/` + порт `Domain/Contracts/Services/<Entity>/`, если сервис вызывается как самостоятельная DI-зависимость сценария; мелкий helper без самостоятельного контракта остается private-методом/локальным классом рядом с владельцем |
-| Общее правило записи/ownership/allow-change | `<Feature>/Application/Services/Policy/<Entity>WritePolicy.php`; результат — typed result DTO, который feature-specific service переводит в свой `<Entity>Data` |
+| Общее правило записи/ownership/allow-change | `<Feature>/Application/Services/Policy/<Entity>WritePolicy.php`; если правило реально общее для нескольких фич модуля (`Catalog` + `Import`) — `<Module>/Shared/Domain/Services/Policy/<Entity>WritePolicy.php`. Результат — typed result DTO, который feature-specific service/use case переводит в свой `<Entity>Data` |
 | Валидацию + сборку `<Entity>Data` | `<Feature>/Application/Factories/` (плоско, один публичный метод на конкретный typed row DTO: `makeFromTdRow(...)`, `makeFromSheetRow(...)` и т.п.) + порт `Contracts/Factories/`; raw row array остается в `Infrastructure/Imports/*/Mappers` |
 | Выбор import/export adapter-а по enum/типу входящего запроса | порт `Contracts/Factories/` + реализация в `<Feature>/Infrastructure/Factories/` или provider closure |
 | Реакцию на доменное событие | `<Feature>/Application/Listeners/` (тонко, **без порта**) |

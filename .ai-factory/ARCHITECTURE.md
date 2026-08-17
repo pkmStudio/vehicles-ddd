@@ -141,7 +141,7 @@ app/Modules/<Module>/Features/<Feature>/
 |---|---|---|
 | `*UseCase` | `Application/UseCases` | Внешний сценарий целиком; concrete class без interface в `Domain/Contracts/UseCases`. |
 | `*Service` | `Application/Services` | Прикладное правило или шаг сценария, вызываемый use case/listener/handler. |
-| `*WritePolicy` / `*Policy` | `Application/Services/Policy` или entity-local services | Чистое правило записи/ownership/allow-change; не сохраняет в БД. |
+| `*WritePolicy` / `*Policy` | `Application/Services/Policy`, entity-local services или `<Module>/Shared/Domain/Services/Policy` для module-wide provider/write rules | Чистое правило записи/ownership/allow-change; не сохраняет в БД. |
 | `*Factory` в `Application` | `Application/Factories` | Валидирует typed DTO и собирает `Data`/result DTO; не принимает raw rows. |
 | `*Repository` | `Infrastructure/Repositories` | Читает БД и возвращает `Data`/`Collection<Data>`/`Generator<Data>`/узкие scalar reads. |
 | `*Command` | `Infrastructure/Commands` | Пишет БД из `Data`/DTO: `create`, `update`, `delete`, `upsert`. |
@@ -265,6 +265,9 @@ adapter. Если нужно сообщить факт без ответа — d
   import validation/domain ошибкой, чтобы источник данных не менялся молча.
 - Events — `final readonly` факты в прошедшем времени, без поведения и без суффикса `Event`, если это соответствует существующему неймингу.
 - Общие enum-словарь и wire/db contracts кладутся в module-level `Shared/Domain/Enums`, а workflow-local enum остается в фиче.
+- Чистые provider/write policies, которые реально переиспользуются несколькими фичами одного
+  модуля (`Catalog` + `Import`), могут лежать в module-level `Shared/Domain/Services/Policy`.
+  Они принимают typed DTO/value objects, не используют IO/framework/логи и не заменяют use cases.
 
 ### Application
 
@@ -392,7 +395,7 @@ adapter. Если нужно сообщить факт без ответа — d
 | Новая бизнес-возможность | Существующая `Features/<Feature>/` или новая feature, если появилась самостоятельная способность с отдельными entrypoint'ами/rules/adapters |
 | Новый сценарий с внешним триггером | `<Feature>/Application/UseCases/<Group>/` concrete class; без `Domain/Contracts/UseCases` |
 | Новое прикладное правило | `<Feature>/Application/Services/<Entity>/` + port в `Domain/Contracts/Services/<Entity>/` |
-| Общее правило записи/ownership/allow-change | `<Feature>/Application/Services/Policy/<Entity>WritePolicy.php`; результат — typed result DTO, который feature-specific service переводит в свой `<Entity>Data` |
+| Общее правило записи/ownership/allow-change | `<Feature>/Application/Services/Policy/<Entity>WritePolicy.php`; если правило реально общее для нескольких фич модуля (`Catalog` + `Import`) — `<Module>/Shared/Domain/Services/Policy/<Entity>WritePolicy.php`. Результат — typed result DTO, который feature-specific service/use case переводит в свой `<Entity>Data` |
 | Валидация и сборка Data из строки | `<Feature>/Application/Factories/` + port в `Domain/Contracts/Factories/`; вход — typed row DTO, сырой row array остается в `Infrastructure/Imports/*/Mappers` |
 | Выбор import/export adapter-а по enum/типу входящего запроса | port в `Domain/Contracts/Factories/`, adapter в `<Feature>/Infrastructure/Factories/` или provider closure |
 | Read query к БД | port в `Domain/Contracts/Repositories/`, adapter в `Infrastructure/Repositories/` |
