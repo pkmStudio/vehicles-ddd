@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('eng_id')->comment('Внешний ID двигателя');
             $table->integer('mod_id')->comment('Внешний ID модификации');
             $table->string('type')->comment('VehicleTypeEnum');
+            $table->string('provider')->comment('ProviderEnum владельца связи');
 
             $table->unique(['engine_id', 'modification_id']);
             $table->unique(['eng_id', 'mod_id', 'type']);
