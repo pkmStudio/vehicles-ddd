@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Export\Infrastructure\Repositories;
 
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\DTOs\EngineModificationExportRowDTO;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use stdClass;
@@ -16,7 +17,7 @@ use stdClass;
 final readonly class EngineModificationRepository implements EngineModificationRepositoryInterface
 {
     /**
-     * Возвращает все связи `mod_id + eng_id + type`.
+     * Возвращает все связи `mod_id + eng_id + type + relation_provider`.
      *
      * Шаги:
      * 1) Прочитать pivot table в стабильном порядке.
@@ -27,7 +28,7 @@ final readonly class EngineModificationRepository implements EngineModificationR
     public function all(): Collection
     {
         return DB::table('engine_modification')
-            ->select('mod_id', 'eng_id', 'type')
+            ->select('mod_id', 'eng_id', 'type', 'provider')
             ->orderBy('mod_id')
             ->orderBy('type')
             ->orderBy('eng_id')
@@ -36,6 +37,7 @@ final readonly class EngineModificationRepository implements EngineModificationR
                 modId: (int) $row->mod_id,
                 engId: (int) $row->eng_id,
                 type: (string) $row->type,
+                relationProvider: ProviderEnum::from((string) $row->provider),
             ));
     }
 }

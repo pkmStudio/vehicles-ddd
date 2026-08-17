@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Shared\Domain\Services\Policy;
 
 use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\ModificationWritePolicyResultDTO;
 use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
 
 /**
  * Единое provider-aware правило записи модификации для import и catalog mutation workflows.
@@ -89,10 +90,40 @@ final readonly class ModificationWritePolicy
     }
 
     /**
+     * Запрещает менять TD-связи двигателей у TecDoc-модификации.
+     *
+     * Шаги:
+     * 1) Для OD-модификаций разрешить изменение связей.
+     * 2) Для TD-модификаций сравнить текущий и входящий набор TD eng_id.
+     * 3) Разрешить добавление/удаление OD-двигателей поверх неизменного TD-набора.
+     * 4) При отличии TD-набора выбросить provider ownership ошибку.
+     *
+     * @param  array<int, int>  $currentTdEngineIds
+     * @param  array<int, int>  $incomingTdEngineIds
+     */
+    public function assertTdModificationEngineLinksUnchanged(
+        ModificationWritePolicyResultDTO $existing,
+        array $currentTdEngineIds,
+        array $incomingTdEngineIds,
+    ): void {
+        if ($existing->provider !== ProviderEnum::TD) {
+            return;
+        }
+
+        if ($this->engineIds($currentTdEngineIds) === $this->engineIds($incomingTdEngineIds)) {
+            return;
+        }
+
+        throw ProviderOwnershipException::fromMessages([
+            'engines' => ['TD-связи двигателей у модификации provider=TD нельзя изменять.'],
+        ]);
+    }
+
+    /**
      * Возвращает только разрешенные ключи массива.
      *
-     * @param  array<string, mixed>  $payload
-     * @return array<string, mixed>
+     * @param  array<string, string|int|float|array<int, string>|null>  $payload
+     * @return array<string, string|int|float|null>
      */
     private function only(array $payload): array
     {
@@ -103,5 +134,19 @@ final readonly class ModificationWritePolicy
         }
 
         return $result;
+    }
+
+    /**
+     * Нормализует список внешних eng_id для строгого сравнения наборов.
+     *
+     * @param  array<int, int>  $ids
+     * @return array<int, int>
+     */
+    private function engineIds(array $ids): array
+    {
+        $ids = array_values(array_unique($ids));
+        sort($ids);
+
+        return $ids;
     }
 }

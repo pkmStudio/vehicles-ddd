@@ -86,9 +86,9 @@ final readonly class EngineWritePolicy
     /**
      * Возвращает только разрешенные ключи массива.
      *
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, string|int|float|array<int, string>|null>  $payload
      * @param  array<int, string>  $fields
-     * @return array<string, mixed>
+     * @return array<string, string|int|float|null>
      */
     private function only(array $payload, array $fields): array
     {

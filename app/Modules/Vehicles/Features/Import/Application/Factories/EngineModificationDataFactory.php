@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Factories\EngineModifi
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\EngineModification\EngineModificationRowDTO;
 use App\Modules\Vehicles\Features\Import\Domain\Exceptions\ImportRowValidationException;
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineModificationData;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -35,10 +36,12 @@ final readonly class EngineModificationDataFactory implements EngineModification
                 'eng_id' => $row->engId,
                 'mod_id' => $row->modId,
                 'type' => $row->type,
+                'provider' => $row->provider->value,
             ], [
                 'eng_id' => ['required', 'integer'],
                 'mod_id' => ['required', 'integer'],
                 'type' => ['required', Rule::enum(VehicleTypeEnum::class)],
+                'provider' => ['required', Rule::enum(ProviderEnum::class)],
             ])->validate();
         } catch (ValidationException $e) {
             throw ImportRowValidationException::fromMessages($e->errors());
@@ -48,6 +51,7 @@ final readonly class EngineModificationDataFactory implements EngineModification
             engId: (int) $valid['eng_id'],
             modId: (int) $valid['mod_id'],
             type: VehicleTypeEnum::from((string) $valid['type']),
+            provider: ProviderEnum::from((string) $valid['provider']),
         );
     }
 }

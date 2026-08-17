@@ -11,6 +11,9 @@ use App\Support\Http\Contracts\HttpArraySerializableInterface;
  */
 final readonly class VehicleCrmModificationEngineDTO implements HttpArraySerializableInterface
 {
+    /**
+     * @param  array<int, string>  $allowChangeFields
+     */
     public function __construct(
         public int $modificationId,
         public int $id,
@@ -20,6 +23,7 @@ final readonly class VehicleCrmModificationEngineDTO implements HttpArraySeriali
         public int $powerPsStart,
         public string $fuelType,
         public string $provider,
+        public string $relationProvider,
         public ?float $engineCapacity = null,
         public ?int $cylinderCount = null,
         public ?float $cylinderDiameter = null,
@@ -31,7 +35,25 @@ final readonly class VehicleCrmModificationEngineDTO implements HttpArraySeriali
     ) {}
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     modification_id: int,
+     *     id: int,
+     *     eng_id: int,
+     *     code_engine: string,
+     *     engine_capacity: float|null,
+     *     cylinder_count: int|null,
+     *     cylinder_diameter: float|null,
+     *     power_kw_start: int,
+     *     power_kw_upto: int|null,
+     *     power_ps_start: int,
+     *     power_ps_upto: int|null,
+     *     number_of_valves: int|null,
+     *     fuel_type: string,
+     *     group_id: int|null,
+     *     provider: string,
+     *     relation_provider: string,
+     *     allow_change_fields: array<int, string>
+     * }
      */
     public function toArray(): array
     {
@@ -51,6 +73,7 @@ final readonly class VehicleCrmModificationEngineDTO implements HttpArraySeriali
             'fuel_type' => $this->fuelType,
             'group_id' => $this->groupId,
             'provider' => $this->provider,
+            'relation_provider' => $this->relationProvider,
             'allow_change_fields' => $this->allowChangeFields,
         ];
     }

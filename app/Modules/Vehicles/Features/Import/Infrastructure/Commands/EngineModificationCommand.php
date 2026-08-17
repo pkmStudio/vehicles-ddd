@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Import\Domain\Contracts\Commands\EngineModific
 use App\Modules\Vehicles\Features\Import\Domain\ModelData\EngineModificationData;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Engine;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Models\Modification;
+use Illuminate\Support\Facades\DB;
 
 final readonly class EngineModificationCommand implements EngineModificationCommandInterface
 {
@@ -17,9 +18,10 @@ final readonly class EngineModificationCommand implements EngineModificationComm
      * Шаги:
      * 1) Найти engine по eng_id из import data.
      * 2) Найти modification по mod_id/type из import data.
-     * 3) Добавить pivot-связь без отсоединения существующих связей.
+     * 3) Если связь уже есть, не менять владельца связи.
+     * 4) Если связи нет, добавить pivot-связь без отсоединения существующих связей.
      */
-    public function syncWithoutDetaching(EngineModificationData $data): void
+    public function attachIfMissing(EngineModificationData $data): void
     {
         $engine = Engine::query()
             ->where('eng_id', $data->engId)
@@ -27,50 +29,29 @@ final readonly class EngineModificationCommand implements EngineModificationComm
 
         $modification = Modification::query()
             ->where('mod_id', $data->modId)
-            ->where('type', $data->type)
+            ->where('type', $data->type->value)
             ->first();
 
-        if ($engine && $modification) {
-            $engine->modifications()->syncWithoutDetaching([
-                $modification->id => [
-                    'eng_id' => $data->engId,
-                    'mod_id' => $data->modId,
-                    'type' => $data->type,
-                ],
-            ]);
-        }
-    }
-
-    /**
-     * Заменить набор связей одной модификации на желаемый список двигателей.
-     *
-     * Шаги:
-     * 1) Найти modification по natural key `mod_id + type`.
-     * 2) Найти engines по внешним eng_id.
-     * 3) Собрать sync payload с pivot fields и выполнить belongsToMany sync.
-     *
-     * @param  array<int, int>  $engIds
-     */
-    public function syncDesiredStateByModIdAndType(int $modId, string $type, array $engIds): void
-    {
-        $modification = Modification::query()
-            ->where('mod_id', $modId)
-            ->where('type', $type)
-            ->firstOrFail();
-
-        $engines = Engine::query()
-            ->whereIn('eng_id', $engIds)
-            ->get(['id', 'eng_id']);
-
-        $payload = [];
-        foreach ($engines as $engine) {
-            $payload[$engine->id] = [
-                'eng_id' => $engine->eng_id,
-                'mod_id' => $modId,
-                'type' => $type,
-            ];
+        if (! $engine || ! $modification) {
+            return;
         }
 
-        $modification->engines()->sync($payload);
+        $exists = DB::table('engine_modification')
+            ->where('engine_id', $engine->id)
+            ->where('modification_id', $modification->id)
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        $engine->modifications()->syncWithoutDetaching([
+            $modification->id => [
+                'eng_id' => $data->engId,
+                'mod_id' => $data->modId,
+                'type' => $data->type->value,
+                'provider' => $data->provider->value,
+            ],
+        ]);
     }
 }

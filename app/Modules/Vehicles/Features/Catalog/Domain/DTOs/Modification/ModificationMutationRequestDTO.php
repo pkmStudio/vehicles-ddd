@@ -26,7 +26,32 @@ final readonly class ModificationMutationRequestDTO
     ) {}
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array{
+     *     user_id: int|string,
+     *     operation_id: string,
+     *     operation: string,
+     *     modification: array{
+     *         mod_id?: int|string|null,
+     *         ms_id?: int|string,
+     *         type: string,
+     *         allow_change_fields?: array<int, string>,
+     *         provider?: string,
+     *         year_from?: int|string,
+     *         year_to?: int|string|null,
+     *         description?: string,
+     *         description_short?: string|null,
+     *         power_ps?: int|string,
+     *         power_kw?: int|string,
+     *         engine_type?: string,
+     *         gear_type?: string|null,
+     *         drive_type?: string|null,
+     *         brake_system_type?: string|null,
+     *         number_of_cylinders?: int|string|null,
+     *         capacity_lt?: int|float|string|null,
+     *         localized_name?: string|null,
+     *         engines?: list<array{eng_id: int|string, relation_provider: string}>
+     *     }
+     * } $payload
      */
     public static function fromArray(array $payload): self
     {
@@ -43,7 +68,32 @@ final readonly class ModificationMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array{
+     *     user_id: int|string,
+     *     operation_id: string,
+     *     operation: string,
+     *     modification: array{
+     *         mod_id?: int|string|null,
+     *         ms_id?: int|string,
+     *         type: string,
+     *         allow_change_fields?: array<int, string>,
+     *         provider?: string,
+     *         year_from?: int|string,
+     *         year_to?: int|string|null,
+     *         description?: string,
+     *         description_short?: string|null,
+     *         power_ps?: int|string,
+     *         power_kw?: int|string,
+     *         engine_type?: string,
+     *         gear_type?: string|null,
+     *         drive_type?: string|null,
+     *         brake_system_type?: string|null,
+     *         number_of_cylinders?: int|string|null,
+     *         capacity_lt?: int|float|string|null,
+     *         localized_name?: string|null,
+     *         engines?: list<array{eng_id: int|string, relation_provider: string}>
+     *     }
+     * } $payload
      */
     private static function createRequest(array $payload): CreateModificationRequestDTO
     {
@@ -51,7 +101,32 @@ final readonly class ModificationMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array{
+     *     user_id: int|string,
+     *     operation_id: string,
+     *     operation: string,
+     *     modification: array{
+     *         mod_id?: int|string|null,
+     *         ms_id?: int|string,
+     *         type: string,
+     *         allow_change_fields?: array<int, string>,
+     *         provider?: string,
+     *         year_from?: int|string,
+     *         year_to?: int|string|null,
+     *         description?: string,
+     *         description_short?: string|null,
+     *         power_ps?: int|string,
+     *         power_kw?: int|string,
+     *         engine_type?: string,
+     *         gear_type?: string|null,
+     *         drive_type?: string|null,
+     *         brake_system_type?: string|null,
+     *         number_of_cylinders?: int|string|null,
+     *         capacity_lt?: int|float|string|null,
+     *         localized_name?: string|null,
+     *         engines?: list<array{eng_id: int|string, relation_provider: string}>
+     *     }
+     * } $payload
      */
     private static function updateRequest(array $payload): UpdateModificationRequestDTO
     {
@@ -59,7 +134,12 @@ final readonly class ModificationMutationRequestDTO
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array{
+     *     user_id: int|string,
+     *     operation_id: string,
+     *     operation: string,
+     *     modification: array{mod_id: int|string, type: string}
+     * } $payload
      */
     private static function deleteRequest(array $payload): DeleteModificationRequestDTO
     {
@@ -74,7 +154,32 @@ final readonly class ModificationMutationRequestDTO
     /**
      * @template T of CreateModificationRequestDTO|UpdateModificationRequestDTO
      *
-     * @param  array<string, mixed>  $payload
+     * @param  array{
+     *     user_id: int|string,
+     *     operation_id: string,
+     *     operation: string,
+     *     modification: array{
+     *         mod_id?: int|string|null,
+     *         ms_id?: int|string,
+     *         type: string,
+     *         allow_change_fields: array<int, string>,
+     *         provider: string,
+     *         year_from: int|string,
+     *         year_to?: int|string|null,
+     *         description: string,
+     *         description_short?: string|null,
+     *         power_ps: int|string,
+     *         power_kw: int|string,
+     *         engine_type: string,
+     *         gear_type?: string|null,
+     *         drive_type?: string|null,
+     *         brake_system_type?: string|null,
+     *         number_of_cylinders?: int|string|null,
+     *         capacity_lt?: int|float|string|null,
+     *         localized_name?: string|null,
+     *         engines?: list<array{eng_id: int|string, relation_provider: string}>
+     *     }
+     * } $payload
      * @param  class-string<T>  $class
      * @return T
      */
@@ -109,6 +214,7 @@ final readonly class ModificationMutationRequestDTO
     }
 
     /**
+     * @param  list<array{eng_id: int|string, relation_provider: string}>  $engines
      * @return list<ModificationEngineRequestDTO>
      */
     private static function engines(array $engines): array
@@ -116,6 +222,7 @@ final readonly class ModificationMutationRequestDTO
         return array_values(array_map(
             static fn (array $engine): ModificationEngineRequestDTO => new ModificationEngineRequestDTO(
                 engId: (int) $engine['eng_id'],
+                relationProvider: ProviderEnum::from((string) $engine['relation_provider']),
             ),
             $engines,
         ));

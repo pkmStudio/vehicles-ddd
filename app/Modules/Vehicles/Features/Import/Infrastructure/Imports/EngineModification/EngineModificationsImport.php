@@ -102,13 +102,13 @@ final class EngineModificationsImport implements EngineModificationsImportInterf
     }
 
     /**
-     * Обработать весь лист связей как один набор желаемого состояния.
+     * Обработать лист связей как additive import OD-связей.
      *
      * Шаги:
      * 1) Выполнить DB preflight дублей `mod_id + type`.
      * 2) Провалидировать строки, engine existence и modification existence.
-     * 3) Сгруппировать валидные строки по `mod_id + type`.
-     * 4) Синхронизировать только группы без ошибок.
+     * 3) Пропустить уже существующие связи без изменения provider.
+     * 4) Добавить только новые OD-связи.
      */
     public function collection(Collection $collection): void
     {
@@ -124,8 +124,6 @@ final class EngineModificationsImport implements EngineModificationsImportInterf
             return;
         }
 
-        $groups = [];
-        $invalidGroups = [];
         $seenRows = [];
 
         foreach ($collection as $index => $row) {
@@ -146,7 +144,6 @@ final class EngineModificationsImport implements EngineModificationsImportInterf
             $rowKey = $groupKey.'|'.$data->engId;
 
             if (isset($seenRows[$rowKey])) {
-                $invalidGroups[$groupKey] = true;
                 $this->onFailure(new Failure($rowNumber, 'Связь модификации и двигателя', ['Дубль строки mod_id + eng_id + type.'], $rowValues));
 
                 continue;
@@ -154,34 +151,18 @@ final class EngineModificationsImport implements EngineModificationsImportInterf
             $seenRows[$rowKey] = true;
 
             if ($this->modifications()->findByModIdAndType($data->modId, $type) === null) {
-                $invalidGroups[$groupKey] = true;
                 $this->onFailure(new Failure($rowNumber, 'Модификация', ["Модификация mod_id={$data->modId}, type={$type} не найдена."], $rowValues));
 
                 continue;
             }
 
             if ($this->engines()->findByEngId($data->engId) === null) {
-                $invalidGroups[$groupKey] = true;
                 $this->onFailure(new Failure($rowNumber, 'Двигатель', ["Двигатель eng_id={$data->engId} не найден."], $rowValues));
 
                 continue;
             }
 
-            $groups[$groupKey]['mod_id'] = $data->modId;
-            $groups[$groupKey]['type'] = $type;
-            $groups[$groupKey]['eng_ids'][] = $data->engId;
-        }
-
-        foreach ($groups as $groupKey => $group) {
-            if (isset($invalidGroups[$groupKey])) {
-                continue;
-            }
-
-            $this->command()->syncDesiredStateByModIdAndType(
-                modId: (int) $group['mod_id'],
-                type: (string) $group['type'],
-                engIds: array_values(array_unique($group['eng_ids'])),
-            );
+            $this->command()->attachIfMissing($data);
         }
     }
 
@@ -200,8 +181,11 @@ final class EngineModificationsImport implements EngineModificationsImportInterf
      */
     public static function afterImport(AfterImport $event): void
     {
-        /** @var EngineModificationsImport $import */
         $import = $event->getConcernable();
+        if (! $import instanceof self) {
+            return;
+        }
+
         $context = $import->context();
 
         event(new EngineModificationImportCompleted(

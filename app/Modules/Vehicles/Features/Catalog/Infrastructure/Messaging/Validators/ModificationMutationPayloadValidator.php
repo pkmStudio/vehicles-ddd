@@ -37,7 +37,32 @@ final readonly class ModificationMutationPayloadValidator
      * - Собрать базовые правила пользователя, operation id, операции и модификации.
      * - Добавить поля модификации и вложенных двигателей только для создания и обновления.
      *
-     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     user_id?: int|string,
+     *     operation_id?: string,
+     *     operation?: string,
+     *     modification?: array{
+     *         mod_id?: int|string|null,
+     *         ms_id?: int|string,
+     *         type?: string,
+     *         year_from?: int|string,
+     *         year_to?: int|string|null,
+     *         description?: string,
+     *         description_short?: string|null,
+     *         power_ps?: int|string,
+     *         power_kw?: int|string,
+     *         engine_type?: string,
+     *         gear_type?: string|null,
+     *         drive_type?: string|null,
+     *         brake_system_type?: string|null,
+     *         number_of_cylinders?: int|string|null,
+     *         capacity_lt?: int|float|string|null,
+     *         localized_name?: string|null,
+     *         provider?: string,
+     *         allow_change_fields?: array<int, string>,
+     *         engines?: list<array{eng_id?: int|string, relation_provider?: string}>
+     *     }
+     * } $data
      */
     public function make(array $data): Validator
     {
@@ -74,6 +99,7 @@ final readonly class ModificationMutationPayloadValidator
                 'modification.engines' => ['nullable', 'array'],
                 'modification.engines.*' => ['array'],
                 'modification.engines.*.eng_id' => ['required', 'integer'],
+                'modification.engines.*.relation_provider' => ['required', 'string', Rule::in($this->enumValues(ProviderEnum::cases()))],
             ];
         }
 

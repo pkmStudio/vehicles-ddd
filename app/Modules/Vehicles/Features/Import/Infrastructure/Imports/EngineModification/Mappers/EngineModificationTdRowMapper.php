@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\EngineModi
 
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\EngineModification\EngineModificationRowDTO;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 
 /**
  * Переводит строку TecDoc Excel в командный DTO связи двигателя и модификации.
@@ -45,6 +46,7 @@ final readonly class EngineModificationTdRowMapper
             engId: $this->formatter->requiredInt($row[self::ENG_ID] ?? null, 'eng_id'),
             modId: $this->formatter->requiredInt($row[self::MOD_ID] ?? null, 'mod_id'),
             type: $this->formatter->requiredString($row[self::TYPE] ?? null, 'type'),
+            provider: ProviderEnum::TD,
         );
     }
 }

@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands;
 
-use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\ModificationEngineLinkDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
 
 interface EngineModificationCommandInterface
 {
     /**
-     * Синхронизирует pivot-связи модификации с переданным списком двигателей.
+     * Синхронизирует pivot-связи модификации с переданным списком связей.
      *
      * Шаги:
-     * 1) Получить внутренний id модификации и ids двигателей из Data snapshots.
+     * 1) Получить внутренний id модификации и ids двигателей из link snapshots.
      * 2) Заменить набор engine_modification связей на переданный список.
+     * 3) Записать владельца каждой связи в `engine_modification.provider`.
      *
-     * @param  list<EngineData>  $engines
+     * @param  list<ModificationEngineLinkDTO>  $links
      */
-    public function syncForModification(ModificationData $modification, array $engines): void;
+    public function syncForModification(ModificationData $modification, array $links): void;
 
     /**
      * Удаляет pivot-связи engine_modification по внутренним ids.

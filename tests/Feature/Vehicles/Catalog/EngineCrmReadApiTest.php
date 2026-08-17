@@ -189,6 +189,7 @@ final class EngineCrmReadApiTest extends TestCase
             'eng_id' => $engine->eng_id,
             'mod_id' => 20000 + $sequence,
             'type' => 'PC',
+            'provider' => ProviderEnum::TD->value,
         ]);
 
         $sequence++;

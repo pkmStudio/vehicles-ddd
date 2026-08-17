@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use UnexpectedValueException;
 
 /**
  * Excel sheet adapter связей модификаций и двигателей.
@@ -51,7 +52,7 @@ final readonly class EngineModificationSheetExport implements FromCollection, Wi
      */
     public function headings(): array
     {
-        return ['mod_id', 'eng_id', 'type'];
+        return ['mod_id', 'eng_id', 'type', 'relation_provider'];
     }
 
     /**
@@ -61,7 +62,10 @@ final readonly class EngineModificationSheetExport implements FromCollection, Wi
      */
     public function map($row): array
     {
-        /** @var EngineModificationExportRowDTO $row */
-        return [$row->modId, $row->engId, $row->type];
+        if (! $row instanceof EngineModificationExportRowDTO) {
+            throw new UnexpectedValueException('Engine modification export row must be EngineModificationExportRowDTO.');
+        }
+
+        return [$row->modId, $row->engId, $row->type, $row->relationProvider->value];
     }
 }

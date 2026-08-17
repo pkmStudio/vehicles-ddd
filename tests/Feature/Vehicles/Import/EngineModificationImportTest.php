@@ -80,6 +80,66 @@ final class EngineModificationImportTest extends TestCase
             'eng_id' => 500,
             'mod_id' => 50,
             'type' => 'PC',
+            'provider' => ProviderEnum::TD->value,
+        ]);
+    }
+
+    /**
+     * Проверяет, что повторный импорт существующей связи не меняет владельца pivot-записи.
+     */
+    public function test_existing_engine_modification_link_provider_is_not_overwritten(): void
+    {
+        $engine = Engine::query()->create([
+            'eng_id' => 500,
+            'code_engine' => 'M54B30',
+            'power_kw_start' => 170,
+            'power_ps_start' => 231,
+            'fuel_type' => 'бензин',
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => [],
+        ]);
+
+        $manufacturer = Manufacturer::query()->create(['mfa_id' => 10, 'name' => 'Skoda', 'provider' => 'TD']);
+        $vehicle = Vehicle::query()->create([
+            'manufacturer_id' => $manufacturer->id,
+            'mfa_id' => 10,
+            'ms_id' => 300,
+            'name' => 'Octavia',
+            'generation' => 'III',
+            'generation_year_from' => 2013,
+            'type' => 'PC',
+            'type_carcase' => 'Hatchback',
+            'provider' => ProviderEnum::TD->value,
+            'steering_type' => 'Левый руль',
+            'is_allow' => true,
+        ]);
+        $modification = Modification::query()->create([
+            'vehicle_id' => $vehicle->id,
+            'ms_id' => 300,
+            'mod_id' => 50,
+            'type' => 'PC',
+            'year_from' => 2013,
+            'description' => '1.4 TSI',
+            'power_ps' => 150,
+            'power_kw' => 110,
+            'engine_type' => EngineTypeEnum::PETROL->value,
+            'provider' => ProviderEnum::TD->value,
+            'allow_change_fields' => ['year_from', 'year_to'],
+        ]);
+
+        $engine->modifications()->attach($modification->id, [
+            'eng_id' => 500,
+            'mod_id' => 50,
+            'type' => 'PC',
+            'provider' => ProviderEnum::OD->value,
+        ]);
+
+        app(EngineModificationImportInterface::class)->import(base_path('tests/Fixtures/engine_modification_sample.csv'));
+
+        $this->assertDatabaseHas('engine_modification', [
+            'engine_id' => $engine->id,
+            'modification_id' => $modification->id,
+            'provider' => ProviderEnum::OD->value,
         ]);
     }
 }

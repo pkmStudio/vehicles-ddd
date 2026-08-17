@@ -8,6 +8,7 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\Modifica
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\EngineModification;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Modification;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use Illuminate\Support\Collection;
 
 /**
@@ -79,6 +80,26 @@ final readonly class ModificationRepository implements ModificationRepositoryInt
             ->get();
 
         return ModificationData::collect($modifications, Collection::class);
+    }
+
+    /**
+     * Возвращает внешние eng_id TD-связей двигателей с модификацией.
+     *
+     * Шаги:
+     * 1. Фильтрует pivot-записи по внутреннему id модификации.
+     * 2. Оставляет только связи с provider=TD.
+     * 3. Возвращает отсортированную collection eng_id.
+     *
+     * @return Collection<int, int>
+     */
+    public function findTdEngineExternalIdsByModificationId(int $modificationId): Collection
+    {
+        return EngineModification::query()
+            ->where('engine_modification.modification_id', $modificationId)
+            ->where('engine_modification.provider', ProviderEnum::TD->value)
+            ->pluck('engine_modification.eng_id')
+            ->sort()
+            ->values();
     }
 
     /**

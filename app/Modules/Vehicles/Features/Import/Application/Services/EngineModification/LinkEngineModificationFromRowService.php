@@ -40,7 +40,7 @@ final readonly class LinkEngineModificationFromRowService implements LinkEngineM
      * 1) Передать typed row DTO в factory.
      * 2) Валидировать и преобразовать строку в `EngineModificationData`.
      * 3) Проверить, что engine и modification уже существуют.
-     * 4) Синхронизировать pivot-связь без удаления существующих связей.
+     * 4) Добавить pivot-связь только если она еще не существует.
      *
      * @throws ImportRowValidationException
      * @throws ImportRowReferenceNotFoundException
@@ -57,6 +57,6 @@ final readonly class LinkEngineModificationFromRowService implements LinkEngineM
             throw ImportRowReferenceNotFoundException::withMessage("Модификация mod_id={$data->modId}, type={$data->type->value} не найдена.");
         }
 
-        $this->command->syncWithoutDetaching($data);
+        $this->command->attachIfMissing($data);
     }
 }

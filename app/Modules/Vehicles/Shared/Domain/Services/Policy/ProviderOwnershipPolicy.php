@@ -47,13 +47,10 @@ final readonly class ProviderOwnershipPolicy
      * 3) Разрешить менять только пустые или явно открытые поля.
      * 4) Для закрытых измененных полей выбросить domain exception.
      *
-     * @param  ProviderEnum  $existingProvider
-     * @param  ProviderEnum  $incomingProvider
      * @param  array<string, string|int|float|null>  $incoming
      * @param  array<int, string>  $existingAllowChangeFields
      * @param  array<int, string>  $incomingAllowChangeFields
-     * @param  Closure  $currentValue
-     * @param  string  $entityLabel
+     * @param  Closure(string): (string|int|float|null)  $currentValue
      * @return array<string, string|int|float|array<int, string>|null>
      */
     public function payload(

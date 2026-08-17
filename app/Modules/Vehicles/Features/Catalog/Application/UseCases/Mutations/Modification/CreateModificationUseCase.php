@@ -13,14 +13,15 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutat
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\CreateModificationRequestDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\ModificationEngineLinkDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\ModificationEngineRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\ModificationEventPayloadDTO;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\ModificationWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\Modification\ModificationCreated;
 use App\Modules\Vehicles\Shared\Domain\Services\Policy\ModificationWritePolicy;
 use Throwable;
@@ -93,10 +94,10 @@ final readonly class CreateModificationUseCase
                 );
             }
 
-            $engines = [];
+            $engineLinks = [];
             if ($request->syncEngines) {
-                $engines = $this->existingEngines($request->engines);
-                if ($engines === null) {
+                $engineLinks = $this->existingEngineLinks($request->engines);
+                if ($engineLinks === null) {
                     return $this->results->rejected(
                         userId: $request->userId,
                         operationId: $request->operationId,
@@ -140,7 +141,7 @@ final readonly class CreateModificationUseCase
             if ($request->syncEngines) {
                 $this->engineModifications->syncForModification(
                     modification: $modification,
-                    engines: $engines,
+                    links: $engineLinks,
                 );
             }
 
@@ -196,20 +197,21 @@ final readonly class CreateModificationUseCase
     }
 
     /**
-     * Возвращает только существующие двигатели, перечисленные во входящей modification mutation.
+     * Возвращает только существующие связи, перечисленные во входящей modification mutation.
      *
      * Шаги:
      * 1) Для каждого engine request требовать внешний `eng_id`.
      * 2) Найти существующий двигатель по `eng_id`.
      * 3) Вернуть `null`, если хотя бы один двигатель не найден.
-     * 4) Вернуть список существующих двигателей для синхронизации pivot-связей.
+     * 4) Назначить новым связям provider=OD, не доверяя внешнему payload.
+     * 5) Вернуть список engine links для синхронизации pivot-связей.
      *
      * @param  list<ModificationEngineRequestDTO>  $requests
-     * @return list<EngineData>|null
+     * @return list<ModificationEngineLinkDTO>|null
      */
-    private function existingEngines(array $requests): ?array
+    private function existingEngineLinks(array $requests): ?array
     {
-        $engines = [];
+        $links = [];
 
         foreach ($requests as $request) {
             $engine = $this->engines->findByEngId($request->engId);
@@ -217,9 +219,12 @@ final readonly class CreateModificationUseCase
                 return null;
             }
 
-            $engines[] = $engine;
+            $links[] = new ModificationEngineLinkDTO(
+                engine: $engine,
+                provider: ProviderEnum::OD,
+            );
         }
 
-        return $engines;
+        return $links;
     }
 }

@@ -194,6 +194,7 @@ final class VehicleCrmReadApiTest extends TestCase
             ->assertJsonPath('data.0.id', $engineId)
             ->assertJsonPath('data.0.modification_id', $modificationId)
             ->assertJsonPath('data.0.code_engine', 'CZDA')
+            ->assertJsonPath('data.0.relation_provider', ProviderEnum::TD->value)
             ->assertJsonPath('data.0.allow_change_fields', []);
 
         $wireEngine = WireVehicleCrmModificationEngineResource::fromArray($response->json('data.0'));
@@ -450,6 +451,7 @@ final class VehicleCrmReadApiTest extends TestCase
             'eng_id' => 5001,
             'mod_id' => 7001,
             'type' => VehicleTypeEnum::PC->value,
+            'provider' => ProviderEnum::TD->value,
         ]);
     }
 

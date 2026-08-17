@@ -118,7 +118,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             ->join('engine_modification', 'engine_modification.engine_id', '=', 'engines.id')
             ->join('modifications', 'modifications.id', '=', 'engine_modification.modification_id')
             ->where('modifications.vehicle_id', $vehicleId)
-            ->select('engines.*', 'engine_modification.modification_id');
+            ->select('engines.*', 'engine_modification.modification_id', 'engine_modification.provider as relation_provider');
 
         $this->applyEngineFilters($builder, $query->filters);
         $this->applyEngineSearch($builder, $query->search);
@@ -243,7 +243,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     /**
      * Применяет CRM filters к vehicle query.
      *
-     * @param  array<string, mixed>  $filters
+     * @param  array<string, string|int|float|bool|array<int, string|int|float|bool>|null>  $filters
      */
     private function applyFilters(Builder $query, array $filters): void
     {
@@ -332,7 +332,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * @param  array<string, mixed>  $filters
+     * @param  array<string, string|int|float|bool|array<int, string|int|float|bool>|null>  $filters
      */
     private function applyModificationFilters(Builder $query, array $filters): void
     {
@@ -394,7 +394,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * @param  array<string, mixed>  $filters
+     * @param  array<string, string|int|float|bool|array<int, string|int|float|bool>|null>  $filters
      */
     private function applyEngineFilters(Builder $query, array $filters): void
     {
@@ -454,7 +454,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
     }
 
     /**
-     * @param  array<string, mixed>  $filters
+     * @param  array<string, string|int|float|bool|array<int, string|int|float|bool>|null>  $filters
      */
     private function applyPartSpecificationFilters(Builder $query, array $filters): void
     {
@@ -604,6 +604,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             powerPsStart: (int) $engine->power_ps_start,
             fuelType: $engine->fuel_type->value,
             provider: $engine->provider->value,
+            relationProvider: (string) $engine->getAttribute('relation_provider'),
             engineCapacity: $engine->engine_capacity === null ? null : (float) $engine->engine_capacity,
             cylinderCount: $engine->cylinder_count === null ? null : (int) $engine->cylinder_count,
             cylinderDiameter: $engine->cylinder_diameter === null ? null : (float) $engine->cylinder_diameter,
@@ -625,6 +626,7 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             powerPsStart: (int) $engine->power_ps_start,
             fuelType: $engine->fuel_type->value,
             provider: $engine->provider->value,
+            relationProvider: $this->engineRelationProvider($engine),
             engineCapacity: $engine->engine_capacity === null ? null : (float) $engine->engine_capacity,
             cylinderCount: $engine->cylinder_count === null ? null : (int) $engine->cylinder_count,
             cylinderDiameter: $engine->cylinder_diameter === null ? null : (float) $engine->cylinder_diameter,
@@ -634,6 +636,17 @@ final readonly class VehicleCrmRepository implements VehicleCrmRepositoryInterfa
             groupId: $engine->group_id === null ? null : (int) $engine->group_id,
             allowChangeFields: $engine->allow_change_fields,
         );
+    }
+
+    private function engineRelationProvider(Engine $engine): ?string
+    {
+        $relationProvider = $engine->getAttribute('relation_provider') ?? $engine->pivot?->provider;
+
+        if ($relationProvider === null) {
+            return null;
+        }
+
+        return is_string($relationProvider) ? $relationProvider : $relationProvider->value;
     }
 
     private function partSpecification(PartSpecification $specification): VehicleCrmPartSpecificationDTO

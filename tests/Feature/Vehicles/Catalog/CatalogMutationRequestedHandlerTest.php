@@ -259,6 +259,7 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             'eng_id' => $engine->eng_id,
             'mod_id' => 3001,
             'type' => VehicleTypeEnum::PC->value,
+            'provider' => ProviderEnum::TD->value,
         ]);
 
         $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
@@ -391,6 +392,7 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             'eng_id' => $engine->eng_id,
             'mod_id' => $modification->mod_id,
             'type' => VehicleTypeEnum::PC->value,
+            'provider' => ProviderEnum::TD->value,
         ]);
 
         $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
@@ -459,6 +461,145 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
         ]);
     }
 
+    public function test_td_modification_update_can_add_od_engine_link_without_changing_td_link(): void
+    {
+        $manufacturer = $this->createManufacturer(107);
+        $vehicle = $this->createVehicle(607, $manufacturer);
+        $tdEngine = $this->createEngine(207, ProviderEnum::TD);
+        $odEngine = $this->createEngine(208, ProviderEnum::OD);
+        $modification = $this->createModification($vehicle, 4007, ProviderEnum::TD);
+
+        DB::table('engine_modification')->insert([
+            'engine_id' => $tdEngine->id,
+            'modification_id' => $modification->id,
+            'eng_id' => $tdEngine->eng_id,
+            'mod_id' => $modification->mod_id,
+            'type' => VehicleTypeEnum::PC->value,
+            'provider' => ProviderEnum::TD->value,
+        ]);
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Modification
+                && $result->operation === CatalogMutationOperationEnum::Update
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->recordId === $modification->id));
+
+        app(ModificationMutationRequestedHandler::class)->handle($this->modificationUpdatePayload(
+            operationId: 'modification-update-add-od-link-1',
+            vehicle: $vehicle,
+            modification: $modification,
+            engines: [
+                ['eng_id' => $tdEngine->eng_id, 'relation_provider' => ProviderEnum::TD->value],
+                ['eng_id' => $odEngine->eng_id, 'relation_provider' => ProviderEnum::OD->value],
+            ],
+        ));
+
+        $this->assertDatabaseHas('engine_modification', [
+            'engine_id' => $tdEngine->id,
+            'modification_id' => $modification->id,
+            'provider' => ProviderEnum::TD->value,
+        ]);
+        $this->assertDatabaseHas('engine_modification', [
+            'engine_id' => $odEngine->id,
+            'modification_id' => $modification->id,
+            'provider' => ProviderEnum::OD->value,
+        ]);
+    }
+
+    public function test_modification_update_stores_new_engine_link_as_od_when_payload_claims_td(): void
+    {
+        $manufacturer = $this->createManufacturer(109);
+        $vehicle = $this->createVehicle(609, $manufacturer);
+        $tdEngine = $this->createEngine(211, ProviderEnum::TD);
+        $odEngine = $this->createEngine(212, ProviderEnum::OD);
+        $modification = $this->createModification($vehicle, 4009, ProviderEnum::TD);
+
+        DB::table('engine_modification')->insert([
+            'engine_id' => $tdEngine->id,
+            'modification_id' => $modification->id,
+            'eng_id' => $tdEngine->eng_id,
+            'mod_id' => $modification->mod_id,
+            'type' => VehicleTypeEnum::PC->value,
+            'provider' => ProviderEnum::TD->value,
+        ]);
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Modification
+                && $result->operation === CatalogMutationOperationEnum::Update
+                && $result->status === CatalogMutationStatusEnum::Completed
+                && $result->recordId === $modification->id));
+
+        app(ModificationMutationRequestedHandler::class)->handle($this->modificationUpdatePayload(
+            operationId: 'modification-update-forged-td-link-1',
+            vehicle: $vehicle,
+            modification: $modification,
+            engines: [
+                ['eng_id' => $tdEngine->eng_id, 'relation_provider' => ProviderEnum::TD->value],
+                ['eng_id' => $odEngine->eng_id, 'relation_provider' => ProviderEnum::TD->value],
+            ],
+        ));
+
+        $this->assertDatabaseHas('engine_modification', [
+            'engine_id' => $tdEngine->id,
+            'modification_id' => $modification->id,
+            'provider' => ProviderEnum::TD->value,
+        ]);
+        $this->assertDatabaseHas('engine_modification', [
+            'engine_id' => $odEngine->id,
+            'modification_id' => $modification->id,
+            'provider' => ProviderEnum::OD->value,
+        ]);
+    }
+
+    public function test_td_modification_update_rejects_removing_td_engine_link(): void
+    {
+        $manufacturer = $this->createManufacturer(108);
+        $vehicle = $this->createVehicle(608, $manufacturer);
+        $tdEngine = $this->createEngine(209, ProviderEnum::TD);
+        $odEngine = $this->createEngine(210, ProviderEnum::OD);
+        $modification = $this->createModification($vehicle, 4008, ProviderEnum::TD);
+
+        DB::table('engine_modification')->insert([
+            'engine_id' => $tdEngine->id,
+            'modification_id' => $modification->id,
+            'eng_id' => $tdEngine->eng_id,
+            'mod_id' => $modification->mod_id,
+            'type' => VehicleTypeEnum::PC->value,
+            'provider' => ProviderEnum::TD->value,
+        ]);
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Modification
+                && $result->operation === CatalogMutationOperationEnum::Update
+                && $result->status === CatalogMutationStatusEnum::Rejected
+                && $result->reason === CatalogMutationRejectReasonEnum::ProviderOwnershipConflict->value));
+
+        app(ModificationMutationRequestedHandler::class)->handle($this->modificationUpdatePayload(
+            operationId: 'modification-update-remove-td-link-1',
+            vehicle: $vehicle,
+            modification: $modification,
+            engines: [
+                ['eng_id' => $odEngine->eng_id, 'relation_provider' => ProviderEnum::OD->value],
+            ],
+        ));
+
+        $this->assertDatabaseHas('engine_modification', [
+            'engine_id' => $tdEngine->id,
+            'modification_id' => $modification->id,
+            'provider' => ProviderEnum::TD->value,
+        ]);
+        $this->assertDatabaseMissing('engine_modification', [
+            'engine_id' => $odEngine->id,
+            'modification_id' => $modification->id,
+        ]);
+    }
+
     public function test_modification_create_rejects_unknown_nested_engine_without_creating_it(): void
     {
         $manufacturer = $this->createManufacturer(105);
@@ -491,6 +632,7 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
                     [
                         'eng_id' => 999999,
                         'code_engine' => 'NEW',
+                        'relation_provider' => ProviderEnum::OD->value,
                         'allow_change_fields' => [],
                     ],
                 ],
@@ -499,6 +641,51 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
 
         $this->assertDatabaseMissing('engines', ['eng_id' => 999999]);
         $this->assertDatabaseMissing('modifications', ['mod_id' => 4003]);
+    }
+
+    public function test_modification_create_stores_engine_link_as_od_when_payload_claims_td(): void
+    {
+        $manufacturer = $this->createManufacturer(110);
+        $vehicle = $this->createVehicle(610, $manufacturer);
+        $engine = $this->createEngine(213, ProviderEnum::TD);
+
+        $notifier = $this->mock(CatalogMutationNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (CatalogMutationResultDTO $result): bool => $result->entity === CatalogEntityEnum::Modification
+                && $result->operation === CatalogMutationOperationEnum::Create
+                && $result->status === CatalogMutationStatusEnum::Completed));
+
+        app(ModificationMutationRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'modification-create-forged-td-link-1',
+            'operation' => 'create',
+            'modification' => [
+                'mod_id' => 4010,
+                'ms_id' => $vehicle->ms_id,
+                'type' => VehicleTypeEnum::PC->value,
+                'year_from' => 2019,
+                'description' => '1.4 TSI',
+                'power_ps' => 150,
+                'power_kw' => 110,
+                'engine_type' => EngineTypeEnum::PETROL->value,
+                'provider' => ProviderEnum::OD->value,
+                'allow_change_fields' => [],
+                'engines' => [
+                    ['eng_id' => $engine->eng_id, 'relation_provider' => ProviderEnum::TD->value],
+                ],
+            ],
+        ]);
+
+        $modification = Modification::query()
+            ->where('mod_id', 4010)
+            ->firstOrFail();
+
+        $this->assertDatabaseHas('engine_modification', [
+            'engine_id' => $engine->id,
+            'modification_id' => $modification->id,
+            'provider' => ProviderEnum::OD->value,
+        ]);
     }
 
     public function test_catalog_mutation_events_have_unique_names_and_handlers(): void
@@ -539,6 +726,83 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
             'steering_type' => SteeringTypeEnum::LEFT->value,
             'is_allow' => false,
         ]);
+    }
+
+    private function createEngine(int $engId, ProviderEnum $provider): Engine
+    {
+        return Engine::query()->create([
+            'eng_id' => $engId,
+            'code_engine' => 'ENG'.$engId,
+            'power_kw_start' => 100,
+            'power_ps_start' => 136,
+            'fuel_type' => EngineFuelTypeEnum::PETROL->value,
+            'provider' => $provider->value,
+            'allow_change_fields' => [],
+        ]);
+    }
+
+    private function createModification(Vehicle $vehicle, int $modId, ProviderEnum $provider): Modification
+    {
+        return Modification::query()->create([
+            'vehicle_id' => $vehicle->id,
+            'ms_id' => $vehicle->ms_id,
+            'mod_id' => $modId,
+            'type' => VehicleTypeEnum::PC->value,
+            'year_from' => 2013,
+            'description' => '1.4 TSI',
+            'power_ps' => 150,
+            'power_kw' => 110,
+            'engine_type' => EngineTypeEnum::PETROL->value,
+            'provider' => $provider->value,
+            'allow_change_fields' => ['year_from', 'year_to'],
+        ]);
+    }
+
+    /**
+     * @param  list<array{eng_id: int, relation_provider: string}>  $engines
+     * @return array{
+     *     user_id: int,
+     *     operation_id: string,
+     *     operation: string,
+     *     modification: array{
+     *         mod_id: int,
+     *         ms_id: int,
+     *         type: string,
+     *         year_from: int,
+     *         description: string,
+     *         power_ps: int,
+     *         power_kw: int,
+     *         engine_type: string,
+     *         provider: string,
+     *         allow_change_fields: list<string>,
+     *         engines: list<array{eng_id: int, relation_provider: string}>
+     *     }
+     * }
+     */
+    private function modificationUpdatePayload(
+        string $operationId,
+        Vehicle $vehicle,
+        Modification $modification,
+        array $engines,
+    ): array {
+        return [
+            'user_id' => 42,
+            'operation_id' => $operationId,
+            'operation' => 'update',
+            'modification' => [
+                'mod_id' => $modification->mod_id,
+                'ms_id' => $vehicle->ms_id,
+                'type' => VehicleTypeEnum::PC->value,
+                'year_from' => 2013,
+                'description' => '1.4 TSI',
+                'power_ps' => 150,
+                'power_kw' => 110,
+                'engine_type' => EngineTypeEnum::PETROL->value,
+                'provider' => $modification->provider->value,
+                'allow_change_fields' => ['year_from', 'year_to'],
+                'engines' => $engines,
+            ],
+        ];
     }
 
     /**

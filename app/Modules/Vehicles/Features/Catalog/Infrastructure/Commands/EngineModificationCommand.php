@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands;
 
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\EngineModificationCommandInterface;
-use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\ModificationEngineLinkDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\EngineModification;
 use Illuminate\Support\Facades\DB;
@@ -13,21 +13,21 @@ use Illuminate\Support\Facades\DB;
 final readonly class EngineModificationCommand implements EngineModificationCommandInterface
 {
     /**
-     * Синхронизирует связи модификации с актуальным набором двигателей.
+     * Синхронизирует связи модификации с актуальным набором engine links.
      *
      * Шаги:
      * - В транзакции вычислить id двигателей, которые должны остаться связанными.
      * - Удалить устаревшие связи выбранной модификации.
-     * - Создать или обновить связи для переданных двигателей с внутренними id.
+     * - Создать или обновить связи для переданных двигателей с владельцем связи.
      *
-     * @param  list<EngineData>  $engines
+     * @param  list<ModificationEngineLinkDTO>  $links
      */
-    public function syncForModification(ModificationData $modification, array $engines): void
+    public function syncForModification(ModificationData $modification, array $links): void
     {
-        DB::transaction(function () use ($modification, $engines): void {
+        DB::transaction(function () use ($modification, $links): void {
             $engineIds = array_values(array_filter(array_map(
-                static fn (EngineData $engine): ?int => $engine->id === null ? null : (int) $engine->id,
-                $engines,
+                static fn (ModificationEngineLinkDTO $link): ?int => $link->engine->id === null ? null : (int) $link->engine->id,
+                $links,
             )));
 
             EngineModification::query()
@@ -35,7 +35,9 @@ final readonly class EngineModificationCommand implements EngineModificationComm
                 ->when($engineIds !== [], fn ($query) => $query->whereNotIn('engine_id', $engineIds))
                 ->delete();
 
-            foreach ($engines as $engine) {
+            foreach ($links as $link) {
+                $engine = $link->engine;
+
                 if ($engine->id === null || $modification->id === null) {
                     continue;
                 }
@@ -49,6 +51,7 @@ final readonly class EngineModificationCommand implements EngineModificationComm
                         'eng_id' => $engine->engId,
                         'mod_id' => $modification->modId,
                         'type' => $modification->type->value,
+                        'provider' => $link->provider->value,
                     ],
                 );
             }

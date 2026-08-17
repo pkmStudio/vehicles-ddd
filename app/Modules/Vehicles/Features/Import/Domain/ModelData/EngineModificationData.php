@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Domain\ModelData;
 
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
@@ -23,5 +24,6 @@ final class EngineModificationData extends Data
         public readonly int $engId,
         public readonly int $modId,
         public readonly VehicleTypeEnum $type,
+        public readonly ProviderEnum $provider,
     ) {}
 }

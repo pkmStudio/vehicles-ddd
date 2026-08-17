@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Import\Domain\DTOs\EngineModification;
 
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+
 final readonly class EngineModificationRowDTO
 {
     /**
@@ -13,5 +15,6 @@ final readonly class EngineModificationRowDTO
         public int $engId,
         public int $modId,
         public string $type,
+        public ProviderEnum $provider,
     ) {}
 }

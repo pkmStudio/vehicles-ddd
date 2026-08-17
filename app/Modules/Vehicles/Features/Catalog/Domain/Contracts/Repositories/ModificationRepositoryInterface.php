@@ -51,6 +51,17 @@ interface ModificationRepositoryInterface
     public function findByVehicleId(int $vehicleId): Collection;
 
     /**
+     * Возвращает внешние eng_id TD-связей двигателей с модификацией.
+     *
+     * Шаги:
+     * 1. Принять внутренний id модификации.
+     * 2. Вернуть collection внешних eng_id только для связей с provider=TD.
+     *
+     * @return Collection<int, int>
+     */
+    public function findTdEngineExternalIdsByModificationId(int $modificationId): Collection;
+
+    /**
      * Возвращает ids модификаций по vehicle ids.
      *
      * Шаги:

@@ -6,6 +6,7 @@ namespace App\Modules\Vehicles\Features\Import\Infrastructure\Imports\EngineModi
 
 use App\Modules\Vehicles\Features\Import\Domain\DTOs\EngineModification\EngineModificationRowDTO;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Imports\Formatters\ImportRowValueFormatter;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 
 /**
  * Маппит строку manager Excel-листа связей в DTO.
@@ -30,7 +31,8 @@ final readonly class EngineModificationSheetRowMapper
      *
      * Шаги:
      * 1) Прочитать mod_id, eng_id и type.
-     * 2) Нормализовать обязательные значения через formatter.
+     * 2) Игнорировать relation_provider из файла: менеджерский импорт может добавлять только OD-связи.
+     * 3) Нормализовать обязательные значения через formatter.
      *
      * @param  array<int, string|int|float|null>  $row
      */
@@ -40,6 +42,7 @@ final readonly class EngineModificationSheetRowMapper
             modId: $this->formatter->requiredInt($row[self::MOD_ID] ?? null, 'mod_id'),
             engId: $this->formatter->requiredInt($row[self::ENG_ID] ?? null, 'eng_id'),
             type: $this->formatter->requiredString($row[self::TYPE] ?? null, 'type'),
+            provider: ProviderEnum::OD,
         );
     }
 }

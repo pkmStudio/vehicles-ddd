@@ -12,15 +12,16 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\VehicleR
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationCacheServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationResultServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\ModificationEngineLinkDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\ModificationEngineRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification\UpdateModificationRequestDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
-use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\EngineData;
 use App\Modules\Vehicles\Features\Catalog\Domain\ModelData\ModificationData;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Events\ModificationEventPayloadDTO;
 use App\Modules\Vehicles\Shared\Domain\DTOs\Policy\ModificationWritePolicyResultDTO;
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Events\Modification\ModificationUpdated;
 use App\Modules\Vehicles\Shared\Domain\Exceptions\ProviderOwnershipException;
 use App\Modules\Vehicles\Shared\Domain\Services\Policy\ModificationWritePolicy;
@@ -95,10 +96,17 @@ final readonly class UpdateModificationUseCase
                 );
             }
 
-            $engines = [];
+            $engineLinks = [];
             if ($request->syncEngines) {
-                $engines = $this->existingEngines($request->engines);
-                if ($engines === null) {
+                $currentTdEngineIds = $existing->id === null
+                    ? []
+                    : $this->modifications->findTdEngineExternalIdsByModificationId($existing->id)->all();
+
+                $engineLinks = $this->existingEngineLinks(
+                    requests: $request->engines,
+                    currentTdEngineIds: $currentTdEngineIds,
+                );
+                if ($engineLinks === null) {
                     return $this->results->rejected(
                         userId: $request->userId,
                         operationId: $request->operationId,
@@ -108,6 +116,12 @@ final readonly class UpdateModificationUseCase
                         reason: CatalogMutationRejectReasonEnum::NotFound,
                     );
                 }
+
+                $this->writePolicy->assertTdModificationEngineLinksUnchanged(
+                    existing: ModificationWritePolicyResultDTO::fromArray($existing->toArray()),
+                    currentTdEngineIds: $currentTdEngineIds,
+                    incomingTdEngineIds: $this->tdRelationEngineIds($engineLinks),
+                );
             }
 
             $modificationData = new ModificationData(
@@ -144,7 +158,7 @@ final readonly class UpdateModificationUseCase
             if ($request->syncEngines) {
                 $this->engineModifications->syncForModification(
                     modification: $modification,
-                    engines: $engines,
+                    links: $engineLinks,
                 );
             }
 
@@ -210,20 +224,23 @@ final readonly class UpdateModificationUseCase
     }
 
     /**
-     * Возвращает только существующие двигатели, перечисленные во входящей modification mutation.
+     * Возвращает только существующие связи, перечисленные во входящей modification mutation.
      *
      * Шаги:
      * 1) Для каждого engine request требовать внешний `eng_id`.
      * 2) Найти существующий двигатель по `eng_id`.
      * 3) Вернуть `null`, если хотя бы один двигатель не найден.
-     * 4) Вернуть список существующих двигателей для синхронизации pivot-связей.
+     * 4) Сохранить provider=TD только для уже существующих TD-связей из БД.
+     * 5) Назначить новым и OD-связям provider=OD, не доверяя внешнему payload.
+     * 6) Вернуть список engine links для синхронизации pivot-связей.
      *
      * @param  list<ModificationEngineRequestDTO>  $requests
-     * @return list<EngineData>|null
+     * @param  array<int, int>  $currentTdEngineIds
+     * @return list<ModificationEngineLinkDTO>|null
      */
-    private function existingEngines(array $requests): ?array
+    private function existingEngineLinks(array $requests, array $currentTdEngineIds): ?array
     {
-        $engines = [];
+        $links = [];
 
         foreach ($requests as $request) {
             $engine = $this->engines->findByEngId($request->engId);
@@ -231,9 +248,33 @@ final readonly class UpdateModificationUseCase
                 return null;
             }
 
-            $engines[] = $engine;
+            $links[] = new ModificationEngineLinkDTO(
+                engine: $engine,
+                provider: in_array($request->engId, $currentTdEngineIds, true)
+                    ? ProviderEnum::TD
+                    : ProviderEnum::OD,
+            );
         }
 
-        return $engines;
+        return $links;
+    }
+
+    /**
+     * Возвращает внешние eng_id TD-связей из входящего списка связей.
+     *
+     * Шаги:
+     * 1) Оставить только связи с provider=TD.
+     * 2) Вернуть список их внешних eng_id для проверки write policy.
+     *
+     * @param  list<ModificationEngineLinkDTO>  $links
+     * @return array<int, int>
+     */
+    private function tdRelationEngineIds(array $links): array
+    {
+        return collect($links)
+            ->filter(fn (ModificationEngineLinkDTO $link): bool => $link->provider === ProviderEnum::TD)
+            ->map(fn (ModificationEngineLinkDTO $link): int => $link->engine->engId)
+            ->values()
+            ->all();
     }
 }

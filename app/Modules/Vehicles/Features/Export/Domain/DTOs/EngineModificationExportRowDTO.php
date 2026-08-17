@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Export\Domain\DTOs;
 
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+
 /**
  * Строка export-а связи модификации и двигателя.
  */
@@ -16,5 +18,6 @@ final readonly class EngineModificationExportRowDTO
         public int $modId,
         public int $engId,
         public string $type,
+        public ProviderEnum $relationProvider,
     ) {}
 }

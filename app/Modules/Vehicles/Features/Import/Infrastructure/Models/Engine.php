@@ -47,7 +47,7 @@ class Engine extends AbstractModel
     {
         return $this
             ->belongsToMany(Modification::class)
-            ->withPivot(['eng_id', 'mod_id', 'type']);
+            ->withPivot(['eng_id', 'mod_id', 'type', 'provider']);
     }
 
     /**

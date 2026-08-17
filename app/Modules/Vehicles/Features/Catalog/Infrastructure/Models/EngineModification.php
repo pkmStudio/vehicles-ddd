@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Infrastructure\Models;
 
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
 use App\Modules\Vehicles\Shared\Domain\Enums\Vehicle\VehicleTypeEnum;
 
 /**
@@ -15,6 +16,7 @@ class EngineModification extends AbstractModel
 
     protected $casts = [
         'type' => VehicleTypeEnum::class,
+        'provider' => ProviderEnum::class,
     ];
 
     public $timestamps = false;

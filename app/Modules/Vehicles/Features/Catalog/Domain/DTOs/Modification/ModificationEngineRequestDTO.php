@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Modification;
 
+use App\Modules\Vehicles\Shared\Domain\Enums\ProviderEnum;
+
 /**
  * Входящая ссылка на существующий двигатель, связанный с модификацией.
  */
@@ -14,5 +16,6 @@ final readonly class ModificationEngineRequestDTO
      */
     public function __construct(
         public int $engId,
+        public ProviderEnum $relationProvider,
     ) {}
 }

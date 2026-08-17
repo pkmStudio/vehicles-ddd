@@ -41,7 +41,26 @@ final readonly class VehicleWritePolicyResultDTO
     /**
      * Собирает DTO из snake_case массива локального Data-снимка.
      *
-     * @param  array<string, mixed>  $payload
+     * @param  array{
+     *     ms_id: int|string,
+     *     mfa_id: int|string,
+     *     manufacturer_id: int|string,
+     *     name: string,
+     *     type: string,
+     *     steering_type: string,
+     *     type_carcase: string,
+     *     provider: string,
+     *     generation: string,
+     *     generation_year_from: int|string,
+     *     is_allow: bool|int|string,
+     *     generation_year_to?: int|string|null,
+     *     parent_id?: int|string|null,
+     *     parent_ms_id?: int|string|null,
+     *     excel_table_id?: string|null,
+     *     localized_name?: string|null,
+     *     generation_short?: string|null,
+     *     id?: int|string|null
+     * } $payload
      */
     public static function fromArray(array $payload): self
     {
@@ -70,7 +89,26 @@ final readonly class VehicleWritePolicyResultDTO
     /**
      * Возвращает snake_case массив для передачи в feature-local Spatie Data.
      *
-     * @return array<string, mixed>
+     * @return array{
+     *     ms_id: int,
+     *     mfa_id: int,
+     *     manufacturer_id: int,
+     *     name: string,
+     *     type: string,
+     *     steering_type: string,
+     *     type_carcase: string,
+     *     provider: string,
+     *     generation: string,
+     *     generation_year_from: int,
+     *     generation_year_to: int|null,
+     *     parent_id: int|null,
+     *     parent_ms_id: int|null,
+     *     excel_table_id: string|null,
+     *     localized_name: string|null,
+     *     generation_short: string|null,
+     *     is_allow: bool,
+     *     id: int|null
+     * }
      */
     public function toArray(): array
     {

@@ -36,7 +36,23 @@ final readonly class EngineWritePolicyResultDTO
     /**
      * Собирает DTO из snake_case массива локального Data-снимка.
      *
-     * @param  array<string, mixed>  $payload
+     * @param  array{
+     *     eng_id: int|string,
+     *     provider: string,
+     *     code_engine: string,
+     *     power_kw_start: int|string,
+     *     power_ps_start: int|string,
+     *     fuel_type: string,
+     *     allow_change_fields: array<int, string>,
+     *     power_kw_upto?: int|string|null,
+     *     power_ps_upto?: int|string|null,
+     *     engine_capacity?: int|float|string|null,
+     *     cylinder_diameter?: int|float|string|null,
+     *     cylinder_count?: int|string|null,
+     *     number_of_valves?: int|string|null,
+     *     group_id?: int|string|null,
+     *     id?: int|string|null
+     * } $payload
      */
     public static function fromArray(array $payload): self
     {
@@ -62,7 +78,23 @@ final readonly class EngineWritePolicyResultDTO
     /**
      * Возвращает snake_case массив для передачи в feature-local Spatie Data.
      *
-     * @return array<string, mixed>
+     * @return array{
+     *     eng_id: int,
+     *     provider: string,
+     *     code_engine: string,
+     *     power_kw_start: int,
+     *     power_ps_start: int,
+     *     fuel_type: string,
+     *     power_kw_upto: int|null,
+     *     power_ps_upto: int|null,
+     *     engine_capacity: float|null,
+     *     cylinder_diameter: float|null,
+     *     cylinder_count: int|null,
+     *     number_of_valves: int|null,
+     *     group_id: int|null,
+     *     allow_change_fields: array<int, string>,
+     *     id: int|null
+     * }
      */
     public function toArray(): array
     {
