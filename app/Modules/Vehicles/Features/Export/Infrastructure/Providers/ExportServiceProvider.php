@@ -8,12 +8,14 @@ use App\Modules\Vehicles\Features\Export\Application\Services\EngineExportServic
 use App\Modules\Vehicles\Features\Export\Application\Services\Expanders\EngineSparkPlugSpecificationRowExpander;
 use App\Modules\Vehicles\Features\Export\Application\Services\Expanders\WiperRowExpander;
 use App\Modules\Vehicles\Features\Export\Application\Services\External\CleanupStaleExportFilesService;
+use App\Modules\Vehicles\Features\Export\Application\Services\ManufacturerExportService;
 use App\Modules\Vehicles\Features\Export\Application\Services\Rows\EngineExportRow;
 use App\Modules\Vehicles\Features\Export\Application\Services\Rows\VehicleExportRow;
 use App\Modules\Vehicles\Features\Export\Application\Services\VehicleExportService;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Clients\TemplatesClientInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\EngineModificationsExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\ManufacturerExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\ModificationCatalogExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
@@ -21,6 +23,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Files\ExportFileStorag
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\EngineRepositoryInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\ManufacturerRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\ModificationRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\EngineExportServiceInterface;
@@ -28,6 +31,7 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\Eng
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Expanders\WiperRowExpanderInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\CleanupStaleExportFilesServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\ManufacturerExportServiceInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\EngineExportRowInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\Rows\VehicleExportRowInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Services\VehicleExportServiceInterface;
@@ -35,6 +39,7 @@ use App\Modules\Vehicles\Features\Export\Infrastructure\Cache\LaravelExportRunCa
 use App\Modules\Vehicles\Features\Export\Infrastructure\Clients\TemplatesClient;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\EngineMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\EngineModification\EngineModificationsExport;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Manufacturer\ManufacturerExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Modification\ModificationCatalogExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\VehicleMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Factories\ExportFileFactory;
@@ -42,6 +47,7 @@ use App\Modules\Vehicles\Features\Export\Infrastructure\Files\LaravelExportFileS
 use App\Modules\Vehicles\Features\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\EngineModificationRepository;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\EngineRepository;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\ManufacturerRepository;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\ModificationRepository;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Repositories\VehicleRepository;
 use Illuminate\Support\ServiceProvider;
@@ -57,6 +63,7 @@ final class ExportServiceProvider extends ServiceProvider
     private const array EXPORT_BINDINGS = [
         EngineMultiSheetExportInterface::class => EngineMultiSheetExport::class,
         VehicleMultiSheetExportInterface::class => VehicleMultiSheetExport::class,
+        ManufacturerExportInterface::class => ManufacturerExport::class,
         ModificationCatalogExportInterface::class => ModificationCatalogExport::class,
         EngineModificationsExportInterface::class => EngineModificationsExport::class,
     ];
@@ -64,6 +71,7 @@ final class ExportServiceProvider extends ServiceProvider
     private const array REPOSITORY_BINDINGS = [
         VehicleRepositoryInterface::class => VehicleRepository::class,
         EngineRepositoryInterface::class => EngineRepository::class,
+        ManufacturerRepositoryInterface::class => ManufacturerRepository::class,
         ModificationRepositoryInterface::class => ModificationRepository::class,
         EngineModificationRepositoryInterface::class => EngineModificationRepository::class,
     ];
@@ -74,6 +82,7 @@ final class ExportServiceProvider extends ServiceProvider
         EngineExportRowInterface::class => EngineExportRow::class,
         WiperRowExpanderInterface::class => WiperRowExpander::class,
         EngineExportServiceInterface::class => EngineExportService::class,
+        ManufacturerExportServiceInterface::class => ManufacturerExportService::class,
         VehicleExportServiceInterface::class => VehicleExportService::class,
         ExportRunCacheServiceInterface::class => LaravelExportRunCacheService::class,
         CleanupStaleExportFilesServiceInterface::class => CleanupStaleExportFilesService::class,

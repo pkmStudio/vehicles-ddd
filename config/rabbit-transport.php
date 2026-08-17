@@ -172,6 +172,10 @@ return [
             ExportFileRequestedHandler::class,
             'handle',
         ],
+        VehiclesEventName::ManufacturersExportFileRequested->value => [
+            ExportFileRequestedHandler::class,
+            'handle',
+        ],
         VehiclesEventName::ModificationsExportFileRequested->value => [
             ExportFileRequestedHandler::class,
             'handle',
@@ -402,6 +406,7 @@ return [
             VehiclesRoutingKey::ManufacturersImport->value,
             VehiclesRoutingKey::VehiclesExport->value,
             VehiclesRoutingKey::EnginesExport->value,
+            VehiclesRoutingKey::ManufacturersExport->value,
             VehiclesRoutingKey::ModificationsExport->value,
             VehiclesRoutingKey::EngineModificationsExport->value,
             VehiclesRoutingKey::WarehouseNomenclatureExport->value,
