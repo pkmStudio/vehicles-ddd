@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Applicability\Features\Export\Infrastructure\Repositories;
 
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Repositories\KitApplicabilityExportRepositoryInterface;
+use App\Modules\Applicability\Features\Export\Domain\DTOs\ModificationKitApplicabilityRowDTO;
 use App\Modules\Applicability\Features\Export\Domain\DTOs\VehicleKitApplicabilityRowDTO;
 use App\Modules\Applicability\Features\Export\Infrastructure\Models\KitApplicability;
+use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilitySourceEnum;
 use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilityTargetTypeEnum;
+use App\Modules\Applicability\Shared\Domain\Enums\KitApplicabilityAlgorithmEnum;
 use Illuminate\Support\Collection;
 
 final readonly class KitApplicabilityExportRepository implements KitApplicabilityExportRepositoryInterface
@@ -49,6 +52,43 @@ final readonly class KitApplicabilityExportRepository implements KitApplicabilit
                         yearFrom: (int) $vehicle->generation_year_from,
                         yearTo: $vehicle->generation_year_to === null ? null : (int) $vehicle->generation_year_to,
                         typeCarcase: $vehicle->type_carcase,
+                    ));
+                }
+            });
+
+        return $rows;
+    }
+
+    /**
+     * Читает импортированную применяемость комплектов к модификациям для XLSX export.
+     *
+     * Шаги:
+     * 1. Отбирает `kit_applicabilities` по target type `MODIFICATION`.
+     * 2. Ограничивает выгрузку ручным XLSX-источником, который можно обратно импортировать.
+     * 3. Подгружает modification и пропускает битые ссылки.
+     * 4. Возвращает строки в порядке `ms_id`, `mod_id`, `kit_id`.
+     */
+    public function modificationRows(): Collection
+    {
+        $rows = collect();
+
+        KitApplicability::query()
+            ->where('target_type', ApplicabilityTargetTypeEnum::MODIFICATION)
+            ->where('source', ApplicabilitySourceEnum::IMPORTED)
+            ->where('algorithm', KitApplicabilityAlgorithmEnum::MANUAL_XLSX)
+            ->with('modification')
+            ->chunkById(1000, function (Collection $applicabilities) use ($rows): void {
+                foreach ($applicabilities as $applicability) {
+                    $modification = $applicability->modification;
+
+                    if ($modification === null) {
+                        continue;
+                    }
+
+                    $rows->push(new ModificationKitApplicabilityRowDTO(
+                        msId: (int) $modification->ms_id,
+                        modId: (int) $modification->mod_id,
+                        kitId: (int) $applicability->kit_id,
                     ));
                 }
             });

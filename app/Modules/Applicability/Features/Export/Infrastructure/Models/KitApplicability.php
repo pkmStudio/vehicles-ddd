@@ -32,4 +32,12 @@ class KitApplicability extends AbstractModel
     {
         return $this->belongsTo(PartSpecification::class, 'target_id');
     }
+
+    /**
+     * Возвращает modification, если применяемость привязана к модификации.
+     */
+    public function modification(): BelongsTo
+    {
+        return $this->belongsTo(Modification::class, 'target_id');
+    }
 }

@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Export\Infrastructure\Providers;
 
+use App\Modules\Applicability\Features\Export\Application\Services\ModificationKitApplicabilityExportService;
 use App\Modules\Applicability\Features\Export\Application\Services\VehicleKitApplicabilityExportService;
+use App\Modules\Applicability\Features\Export\Domain\Contracts\Exports\ModificationKitApplicabilityExportInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Exports\VehicleKitApplicabilityExportInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Notifications\ExportNotificationServiceInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Repositories\KitApplicabilityExportRepositoryInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\External\ExportRunCacheServiceInterface;
+use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\ModificationKitApplicabilityExportServiceInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\VehicleKitApplicabilityExportServiceInterface;
 use App\Modules\Applicability\Features\Export\Domain\Contracts\Services\VehicleKitApplicabilityReferenceServiceInterface;
+use App\Modules\Applicability\Features\Export\Infrastructure\Exports\ModificationKitApplicabilityExport;
 use App\Modules\Applicability\Features\Export\Infrastructure\Exports\VehicleKitApplicabilityExport;
 use App\Modules\Applicability\Features\Export\Infrastructure\Factories\ExportFileFactory;
 use App\Modules\Applicability\Features\Export\Infrastructure\Notifications\RabbitMqExportNotificationService;
@@ -23,6 +27,7 @@ use Illuminate\Support\ServiceProvider;
 final class ExportServiceProvider extends ServiceProvider
 {
     private const array EXPORT_BINDINGS = [
+        ModificationKitApplicabilityExportInterface::class => ModificationKitApplicabilityExport::class,
         VehicleKitApplicabilityExportInterface::class => VehicleKitApplicabilityExport::class,
     ];
 
@@ -31,6 +36,7 @@ final class ExportServiceProvider extends ServiceProvider
     ];
 
     private const array SERVICE_BINDINGS = [
+        ModificationKitApplicabilityExportServiceInterface::class => ModificationKitApplicabilityExportService::class,
         VehicleKitApplicabilityExportServiceInterface::class => VehicleKitApplicabilityExportService::class,
         VehicleKitApplicabilityReferenceServiceInterface::class => VehicleKitApplicabilityReferenceService::class,
         ExportRunCacheServiceInterface::class => ExportRunCacheService::class,
