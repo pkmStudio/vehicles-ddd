@@ -28,6 +28,8 @@ final readonly class ModificationKitApplicabilityExportService implements Modifi
 
     /**
      * Возвращает значения строки в порядке, который читает импорт `kit_applicability`.
+     *
+     * @return array{0: int, 1: int, 2: int}
      */
     public function mapRow(ModificationKitApplicabilityRowDTO $row): array
     {

@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use UnexpectedValueException;
 
 final readonly class ModificationKitApplicabilitySheetExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle
 {
@@ -47,9 +48,15 @@ final readonly class ModificationKitApplicabilitySheetExport implements FromColl
 
     /**
      * Преобразует DTO строки в массив значений Excel.
+     *
+     * @return array{0: int, 1: int, 2: int}
      */
     public function map($row): array
     {
+        if (! $row instanceof ModificationKitApplicabilityRowDTO) {
+            throw new UnexpectedValueException('Modification applicability export row must be ModificationKitApplicabilityRowDTO.');
+        }
+
         return $this->service->mapRow($row);
     }
 

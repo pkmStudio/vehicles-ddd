@@ -4,10 +4,19 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Export\Infrastructure\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Kit extends AbstractModel
 {
+    /**
+     * Возвращает тип набора, по которому export распределяет строки по листам.
+     */
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(Type::class);
+    }
+
     /**
      * Связывает комплект с номенклатурами в порядке состава комплекта.
      */

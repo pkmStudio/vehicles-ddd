@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Applicability\Features\Export\Infrastructure\Messaging\Validators;
 
-use App\Modules\Applicability\Features\Export\Domain\Enums\ExportTypeEnum;
 use Illuminate\Contracts\Validation\Factory as ValidatorFactory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Applicability\Features\Export\Enums\ApplicabilityExportType;
 
 final readonly class ExportFileRequestedPayloadValidator
 {
@@ -28,7 +28,9 @@ final readonly class ExportFileRequestedPayloadValidator
      * Шаги:
      * 1. Требует положительный `user_id`.
      * 2. Требует строковый `operation_id` ограниченной длины.
-     * 3. Ограничивает `export_type` поддерживаемыми значениями enum.
+     * 3. Ограничивает `export_type` поддерживаемыми значениями wire enum пакета.
+     *
+     * @param  array{user_id?: int|string, operation_id?: string, export_type?: string}  $data
      */
     public function make(array $data): Validator
     {
@@ -43,11 +45,13 @@ final readonly class ExportFileRequestedPayloadValidator
      * Возвращает допустимые wire-значения типов export-файла.
      *
      * Шаги:
-     * 1. Читает все cases локального `ExportTypeEnum`.
+     * 1. Читает все cases package `ApplicabilityExportType`.
      * 2. Возвращает их scalar value для Laravel validation rule.
+     *
+     * @return list<string>
      */
     private function exportTypes(): array
     {
-        return array_map(static fn (ExportTypeEnum $type): string => $type->value, ExportTypeEnum::cases());
+        return array_map(static fn (ApplicabilityExportType $type): string => $type->value, ApplicabilityExportType::cases());
     }
 }

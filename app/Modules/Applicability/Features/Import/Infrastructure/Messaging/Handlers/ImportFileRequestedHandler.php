@@ -9,6 +9,8 @@ use App\Modules\Applicability\Features\Import\Domain\DTOs\ExternalImportFileRequ
 use App\Modules\Applicability\Features\Import\Domain\Enums\ImportTypeEnum;
 use App\Modules\Applicability\Features\Import\Infrastructure\Messaging\Validators\ImportFileRequestedPayloadValidator;
 use Illuminate\Support\Facades\Log;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Applicability\Features\Import\DTO\ImportFileRequested as WireImportFileRequested;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Applicability\Features\Import\Enums\ApplicabilityImportType;
 
 final readonly class ImportFileRequestedHandler
 {
@@ -30,30 +32,63 @@ final readonly class ImportFileRequestedHandler
      * Шаги:
      * 1. Создает validator для raw payload.
      * 2. При ошибке validation пишет actionable error и отбрасывает сообщение без retry.
-     * 3. Собирает локальный `ExternalImportFileRequestDTO` с disk/path/cleanup flag.
-     * 4. Передает DTO в use case внешнего import workflow.
+     * 3. Собирает package wire DTO из validated payload.
+     * 4. Явно мапит package enum в локальный import enum.
+     * 5. Собирает локальный `ExternalImportFileRequestDTO` с disk/path/cleanup flag.
+     * 6. Передает DTO в use case внешнего import workflow.
+     *
+     * @param  array{user_id?: int|string, operation_id?: string, import_type?: string, disk?: string, path?: string, cleanup_after_import?: bool|int|string}  $data
      */
     public function handle(array $data): void
     {
         $validator = $this->validator->make($data);
 
         if ($validator->fails()) {
-            Log::error('RabbitMQ: Applicability import file request payload validation failed', [
+            $context = [
                 'invalid_keys' => array_keys($validator->errors()->toArray()),
-            ]);
+            ];
+
+            if (is_string($data['operation_id'] ?? null)) {
+                $context['operation_id'] = $data['operation_id'];
+            }
+
+            Log::error('RabbitMQ: Applicability import file request payload validation failed', $context);
 
             return;
         }
 
-        $data = $validator->validated();
+        $validated = $validator->validated();
+        $wirePayload = [
+            'user_id' => (int) $validated['user_id'],
+            'operation_id' => (string) $validated['operation_id'],
+            'import_type' => (string) $validated['import_type'],
+            'path' => (string) $validated['path'],
+            'cleanup_after_import' => (bool) ($validated['cleanup_after_import'] ?? true),
+        ];
+
+        if (is_string($validated['disk'] ?? null)) {
+            $wirePayload['disk'] = $validated['disk'];
+        }
+
+        $wireRequest = WireImportFileRequested::fromArray($wirePayload);
 
         $this->useCase->execute(new ExternalImportFileRequestDTO(
-            userId: (int) $data['user_id'],
-            operationId: (string) $data['operation_id'],
-            importType: ImportTypeEnum::from((string) $data['import_type']),
-            disk: (string) config('filesystems.files_disk', 's3'),
-            path: (string) $data['path'],
-            cleanupAfterImport: (bool) ($data['cleanup_after_import'] ?? true),
+            userId: $wireRequest->userId,
+            operationId: $wireRequest->operationId,
+            importType: $this->importType($wireRequest->importType),
+            disk: $wireRequest->disk,
+            path: $wireRequest->path,
+            cleanupAfterImport: $wireRequest->cleanupAfterImport,
         ));
+    }
+
+    /**
+     * Мапит package wire enum в локальный enum import workflow.
+     */
+    private function importType(ApplicabilityImportType $type): ImportTypeEnum
+    {
+        return match ($type) {
+            ApplicabilityImportType::KitApplicability => ImportTypeEnum::KitApplicability,
+        };
     }
 }

@@ -12,6 +12,7 @@ use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilitySourceEnum;
 use App\Modules\Applicability\Shared\Domain\Enums\ApplicabilityTargetTypeEnum;
 use App\Modules\Applicability\Shared\Domain\Enums\KitApplicabilityAlgorithmEnum;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 final readonly class KitApplicabilityExportRepository implements KitApplicabilityExportRepositoryInterface
 {
@@ -65,8 +66,8 @@ final readonly class KitApplicabilityExportRepository implements KitApplicabilit
      * Шаги:
      * 1. Отбирает `kit_applicabilities` по target type `MODIFICATION`.
      * 2. Ограничивает выгрузку ручным XLSX-источником, который можно обратно импортировать.
-     * 3. Подгружает modification и пропускает битые ссылки.
-     * 4. Возвращает строки в порядке `ms_id`, `mod_id`, `kit_id`.
+     * 3. Подгружает modification и kit.type, пропускает битые ссылки.
+     * 4. Возвращает строки в порядке `ms_id`, `mod_id`, `kit_id` с внутренним `typeChar`.
      */
     public function modificationRows(): Collection
     {
@@ -76,12 +77,20 @@ final readonly class KitApplicabilityExportRepository implements KitApplicabilit
             ->where('target_type', ApplicabilityTargetTypeEnum::MODIFICATION)
             ->where('source', ApplicabilitySourceEnum::IMPORTED)
             ->where('algorithm', KitApplicabilityAlgorithmEnum::MANUAL_XLSX)
-            ->with('modification')
+            ->with(['modification', 'kit.type'])
             ->chunkById(1000, function (Collection $applicabilities) use ($rows): void {
                 foreach ($applicabilities as $applicability) {
                     $modification = $applicability->modification;
+                    $kit = $applicability->kit;
+                    $typeChar = $kit?->type?->char;
 
-                    if ($modification === null) {
+                    if ($modification === null || $kit === null || ! is_string($typeChar) || $typeChar === '') {
+                        Log::warning('Applicability modification export skipped row without modification or kit type', [
+                            'kit_id' => (int) $applicability->kit_id,
+                            'ms_id' => $modification?->ms_id === null ? null : (int) $modification->ms_id,
+                            'mod_id' => $modification?->mod_id === null ? null : (int) $modification->mod_id,
+                        ]);
+
                         continue;
                     }
 
@@ -89,6 +98,7 @@ final readonly class KitApplicabilityExportRepository implements KitApplicabilit
                         msId: (int) $modification->ms_id,
                         modId: (int) $modification->mod_id,
                         kitId: (int) $applicability->kit_id,
+                        typeChar: $typeChar,
                     ));
                 }
             });

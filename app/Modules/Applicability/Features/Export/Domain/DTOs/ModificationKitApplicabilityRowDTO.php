@@ -13,5 +13,6 @@ final readonly class ModificationKitApplicabilityRowDTO
         public int $msId,
         public int $modId,
         public int $kitId,
+        public string $typeChar,
     ) {}
 }

@@ -17,13 +17,14 @@ final readonly class ExportFileFactory implements ExportFileFactoryInterface
      *
      * Шаги:
      * 1. Сопоставляет `VehicleKitApplicability` с marker interface его export adapter-а.
-     * 2. Возвращает adapter из Laravel container через общий `FileExportInterface`.
+     * 2. Сопоставляет `ModificationKitApplicability` с marker interface его export adapter-а.
+     * 3. Возвращает adapter из Laravel container через общий `FileExportInterface`.
      */
     public function make(ExportTypeEnum $type): FileExportInterface
     {
         return match ($type) {
             ExportTypeEnum::VehicleKitApplicability => app(VehicleKitApplicabilityExportInterface::class),
-            ExportTypeEnum::KitApplicability => app(ModificationKitApplicabilityExportInterface::class),
+            ExportTypeEnum::ModificationKitApplicability => app(ModificationKitApplicabilityExportInterface::class),
         };
     }
 }
