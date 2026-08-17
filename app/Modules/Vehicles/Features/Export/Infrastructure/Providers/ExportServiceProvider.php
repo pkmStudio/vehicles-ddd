@@ -17,6 +17,8 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\EngineModifica
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\EngineMultiSheetExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\ManufacturerExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\ModificationCatalogExportInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleCountryCsvExportInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleFullCsvExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Files\ExportFileStorageInterface;
@@ -41,6 +43,8 @@ use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Engine\EngineMul
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\EngineModification\EngineModificationsExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Manufacturer\ManufacturerExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Modification\ModificationCatalogExport;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\StaticFile\VehicleCountryCsvExport;
+use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\StaticFile\VehicleFullCsvExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\Vehicle\VehicleMultiSheetExport;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Factories\ExportFileFactory;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Files\LaravelExportFileStorage;
@@ -66,6 +70,8 @@ final class ExportServiceProvider extends ServiceProvider
         ManufacturerExportInterface::class => ManufacturerExport::class,
         ModificationCatalogExportInterface::class => ModificationCatalogExport::class,
         EngineModificationsExportInterface::class => EngineModificationsExport::class,
+        VehicleFullCsvExportInterface::class => VehicleFullCsvExport::class,
+        VehicleCountryCsvExportInterface::class => VehicleCountryCsvExport::class,
     ];
 
     private const array REPOSITORY_BINDINGS = [

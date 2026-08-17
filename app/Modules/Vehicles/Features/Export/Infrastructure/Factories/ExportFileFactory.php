@@ -9,10 +9,11 @@ use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\EngineMultiShe
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\FileExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\ManufacturerExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\ModificationCatalogExportInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleCountryCsvExportInterface;
+use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleFullCsvExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Exports\VehicleMultiSheetExportInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Contracts\Factories\ExportFileFactoryInterface;
 use App\Modules\Vehicles\Features\Export\Domain\Enums\ExportTypeEnum;
-use App\Modules\Vehicles\Features\Export\Infrastructure\Exports\StaticFile\StaticVehicleFileExport;
 
 /**
  * Маппит тип экспорта на конкретный Excel-адаптер на Infrastructure boundary.
@@ -35,8 +36,8 @@ final readonly class ExportFileFactory implements ExportFileFactoryInterface
             ExportTypeEnum::Manufacturer => app(ManufacturerExportInterface::class),
             ExportTypeEnum::ModificationCatalog => app(ModificationCatalogExportInterface::class),
             ExportTypeEnum::EngineModifications => app(EngineModificationsExportInterface::class),
-            ExportTypeEnum::VehicleFullCsv,
-            ExportTypeEnum::VehicleCountryCsv => app()->makeWith(StaticVehicleFileExport::class, ['type' => $type]),
+            ExportTypeEnum::VehicleFullCsv => app(VehicleFullCsvExportInterface::class),
+            ExportTypeEnum::VehicleCountryCsv => app(VehicleCountryCsvExportInterface::class),
         };
     }
 }
