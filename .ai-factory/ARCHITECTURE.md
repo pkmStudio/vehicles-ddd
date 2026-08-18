@@ -166,8 +166,10 @@ app/Modules/<Module>/Features/<Feature>/
 - Выбор конкретных import/export Excel adapters по enum/типу запроса находится в
   `Infrastructure/Factories` или provider closures за domain-портом; Application/use case не
   владеет adapter-specific constructor parameters.
-- `Presentation` парсит вход, валидирует entrypoint-level параметры и вызывает concrete use case
-  или service port.
+- `Presentation` парсит вход, валидирует entrypoint-level параметры и вызывает read
+  client/facade либо concrete use case/service port. Read client/facade допустим между HTTP
+  controller и use cases, если он read-only, не содержит бизнес-логики/IO и только собирает
+  удобную публичную поверхность над read-сценариями.
 - Межфичевый sync-вызов идет через локальный `Domain/Contracts/Clients/*ClientInterface` фичи-потребителя и adapter в ее `Infrastructure/Clients`.
 - События используются только для фактов без return value; если нужен ответ сразу, это client/query contract, не event.
 - `Shared` внутри доменного модуля — публичная часть модуля, а не папка для общей бизнес-логики.
@@ -226,8 +228,12 @@ app/Modules/<Module>/Features/<Feature>/
   `event(new ...)`; не используем `fromData(object)`/`fromModel(object)` и другие универсальные
   object/mixed-входы без точного входного типа.
 - REST CRM read API — read-only boundary для `dan-center`: entity-specific controllers/routes,
-  concrete read use cases/query services, presenters/response DTO for HTTP shape, service-key
-  middleware. Запись каталога через REST CRM read API не делаем.
+  read client/facade или concrete read use cases/query services, presenters/response DTO for HTTP
+  shape, service-key middleware. Запись каталога через REST CRM read API не делаем.
+- REST catalog site read API для `dan-catalog` строится тем же read-only паттерном:
+  `CatalogController` → read client/facade → catalog read use cases/query services →
+  presenter/response DTO, под отдельным service-key middleware и без смешивания с CRM/mutation
+  routes.
 
 ## Context Map
 
@@ -349,7 +355,8 @@ adapter. Если нужно сообщить факт без ответа — d
 | Write policy | `<Entity>WritePolicy` + `<Entity>WritePolicyResultDTO` |
 | Rabbit inbound | `<Message>Handler` + `<Message>PayloadValidator` |
 | Rabbit outbound | `<Transport><Subject>NotificationService` |
-| REST CRM read API | `<Entity>CrmController` + presenter/response DTO |
+| REST CRM read API | `<Entity>CrmController` + read client/facade + presenter/response DTO |
+| REST catalog site read API | `<Subject>CatalogController` + read client/facade + presenter/response DTO |
 | CRUD shared payload | `<Entity>EventPayloadDTO` |
 | Domain fact | `<Subject><PastTense>` без суффикса `Event` |
 
@@ -405,7 +412,8 @@ adapter. Если нужно сообщить факт без ответа — d
 | Excel export | adapter в `Infrastructure/Exports`, rows/expanders в `Application/Services` |
 | RabbitMQ inbound | `Infrastructure/Messaging/Handlers` + `Infrastructure/Messaging/Validators` |
 | RabbitMQ outbound | port в `Domain/Contracts/Notifications`, adapter в `Infrastructure/Notifications` |
-| REST CRM read API | `Catalog/Presentation/Http/Controllers/<Entity>CrmController` + read use case/query service + presenter/response DTO |
+| REST CRM read API | `Catalog/Presentation/Http/Controllers/<Entity>CrmController` + read client/facade или read use case/query service + presenter/response DTO |
+| REST catalog site read API | `Catalog/Presentation/Http/Controllers/<Subject>CatalogController` + read client/facade + catalog read use cases/query services + presenter/response DTO |
 | Межфичевый sync client | локальный port у потребителя + adapter в `Infrastructure/Clients` |
 | Domain event | `Domain/Events` фичи или `<Module>/Shared/Domain/Events` для публичного факта |
 | Разовый catalog fix | `Maintenance/Presentation/Console/Commands` + `Maintenance/Application/Services` |

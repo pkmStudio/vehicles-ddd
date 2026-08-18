@@ -535,10 +535,17 @@ Rabbit config заполняем через enum-контракты `dan-wire-co
 REST CRM read API — отдельный read-only boundary для `dan-center`, а не место записи каталога.
 Routes группируем по сущностям и возможностям, без агрегированного "умного" контроллера на все:
 `VehicleCrmController`, `ManufacturerCrmController`, `EngineCrmController`, ... Контроллеры тонкие
-и ходят в concrete read use cases/query services; запись идет только через catalog mutation
-Rabbit/write workflow. HTTP response shape (`snake_case`, envelope, pagination meta/options) живет
-в presenters/response DTO на Presentation/Infrastructure boundary, а не в Domain `ModelData`.
-Доступ к CRM read API защищает service-key middleware.
+и ходят в read client/facade либо concrete read use cases/query services; запись идет только через
+catalog mutation Rabbit/write workflow. Read client/facade допустим между controller и use cases,
+если он read-only, не содержит бизнес-логики/IO и только собирает удобную публичную поверхность
+над несколькими read-сценариями. HTTP response shape (`snake_case`, envelope, pagination
+meta/options) живет в presenters/response DTO на Presentation/Infrastructure boundary, а не в
+Domain `ModelData`. Доступ к CRM read API защищает service-key middleware.
+
+REST read API для внешнего сайта каталога (`dan-catalog`) строится тем же паттерном:
+`Catalog/Presentation/Http/Controllers/<Subject>CatalogController` → read client/facade →
+catalog read use cases/query services → presenter/response DTO. Такой API read-only, защищен своим
+service-key middleware и не смешивается с CRM routes или catalog mutation write workflow.
 
 ### Идемпотентность и отложенная очистка внешнего импорта — через cache, не БД
 
@@ -642,7 +649,7 @@ Actionable события:
 | Папка | Что лежит | Правила |
 |---|---|---|
 | `Console/Commands/` | Artisan-команды фичи | Парсят аргументы → зовут UseCase/Service. Без бизнес-логики. Import: `TecDocImportCars`. Maintenance: `UpdateVehicleYears`, `DeduplicatePartSpecificationsCommand`, … |
-| `Http/Controllers/` | Контроллеры | Тонкие: валидация → UseCase → ответ. (Общей Presentation-папки на весь домен нет — только внутри фичи.) |
+| `Http/Controllers/` | Контроллеры | Тонкие: валидация → read client/facade или UseCase/Service → presenter/response. Read client/facade допустим, если он read-only и только делегирует в use cases/query services. (Общей Presentation-папки на весь домен нет — только внутри фичи.) |
 
 Регистрация команд — через `bootstrap/app.php` `->withCommands([...])`.
 
@@ -925,7 +932,8 @@ Presentation   -> exposes console/http entrypoints
 | Импорт из Excel (консольный, без внешнего инициатора) | адаптер → `Import/Infrastructure/Imports/<Entity>/` + построчный Service; порт → `Contracts/Imports/Command/` |
 | Импорт из Excel по внешнему запросу (`userId`/`operationId`/`disk` снаружи) | адаптер implements `Contracts/Imports/External/FileImportInterface`; DTO-контекст → `ImportRunContextDTO` |
 | Входящую команду от брокера (RabbitMQ) | `Import/Infrastructure/Messaging/Handlers/` (+ `Messaging/Validators/`) → зовёт `UseCase` |
-| REST CRM read API | `Catalog/Presentation/Http/Controllers/<Entity>CrmController` → read use case/query service → presenter/response DTO; read-only, под service-key middleware; HTTP shape не в Domain `ModelData` |
+| REST CRM read API | `Catalog/Presentation/Http/Controllers/<Entity>CrmController` → read client/facade или read use case/query service → presenter/response DTO; read-only, под service-key middleware; HTTP shape не в Domain `ModelData` |
+| REST catalog site read API | `Catalog/Presentation/Http/Controllers/<Subject>CatalogController` → read client/facade → catalog read use cases/query services → presenter/response DTO; read-only, под отдельным service-key middleware; не смешивать с CRM и mutation/write workflow |
 | Экспорт в Excel | адаптер → `Export/Infrastructure/Exports/<Entity>/`; порт → `Contracts/Exports/`; сборка строк → `Export/Application/Services/Rows|Expanders/` |
 | Queued Excel import | adapter остаётся в `Infrastructure/Imports`; constructor/saved state только scalar/DTO/value state; services/repositories/clients/loggers резолвятся во время job; listeners без closures |
 | Внешнее уведомление/интеграцию | порт → `Domain/Contracts/Notifications/`, реализация → `Infrastructure/Notifications/` (внутри — пакет rabbit-transport) |
