@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Catalog;
 
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Notifications\EngineBulkDeleteNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Engine\EngineBulkDeleteResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationStatusEnum;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\EngineBulkDeleteRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\EngineMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\ManufacturerMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\ModificationMutationRequestedHandler;
@@ -696,10 +699,39 @@ final class CatalogMutationRequestedHandlerTest extends TestCase
         $this->assertSame([EngineMutationRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.ENGINE_CREATE_REQUESTED'));
         $this->assertSame([EngineMutationRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.ENGINE_UPDATE_REQUESTED'));
         $this->assertSame([EngineMutationRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.ENGINE_DELETE_REQUESTED'));
+        $this->assertSame([EngineBulkDeleteRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.ENGINE_BULK_DELETE_REQUESTED'));
         $this->assertSame([ModificationMutationRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.MODIFICATION_CREATE_REQUESTED'));
         $this->assertSame([ModificationMutationRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.MODIFICATION_UPDATE_REQUESTED'));
         $this->assertSame([ModificationMutationRequestedHandler::class, 'handle'], config('rabbit-transport.inbound.MODIFICATION_DELETE_REQUESTED'));
         $this->assertSame('vehicles.catalog.mutation.completed', config('rabbit-transport.outbound.VEHICLES_CATALOG_MUTATION_COMPLETED'));
+        $this->assertSame('vehicles.catalog.bulk-delete.completed', config('rabbit-transport.outbound.VEHICLES_CATALOG_BULK_DELETE_COMPLETED'));
+    }
+
+    public function test_engine_bulk_delete_deletes_od_rows_and_rejects_td_rows(): void
+    {
+        $odEngine = $this->createEngine(901, ProviderEnum::OD);
+        $tdEngine = $this->createEngine(902, ProviderEnum::TD);
+
+        $notifier = $this->mock(EngineBulkDeleteNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (EngineBulkDeleteResultDTO $result): bool => $result->entity === CatalogEntityEnum::Engine
+                && $result->status === CatalogMutationStatusEnum::CompletedWithErrors
+                && $result->operationId === 'engine-bulk-delete-1'
+                && $result->requested === 3
+                && $result->deleted === 1
+                && $result->skipped === 1
+                && $result->failed === 1
+                && count($result->errors) === 2));
+
+        app(EngineBulkDeleteRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'engine-bulk-delete-1',
+            'eng_ids' => [$odEngine->eng_id, $tdEngine->eng_id, 999999],
+        ]);
+
+        $this->assertDatabaseMissing('engines', ['id' => $odEngine->id]);
+        $this->assertDatabaseHas('engines', ['id' => $tdEngine->id]);
     }
 
     private function createManufacturer(int $mfaId): Manufacturer

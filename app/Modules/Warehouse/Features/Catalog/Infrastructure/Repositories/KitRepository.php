@@ -41,6 +41,29 @@ final readonly class KitRepository implements KitRepositoryInterface
     }
 
     /**
+     * Возвращает существующие ids из переданного списка.
+     *
+     * @param  list<int>  $ids
+     * @return Collection<int, int>
+     *
+     * Шаги:
+     * 1) Собрать Eloquent query по списку id.
+     * 2) Выбрать только существующие id.
+     * 3) Вернуть Support Collection с целочисленными значениями.
+     */
+    public function existingIds(array $ids): Collection
+    {
+        if ($ids === []) {
+            return collect();
+        }
+
+        return Kit::query()
+            ->whereIn('id', $ids)
+            ->pluck('id')
+            ->values();
+    }
+
+    /**
      * Возвращает ids наборов упаковочного размера.
      *
      * @return Collection<int, int>

@@ -14,6 +14,7 @@ use App\Modules\Applicability\Features\Import\Domain\Enums\ImportTypeEnum;
 use App\Modules\Applicability\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
 use Mockery;
 use PkmStudio\DanWireContracts\Vehicles\Modules\Applicability\Features\Import\DTO\ImportFileRequested as WireImportFileRequested;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Applicability\Features\Import\Enums\ApplicabilityImportType;
 use Tests\TestCase;
 
 final class ImportFileRequestedHandlerTest extends TestCase
@@ -60,7 +61,8 @@ final class ImportFileRequestedHandlerTest extends TestCase
         $message = new WireImportFileRequested(
             userId: 42,
             operationId: 'wire-import-applicability',
-            importType: 'kit_applicability',
+            importType: ApplicabilityImportType::KitApplicability,
+            disk: 's3',
             path: 'applicability/import.xlsx',
         );
 

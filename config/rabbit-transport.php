@@ -38,17 +38,23 @@ declare(strict_types=1);
 use App\Modules\Applicability\Features\Calculation\Infrastructure\Messaging\Handlers\CalculationRequestedHandler as ApplicabilityCalculationRequestedHandler;
 use App\Modules\Applicability\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as ApplicabilityExportFileRequestedHandler;
 use App\Modules\Applicability\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler as ApplicabilityImportFileRequestedHandler;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\EngineBulkDeleteRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\EngineMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\ManufacturerMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\ModificationMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\PartSpecificationMutationRequestedHandler;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\VehicleBulkDeleteRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
 use App\Modules\Vehicles\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\BrandBulkDeleteRequestedHandler as WarehouseBrandBulkDeleteRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\BrandMutationRequestedHandler as WarehouseBrandMutationRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\KitBulkDeleteRequestedHandler as WarehouseKitBulkDeleteRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\KitMutationRequestedHandler as WarehouseKitMutationRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\KitResetRequestedHandler as WarehouseKitResetRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\NomenclatureBulkDeleteRequestedHandler as WarehouseNomenclatureBulkDeleteRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\NomenclatureMutationRequestedHandler as WarehouseNomenclatureMutationRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\PackDimensionBulkDeleteRequestedHandler as WarehousePackDimensionBulkDeleteRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\PackDimensionMutationRequestedHandler as WarehousePackDimensionMutationRequestedHandler;
 use App\Modules\Warehouse\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler as WarehouseExportFileRequestedHandler;
 use App\Modules\Warehouse\Features\Import\Infrastructure\Messaging\Handlers\ImportFileRequestedHandler as WarehouseImportFileRequestedHandler;
@@ -284,6 +290,22 @@ return [
             WarehouseKitResetRequestedHandler::class,
             'handle',
         ],
+        VehiclesEventName::WarehouseBrandBulkDeleteRequested->value => [
+            WarehouseBrandBulkDeleteRequestedHandler::class,
+            'handle',
+        ],
+        VehiclesEventName::WarehouseNomenclatureBulkDeleteRequested->value => [
+            WarehouseNomenclatureBulkDeleteRequestedHandler::class,
+            'handle',
+        ],
+        VehiclesEventName::WarehousePackDimensionBulkDeleteRequested->value => [
+            WarehousePackDimensionBulkDeleteRequestedHandler::class,
+            'handle',
+        ],
+        VehiclesEventName::WarehouseKitBulkDeleteRequested->value => [
+            WarehouseKitBulkDeleteRequestedHandler::class,
+            'handle',
+        ],
 
         VehiclesEventName::VehicleCreateRequested->value => [
             VehicleMutationRequestedHandler::class,
@@ -319,6 +341,14 @@ return [
         ],
         VehiclesEventName::EngineDeleteRequested->value => [
             EngineMutationRequestedHandler::class,
+            'handle',
+        ],
+        VehiclesEventName::VehicleBulkDeleteRequested->value => [
+            VehicleBulkDeleteRequestedHandler::class,
+            'handle',
+        ],
+        VehiclesEventName::EngineBulkDeleteRequested->value => [
+            EngineBulkDeleteRequestedHandler::class,
             'handle',
         ],
         VehiclesEventName::ModificationCreateRequested->value => [
@@ -368,6 +398,8 @@ return [
         VehiclesEventName::ApplicabilityCalculationCompleted->value => 'applicability.calculation.completed',
         VehiclesEventName::VehiclesCatalogMutationCompleted->value => 'vehicles.catalog.mutation.completed',
         VehiclesEventName::WarehouseCatalogMutationCompleted->value => 'warehouse.catalog.mutation.completed',
+        VehiclesEventName::WarehouseCatalogBulkDeleteCompleted->value => VehiclesRoutingKey::WarehouseCatalogBulkDeleteCompleted->value,
+        VehiclesEventName::VehiclesCatalogBulkDeleteCompleted->value => VehiclesRoutingKey::VehiclesCatalogBulkDeleteCompleted->value,
     ],
 
     /*
@@ -432,15 +464,21 @@ return [
             VehiclesRoutingKey::WarehouseKitUpdate->value,
             VehiclesRoutingKey::WarehouseKitDelete->value,
             VehiclesRoutingKey::WarehouseKitReset->value,
+            VehiclesRoutingKey::WarehouseBrandBulkDelete->value,
+            VehiclesRoutingKey::WarehouseNomenclatureBulkDelete->value,
+            VehiclesRoutingKey::WarehousePackDimensionBulkDelete->value,
+            VehiclesRoutingKey::WarehouseKitBulkDelete->value,
             VehiclesRoutingKey::VehicleCreate->value,
             VehiclesRoutingKey::VehicleUpdate->value,
             VehiclesRoutingKey::VehicleDelete->value,
+            VehiclesRoutingKey::VehicleBulkDelete->value,
             VehiclesRoutingKey::ManufacturerCreate->value,
             VehiclesRoutingKey::ManufacturerUpdate->value,
             VehiclesRoutingKey::ManufacturerDelete->value,
             VehiclesRoutingKey::EngineCreate->value,
             VehiclesRoutingKey::EngineUpdate->value,
             VehiclesRoutingKey::EngineDelete->value,
+            VehiclesRoutingKey::EngineBulkDelete->value,
             VehiclesRoutingKey::ModificationCreate->value,
             VehiclesRoutingKey::ModificationUpdate->value,
             VehiclesRoutingKey::ModificationDelete->value,

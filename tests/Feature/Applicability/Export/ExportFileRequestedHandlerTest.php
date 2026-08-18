@@ -15,18 +15,38 @@ use App\Modules\Applicability\Features\Export\Domain\Enums\ExportTypeEnum;
 use App\Modules\Applicability\Features\Export\Infrastructure\Messaging\Handlers\ExportFileRequestedHandler;
 use Mockery;
 use PkmStudio\DanWireContracts\Vehicles\Modules\Applicability\Features\Export\DTO\ExportFileRequested as WireExportFileRequested;
+use PkmStudio\DanWireContracts\Vehicles\Modules\Applicability\Features\Export\Enums\ApplicabilityExportType;
 use Tests\TestCase;
 
 final class ExportFileRequestedHandlerTest extends TestCase
 {
-    public function test_accepts_published_wire_export_request_payload(): void
+    public function test_accepts_published_wire_vehicle_export_request_payload(): void
     {
+        $this->handleExportRequest(
+            wireExportType: ApplicabilityExportType::VehicleKitApplicability,
+            localExportType: ExportTypeEnum::VehicleKitApplicability,
+        );
+    }
+
+    public function test_accepts_published_wire_modification_export_request_payload(): void
+    {
+        $this->handleExportRequest(
+            wireExportType: ApplicabilityExportType::ModificationKitApplicability,
+            localExportType: ExportTypeEnum::ModificationKitApplicability,
+        );
+    }
+
+    private function handleExportRequest(
+        ApplicabilityExportType $wireExportType,
+        ExportTypeEnum $localExportType,
+    ): void {
         config(['applicability.export.output.disk' => 's3']);
 
+        $operationId = 'wire-export-'.$wireExportType->value;
         $cache = Mockery::mock(ExportRunCacheServiceInterface::class);
         $cache->shouldReceive('accept')
             ->once()
-            ->with('wire-export-applicability')
+            ->with($operationId)
             ->andReturnTrue();
 
         $export = Mockery::mock(FileExportInterface::class);
@@ -34,7 +54,7 @@ final class ExportFileRequestedHandlerTest extends TestCase
             ->once()
             ->with(
                 Mockery::on(fn (ExportRunContextDTO $context): bool => $context->userId === 42
-                    && $context->operationId === 'wire-export-applicability'),
+                    && $context->operationId === $operationId),
                 's3',
             )
             ->andReturn('exports/applicability.xlsx');
@@ -42,15 +62,15 @@ final class ExportFileRequestedHandlerTest extends TestCase
         $factory = Mockery::mock(ExportFileFactoryInterface::class);
         $factory->shouldReceive('make')
             ->once()
-            ->with(ExportTypeEnum::VehicleKitApplicability)
+            ->with($localExportType)
             ->andReturn($export);
 
         $notifier = Mockery::mock(ExportNotificationServiceInterface::class);
         $notifier->shouldReceive('notifyExportCompleted')
             ->once()
             ->with(Mockery::on(fn (ExportCompletionNotificationDTO $notification): bool => $notification->userId === 42
-                && $notification->operationId === 'wire-export-applicability'
-                && $notification->exportType === ExportTypeEnum::VehicleKitApplicability
+                && $notification->operationId === $operationId
+                && $notification->exportType === $localExportType
                 && $notification->disk === 's3'
                 && $notification->path === 'exports/applicability.xlsx'));
 
@@ -61,8 +81,8 @@ final class ExportFileRequestedHandlerTest extends TestCase
 
         $message = new WireExportFileRequested(
             userId: 42,
-            operationId: 'wire-export-applicability',
-            exportType: 'vehicle_kit_applicability',
+            operationId: $operationId,
+            exportType: $wireExportType,
         );
 
         app(ExportFileRequestedHandler::class)->handle($message->toArray());

@@ -16,6 +16,14 @@ use Illuminate\Support\Collection;
 final readonly class EngineRepository implements EngineRepositoryInterface
 {
     /**
+     * Возвращает двигатель по внутреннему id или null.
+     */
+    public function findById(int $id): ?EngineData
+    {
+        return EngineData::optional(Engine::query()->find($id));
+    }
+
+    /**
      * Возвращает первый Data-снимок двигателей по внешнему идентификатору.
      *
      * Шаги:
@@ -26,6 +34,36 @@ final readonly class EngineRepository implements EngineRepositoryInterface
     public function findByEngId(int $engId): ?EngineData
     {
         return EngineData::optional(Engine::query()->where('eng_id', $engId)->first());
+    }
+
+    /**
+     * Возвращает двигатели по внешним eng_id, индексированные по eng_id.
+     *
+     * @param  list<int>  $engIds
+     * @return Collection<int, EngineData>
+     */
+    public function findByEngIds(array $engIds): Collection
+    {
+        $engines = Engine::query()
+            ->whereIn('eng_id', $engIds)
+            ->get();
+
+        return EngineData::collect($engines, Collection::class)->keyBy('engId');
+    }
+
+    /**
+     * Возвращает двигатели по внутренним id, индексированные по id.
+     *
+     * @param  array<int, int>  $ids
+     * @return Collection<int, EngineData>
+     */
+    public function findByIds(array $ids): Collection
+    {
+        $engines = Engine::query()
+            ->whereIn('id', $ids)
+            ->get();
+
+        return EngineData::collect($engines, Collection::class)->keyBy('id');
     }
 
     /**

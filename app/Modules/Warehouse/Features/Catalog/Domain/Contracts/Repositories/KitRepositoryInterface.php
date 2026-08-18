@@ -31,6 +31,19 @@ interface KitRepositoryInterface
     public function findByImportHash(string $importHash): ?KitData;
 
     /**
+     * Возвращает существующие ids из переданного списка.
+     *
+     * @param  list<int>  $ids
+     * @return Collection<int, int>
+     *
+     * Шаги:
+     * 1. Принять список внутренних id комплектов.
+     * 2. Выбрать из БД только реально существующие id.
+     * 3. Вернуть Support Collection с найденными id.
+     */
+    public function existingIds(array $ids): Collection;
+
+    /**
      * Возвращает ids наборов упаковочного размера.
      *
      * Шаги:

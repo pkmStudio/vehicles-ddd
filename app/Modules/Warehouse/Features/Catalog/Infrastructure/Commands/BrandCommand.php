@@ -61,8 +61,22 @@ final readonly class BrandCommand implements BrandCommandInterface
      */
     public function deleteById(int $id): void
     {
-        DB::transaction(function () use ($id): void {
-            Brand::query()->whereKey($id)->delete();
+        $this->deleteByIds([$id]);
+    }
+
+    /**
+     * Удаляет бренды по id.
+     *
+     * @param  list<int>  $ids
+     */
+    public function deleteByIds(array $ids): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        DB::transaction(function () use ($ids): void {
+            Brand::query()->whereKey($ids)->delete();
         });
     }
 }

@@ -7,6 +7,7 @@ namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\BrandData;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
+use Illuminate\Support\Collection;
 
 /**
  * Читает Warehouse-бренды для Catalog-мутаций.
@@ -41,5 +42,20 @@ final readonly class BrandRepository implements BrandRepositoryInterface
             ->first();
 
         return BrandData::optional($brand);
+    }
+
+    /**
+     * Возвращает бренды по id, индексированные по id.
+     *
+     * @param  array<int, int>  $ids
+     * @return Collection<int, BrandData>
+     */
+    public function findByIds(array $ids): Collection
+    {
+        $brands = Brand::query()
+            ->whereIn('id', $ids)
+            ->get();
+
+        return BrandData::collect($brands, Collection::class)->keyBy('id');
     }
 }

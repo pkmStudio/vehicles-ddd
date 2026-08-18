@@ -7,6 +7,7 @@ namespace App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\ModelData\PackDimensionData;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\PackDimension;
+use Illuminate\Support\Collection;
 
 /**
  * Читает упаковочные размеры Warehouse для Catalog-мутаций.
@@ -28,5 +29,21 @@ final readonly class PackDimensionRepository implements PackDimensionRepositoryI
             ->find($id);
 
         return PackDimensionData::optional($packDimension);
+    }
+
+    /**
+     * Возвращает упаковки по id, индексированные по id.
+     *
+     * @param  array<int, int>  $ids
+     * @return Collection<int, PackDimensionData>
+     */
+    public function findByIds(array $ids): Collection
+    {
+        $packDimensions = PackDimension::query()
+            ->with('type')
+            ->whereIn('id', $ids)
+            ->get();
+
+        return PackDimensionData::collect($packDimensions, Collection::class)->keyBy('id');
     }
 }

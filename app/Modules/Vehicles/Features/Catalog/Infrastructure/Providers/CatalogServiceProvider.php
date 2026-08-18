@@ -27,6 +27,8 @@ use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\PartSpecific
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Commands\VehicleCommandInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\PartSpecificationMutationRequestFactoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Factories\PartSpecificationOwnerResolverFactoryInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Notifications\EngineBulkDeleteNotificationServiceInterface;
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Notifications\VehicleBulkDeleteNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineCrmRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\EngineRepositoryInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Repositories\ManufacturerCrmRepositoryInterface;
@@ -51,6 +53,8 @@ use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\ModificationCo
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\PartSpecificationCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Commands\VehicleCommand;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Notifications\RabbitMqCatalogMutationNotificationService;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Notifications\RabbitMqEngineBulkDeleteNotificationService;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Notifications\RabbitMqVehicleBulkDeleteNotificationService;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\EngineCrmRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\EngineRepository;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Repositories\ManufacturerCrmRepository;
@@ -104,6 +108,8 @@ final class CatalogServiceProvider extends ServiceProvider
         CatalogCascadeDeleteServiceInterface::class => CatalogCascadeDeleteService::class,
         CatalogMutationCacheServiceInterface::class => LaravelCatalogMutationCacheService::class,
         CatalogMutationNotificationServiceInterface::class => RabbitMqCatalogMutationNotificationService::class,
+        VehicleBulkDeleteNotificationServiceInterface::class => RabbitMqVehicleBulkDeleteNotificationService::class,
+        EngineBulkDeleteNotificationServiceInterface::class => RabbitMqEngineBulkDeleteNotificationService::class,
         CatalogMutationResultServiceInterface::class => CatalogMutationResultService::class,
         VehiclePartSpecificationOwnerResolverInterface::class => VehiclePartSpecificationOwnerResolver::class,
         EnginePartSpecificationOwnerResolverInterface::class => EnginePartSpecificationOwnerResolver::class,

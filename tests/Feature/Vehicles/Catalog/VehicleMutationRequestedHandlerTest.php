@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Vehicles\Catalog;
 
+use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Notifications\VehicleBulkDeleteNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\Contracts\Services\CatalogMutationNotificationServiceInterface;
 use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\CatalogMutationResultDTO;
+use App\Modules\Vehicles\Features\Catalog\Domain\DTOs\Vehicle\VehicleBulkDeleteResultDTO;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogEntityEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationOperationEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationRejectReasonEnum;
 use App\Modules\Vehicles\Features\Catalog\Domain\Enums\CatalogMutationStatusEnum;
+use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\VehicleBulkDeleteRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Messaging\Handlers\VehicleMutationRequestedHandler;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Manufacturer;
 use App\Modules\Vehicles\Features\Catalog\Infrastructure\Models\Vehicle;
@@ -523,16 +526,47 @@ final class VehicleMutationRequestedHandlerTest extends TestCase
     public function test_vehicle_mutation_events_have_unique_names_and_same_handler(): void
     {
         $handler = [VehicleMutationRequestedHandler::class, 'handle'];
+        $bulkDeleteHandler = [VehicleBulkDeleteRequestedHandler::class, 'handle'];
 
         $this->assertSame($handler, config('rabbit-transport.inbound.VEHICLE_CREATE_REQUESTED'));
         $this->assertSame($handler, config('rabbit-transport.inbound.VEHICLE_UPDATE_REQUESTED'));
         $this->assertSame($handler, config('rabbit-transport.inbound.VEHICLE_DELETE_REQUESTED'));
+        $this->assertSame($bulkDeleteHandler, config('rabbit-transport.inbound.VEHICLE_BULK_DELETE_REQUESTED'));
 
         $bindings = (array) config('rabbit-transport.setup.bindings');
 
         $this->assertContains('crm.vehicles.create', $bindings);
         $this->assertContains('crm.vehicles.update', $bindings);
         $this->assertContains('crm.vehicles.delete', $bindings);
+        $this->assertContains('crm.vehicles.bulk-delete', $bindings);
+    }
+
+    public function test_vehicle_bulk_delete_deletes_od_rows_and_rejects_td_rows(): void
+    {
+        $manufacturer = $this->createManufacturer();
+        $odVehicle = $this->createVehicle(msId: 801, manufacturer: $manufacturer, provider: ProviderEnum::OD);
+        $tdVehicle = $this->createVehicle(msId: 802, manufacturer: $manufacturer, provider: ProviderEnum::TD);
+
+        $notifier = $this->mock(VehicleBulkDeleteNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (VehicleBulkDeleteResultDTO $result): bool => $result->entity === CatalogEntityEnum::Vehicle
+                && $result->status === CatalogMutationStatusEnum::CompletedWithErrors
+                && $result->operationId === 'vehicle-bulk-delete-1'
+                && $result->requested === 3
+                && $result->deleted === 1
+                && $result->skipped === 1
+                && $result->failed === 1
+                && count($result->errors) === 2));
+
+        app(VehicleBulkDeleteRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'vehicle-bulk-delete-1',
+            'ms_ids' => [$odVehicle->ms_id, $tdVehicle->ms_id, 999999],
+        ]);
+
+        $this->assertDatabaseMissing('vehicles', ['id' => $odVehicle->id]);
+        $this->assertDatabaseHas('vehicles', ['id' => $tdVehicle->id]);
     }
 
     private function createManufacturer(int $mfaId = 10): Manufacturer

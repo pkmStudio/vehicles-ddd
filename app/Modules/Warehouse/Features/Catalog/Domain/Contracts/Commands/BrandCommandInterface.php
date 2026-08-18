@@ -40,4 +40,15 @@ interface BrandCommandInterface
      * 3) Завершить без возврата бизнес-данных.
      */
     public function deleteById(int $id): void;
+
+    /**
+     * Удаляет бренды по id.
+     *
+     * Шаги:
+     * 1) Принять список внутренних id брендов.
+     * 2) Выполнить batch delete через infrastructure command.
+     *
+     * @param  list<int>  $ids
+     */
+    public function deleteByIds(array $ids): void;
 }

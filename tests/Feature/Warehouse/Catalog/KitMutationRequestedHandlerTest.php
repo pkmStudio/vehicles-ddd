@@ -5,16 +5,22 @@ declare(strict_types=1);
 namespace Tests\Feature\Warehouse\Catalog;
 
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Notifications\KitBulkDeleteNotificationServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Services\WarehouseCatalogMutationNotificationServiceInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\Kit\KitBulkDeleteResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\KitProperties\KitPropertiesDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\DTOs\WarehouseCatalogMutationResultDTO;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogEntityEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationOperationEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationRejectReasonEnum;
 use App\Modules\Warehouse\Features\Catalog\Domain\Enums\WarehouseCatalogMutationStatusEnum;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\BrandBulkDeleteRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\BrandMutationRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\KitBulkDeleteRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\KitMutationRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\NomenclatureBulkDeleteRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\NomenclatureMutationRequestedHandler;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\PackDimensionBulkDeleteRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Messaging\Handlers\PackDimensionMutationRequestedHandler;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Brand;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Models\Kit;
@@ -290,12 +296,68 @@ final class KitMutationRequestedHandlerTest extends TestCase
         $this->assertSame(0, Kit::query()->count());
     }
 
+    public function test_kit_bulk_delete_deletes_existing_rows_and_reports_missing_ids_once(): void
+    {
+        [$type, $brand, $packDimension] = $this->createBaseCatalog();
+        $firstKit = Kit::query()->create($this->kitAttributes($type->id, $packDimension->id, 'hash-bulk-1'));
+        $secondKit = Kit::query()->create($this->kitAttributes($type->id, $packDimension->id, 'hash-bulk-2'));
+
+        $notifier = $this->mock(KitBulkDeleteNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (KitBulkDeleteResultDTO $result): bool => $result->entity === WarehouseCatalogEntityEnum::Kit
+                && $result->status === WarehouseCatalogMutationStatusEnum::CompletedWithErrors
+                && $result->operationId === 'warehouse-kit-bulk-delete-1'
+                && $result->requested === 3
+                && $result->deleted === 2
+                && $result->skipped === 1
+                && $result->failed === 0
+                && count($result->errors) === 1
+                && $result->errors[0]->id === 999));
+
+        app(KitBulkDeleteRequestedHandler::class)->handle([
+            'user_id' => 42,
+            'operation_id' => 'warehouse-kit-bulk-delete-1',
+            'ids' => [$firstKit->id, 999, $secondKit->id],
+        ]);
+
+        $this->assertDatabaseMissing('kits', ['id' => $firstKit->id]);
+        $this->assertDatabaseMissing('kits', ['id' => $secondKit->id]);
+    }
+
+    public function test_kit_bulk_delete_is_idempotent_by_operation_id(): void
+    {
+        [$type, $brand, $packDimension] = $this->createBaseCatalog();
+        $kit = Kit::query()->create($this->kitAttributes($type->id, $packDimension->id, 'hash-bulk-idempotent'));
+
+        $notifier = $this->mock(KitBulkDeleteNotificationServiceInterface::class);
+        $notifier->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::on(fn (KitBulkDeleteResultDTO $result): bool => $result->operationId === 'warehouse-kit-bulk-delete-idempotent'
+                && $result->deleted === 1));
+
+        $payload = [
+            'user_id' => 42,
+            'operation_id' => 'warehouse-kit-bulk-delete-idempotent',
+            'ids' => [$kit->id],
+        ];
+
+        app(KitBulkDeleteRequestedHandler::class)->handle($payload);
+        app(KitBulkDeleteRequestedHandler::class)->handle($payload);
+
+        $this->assertDatabaseMissing('kits', ['id' => $kit->id]);
+    }
+
     public function test_warehouse_catalog_mutation_events_are_registered(): void
     {
         $brandHandler = [BrandMutationRequestedHandler::class, 'handle'];
         $nomenclatureHandler = [NomenclatureMutationRequestedHandler::class, 'handle'];
         $packDimensionHandler = [PackDimensionMutationRequestedHandler::class, 'handle'];
         $kitHandler = [KitMutationRequestedHandler::class, 'handle'];
+        $brandBulkDeleteHandler = [BrandBulkDeleteRequestedHandler::class, 'handle'];
+        $nomenclatureBulkDeleteHandler = [NomenclatureBulkDeleteRequestedHandler::class, 'handle'];
+        $packDimensionBulkDeleteHandler = [PackDimensionBulkDeleteRequestedHandler::class, 'handle'];
+        $kitBulkDeleteHandler = [KitBulkDeleteRequestedHandler::class, 'handle'];
 
         $this->assertSame($brandHandler, config('rabbit-transport.inbound.WAREHOUSE_BRAND_CREATE_REQUESTED'));
         $this->assertSame($brandHandler, config('rabbit-transport.inbound.WAREHOUSE_BRAND_UPDATE_REQUESTED'));
@@ -309,7 +371,12 @@ final class KitMutationRequestedHandlerTest extends TestCase
         $this->assertSame($kitHandler, config('rabbit-transport.inbound.WAREHOUSE_KIT_CREATE_REQUESTED'));
         $this->assertSame($kitHandler, config('rabbit-transport.inbound.WAREHOUSE_KIT_UPDATE_REQUESTED'));
         $this->assertSame($kitHandler, config('rabbit-transport.inbound.WAREHOUSE_KIT_DELETE_REQUESTED'));
+        $this->assertSame($brandBulkDeleteHandler, config('rabbit-transport.inbound.WAREHOUSE_BRAND_BULK_DELETE_REQUESTED'));
+        $this->assertSame($nomenclatureBulkDeleteHandler, config('rabbit-transport.inbound.WAREHOUSE_NOMENCLATURE_BULK_DELETE_REQUESTED'));
+        $this->assertSame($packDimensionBulkDeleteHandler, config('rabbit-transport.inbound.WAREHOUSE_PACK_DIMENSION_BULK_DELETE_REQUESTED'));
+        $this->assertSame($kitBulkDeleteHandler, config('rabbit-transport.inbound.WAREHOUSE_KIT_BULK_DELETE_REQUESTED'));
         $this->assertSame('warehouse.catalog.mutation.completed', config('rabbit-transport.outbound.WAREHOUSE_CATALOG_MUTATION_COMPLETED'));
+        $this->assertSame('warehouse.catalog.bulk-delete.completed', config('rabbit-transport.outbound.WAREHOUSE_CATALOG_BULK_DELETE_COMPLETED'));
 
         $bindings = (array) config('rabbit-transport.setup.bindings');
 
@@ -325,6 +392,10 @@ final class KitMutationRequestedHandlerTest extends TestCase
         $this->assertContains('crm.warehouse.kits.create', $bindings);
         $this->assertContains('crm.warehouse.kits.update', $bindings);
         $this->assertContains('crm.warehouse.kits.delete', $bindings);
+        $this->assertContains('crm.warehouse.brands.bulk-delete', $bindings);
+        $this->assertContains('crm.warehouse.nomenclatures.bulk-delete', $bindings);
+        $this->assertContains('crm.warehouse.pack-dimensions.bulk-delete', $bindings);
+        $this->assertContains('crm.warehouse.kits.bulk-delete', $bindings);
     }
 
     /**

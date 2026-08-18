@@ -21,7 +21,11 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\BrandComman
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\KitCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\NomenclatureCommandInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Commands\PackDimensionCommandInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Notifications\BrandBulkDeleteNotificationServiceInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Notifications\KitBulkDeleteNotificationServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Notifications\KitResetNotificationServiceInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Notifications\NomenclatureBulkDeleteNotificationServiceInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Notifications\PackDimensionBulkDeleteNotificationServiceInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\Applicability\WarehouseApplicabilityRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
@@ -42,7 +46,11 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands\BrandCommand;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands\KitCommand;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands\NomenclatureCommand;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Commands\PackDimensionCommand;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Notifications\RabbitMqBrandBulkDeleteNotificationService;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Notifications\RabbitMqKitBulkDeleteNotificationService;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Notifications\RabbitMqKitResetNotificationService;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Notifications\RabbitMqNomenclatureBulkDeleteNotificationService;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Notifications\RabbitMqPackDimensionBulkDeleteNotificationService;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Notifications\RabbitMqWarehouseCatalogMutationNotificationService;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\Applicability\WarehouseApplicabilityRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\BrandCrmRepository;
@@ -90,6 +98,10 @@ final class CatalogServiceProvider extends ServiceProvider
         WarehouseCatalogMutationNotificationServiceInterface::class => RabbitMqWarehouseCatalogMutationNotificationService::class,
         WarehouseCatalogMutationResultServiceInterface::class => WarehouseCatalogMutationResultService::class,
         KitResetNotificationServiceInterface::class => RabbitMqKitResetNotificationService::class,
+        BrandBulkDeleteNotificationServiceInterface::class => RabbitMqBrandBulkDeleteNotificationService::class,
+        KitBulkDeleteNotificationServiceInterface::class => RabbitMqKitBulkDeleteNotificationService::class,
+        NomenclatureBulkDeleteNotificationServiceInterface::class => RabbitMqNomenclatureBulkDeleteNotificationService::class,
+        PackDimensionBulkDeleteNotificationServiceInterface::class => RabbitMqPackDimensionBulkDeleteNotificationService::class,
     ];
 
     private const array CLIENT_BINDINGS = [

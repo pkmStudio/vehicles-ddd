@@ -61,8 +61,22 @@ final readonly class PackDimensionCommand implements PackDimensionCommandInterfa
      */
     public function deleteById(int $id): void
     {
-        DB::transaction(function () use ($id): void {
-            PackDimension::query()->whereKey($id)->delete();
+        $this->deleteByIds([$id]);
+    }
+
+    /**
+     * Удаляет упаковки по id.
+     *
+     * @param  list<int>  $ids
+     */
+    public function deleteByIds(array $ids): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        DB::transaction(function () use ($ids): void {
+            PackDimension::query()->whereKey($ids)->delete();
         });
     }
 }

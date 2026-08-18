@@ -10,6 +10,7 @@ namespace App\Modules\Warehouse\Features\Catalog\Domain\Enums;
 enum WarehouseCatalogMutationStatusEnum: string
 {
     case Completed = 'completed';
+    case CompletedWithErrors = 'completed_with_errors';
     case Rejected = 'rejected';
     case Failed = 'failed';
 }

@@ -41,6 +41,36 @@ final readonly class VehicleRepository implements VehicleRepositoryInterface
     }
 
     /**
+     * Возвращает ТС по внешним ms_id, индексированные по ms_id.
+     *
+     * @param  list<int>  $msIds
+     * @return Collection<int, VehicleData>
+     */
+    public function findByMsIds(array $msIds): Collection
+    {
+        $vehicles = Vehicle::query()
+            ->whereIn('ms_id', $msIds)
+            ->get();
+
+        return VehicleData::collect($vehicles, Collection::class)->keyBy('msId');
+    }
+
+    /**
+     * Возвращает ТС по внутренним id, индексированные по id.
+     *
+     * @param  array<int, int>  $ids
+     * @return Collection<int, VehicleData>
+     */
+    public function findByIds(array $ids): Collection
+    {
+        $vehicles = Vehicle::query()
+            ->whereIn('id', $ids)
+            ->get();
+
+        return VehicleData::collect($vehicles, Collection::class)->keyBy('id');
+    }
+
+    /**
      * Возвращает разрешённые ТС производителя.
      *
      * Шаги:

@@ -31,6 +31,30 @@ interface VehicleRepositoryInterface
     public function findByMsId(int $msId): ?VehicleData;
 
     /**
+     * Возвращает ТС по внешним ms_id, индексированные по ms_id.
+     *
+     * Шаги:
+     * 1. Принять список внешних `ms_id` автомобилей.
+     * 2. Вернуть найденные `VehicleData`, индексированные по `ms_id`.
+     *
+     * @param  list<int>  $msIds
+     * @return Collection<int, VehicleData>
+     */
+    public function findByMsIds(array $msIds): Collection;
+
+    /**
+     * Возвращает ТС по внутренним id, индексированные по id.
+     *
+     * Шаги:
+     * 1. Принять список внутренних id автомобилей.
+     * 2. Вернуть найденные `VehicleData`, индексированные по id.
+     *
+     * @param  array<int, int>  $ids
+     * @return Collection<int, VehicleData>
+     */
+    public function findByIds(array $ids): Collection;
+
+    /**
      * Возвращает разрешённые ТС производителя.
      *
      * Шаги:
