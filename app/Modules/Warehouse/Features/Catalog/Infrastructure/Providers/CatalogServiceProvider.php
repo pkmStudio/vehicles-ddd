@@ -9,11 +9,13 @@ use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\KitCrmClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\NomenclatureCrmClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\PackDimensionCrmClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Clients\CRM\TypeCrmClient;
+use App\Modules\Warehouse\Features\Catalog\Application\Clients\NomenclatureCatalogClient;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogCascadeDeleteService;
 use App\Modules\Warehouse\Features\Catalog\Application\Services\WarehouseCatalogMutationResultService;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\BrandCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\KitPropertiesClientInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\NomenclatureCatalogClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\NomenclatureCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\PackDimensionCrmClientInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Clients\TypeCrmClientInterface;
@@ -27,6 +29,7 @@ use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandCr
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\BrandRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\KitRepositoryInterface;
+use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCatalogRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureCrmRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\NomenclatureRepositoryInterface;
 use App\Modules\Warehouse\Features\Catalog\Domain\Contracts\Repositories\PackDimensionCrmRepositoryInterface;
@@ -49,6 +52,7 @@ use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\BrandCrmR
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\BrandRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\KitCrmRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\KitRepository;
+use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCatalogRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureCrm\NomenclatureCrmRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\NomenclatureRepository;
 use App\Modules\Warehouse\Features\Catalog\Infrastructure\Repositories\PackDimensionCrmRepository;
@@ -77,6 +81,7 @@ final class CatalogServiceProvider extends ServiceProvider
         TypeCrmRepositoryInterface::class => TypeCrmRepository::class,
         NomenclatureRepositoryInterface::class => NomenclatureRepository::class,
         NomenclatureCrmRepositoryInterface::class => NomenclatureCrmRepository::class,
+        NomenclatureCatalogRepositoryInterface::class => NomenclatureCatalogRepository::class,
         KitCrmRepositoryInterface::class => KitCrmRepository::class,
         PackDimensionCrmRepositoryInterface::class => PackDimensionCrmRepository::class,
         PackDimensionRepositoryInterface::class => PackDimensionRepository::class,
@@ -94,6 +99,7 @@ final class CatalogServiceProvider extends ServiceProvider
 
     private const array CLIENT_BINDINGS = [
         KitPropertiesClientInterface::class => KitPropertiesClient::class,
+        NomenclatureCatalogClientInterface::class => NomenclatureCatalogClient::class,
         BrandCrmClientInterface::class => BrandCrmClient::class,
         NomenclatureCrmClientInterface::class => NomenclatureCrmClient::class,
         KitCrmClientInterface::class => KitCrmClient::class,
